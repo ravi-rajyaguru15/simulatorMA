@@ -38,7 +38,11 @@ class sim:
 		# offload to neighbour
 		this.ed.message = message(samples=samples)
 		res = this.ed.sendTo(this.ed2)
+		# print res
 		res += this.ed2.process()
+		# print res
+		res += this.ed2.sendTo(this.ed)
+		# print res
 		# print 'offload p2p:\t\t\t', res
 
 		return res
@@ -74,7 +78,10 @@ class sim:
 
 if __name__ == '__main__':
 	simulation = sim()
-	simulation.offloadElasticNode(100)
-	simulation.localProcess(100)
-	simulation.offloadPeer(100)
-	simulation.offloadServer(100)
+	print simulation.offloadElasticNode(100)
+	print 
+	print simulation.localProcess(100)
+	print 
+	print simulation.offloadPeer(100)
+	print 
+	print simulation.offloadServer(100)

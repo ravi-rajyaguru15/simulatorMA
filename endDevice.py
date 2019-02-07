@@ -19,7 +19,7 @@ class endDevice:
 		reception = destination.receive(this.message)
 		this.message = None
 
-		return result(latency, energy)
+		return result(latency, energy) + reception
 
 
 	def receive(this, message):
@@ -28,7 +28,8 @@ class endDevice:
 		return result(latency=0, energy=this.mcu.activeEnergy(this.mrf.rxtxLatency(this.message.size) + this.mrf.rxEnergy(this.message.size)))
 
 	def process(this):
-		res = result(latency=this.mcu.processingTime(this.message.samples), energy=this.mcu.activeEnergy(this.mcu.processingTime(this.message.samples)))
+		time = this.mcu.processingTime(this.message.samples)
+		res = result(latency=time, energy=this.mcu.activeEnergy(time))
 
 		this.message.process()
 

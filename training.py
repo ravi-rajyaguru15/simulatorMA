@@ -107,11 +107,18 @@ if __name__ == '__main__':
 	# print(np.argmax(predictions,axis=1).shape)
 
 	if GUI:
-		pp.hist(np.argmax(predictions, axis=1), bins=range(simulation.numOptions()))
+		pp.hist(np.argmax(predictions, axis=1), bins=simulation.numOptions())
 		pp.xticks(0.5 + np.array(range(simulation.numOptions())), simulation.nameOptions())
 
 		pp.show()
 	else:
-		np.hist(np.argmax(predictions, axis=1), bins=range(simulation.numOptions()))
+		# print (predictions)
+		output = np.histogram(np.argmax(predictions, axis=1), bins=simulation.numOptions())
+		# print np.argmax(predictions, axis=1)
+		# print range(simulation.numOptions())
+		# print np.histogram(np.argmax(predictions, axis=1), bins=simulation.numOptions())
+		# print (output)
+		print (simulation.nameOptions())
+		print (output[0])
 
 

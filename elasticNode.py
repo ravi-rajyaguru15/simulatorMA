@@ -19,10 +19,10 @@ class elasticNode:
 		latency = constants.randomise(this.mcu.messageOverheadLatency) + this.mrf.rxtxLatency(this.message.size)
 		energy = this.mcu.overheadEnergy() + this.mrf.txEnergy(this.message.size)
 
-		destination.receive(this.message)
+		res = destination.receive(this.message)
 		this.message = None
 
-		return result(latency, energy)
+		return result(latency, energy) + res
 
 	def receive(this, message):
 		this.message = message;

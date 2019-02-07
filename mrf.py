@@ -26,4 +26,5 @@ class mrf:
 		return messageSize / 1024. / constants.randomise(this.transmissionRate) * constants.randomise(this.voltage) * constants.randomise(this.rxCurrent) / 1000.
 
 	def rxtxLatency(this, messageSize):
+		# print 'size', messageSize, 'lat', messageSize / 1024. / constants.randomise(this.transmissionRate)
 		return messageSize / 1024. / constants.randomise(this.transmissionRate)
