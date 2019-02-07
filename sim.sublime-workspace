@@ -1,0 +1,2956 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"wrie",
+				"WIRELESS_CURRENT"
+			],
+			[
+				"training_",
+				"training_labels"
+			],
+			[
+				"training",
+				"training_samples"
+			],
+			[
+				"local",
+				"localProcess"
+			],
+			[
+				"transmis",
+				"transmissionPing"
+			],
+			[
+				"message",
+				"messageOverheadLatency"
+			],
+			[
+				"processing",
+				"processingSpeed"
+			],
+			[
+				"process",
+				"processingLatency"
+			],
+			[
+				"act",
+				"activeAuxCurrent"
+			],
+			[
+				"AUX",
+				"FPGA_AUX_VOLTAGE"
+			],
+			[
+				"FPGA",
+				"FPGA_INT_VOLTAGE"
+			],
+			[
+				"mcu",
+				"mcuFpgaEnergy"
+			],
+			[
+				"messag",
+				"messageOverheadLatency"
+			],
+			[
+				"wireless",
+				"wirelessCurrent"
+			],
+			[
+				"if",
+				"ifmain\tif __name__ == '__main__'"
+			],
+			[
+				"PROGRAMMER_TYPE_",
+				"PROGRAMMER_TYPE_STK"
+			],
+			[
+				"desel",
+				"deselectFpgaFlash\tvoid deselectFpgaFlash()"
+			],
+			[
+				"wait",
+				"waitSerialDone"
+			],
+			[
+				"fpgadisable",
+				"fpgaDisableFlashInterface\tvoid fpgaDisableFlashInterface()"
+			],
+			[
+				"ann",
+				"annConfig"
+			],
+			[
+				"fpgaenab",
+				"fpgaEnableFlashInterface\tvoid fpgaEnableFlashInterface()"
+			],
+			[
+				"xmem",
+				"disableXmem\tvoid disableXmem()"
+			],
+			[
+				"fpgare",
+				"fpgaResetRead\tuint8_t fpgaResetRead"
+			],
+			[
+				"fpgaD",
+				"fpgaDoneRead\tuint8_t fpgaDoneRead"
+			],
+			[
+				"fpgaint",
+				"fpgaInitB\tuint8_t fpgaInitB"
+			],
+			[
+				"fpgaini",
+				"fpgaInitBread"
+			],
+			[
+				"PIN_F",
+				"PIN_FPGA_INIT_B\tPIN_FPGA_INIT_B"
+			],
+			[
+				"fpgaflash",
+				"fpgaDisableFlashInterface\tvoid fpgaDisableFlashInterface()"
+			],
+			[
+				"fpgaEna",
+				"fpgaEnableFlashInterface\tvoid fpgaEnableFlashInterface()"
+			],
+			[
+				"finshed",
+				"finishedCallbackFunction\tvoid (*)(void) finishedCallbackFunction"
+			],
+			[
+				"finished",
+				"finishedCallbackFunction\tvoid (*)(void) finishedCallbackFunction"
+			],
+			[
+				"uartwrite",
+				"uartWriteLine\tvoid uartWriteLine(char *s)"
+			],
+			[
+				"char",
+				"charResponse"
+			],
+			[
+				"doc",
+				"documentclass{article}\tNew Article"
+			],
+			[
+				"d",
+				"documentclass{beamer}\tNew Beamer"
+			],
+			[
+				"rpi3",
+				"rpi3native"
+			],
+			[
+				"rpi3nati",
+				"rpi3nativeprocess"
+			],
+			[
+				"rpi2nativ",
+				"rpi2nativeprocess"
+			],
+			[
+				"rpi",
+				"rpi2nativecomm"
+			],
+			[
+				"nativ",
+				"nativepi3"
+			],
+			[
+				"batch",
+				"batchsize_pi3_native"
+			],
+			[
+				"dict",
+				"dictionary"
+			],
+			[
+				"pi2",
+				"pi2y"
+			],
+			[
+				"through",
+				"throughput_pi2"
+			],
+			[
+				"throu",
+				"throughput_pi2"
+			],
+			[
+				"LOADINGWE",
+				"LOADING_WEIGHTS_READ"
+			],
+			[
+				"LOADING_WEIGHTS_",
+				"LOADING_WEIGHTS_STORE"
+			],
+			[
+				"uint",
+				"uint8_t\tuint8_t"
+			],
+			[
+				"LOADING_WE",
+				"LOADING_WEIGHTS_LOAD"
+			],
+			[
+				"loadingwe",
+				"LOADING_WEIGHTS_LOAD"
+			],
+			[
+				"enable",
+				"enableXmem\tvoid enableXmem()"
+			],
+			[
+				"ANNLoad",
+				"ANN_LOAD_WEIGHTS\tANN_LOAD_WEIGHTS"
+			],
+			[
+				"weights",
+				"weightsAddress"
+			],
+			[
+				"ann_flash",
+				"ann_flash_address"
+			],
+			[
+				"debugwrite",
+				"debugWriteLine\tvoid debugWriteLine(char *s)"
+			],
+			[
+				"clock",
+				"clock_period"
+			],
+			[
+				"data",
+				"data_out"
+			],
+			[
+				"rse",
+				"resetWeightsDone"
+			],
+			[
+				"bias",
+				"biases_out"
+			],
+			[
+				"n_fee",
+				"n_feedback_var"
+			],
+			[
+				"reset",
+				"reset_weights"
+			],
+			[
+				"fpgaflashavail",
+				"P_FPGA_FLASH_AVAILABLE"
+			],
+			[
+				"DDR_FPGA_FLAS",
+				"DDR_FPGA_FLASH_AVAILABLE"
+			],
+			[
+				"debugWrite",
+				"debugWriteString"
+			],
+			[
+				"ANNSTORE",
+				"ANN_STORE_FLASH"
+			],
+			[
+				"debug",
+				"debugWriteString"
+			],
+			[
+				"flash",
+				"flashQueueCount\tuint16_t flashQueueCount"
+			],
+			[
+				"debugWriteDec",
+				"debugWriteDec16\tvoid debugWriteDec16(uint16_t num)"
+			],
+			[
+				"unlock",
+				"unlockFlash\tvoid unlockFlash(uint8_t mcuFlash)"
+			],
+			[
+				"readfl",
+				"readDataFlash\tuint8_t * readDataFlash(uint32_t address, uint32_t numBytes, uint8_t mcuFlash, void (*readingCallbackFunction)(uint8_t, uint8_t), void (*finishedCallbackFunction)(void))"
+			],
+			[
+				"erase",
+				"eraseSectorFlash\tvoid eraseSectorFlash(uint32_t address, uint8_t mcuFlash)"
+			],
+			[
+				"ann_F",
+				"ann_flash_address"
+			],
+			[
+				"debugwr",
+				"debugWriteLine\tvoid debugWriteLine(char *s)"
+			],
+			[
+				"ANNFLASH",
+				"ANN_STORE_FLASH\tANN_STORE_FLASH"
+			],
+			[
+				"ann_flash_con",
+				"ann_flash_control"
+			],
+			[
+				"ann_flash_",
+				"ann_flash_address"
+			],
+			[
+				"debugwrti",
+				"debugWriteHex8\tvoid debugWriteHex8(uint8_t num)"
+			],
+			[
+				"firO",
+				"firOutputArray\tvoid firOutputArray(uint16_t *destArray, uint16_t numElements)"
+			],
+			[
+				"firp",
+				"firOutput\tvoid firOutput(int32_t *output)"
+			],
+			[
+				"fir",
+				"fir_y"
+			],
+			[
+				"debug8",
+				"debugWriteDec8\tvoid debugWriteDec8(uint8_t num)"
+			],
+			[
+				"debugWriteH",
+				"debugWriteHex32\tvoid debugWriteHex32(uint32_t num)"
+			],
+			[
+				"USERLOGIC_",
+				"USERLOGIC_OFFSET\tUSERLOGIC_OFFSET"
+			],
+			[
+				"testtra",
+				"testSectionTransfer"
+			],
+			[
+				"write",
+				"writeCommand"
+			],
+			[
+				"timerget",
+				"timerGetFloatValue\tfloat timerGetFloatValue()"
+			],
+			[
+				"single",
+				"singleTestData\tuint8_t * singleTestData"
+			],
+			[
+				"FLASH_",
+				"FLASH_SPEED_HIGH\tFLASH_SPEED_HIGH"
+			],
+			[
+				"transf",
+				"TRANSFER_TEST_SIZE\tTRANSFER_TEST_SIZE"
+			],
+			[
+				"debugWriteFloat",
+				"debugWriteFloatFull\tvoid debugWriteFloatFull(float num)"
+			],
+			[
+				"test",
+				"testData"
+			],
+			[
+				"debugwri",
+				"debugWriteDec16"
+			],
+			[
+				"LOAD_FPGA",
+				"LOADING_FPGA_FLASH"
+			],
+			[
+				"UART",
+				"UART_IDLE"
+			],
+			[
+				"uartrecie",
+				"currentUartReceiveMode"
+			],
+			[
+				"multiboo",
+				"multibootAddress"
+			],
+			[
+				"loadingflash",
+				"LOADING_FLASH_VERIFY_FPGA"
+			],
+			[
+				"LOadingflash",
+				"LOADING_FLASH_VERIFY_FPGA"
+			],
+			[
+				"LOADING_FLASH",
+				"LOADING_FLASH_VERIFY_FPGA"
+			],
+			[
+				"_",
+				"_BV"
+			],
+			[
+				"bitfile",
+				"bitFile"
+			],
+			[
+				"from",
+				"frombuffer"
+			],
+			[
+				"length",
+				"lengtha"
+			],
+			[
+				"debugw",
+				"debugWriteHex16"
+			],
+			[
+				"deubg",
+				"debugWriteString"
+			],
+			[
+				"debugWriteHex",
+				"debugWriteHex8"
+			],
+			[
+				"debu",
+				"debugWriteDec32"
+			],
+			[
+				"configdata",
+				"configDataAddress"
+			],
+			[
+				"configd",
+				"configDataSize"
+			],
+			[
+				"configdas",
+				"configDataDestination"
+			],
+			[
+				"UARTconfig",
+				"UART_CONFIG_DESTINATION"
+			],
+			[
+				"softSpi",
+				"softSpiWrite"
+			],
+			[
+				"softspi",
+				"softSpiWrite"
+			],
+			[
+				"spi_",
+				"spi_pointer"
+			],
+			[
+				"uit",
+				"uint8_t"
+			],
+			[
+				"softS",
+				"softSpiWrite"
+			],
+			[
+				"P_",
+				"P_FPGA_FLASH_SO"
+			],
+			[
+				"PORT_",
+				"PORT_FPGA_FLASH_CE"
+			],
+			[
+				"deb",
+				"debugNewLine"
+			],
+			[
+				"sparl",
+				"sparqlQuery"
+			],
+			[
+				"currentmeas",
+				"currentMeasurementsQueue"
+			],
+			[
+				"currentme",
+				"currentMeasurementsQueue"
+			],
+			[
+				"measure",
+				"measurementQueue"
+			],
+			[
+				"timestamps",
+				"timestampsResult"
+			],
+			[
+				"times",
+				"timestampsResult"
+			],
+			[
+				"Curren",
+				"CurrentMeasurement"
+			],
+			[
+				"energy",
+				"energyPoint"
+			],
+			[
+				"totalp",
+				"totalPowerWithoutFPGA"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "training.py",
+			"settings":
+			{
+				"buffer_size": 2832,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "Makefile",
+			"settings":
+			{
+				"buffer_size": 41,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "mcu.py",
+			"settings":
+			{
+				"buffer_size": 797,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "endDevice.py",
+			"settings":
+			{
+				"buffer_size": 1015,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "message.py",
+			"settings":
+			{
+				"buffer_size": 611,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "sim.py",
+			"settings":
+			{
+				"buffer_size": 1865,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "elasticNode.py",
+			"settings":
+			{
+				"buffer_size": 1556,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "fpga.py",
+			"settings":
+			{
+				"buffer_size": 1010,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "constants.py",
+			"settings":
+			{
+				"buffer_size": 1073,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "mrf.py",
+			"settings":
+			{
+				"buffer_size": 1037,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "server.py",
+			"settings":
+			{
+				"buffer_size": 1035,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"contents": "Searching 19 files for \"constants.\"\n\n/Users/alwynster/git/simulator/elasticNode.py:\n   31  \n   32  \tdef mcuToFpgaLatency(this):\n   33: \t\treturn this.message.size / 1024./ constants.MCU_FPGA_COMMUNICATION_SPEED\n   34  \n   35  \tdef mcuToFpgaEnergy(this):\n\n/Users/alwynster/git/simulator/fpga.py:\n    3  \n    4  class fpga:\n    5: \tinternalVoltage = constants.FPGA_INT_VOLTAGE\n    6: \tauxVoltage = constants.FPGA_AUX_VOLTAGE\n    7  \n    8: \tactiveInternalCurrent = constants.FPGA_ACTIVE_INT_CURRENT\n    9: \tidleInternalCurrent = constants.FPG_IDLE_INT_CURRENT\n   10: \tactiveAuxCurrent = constants.FPGA_ACTIVE_AUX_CURRENT\n   11: \tidleAuxCurrent = constants.FPG_IDLE_AUX_CURRENT\n   12  \n   13: \tprocessingSpeed = constants.FPGA_PROCESSING_SPEED\n   14  \n   15  \tdef __init__(this):\n\n/Users/alwynster/git/simulator/gateway.py:\n    4  class gateway:\n    5  \tmessage = None\n    6: \ttransmissionRate = constants.ETHERNET_SPEED\n    7: \ttransmissionPing = constants.ETHERNET_PING\n    8: \tmessageOverheadLatency = constants.SERVER_MESSAGE_OVERHEAD_LATENCY\n    9  \n   10  \tdef sendTo(this, destination):\n\n/Users/alwynster/git/simulator/mcu.py:\n    2  \n    3  class mcu:\n    4: \tvoltage = constants.MCU_VOLTAGE\n    5  \t\n    6: \tactiveCurrent = constants.MCU_ACTIVE_CURRENT\n    7: \tidleCurrent = constants.MCU_IDLE_CURRENT\n    8  \n    9: \tmessageOverheadLatency = constants.MCU_MESSAGE_OVERHEAD_LATENCY\n   10  \n   11: \tprocessingSpeed = constants.MCU_PROCESSING_SPEED\n   12  \n   13  \tdef __init__(this):\n\n/Users/alwynster/git/simulator/message.py:\n   14  \t\t\tthis.samples = None\n   15  \t\telse:\n   16: \t\t\tthis.size = samples * constants.SAMPLE_RAW_SIZE\n   17  \t\t\tthis.samples = samples\n   18  \n   ..\n   22  \t\tif this.samples is None:\n   23  \t\t\twarn(\"Cannot process message without sample count\")\n   24: \t\tthis.size = this.samples * constants.SAMPLE_PROCESSED_SIZE\n\n/Users/alwynster/git/simulator/mrf.py:\n    3  \n    4  class mrf:\n    5: \tvoltage = constants.MCU_VOLTAGE\n    6  \trxCurrent, txCurrent = None, None\n    7  \trxCurrent = None\n    8: \ttransmissionRate = constants.WIRELESS_SPEED\n    9  \n   10  \tdef __init__(this, txCurrent=None, rxCurrent = None):\n   11  \n   12  \t\tif txCurrent is None:\n   13: \t\t\tthis.txCurrent = constants.MIN_WIRELESS_CURRENT + (constants.MAX_WIRELESS_CURRENT - constants.MIN_WIRELESS_CURRENT) * random.random()\n   14  \t\telse:\n   15  \t\t\tthis.txCurrent = txCurrent\n   ..\n   17  \n   18  \t\tif rxCurrent is None:\n   19: \t\t\tthis.rxCurrent = constants.MIN_WIRELESS_CURRENT + (constants.MAX_WIRELESS_CURRENT - constants.MIN_WIRELESS_CURRENT) * random.random()\n   20  \t\telse:\n   21  \t\t\tthis.rxCurrent = rxCurrent\n\n/Users/alwynster/git/simulator/server.py:\n    4  class server:\n    5  \tmessage = None\n    6: \tprocessingSpeed = constants.SERVER_PROCESSING_SPEED\n    7: \tmessageOverheadLatency = constants.SERVER_MESSAGE_OVERHEAD_LATENCY\n    8: \ttransmissionRate = constants.ETHERNET_SPEED\n    9: \ttransmissionPing = constants.ETHERNET_PING\n   10  \n   11  \tdef process(this):\n\n30 matches across 7 files\n",
+			"settings":
+			{
+				"buffer_size": 3004,
+				"line_ending": "Unix",
+				"name": "Find Results",
+				"scratch": true
+			}
+		},
+		{
+			"file": "gateway.py",
+			"settings":
+			{
+				"buffer_size": 747,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "Packages/Makefile/Make.sublime-build",
+	"build_system_choices":
+	[
+		[
+			[
+				[
+					"Packages/C++/C++ Single File.sublime-build",
+					""
+				],
+				[
+					"Packages/C++/C++ Single File.sublime-build",
+					"Run"
+				],
+				[
+					"Packages/Makefile/Make.sublime-build",
+					""
+				],
+				[
+					"Packages/Makefile/Make.sublime-build",
+					"Clean"
+				]
+			],
+			[
+				"Packages/Makefile/Make.sublime-build",
+				""
+			]
+		],
+		[
+			[
+				[
+					"Packages/C++/C++ Single File.sublime-build",
+					""
+				],
+				[
+					"Packages/C++/C++ Single File.sublime-build",
+					"Run"
+				],
+				[
+					"Packages/Makefile/Make.sublime-build",
+					""
+				],
+				[
+					"Packages/Makefile/Make.sublime-build",
+					"Clean"
+				],
+				[
+					"Packages/User/gradle.sublime-build",
+					""
+				]
+			],
+			[
+				"Packages/Makefile/Make.sublime-build",
+				"Clean"
+			]
+		],
+		[
+			[
+				[
+					"Packages/Java/Ant.sublime-build",
+					""
+				],
+				[
+					"Packages/Java/JavaC.sublime-build",
+					""
+				],
+				[
+					"Packages/Makefile/Make.sublime-build",
+					""
+				],
+				[
+					"Packages/Makefile/Make.sublime-build",
+					"Clean"
+				]
+			],
+			[
+				"Packages/Java/JavaC.sublime-build",
+				""
+			]
+		],
+		[
+			[
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					""
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					"Traditional"
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					"PdfLaTeX"
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					"XeLaTeX"
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					"LuaLaTeX"
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					"Basic Builder"
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					"Basic Builder - PdfLaTeX"
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					"Basic Builder - XeLaTeX"
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					"Basic Builder - LuaLaTeX"
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					"Script Builder"
+				]
+			],
+			[
+				"Packages/LaTeXTools/LaTeX.sublime-build",
+				"Traditional"
+			]
+		],
+		[
+			[
+				[
+					"Packages/LaTeXing/LaTeX.sublime-build",
+					""
+				],
+				[
+					"Packages/LaTeXing/LaTeX.sublime-build",
+					"Clean up Files"
+				],
+				[
+					"Packages/User/gradle.sublime-build",
+					""
+				]
+			],
+			[
+				"Packages/LaTeXing/LaTeX.sublime-build",
+				""
+			]
+		],
+		[
+			[
+				[
+					"Packages/Makefile/Make.sublime-build",
+					""
+				],
+				[
+					"Packages/Makefile/Make.sublime-build",
+					"Clean"
+				]
+			],
+			[
+				"Packages/Makefile/Make.sublime-build",
+				""
+			]
+		],
+		[
+			[
+				[
+					"Packages/Makefile/Make.sublime-build",
+					""
+				],
+				[
+					"Packages/Makefile/Make.sublime-build",
+					"Clean"
+				],
+				[
+					"Packages/Python/Python.sublime-build",
+					""
+				],
+				[
+					"Packages/Python/Python.sublime-build",
+					"Syntax Check"
+				]
+			],
+			[
+				"Packages/Makefile/Make.sublime-build",
+				""
+			]
+		],
+		[
+			[
+				[
+					"Packages/Makefile/Make.sublime-build",
+					""
+				],
+				[
+					"Packages/Makefile/Make.sublime-build",
+					"Clean"
+				],
+				[
+					"Packages/ShellScript/ShellScript.sublime-build",
+					""
+				],
+				[
+					"Packages/Bash Build System/Bash.sublime-build",
+					""
+				],
+				[
+					"Packages/User/gradle.sublime-build",
+					""
+				]
+			],
+			[
+				"Packages/Makefile/Make.sublime-build",
+				""
+			]
+		],
+		[
+			[
+				[
+					"Packages/Python/Python.sublime-build",
+					""
+				],
+				[
+					"Packages/Python/Python.sublime-build",
+					"Syntax Check"
+				]
+			],
+			[
+				"Packages/Python/Python.sublime-build",
+				""
+			]
+		],
+		[
+			[
+				[
+					"Packages/Python/Python.sublime-build",
+					""
+				],
+				[
+					"Packages/Python/Python.sublime-build",
+					"Syntax Check"
+				],
+				[
+					"Packages/User/gradle.sublime-build",
+					""
+				]
+			],
+			[
+				"Packages/Python/Python.sublime-build",
+				""
+			]
+		]
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 392.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"latexing",
+				"LaTeXing: Rebuild Cache"
+			],
+			[
+				"build",
+				"Build With: LaTeX"
+			],
+			[
+				"bazel",
+				"Open Bazel BUILD File"
+			],
+			[
+				"install ",
+				"Package Control: Install Package"
+			],
+			[
+				"git push",
+				"Git: Push"
+			],
+			[
+				"git commit",
+				"Git: Commit"
+			],
+			[
+				"git add ",
+				"Git: Add All"
+			],
+			[
+				"count",
+				"LaTeXing: Texcount"
+			],
+			[
+				"word count ",
+				"LaTeXWordCount: Word Count"
+			],
+			[
+				"clean",
+				"Build With: LaTeX - Clean up Files"
+			],
+			[
+				"word count",
+				"LaTeXWordCount: Word Count"
+			],
+			[
+				"install",
+				"Package Control: Install Package"
+			],
+			[
+				"git log",
+				"Git: Log All"
+			],
+			[
+				"git pull",
+				"Git: Pull"
+			],
+			[
+				"git commit ",
+				"Git: Commit"
+			],
+			[
+				"Snippet: Bibtex misc",
+				"Snippet: BibTeX Misc"
+			],
+			[
+				"Snippet: Bibtex ",
+				"Snippet: BibTeX Misc"
+			],
+			[
+				"git comi",
+				"Git: Commit"
+			],
+			[
+				"git add l",
+				"Git: Add All"
+			],
+			[
+				"git comit ",
+				"Git: Commit"
+			],
+			[
+				"git add al",
+				"Git: Add All"
+			],
+			[
+				"sort",
+				"Sort Lines"
+			],
+			[
+				"git dd al",
+				"Git: Add All"
+			],
+			[
+				"git diff",
+				"Git: Diff Current File"
+			],
+			[
+				"git diff current",
+				"Git: Diff Current File"
+			],
+			[
+				"git diff ",
+				"Git: Diff Current File"
+			],
+			[
+				"portg",
+				"Package Control: Upgrade/Overwrite All Packages"
+			],
+			[
+				"clang",
+				"EasyClangComplete: Settings"
+			],
+			[
+				"",
+				"About"
+			],
+			[
+				"python",
+				"Build With: Python"
+			],
+			[
+				"pyto",
+				"Build With: Python"
+			],
+			[
+				"jen",
+				"Git: Update Project Ignored Files"
+			],
+			[
+				"py",
+				"Build With: Python"
+			],
+			[
+				"pyth",
+				"Build With: Python"
+			],
+			[
+				"git add a",
+				"Git: Add All"
+			],
+			[
+				"push",
+				"Git: Push"
+			],
+			[
+				"git add all",
+				"Git: Add All"
+			],
+			[
+				"make",
+				"Build With: Make"
+			],
+			[
+				"clena",
+				"Build With: Make - Clean"
+			],
+			[
+				"build ",
+				"Build With: Make"
+			],
+			[
+				"print",
+				"Print Entire File"
+			],
+			[
+				"syntax c",
+				"Set Syntax: C"
+			],
+			[
+				"syntax c ",
+				"Set Syntax: C"
+			],
+			[
+				"stk",
+				"Set Syntax: LaTeXing (Knitr)"
+			],
+			[
+				"build with ",
+				"Build With: Make"
+			],
+			[
+				"build make",
+				"Build With: Make"
+			],
+			[
+				"sytax c",
+				"Set Syntax: C"
+			],
+			[
+				"squ",
+				"Build: Custom Quick Build"
+			],
+			[
+				"default",
+				"Preferences: LaTeXing Settings - Default"
+			],
+			[
+				"packasges",
+				"Package Control: List Packages"
+			],
+			[
+				"isntall",
+				"Package Control: Install Package"
+			],
+			[
+				"set c",
+				"Set Syntax: C"
+			],
+			[
+				"stgk",
+				"Package Control: List Unmanaged Packages"
+			],
+			[
+				"s\tq",
+				"Makefile (elasticNodeTest): make squeaky_clean"
+			],
+			[
+				"build p",
+				"Build With: Python"
+			],
+			[
+				"size",
+				"Makefile (elasticNodeTest): make size"
+			],
+			[
+				"su",
+				"LaTeX SmartQuotes: Set Buffer Language"
+			],
+			[
+				"sq\tu",
+				"Makefile (elasticNodeTest): make squeaky_clean"
+			],
+			[
+				"flashstk",
+				"Makefile (elasticNodeTest): make flash_stk"
+			],
+			[
+				"git remote",
+				"Git: Track Remote Branch"
+			],
+			[
+				"sstk",
+				"Makefile (elasticNodeTest): make flash_stk"
+			],
+			[
+				"make all",
+				"Makefile (elasticNodeTest): make all"
+			],
+			[
+				"prog",
+				"Makefile (elasticNodeTest): make program"
+			],
+			[
+				"STK",
+				"Makefile (elasticNodeTest): make flash_stk"
+			],
+			[
+				"commit",
+				"Git: Commit"
+			],
+			[
+				"sttk",
+				"Traceback: Paste Traceback"
+			],
+			[
+				"flash",
+				"Makefile (elasticNodeTest): make flash_stk"
+			],
+			[
+				"flas",
+				"Makefile (elasticNodeTest): make flash_stk"
+			],
+			[
+				"sze",
+				"Makefile (elasticNodeTest): make size"
+			],
+			[
+				"flsahstk",
+				"Makefile (elasticNodeTest): make flash_stk"
+			],
+			[
+				"f",
+				"Makefile (elasticNodeTest): make flash_stk"
+			],
+			[
+				"std",
+				"Git: Stash Drop"
+			],
+			[
+				"flashisp",
+				"Makefile (elasticNodeTest): make flash_isp"
+			],
+			[
+				"sq",
+				"Makefile (elasticNodeTest): make squeaky_clean"
+			],
+			[
+				"flsah",
+				"Makefile (elasticNodeTest): make flash_109"
+			],
+			[
+				"lash",
+				"Makefile (elasticNodeTest): make flash_109"
+			],
+			[
+				"python ",
+				"Set Syntax: Python"
+			],
+			[
+				"flash ",
+				"Makefile (elasticNodeTest): make flash_isp"
+			],
+			[
+				"refactor ren",
+				"Refactor: Rename a field"
+			],
+			[
+				"rope",
+				"Refactor: Create Rope Project"
+			],
+			[
+				"refactor",
+				"Refactor: Rename a field"
+			],
+			[
+				"suq",
+				"LaTeX SmartQuotes: Set Buffer Language"
+			],
+			[
+				"gitpull",
+				"Git: Pull"
+			],
+			[
+				"flaships",
+				"Makefile (elasticNodeTest): make flash_isp"
+			],
+			[
+				"FLASH",
+				"Makefile (elasticNodeTest): make flash"
+			],
+			[
+				"serial",
+				"Makefile (elasticNodeTest): make serial"
+			],
+			[
+				"seri",
+				"Makefile (elasticNodeTest): make serial"
+			],
+			[
+				"fl",
+				"Makefile (elasticNodeTest): make flash"
+			],
+			[
+				"syn c",
+				"Set Syntax: C"
+			],
+			[
+				"flah",
+				"Makefile (elasticNodeTest): make flash"
+			],
+			[
+				"flsh",
+				"Makefile (elasticNodeTest): make flash"
+			],
+			[
+				"ocr",
+				"Package Control: Create Package File"
+			],
+			[
+				"test",
+				"Makefile (elasticNodeTest): make test"
+			],
+			[
+				"make test all",
+				"Makefile (elasticNodeTest): make all"
+			],
+			[
+				"bitfile",
+				"Makefile (elasticNodeTest): make bitfile"
+			],
+			[
+				"word ",
+				"Word Wrap: Toggle"
+			],
+			[
+				"BUILD",
+				"Build With: Python"
+			],
+			[
+				"run",
+				"Makefile (elasticNodeHost): make run"
+			],
+			[
+				"test clean",
+				"Makefile (elasticNodeTest): make squeaky_clean"
+			],
+			[
+				"host clean",
+				"Makefile (elasticNodeHost): make clean"
+			],
+			[
+				"host run",
+				"Makefile (elasticNodeHost): make run"
+			],
+			[
+				"run ",
+				"Makefile (elasticNodeHost): make run"
+			],
+			[
+				"ru",
+				"Makefile (elasticNodeHost): make run"
+			],
+			[
+				"java ",
+				"Set Syntax: Java"
+			],
+			[
+				"syntax java",
+				"Set Syntax: Java"
+			],
+			[
+				"syntax gradle",
+				"Set Syntax: Gradle"
+			],
+			[
+				"host",
+				"Makefile (elasticNodeHost): make host"
+			],
+			[
+				"debug",
+				"Makefile (elasticNodeHost): make debug"
+			],
+			[
+				"host ",
+				"Makefile (elasticNodeHost): make host"
+			],
+			[
+				"make host",
+				"Makefile (elasticNodeHost): make host"
+			],
+			[
+				"make install",
+				"Makefile (elasticNodeHost): make install_deps"
+			],
+			[
+				"make elastichost",
+				"Makefile (elasticNodeHost): make all"
+			],
+			[
+				"flasyh",
+				"Makefile (elasticNodeTest): make flash_usbtiny"
+			],
+			[
+				"all",
+				"File: Save All"
+			],
+			[
+				"sque",
+				"Makefile (elasticNodeTest): make squeaky_clean"
+			],
+			[
+				"inst",
+				"Package Control: Install Package"
+			],
+			[
+				"squa",
+				"LaTeX SmartQuotes: Auto Detect Buffer Language"
+			],
+			[
+				"squea",
+				"Makefile (elasticNodeTest): make squeaky_clean"
+			],
+			[
+				"make flash",
+				"Makefile (elasticNodeTest): make flash"
+			],
+			[
+				"make clean",
+				"Build With: Make - Clean"
+			],
+			[
+				"make ",
+				"Set Syntax: Makefile"
+			],
+			[
+				"squeek",
+				"Makefile (elasticNodeTest): make squeaky_clean"
+			],
+			[
+				"make debug",
+				"Makefile (elasticNodeTest): make debug"
+			],
+			[
+				"update",
+				"Package Control: Upgrade/Overwrite All Packages"
+			],
+			[
+				"package install",
+				"Package Control: Install Package"
+			],
+			[
+				"git commi",
+				"Git: Commit"
+			],
+			[
+				"git addcu",
+				"Git: Add Current File"
+			],
+			[
+				"git add curr",
+				"Git: Add Current File"
+			]
+		],
+		"width": 452.0
+	},
+	"console":
+	{
+		"height": 312.0,
+		"history":
+		[
+			"sublime.log_commands(False)"
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": true,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/Users/alwynster/git/simulator/result.py",
+		"/Users/alwynster/git/simulator/constants.py",
+		"/Users/alwynster/git/simulator/sim.sublime-project",
+		"/Users/alwynster/git/simulator/endDevice.py",
+		"/Users/alwynster/git/elasticNodeTest/lib/flash/flash.h",
+		"/Users/alwynster/git/elasticNodeTest/lib/softspi/softspi.c",
+		"/Users/alwynster/git/elasticNodeTest/lib/softSpi/softspi.h",
+		"/Users/alwynster/git/elasticNodeTest/.ropeproject/config.py",
+		"/Users/alwynster/git/elasticNodeTest/Find Results",
+		"/Users/alwynster/git/elasticNodeTest/scripts/serial_monitor.py",
+		"/Users/alwynster/git/elasticNodeTest/Makefile",
+		"/Users/alwynster/Downloads/iar/main.c",
+		"/Users/alwynster/git/elasticNodeTest/lib/jtag/jtag.h",
+		"/Users/alwynster/git/elasticNodeTest/main.c",
+		"/Users/alwynster/git/elasticNodeTest/lib/softuart/softuart.h",
+		"/Users/alwynster/git/elasticNodeTest/lib/jtag/jtag_fsm.c",
+		"/Users/alwynster/git/elasticNodeTest/main.h",
+		"/Users/alwynster/git/elasticNodeTest/Debug/elasticNodeTest.lss",
+		"/Users/alwynster/git/elasticNodeTest/lib/circular_buffer/circular_buffer.c",
+		"/Users/alwynster/git/elasticNodeTest/lib/circular_buffer/circular_buffer.c.bk",
+		"/Users/alwynster/git/elasticNodeTest/lib/stubs/mm.c",
+		"/Users/alwynster/git/elasticNodeTest/lib/stubs/vdp.c",
+		"/Users/alwynster/git/elasticNodeTest/lib/flash/flash.c",
+		"/Users/alwynster/git/elasticNodeTest/lib/softspi/softspi.h",
+		"/Users/alwynster/git/elasticNodeTest/lib/wireless/mrf24j40.c",
+		"/Users/alwynster/git/elasticNodeTest/lib/softuart/softuart.c",
+		"/Users/alwynster/git/elasticNodeTest/lib/control/uartManager.c",
+		"/Users/alwynster/git/elasticNodeTest/lib/fpga/selectmap/selectmap.c",
+		"/Users/alwynster/git/elasticNodeTest/lib/uart/uart.c",
+		"/Volumes/alwynster/git/fpgamiddlewareproject/src/genFirPackage.py",
+		"/Volumes/alwynster/git/fpgamiddlewareproject/src/firPackage.vhd",
+		"/Users/alwynster/git/eaglelibraries/power.lbr",
+		"/Users/alwynster/git/eaglelibraries/passive.lbr",
+		"/Users/alwynster/git/eaglelibraries/connectors.lbr",
+		"/Users/alwynster/git/smartmoodlighting/VerySmartLight/include/uart.h",
+		"/Users/alwynster/git/smartmoodlighting/VerySmartLight/Debug/src/subdir.mk",
+		"/Users/alwynster/git/smartmoodlighting/VerySmartLight/Debug/subdir.mk",
+		"/Users/alwynster/git/smartmoodlighting/VerySmartLight/Debug/makefile",
+		"/Users/alwynster/git/smartmoodlighting/VerySmartLight/.settings/de.innot.avreclipse.core.prefs",
+		"/Users/alwynster/git/communicationmodule/buildAll.sh",
+		"/Users/alwynster/git/communicationmodule/.bazelrc",
+		"/Users/alwynster/git/communicationmodule/BUILD",
+		"/Users/alwynster/git/eaglelibraries/sensors.lbr",
+		"/Users/alwynster/git/arcs2019/content/body.tex",
+		"/Users/alwynster/git/arcs2019/main.tex",
+		"/Users/alwynster/git/percomsmartedge2019/data/plotting.py",
+		"/Users/alwynster/git/percomsmartedge2019/data/plotlatency.py",
+		"/Users/alwynster/git/percomsmartedge2019/data/nativebatchsize.txt",
+		"/Users/alwynster/git/percomsmartedge2019/data/throughput_pi3.txt",
+		"/Users/alwynster/git/percomsmartedge2019/data/throughput_pi2.txt",
+		"/Users/alwynster/git/percomsmartedge2019/data/throughput_elasticnode.txt",
+		"/Users/alwynster/git/percomsmartedge2019/data/plotthroughput.py",
+		"/Users/alwynster/git/elasticNodeTest/ElasticNodeTest/ElasticNodeTest.xcodeproj/project.xcworkspace/xcuserdata/alwynster.xcuserdatad/UserInterfaceState.xcuserstate",
+		"/Users/alwynster/git/elasticNodeTest/lib/uart/uart.h",
+		"/Volumes/alwynster-1/git/fpgamiddlewareproject/fpgamiddlewareproject/fpgamiddlewareproject.sim/sim_1/behav/xvhdl.log",
+		"/Users/alwynster/git/pydronetest/translator/src/mqtt.py",
+		"/Users/alwynster/git/pydronetest/translator/src/uds.py",
+		"/Users/alwynster/git/pydronetest/service/src/uds.py",
+		"/Users/alwynster/git/pydronetest/service/src/mqtt.py",
+		"/Users/alwynster/git/pydronetest/service/run.py",
+		"/Users/alwynster/git/pydronetest/service/src/settings.py",
+		"/Users/alwynster/git/pydronetest/translator/run.py",
+		"/usr/local/Cellar/avr-gcc/7.3.0/avr/include/avr/io.h",
+		"/Users/alwynster/git/elasticNodeTest/lib/transfer/transfer.c",
+		"/Users/alwynster/git/elasticNodeTest/lib/circular_buffer/circular_buffer.h",
+		"/Users/alwynster/git/elasticNodeTest/.clang_complete",
+		"/Users/alwynster/git/elasticNodeTest/lib/timer/timer.c",
+		"/Users/alwynster/git/elasticNodeGateway/src/main/java/nn/Learning.java",
+		"/Users/alwynster/git/elasticNodeMonitor/LUFA/StudioIntegration/lufa_drivers_board.xml",
+		"/Users/alwynster/git/elasticNodeTest/lib/wireless/SPI.c",
+		"/Users/alwynster/git/elasticNodeMonitor/scripts/serial_plotter.py",
+		"/Users/alwynster/git/elasticNodeTest/scripts/serial_combo.py",
+		"/Users/alwynster/git/elasticNodeTest/scripts/serial_plotter.py",
+		"/Users/alwynster/git/elasticNodeTest/scripts/jena/plotter.py",
+		"/Users/alwynster/git/elasticNodeTest/scripts/jena/measurement.py",
+		"/Users/alwynster/git/elasticNodeTest/lib/jtag/jtag.c",
+		"/Users/alwynster/git/elasticNodeMonitor/main.c",
+		"/Users/alwynster/git/elasticNodeTest/scripts/serial_test.py",
+		"/Users/alwynster/git/elasticNodeTest/lib/wireless/mrf24j40.h",
+		"/Users/alwynster/git/elasticNodeTest/Debug/elasticNodeTest.elf",
+		"/Users/alwynster/git/elasticNodeTest/lib/io/leds.h",
+		"/Users/alwynster/git/elasticNodeTest/lib/wireless/wireless.h",
+		"/Users/alwynster/git/elasticNodeMonitor/demo_notes.txt",
+		"/Users/alwynster/git/elasticNodeTest/lib/stubs/ann.h",
+		"/Users/alwynster/git/elasticNodeTest/lib/experiments/experiments.h",
+		"/Users/alwynster/git/elasticNodeTest/lib/wireless/wireless.c",
+		"/Users/alwynster/git/elasticNodeTest/lib/wireless/SPI.h",
+		"/Users/alwynster/git/elasticNodeTest/lib/fpga/fpga.h",
+		"/Users/alwynster/git/elasticNodeTest/lib/fpga/selectmap/selectmap.h",
+		"/Users/alwynster/git/elasticNodeTest/lib/current_sense/current_sense.c",
+		"/Users/alwynster/git/elasticNodeTest/lib/io/gpio.h",
+		"/Users/alwynster/git/elasticNodeTest/lib/io/leds.c",
+		"/Users/alwynster/git/elasticNodeHardware/shoppinglist.txt",
+		"/Users/alwynster/git/elasticNodeTest/lib/stubs/ann.c",
+		"/Users/alwynster/git/elasticNodeTest/lib/fpga/xmem.c",
+		"/Users/alwynster/git/elasticNodeTest/lib/fpga/fpga.c",
+		"/Users/alwynster/git/elasticNodeTest/lib/current_sense/current_measurement.h",
+		"/Users/alwynster/git/elasticNodeTest/lib/current_sense/current_sense.h",
+		"/Users/alwynster/git/elasticNodeTest/lib/fpga/xmem.h",
+		"/Users/alwynster/git/elasticNodeHardware/partslist.txt",
+		"/Users/alwynster/git/elasticNodeTest/lib/jtag/jtag_interface.h",
+		"/Users/alwynster/git/elasticNodeTest/elasticNodeTest.hex",
+		"/Users/alwynster/git/elasticNodeTest/scripts/remote-program.sh",
+		"/Users/alwynster/git/elasticNodeTest/scripts/fetch-test.sh",
+		"/Users/alwynster/git/elasticNodeTest/lib/io/interrupts.h",
+		"/Users/alwynster/git/elasticNodeTest/lib/stubs/mm.h",
+		"/Users/alwynster/git/elasticNodeTest/lib/io/gpio.c",
+		"/Users/alwynster/git/elasticNodeTest/lib/jtag/jtag_fsm.h",
+		"/Users/alwynster/git/elasticNodeTest/lib/current_sense/current_measurement.c",
+		"/Users/alwynster/git/elasticNodeTest/lib/i2cmaster/i2cmaster.h",
+		"/Users/alwynster/git/elasticNodeTest/lib/i2cmaster/twimaster.c",
+		"/Users/alwynster/git/elasticNodeTest/elasticNode.sublime-project",
+		"/Users/alwynster/Library/Application Support/Sublime Text 3/Packages/LaTeXing/LaTeXing.sublime-settings",
+		"/Users/alwynster/git/ArduinoJtag/pwm.cpp",
+		"/Users/alwynster/git/ArduinoJtag/ArduinoJtag.ino",
+		"/Users/alwynster/git/elasticNodeTest/lib/io/interrupts.c",
+		"/Users/alwynster/git/elasticNodeTest/elasticNodeTest.map",
+		"/Users/alwynster/git/elasticNodeTest/Debug/lib/stubs/subdir.mk",
+		"/Users/alwynster/git/elasticNodeTest/lib/io/squ",
+		"/Applications/EAGLE-8.2.2/scr/eagle.scr",
+		"/Applications/EAGLE-8.3.2/scr/eagle.scr",
+		"/Users/alwynster/Documents/Arduino/libraries/Adafruit_NeoPixel/Adafruit_NeoPixel.cpp",
+		"/Users/alwynster/git/elasticNodeTest/scripts/serial_echo.py",
+		"/Users/alwynster/git/elasticNodeTest/lib/jtag/jtag_interface.c",
+		"/usr/local/Cellar/avr-gcc/6.2.0/avr/include/util/delay.h",
+		"/Users/alwynster/Downloads/Mojo-SDRAM-4/src/mojo_top.v",
+		"/Users/alwynster/Downloads/Mojo-SDRAM-4/src/ram_test.v",
+		"/Users/alwynster/git/elasticNodeTest/lib/stubs/vdp.h"
+	],
+	"find":
+	{
+		"height": 26.0
+	},
+	"find_in_files":
+	{
+		"height": 124.0,
+		"where_history":
+		[
+			""
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"sendto",
+			"rxcurrent",
+			"constants.",
+			"rxtxe",
+			"rxtx",
+			"txe",
+			"txl",
+			"txlatency",
+			"receive",
+			"proces",
+			"process("
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "training.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2832,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								282,
+								282
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "Makefile",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 41,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								41,
+								41
+							]
+						],
+						"settings":
+						{
+							"auto_name": "",
+							"syntax": "Packages/Makefile/Makefile.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 14,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "mcu.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 797,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								755,
+								755
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 17,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "endDevice.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1015,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								830,
+								830
+							]
+						],
+						"settings":
+						{
+							"history_list_is_closing": true,
+							"syntax": "Packages/Python/Python.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 18,
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "message.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 611,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								113,
+								113
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.sublime-syntax"
+						},
+						"translation.x": 5.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 10,
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "sim.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1865,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								646,
+								646
+							]
+						],
+						"settings":
+						{
+							"history_list_is_closing": true,
+							"syntax": "Packages/Python/Python.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 378.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "elasticNode.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1556,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								921,
+								921
+							]
+						],
+						"settings":
+						{
+							"history_list_is_closing": true,
+							"syntax": "Packages/Python/Python.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 12,
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "fpga.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1010,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								815,
+								815
+							]
+						],
+						"settings":
+						{
+							"history_list_is_closing": true,
+							"syntax": "Packages/Python/Python.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 13,
+					"type": "text"
+				},
+				{
+					"buffer": 8,
+					"file": "constants.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1073,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								991,
+								991
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 19,
+					"type": "text"
+				},
+				{
+					"buffer": 9,
+					"file": "mrf.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1037,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								544,
+								544
+							]
+						],
+						"settings":
+						{
+							"history_list_is_closing": true,
+							"syntax": "Packages/Python/Python.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 16,
+					"type": "text"
+				}
+			]
+		},
+		{
+			"selected": 1,
+			"sheets":
+			[
+				{
+					"buffer": 5,
+					"file": "sim.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1865,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1281,
+								1281
+							]
+						],
+						"settings":
+						{
+							"history_list_is_closing": true,
+							"syntax": "Packages/Python/Python.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 378.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 9,
+					"type": "text"
+				},
+				{
+					"buffer": 10,
+					"file": "server.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1035,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								649,
+								649
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.sublime-syntax"
+						},
+						"translation.x": 300.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 11,
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 3004,
+						"regions":
+						{
+							"match":
+							{
+								"flags": 112,
+								"regions":
+								[
+									[
+										171,
+										181
+									],
+									[
+										347,
+										357
+									],
+									[
+										395,
+										405
+									],
+									[
+										462,
+										472
+									],
+									[
+										526,
+										536
+									],
+									[
+										584,
+										594
+									],
+									[
+										643,
+										653
+									],
+									[
+										708,
+										718
+									],
+									[
+										892,
+										902
+									],
+									[
+										944,
+										954
+									],
+									[
+										1001,
+										1011
+									],
+									[
+										1174,
+										1184
+									],
+									[
+										1229,
+										1239
+									],
+									[
+										1280,
+										1290
+									],
+									[
+										1348,
+										1358
+									],
+									[
+										1421,
+										1431
+									],
+									[
+										1609,
+										1619
+									],
+									[
+										1814,
+										1824
+									],
+									[
+										1930,
+										1940
+									],
+									[
+										2046,
+										2056
+									],
+									[
+										2207,
+										2217
+									],
+									[
+										2241,
+										2251
+									],
+									[
+										2274,
+										2284
+									],
+									[
+										2448,
+										2458
+									],
+									[
+										2482,
+										2492
+									],
+									[
+										2515,
+										2525
+									],
+									[
+										2730,
+										2740
+									],
+									[
+										2797,
+										2807
+									],
+									[
+										2866,
+										2876
+									],
+									[
+										2918,
+										2928
+									]
+								],
+								"scope": ""
+							}
+						},
+						"selection":
+						[
+							[
+								2735,
+								2735
+							]
+						],
+						"settings":
+						{
+							"detect_indentation": false,
+							"line_numbers": false,
+							"output_tag": 1,
+							"result_base_dir": "",
+							"result_file_regex": "^([^ \t].*):$",
+							"result_line_regex": "^ +([0-9]+):",
+							"scroll_past_end": true,
+							"syntax": "Packages/Default/Find Results.hidden-tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 1124.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 11,
+					"type": "text"
+				},
+				{
+					"buffer": 12,
+					"file": "gateway.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 747,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								265,
+								265
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "elasticNode.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1556,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								343,
+								343
+							]
+						],
+						"settings":
+						{
+							"history_list_is_closing": true,
+							"syntax": "Packages/Python/Python.sublime-syntax"
+						},
+						"translation.x": 86.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 6,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "endDevice.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1015,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1015,
+								1015
+							]
+						],
+						"settings":
+						{
+							"history_list_is_closing": true,
+							"syntax": "Packages/Python/Python.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 8,
+					"type": "text"
+				},
+				{
+					"buffer": 9,
+					"file": "mrf.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1037,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								142,
+								142
+							]
+						],
+						"settings":
+						{
+							"history_list_is_closing": true,
+							"syntax": "Packages/Python/Python.sublime-syntax"
+						},
+						"translation.x": 12.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 7,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "mcu.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 797,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								204,
+								204
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 5,
+					"type": "text"
+				},
+				{
+					"buffer": 8,
+					"file": "constants.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1073,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								726,
+								742
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 4,
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "sim.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1865,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1865,
+								1865
+							]
+						],
+						"settings":
+						{
+							"history_list_is_closing": true,
+							"syntax": "Packages/Python/Python.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 15,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 26.0
+	},
+	"input":
+	{
+		"height": 103.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			],
+			[
+				1,
+				0,
+				2,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			0.5,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.exec":
+	{
+		"height": 255.0
+	},
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"output.git":
+	{
+		"height": 118.0
+	},
+	"output.latextools":
+	{
+		"height": 118.0
+	},
+	"output.mdpopups":
+	{
+		"height": 0.0
+	},
+	"output.stino_build_panel":
+	{
+		"height": 0.0
+	},
+	"output.stino_panel":
+	{
+		"height": 0.0
+	},
+	"output.unsaved_changes":
+	{
+		"height": 126.0
+	},
+	"pinned_build_system": "",
+	"project": "sim.sublime-project",
+	"replace":
+	{
+		"height": 48.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"training",
+				"training.py"
+			],
+			[
+				"sim.p",
+				"sim.py"
+			],
+			[
+				"sever",
+				"server.py"
+			],
+			[
+				"gateway",
+				"gateway.py"
+			],
+			[
+				"constants",
+				"constants.py"
+			],
+			[
+				"mcu.",
+				"mcu.py"
+			],
+			[
+				"elasticnode",
+				"elasticNode.py"
+			],
+			[
+				"mrf",
+				"mrf.py"
+			],
+			[
+				"con",
+				"constants.py"
+			],
+			[
+				"elastic",
+				"elasticNode.py"
+			],
+			[
+				"endde",
+				"endDevice.py"
+			],
+			[
+				"enddev",
+				"endDevice.py"
+			],
+			[
+				"sim",
+				"sim.py"
+			],
+			[
+				"makfiel",
+				"Makefile"
+			],
+			[
+				"train",
+				"training.py"
+			],
+			[
+				"makefil",
+				"Makefile"
+			],
+			[
+				"mcu",
+				"mcu.py"
+			],
+			[
+				"elasti",
+				"elasticNode.py"
+			],
+			[
+				"elasticn",
+				"elasticNode.py"
+			],
+			[
+				"end",
+				"endDevice.py"
+			],
+			[
+				"server",
+				"server.py"
+			],
+			[
+				"gatewa",
+				"gateway.py"
+			],
+			[
+				"gw",
+				"gateway.py"
+			],
+			[
+				"endd",
+				"endDevice.py"
+			],
+			[
+				"gatew",
+				"gateway.py"
+			],
+			[
+				"elat",
+				"elasticNode.py"
+			],
+			[
+				"message",
+				"message.py"
+			],
+			[
+				"elast",
+				"elasticNode.py"
+			],
+			[
+				"messa",
+				"message.py"
+			],
+			[
+				"sim.",
+				"sim.py"
+			],
+			[
+				"result",
+				"result.py"
+			],
+			[
+				"fpga",
+				"fpga.py"
+			],
+			[
+				"consta",
+				"constants.py"
+			],
+			[
+				"constant",
+				"constants.py"
+			],
+			[
+				"mrf.",
+				"mrf.py"
+			],
+			[
+				"sim.py",
+				"sim.py"
+			],
+			[
+				"leastic",
+				"~/git/simulator/elasticNode.py"
+			],
+			[
+				"mes",
+				"~/git/simulator/message.py"
+			],
+			[
+				"curr",
+				"~/git/simulator/currentConstants.py"
+			],
+			[
+				"makefile",
+				"Makefile"
+			],
+			[
+				"echo",
+				"scripts/serial_echo.py"
+			],
+			[
+				"main.c",
+				"main.c"
+			],
+			[
+				"currentse",
+				"lib/current_sense/current_sense.h"
+			],
+			[
+				"currentsenseh",
+				"lib/current_sense/current_sense.h"
+			],
+			[
+				"serial",
+				"scripts/serial_echo.py"
+			],
+			[
+				"current",
+				"lib/current_sense/current_sense.c"
+			],
+			[
+				"uartm",
+				"lib/control/uartManager.c"
+			],
+			[
+				"flash.c",
+				"lib/flash/flash.c"
+			],
+			[
+				"flash.h",
+				"lib/flash/flash.h"
+			],
+			[
+				"serialtest",
+				"scripts/serial_test.py"
+			],
+			[
+				"serialet",
+				"scripts/serial_test.py"
+			],
+			[
+				"uartmanager",
+				"lib/control/uartManager.c"
+			],
+			[
+				"",
+				"lib/control/uartManager.c"
+			],
+			[
+				"fpga.c",
+				"lib/fpga/fpga.c"
+			],
+			[
+				"uartma",
+				"lib/control/uartManager.c"
+			],
+			[
+				"sei",
+				"scripts/serial_test.py"
+			],
+			[
+				"uartman",
+				"lib/control/uartManager.c"
+			],
+			[
+				"makeifle",
+				"Makefile"
+			],
+			[
+				"ann.c",
+				"lib/stubs/ann.c"
+			],
+			[
+				"main",
+				"main.c"
+			],
+			[
+				"uartmag",
+				"lib/control/uartManager.c"
+			],
+			[
+				"seriat",
+				"scripts/serial_test.py"
+			],
+			[
+				"config",
+				"scripts/Configuration.py"
+			],
+			[
+				"fpga.h",
+				"lib/fpga/fpga.h"
+			],
+			[
+				"fir.c",
+				"lib/stubs/fir.c"
+			],
+			[
+				"uart",
+				"lib/uart/uart.c"
+			],
+			[
+				"serialecho",
+				"scripts/serial_echo.py"
+			],
+			[
+				"make",
+				"Makefile"
+			],
+			[
+				"seel",
+				"lib/fpga/selectmap/selectmap.c"
+			],
+			[
+				"debuc",
+				"lib/debug/debug.c"
+			],
+			[
+				"debug",
+				"lib/debug/debug.h"
+			],
+			[
+				"selectmap.c",
+				"lib/fpga/selectmap/selectmap.c"
+			],
+			[
+				"debuc.",
+				"lib/debug/debug.c"
+			],
+			[
+				"uart.c",
+				"lib/uart/uart.c"
+			],
+			[
+				"uart.h",
+				"lib/uart/uart.h"
+			],
+			[
+				"debu.c",
+				"lib/debug/debug.c"
+			],
+			[
+				"flashc",
+				"lib/flash/flash.c"
+			],
+			[
+				"control",
+				"lib/control/uartManager.c"
+			],
+			[
+				"leds.c",
+				"lib/io/leds.c"
+			],
+			[
+				"flash",
+				"lib/flash/flash.c"
+			],
+			[
+				"seria",
+				"scripts/serial_test.py"
+			],
+			[
+				"seri",
+				"scripts/serial_test.py"
+			],
+			[
+				"fir.h",
+				"lib/stubs/fir.h"
+			],
+			[
+				"debug.h",
+				"lib/debug/debug.h"
+			],
+			[
+				"debug.c",
+				"lib/debug/debug.c"
+			],
+			[
+				"circular",
+				"lib/circular_buffer/circular_buffer.c"
+			],
+			[
+				"xor.c",
+				"lib/fpga/xor.c"
+			],
+			[
+				"seriate",
+				"scripts/serial_test.py"
+			],
+			[
+				"main.h",
+				"main.h"
+			],
+			[
+				"dedb",
+				"lib/debug/debug.c"
+			],
+			[
+				"softuart.c",
+				"lib/softuart/softuart.c"
+			],
+			[
+				"xor.h",
+				"lib/fpga/xor.h"
+			],
+			[
+				"uartmanager.c",
+				"lib/control/uartManager.c"
+			],
+			[
+				"experiments.h",
+				"lib/experiments/experiments.h"
+			],
+			[
+				"selectmap",
+				"lib/fpga/selectmap/selectmap.c"
+			],
+			[
+				"softuart.h",
+				"lib/softuart/softuart.h"
+			],
+			[
+				"softspi",
+				"lib/softspi/softspi.h"
+			],
+			[
+				"wireless",
+				"lib/wireless/wireless.c"
+			],
+			[
+				"firpackage",
+				"src/firPackage.vhd"
+			],
+			[
+				"genericproject.vhd",
+				"src/genericProject.vhd"
+			],
+			[
+				"firwishbone.vhd",
+				"src/FirWishboneSkeleton.vhd"
+			],
+			[
+				"configu",
+				"configurations.h"
+			],
+			[
+				"neopixel.c",
+				"src/NeoPixel.c"
+			],
+			[
+				"build.g",
+				"build.gradle"
+			],
+			[
+				"body",
+				"content/body.tex"
+			],
+			[
+				"ref.",
+				"ref.bib"
+			],
+			[
+				"abstrac",
+				"content/abstract.tex"
+			],
+			[
+				"paper.tex",
+				"paper.tex"
+			],
+			[
+				"ab",
+				"content/abstract.tex"
+			],
+			[
+				"bid",
+				".gradle/4.10.2/fileChanges/last-build.bin"
+			],
+			[
+				"bilb",
+				"bibliography.bib"
+			],
+			[
+				"smart",
+				"smartedge.tex"
+			],
+			[
+				"plot",
+				"data/plotlatency.py"
+			],
+			[
+				"p",
+				"data/plotlatency.py"
+			],
+			[
+				"plotlate",
+				"data/plotlatency.py"
+			],
+			[
+				"plotting",
+				"data/plotting.py"
+			],
+			[
+				"throughput",
+				"data/plotthroughput.py"
+			],
+			[
+				"bibl",
+				"bibliography.bib"
+			],
+			[
+				"s",
+				"smartedge.tex"
+			],
+			[
+				"plotthrough",
+				"data/plotthroughput.py"
+			],
+			[
+				"bibli",
+				"bibliography.bib"
+			],
+			[
+				"latency",
+				"data/plotlatency.py"
+			],
+			[
+				"secon",
+				"data/batchsize_pi3_native_second.txt"
+			],
+			[
+				"smartedge",
+				"smartedge.tex"
+			],
+			[
+				"plotl",
+				"data/plotlatency.py"
+			],
+			[
+				"ploth",
+				"data/plotthroughput.py"
+			],
+			[
+				"plothrough",
+				"data/plotthroughput.py"
+			],
+			[
+				"batchpi3",
+				"data/batchsize_pi3.txt"
+			]
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 500.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 380.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": true,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 237.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}
