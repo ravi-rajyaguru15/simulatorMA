@@ -30,18 +30,19 @@ class elasticNode:
 		return result(latency=0, energy=this.mcu.activeEnergy(this.mrf.rxtxLatency(this.message.size) + this.mrf.rxEnergy(this.message.size)))
 
 	def mcuToFpgaLatency(this):
-		return this.message.size / 1024./ constants.randomise(constants.MCU_FPGA_COMMUNICATION_SPEED)
+		return this.message.size / 1024./ constants.randomise(constants.MCU_FPGA_COMMUNICATION_SPEED) + constants.randomise(constants.MCU_MW_OVERHEAD_LATENCY)
 
-	def mcuToFpgaEnergy(this):
-		mcuEnergy = this.mcu.activeEnergy(this.mcuToFpgaLatency())
-		fpgaEnergy = this.fpga.activeEnergy(this.mcuToFpgaLatency())
+	def mcuToFpgaEnergy(this, time):
+		mcuEnergy = this.mcu.activeEnergy(time)
+		fpgaEnergy = this.fpga.activeEnergy(time)
 		return mcuEnergy + fpgaEnergy
 
 	def process(this, accelerated):
 		res = None
 		if accelerated:
 			# overhead for mcu-fpga communication
-			res = result(latency=this.mcuToFpgaLatency(), energy=this.mcuToFpgaEnergy())
+			time = this.mcuToFpgaLatency()
+			res = result(latency=time, energy=this.mcuToFpgaEnergy(time))
 			# processing 
 			res += this.fpga.process(this.message.samples)
 		else:

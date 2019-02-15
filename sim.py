@@ -78,10 +78,13 @@ class sim:
 
 if __name__ == '__main__':
 	simulation = sim()
-	print simulation.offloadElasticNode(100)
-	print 
-	print simulation.localProcess(100)
-	print 
-	print simulation.offloadPeer(100)
-	print 
-	print simulation.offloadServer(100)
+	for i in range(1, 100, 10):
+		print i, simulation.simulateAll(i, "latency")
+
+			# print simulation.offloadElasticNode(100)
+			# print 
+			# print simulation.localProcess(100)
+			# print 
+			# print simulation.offloadPeer(100)
+			# print 
+			# print simulation.offloadServer(100)
