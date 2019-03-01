@@ -1,0 +1,106 @@
+#metadata:
+#  name: arm
+
+# platform: linux/arm
+platform: linux/amd64
+
+clone:
+  default:
+    image: plugins/git
+    #image: plugins/git:linux-arm
+
+pipeline:
+  service_lint:
+    group: tests
+    image: alpine/flake8-arm:3-slim
+    commands:
+      - flake8 --show-source ./src/
+    when:
+      event: [push, pull_request, tag]
+
+  small_test:
+    group: tests
+    image: ubuntu:16.04
+    commands:
+      - python src/training.py
+    when:
+      event: [push]
+  # uds:
+  #   group: build
+  #   image: plugins/docker:linux-arm
+  #   repo: alwynburger.duckdns.org/uds-led-translator
+  #   dockerfile: translator/Dockerfile
+  #   context: ./translator/
+  #   target: binary
+  #   tags:
+  #     - ${DRONE_BRANCH/\//-}
+  #     - ${DRONE_COMMIT_SHA:0:8}
+  #     - ${DRONE_TAG=latest}
+  #   secrets:
+  #     - docker_username
+  #     - docker_password
+  #   when:
+  #     event: [push, pull_request, tag]
+
+  elasticnode:
+    group: build
+    image: docker
+#    image: alwynburger.duckdns.org/crossarm
+#    image: plugins/docker
+#    image: plugins/docker:linux-arm
+#    repo: alwynburger.duckdns.org/elasticnodepi
+#    dockerfile: elasticnode/Dockerfile
+#    context: ./elasticnode/
+#    tags:
+#      - ${DRONE_BRANCH/\//-}
+#      - ${DRONE_COMMIT_SHA:0:8}
+#      - ${DRONE_TAG=latest}
+    secrets:
+      - docker_username
+      - docker_password
+    privileged: true
+    # env_file:
+      # - sock.env
+      # - mqtt.env
+    commands:
+#      - echo "adding qeumu static"
+#      - docker run --rm --privileged multiarch/qemu-user-static:register --reset
+
+      - docker build --no-cache ./ -t build.es.uni-due.de/${DRONE_REPO_NAME}:${DRONE_COMMIT_SHA}
+#      - docker run alwynburger.duckdns.org/pi uname -a
+      - docker push build.es.uni-due.de/${DRONE_REPO_NAME}:${DRONE_COMMIT_SHA}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+#      - ./elasticnode/:/opt/docker/
+    when:
+      event: [push, pull_request, tag]
+
+  deploy:
+    group: deploy
+    image: alwyn.duckdns.org/kubectl
+    # image: kiotsystem/kubectl-arm:1.11
+    secrets:
+      - k8s_user
+      - k8s_token
+      - mqtt_password
+      - mqtt_user
+    environment:
+      - K8S_CLUSTER_ENDPOINT=https://192.168.200.40:6443
+      - K8S_CLUSTER=kiot
+      - COMMIT=${DRONE_COMMIT_SHA:0:8}
+    commands:
+      - export $(grep -hv '^#' *.env | xargs -0)
+      - init.sh
+      - populate.sh
+      - deploy.sh
+    when:
+      event: [deployment, tag]
+
+  hipchat:
+    image: jmccann/drone-hipchat
+    room: ${DRONE_REPO_NAME}
+    url: https://hipchat.es.uni-due.de
+    notify: true
+    secrets: [ hipchat_auth_token ]
+    when:
+      status:  [ failure, success ]
