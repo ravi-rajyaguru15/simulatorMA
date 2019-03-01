@@ -8,7 +8,7 @@ clone:
 pipeline:
   service_lint:
     group: tests
-    image: alpine/flake8-arm:3-slim
+    image: alpine/flake8
     commands:
       - flake8 --show-source ./src/
     when:
@@ -38,19 +38,9 @@ pipeline:
   #   when:
   #     event: [push, pull_request, tag]
 
-  elasticnode:
+  create_docker:
     group: build
     image: docker
-#    image: alwynburger.duckdns.org/crossarm
-#    image: plugins/docker
-#    image: plugins/docker:linux-arm
-#    repo: alwynburger.duckdns.org/elasticnodepi
-#    dockerfile: elasticnode/Dockerfile
-#    context: ./elasticnode/
-#    tags:
-#      - ${DRONE_BRANCH/\//-}
-#      - ${DRONE_COMMIT_SHA:0:8}
-#      - ${DRONE_TAG=latest}
     secrets:
       - docker_username
       - docker_password
