@@ -52,7 +52,7 @@ pipeline:
 #      - echo "adding qeumu static"
 #      - docker run --rm --privileged multiarch/qemu-user-static:register --reset
 
-      - docker build --no-cache ./ -t build.es.uni-due.de/${DRONE_REPO_NAME}:${DRONE_COMMIT_SHA}
+      - docker build --no-cache ./smalltest/ -t build.es.uni-due.de/${DRONE_REPO_NAME}:${DRONE_COMMIT_SHA}
 #      - docker run alwynburger.duckdns.org/pi uname -a
       - docker push build.es.uni-due.de/${DRONE_REPO_NAME}:${DRONE_COMMIT_SHA}
     volumes:
