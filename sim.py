@@ -60,15 +60,26 @@ class sim:
 
 		return res
 
+	def simulateBatch(this, batch, attribute, queue):
+		for samples in batch:
+			# print 'samples', samples
+			this.simulateAll(samples, attribute, queue)
+
 	options = [offloadElasticNode, localProcess, offloadPeer, offloadServer]
 	optionsNames = ["offloadElasticNode", "localProcess", "offloadPeer", "offloadServer"]
 	# simulate all available options, and output the chosen attribute
-	def simulateAll(this, samples, attribute):
+	def simulateAll(this, samples, attribute, queue):
 		outputs = list()
 		for processing in this.options:
 			outputs.append(processing(this, samples).__dict__[attribute])
-		
-		return outputs
+			# queue.put(processing(this, samples).__dict__[attribute])
+		# return outputs
+		if queue is None:
+			queue.put([samples, outputs])
+		else:
+			return outputs
+		#print samples
+		#print outputs
 
 	def numOptions(this):
 		return len(this.options)
