@@ -15,5 +15,5 @@ COPY ../src ./src
 #RUN pip3 install -r ./requirements.txt # --disable-pip-version-check
 
 # ENTRYPOINT ["/usr/bin/python3", "/app/elasticNode.py", "loadann"]
-CMD ["sh", "-c", "/usr/bin/python /app/src/training.py"]
-CMD ["sh", "-c", "/usr/bin/python /app/src/training.py /gpu:0 10 10 100 128"]
+#CMD ["sh", "-c", "/usr/bin/python /app/src/training.py"]
+#CMD ["sh", "-c", "/usr/bin/python /app/src/training.py /gpu:0 10 10 100 128"]
