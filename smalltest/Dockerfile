@@ -4,7 +4,7 @@ WORKDIR /app
 
 #ENV PYTHONPATH "/app/src"
 
-COPY ./src ./src
+COPY ../src ./src
 
 # install the dependencies
 #RUN apt-get update # ;
