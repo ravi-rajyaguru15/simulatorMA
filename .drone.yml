@@ -6,13 +6,13 @@ clone:
     #image: plugins/git:linux-arm
 
 pipeline:
-  service_lint:
-    group: tests
-    image: alpine/flake8
-    commands:
-      - flake8 --show-source ./src/
-    when:
-      event: [push, pull_request, tag]
+#  service_lint:
+#    group: tests
+#    image: alpine/flake8
+#    commands:
+#      - flake8 --show-source ./src/
+#    when:
+#      event: [push, pull_request, tag]
 
   small_test:
     group: tests
