@@ -18,7 +18,7 @@ pipeline:
     group: tests
     image: ubuntu:16.04
     commands:
-      - python src/training.py
+      - /usr/bin/python src/training.py
     when:
       event: [push]
   # uds:
