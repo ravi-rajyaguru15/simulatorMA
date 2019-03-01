@@ -16,18 +16,17 @@ from random import random
 from sim import sim
 from result import result
 
-HIDDEN_SIZE = int(sys.argv[2])
-HIDDEN_DEPTH = int(sys.argv[3])
-TRAINING_SIZE = int(sys.argv[4])
-BATCH_SIZE = int(sys.argv[5])
+from datetime import datetime
+
 TEST_SIZE = 1000
 SAMPLE_SIZE = 10
 EPOCHS = 1
-THREADS = 8
+THREADS = multiprocessing.cpu_count()
 optimisation = "latency"
 
 def train():
 	# print(tf.__version__)
+	start = datetime.now()
 
 	simulation = sim()
 	results = list()
@@ -43,10 +42,8 @@ def train():
 			sample = random() * SAMPLE_SIZE +1
 			training_samples.append(sample)
 
-		print 'lst', len(training_samples)
 		p = multiprocessing.Process(target=sim.simulateBatch, args=(simulation, training_samples, optimisation, q, ))
 		processes.append(p)
-
 
 	print 'processes:', len(processes)
 	print 
@@ -58,18 +55,14 @@ def train():
 	for process in processes:
 		process.join()
 
+	print 'sim time:', (datetime.now() - start).total_seconds()
 		# results.append(simulation.simulateAll(sample, optimisation))
 
-	print 'q', q.qsize()
 	for i in range(q.qsize()):
 		value = q.get()
-		print value
+		# print value
 		all_samples.append(value[0])
 		results.append(value[1])
-	print np.array(results).shape
-	print 
-	print len(all_samples)
-	print len(results)
 
 	results = np.array(results)
 	# print 'results:\n', results
@@ -182,7 +175,20 @@ def train():
 
 
 if __name__ == '__main__':
-	device = sys.argv[1]
+	if len(sys.argv) > 2:
+		HIDDEN_SIZE = int(sys.argv[2])
+		HIDDEN_DEPTH = int(sys.argv[3])
+		TRAINING_SIZE = int(sys.argv[4])
+		BATCH_SIZE = int(sys.argv[5])
+		device = sys.argv[1]
+	else:
+		print 'using defaults'
+		HIDDEN_SIZE = 4
+		HIDDEN_DEPTH = 4
+		TRAINING_SIZE = 100
+		BATCH_SIZE = 16
+		device = '/cpu:0'
+
 	conf = tf.ConfigProto(allow_soft_placement=True, log_device_placement=False)
 	conf.gpu_options.allow_growth=True
 	with tf.Session(config=conf):

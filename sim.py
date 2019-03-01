@@ -74,7 +74,7 @@ class sim:
 			outputs.append(processing(this, samples).__dict__[attribute])
 			# queue.put(processing(this, samples).__dict__[attribute])
 		# return outputs
-		if queue is None:
+		if queue is not None:
 			queue.put([samples, outputs])
 		else:
 			return outputs
