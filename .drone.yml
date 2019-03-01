@@ -16,7 +16,7 @@ pipeline:
 
   small_test:
     group: tests
-    image: ubuntu:16.04
+    image: tensorflow/tensorflow
     commands:
       - /usr/bin/python src/training.py
     when:
