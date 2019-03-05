@@ -15,9 +15,11 @@ pipeline:
 #      event: [push, pull_request, tag]
 
   small_test:
+    name: small_test
     group: tests
     image: tensorflow/tensorflow
     commands:
+      - echo "Small test"
       - /usr/bin/python src/training.py
     when:
       event: [push]
