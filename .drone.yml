@@ -1,4 +1,4 @@
-platform: linux/cuda
+platform: linux/amd64
 
 clone:
   default:
@@ -40,7 +40,7 @@ pipeline:
   #   when:
   #     event: [push, pull_request, tag]
 
-  create_docker:
+  create_docker_cpu:
     group: build
     image: docker
     secrets:
@@ -59,6 +59,31 @@ pipeline:
 #      - docker run alwynburger.duckdns.org/pi uname -a
       - docker push build.es.uni-due.de/${DRONE_REPO_NAME}:${DRONE_COMMIT_SHA}
       - docker push build.es.uni-due.de/${DRONE_REPO_NAME}:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+#      - ./elasticnode/:/opt/docker/
+    when:
+      event: [push, pull_request, tag]
+
+  create_docker_gpu:
+    group: build
+    image: docker
+    secrets:
+      - docker_username
+      - docker_password
+    privileged: true
+    # env_file:
+      # - sock.env
+      # - mqtt.env
+    commands:
+#      - echo "adding qeumu static"
+#      - docker run --rm --privileged multiarch/qemu-user-static:register --reset
+
+      - docker build --no-cache -f Dockerfile.gpu ./ -t build.es.uni-due.de/${DRONE_REPO_NAME}:${DRONE_COMMIT_SHA}-gpu
+      - docker tag build.es.uni-due.de/${DRONE_REPO_NAME}:${DRONE_COMMIT_SHA}-gpu build.es.uni-due.de/${DRONE_REPO_NAME}:latest-gpu
+#      - docker run alwynburger.duckdns.org/pi uname -a
+      - docker push build.es.uni-due.de/${DRONE_REPO_NAME}:${DRONE_COMMIT_SHA}-gpu
+      - docker push build.es.uni-due.de/${DRONE_REPO_NAME}:latest-gpu
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
 #      - ./elasticnode/:/opt/docker/
