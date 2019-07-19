@@ -18,11 +18,11 @@ class fpga:
 		pass
 
 	def processingLatency(this, samples):
-		return samples / constants.randomise(this.processingSpeed)
+		return samples / this.processingSpeed.gen()
 
 	def process(this, samples):
 		res = result(latency=this.processingLatency(samples), energy=this.activeEnergy(this.processingLatency(samples)))
 		return res
 
 	def activeEnergy(this, duration):
-		return duration * (constants.randomise(this.internalVoltage) * constants.randomise(this.activeInternalCurrent) + constants.randomise(this.auxVoltage) + constants.randomise(this.activeAuxCurrent))
+		return duration * (this.internalVoltage.gen() * this.activeInternalCurrent.gen() + this.auxVoltage.gen() + this.activeAuxCurrent.gen())

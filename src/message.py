@@ -13,7 +13,7 @@ class message:
 			this.size = size
 			this.samples = None
 		else:
-			this.size = samples * constants.randomise(constants.SAMPLE_RAW_SIZE)
+			this.size = samples * constants.SAMPLE_RAW_SIZE.gen()
 			this.samples = samples
 
 
@@ -21,4 +21,4 @@ class message:
 	def process(this):
 		if this.samples is None:
 			warn("Cannot process message without sample count")
-		this.size = this.samples * constants.randomise(constants.SAMPLE_PROCESSED_SIZE)
+		this.size = this.samples * constants.SAMPLE_PROCESSED_SIZE.gen()

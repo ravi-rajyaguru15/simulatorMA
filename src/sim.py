@@ -68,7 +68,7 @@ class sim:
 	options = [offloadElasticNode, localProcess, offloadPeer, offloadServer]
 	optionsNames = ["offloadElasticNode", "localProcess", "offloadPeer", "offloadServer"]
 	# simulate all available options, and output the chosen attribute
-	def simulateAll(this, samples, attribute, queue):
+	def simulateAll(this, samples, attribute, queue, selectedOptions=range(this.numOptions())):
 		outputs = list()
 		for processing in this.options:
 			outputs.append(processing(this, samples).__dict__[attribute])

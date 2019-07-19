@@ -16,7 +16,7 @@ class elasticNode:
 		this.fpga = fpga()
 
 	def sendTo(this, destination):
-		latency = constants.randomise(this.mcu.messageOverheadLatency) + this.mrf.rxtxLatency(this.message.size)
+		latency = this.mcu.messageOverheadLatency.gen() + this.mrf.rxtxLatency(this.message.size)
 		energy = this.mcu.overheadEnergy() + this.mrf.txEnergy(this.message.size)
 
 		res = destination.receive(this.message)
@@ -30,7 +30,7 @@ class elasticNode:
 		return result(latency=0, energy=this.mcu.activeEnergy(this.mrf.rxtxLatency(this.message.size) + this.mrf.rxEnergy(this.message.size)))
 
 	def mcuToFpgaLatency(this):
-		return this.message.size / 1024./ constants.randomise(constants.MCU_FPGA_COMMUNICATION_SPEED) + constants.randomise(constants.MCU_MW_OVERHEAD_LATENCY)
+		return this.message.size / 1024./ constants.MCU_FPGA_COMMUNICATION_SPEED.gen() + constants.MCU_MW_OVERHEAD_LATENCY.gen()
 
 	def mcuToFpgaEnergy(this, time):
 		mcuEnergy = this.mcu.activeEnergy(time)

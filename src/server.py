@@ -16,10 +16,10 @@ class server:
 		return res
 
 	def processingTime(this, samples):
-		return samples / constants.randomise(this.processingSpeed)
+		return samples / this.processingSpeed.gen()
 
 	def sendTo(this, destination):
-		latency = constants.randomise(this.messageOverheadLatency) + this.txLatency(this.message.size)
+		latency = this.messageOverheadLatency.gen() + this.txLatency(this.message.size)
 
 		reception = destination.receive(this.message)
 		this.message = None
@@ -32,4 +32,4 @@ class server:
 		return result()
 
 	def txLatency(this, messageSize):
-		return messageSize / 1024. / constants.randomise(this.transmissionRate) + constants.randomise(this.transmissionPing)
+		return messageSize / 1024. / this.transmissionRate.gen() + this.transmissionPing.gen()

@@ -13,7 +13,7 @@ class endDevice:
 		this.mrf = mrf()
 
 	def sendTo(this, destination):
-		latency = constants.randomise(this.mcu.messageOverheadLatency) + this.mrf.rxtxLatency(this.message.size)
+		latency = this.mcu.messageOverheadLatency.gen() + this.mrf.rxtxLatency(this.message.size)
 		energy = this.mcu.overheadEnergy() + this.mcu.activeEnergy(this.mrf.rxtxLatency(this.message.size)) + this.mrf.txEnergy(this.message.size)
 
 		reception = destination.receive(this.message)
