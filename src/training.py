@@ -33,11 +33,9 @@ def train():
 
 	conf = tf.ConfigProto(allow_soft_placement=True, log_device_placement=False)
 	conf.gpu_options.allow_growth=True
-	print 'open session'
 	with tf.Session(config=conf) as sess:
-		print 'device'
 		with tf.device(device):
-			print 'done'
+			
 
 			# print(tf.__version__)
 			start = datetime.now()

@@ -1,10 +1,10 @@
-FROM tensorflow/tensorflow
+FROM tensorflow/tensorflow:latest
 
 WORKDIR /app
 
 #ENV PYTHONPATH "/app/src"
 
-COPY ../src ./src
+COPY ./src ./src
 
 # install the dependencies
 #RUN apt-get update # ;
@@ -16,4 +16,4 @@ COPY ../src ./src
 
 # ENTRYPOINT ["/usr/bin/python3", "/app/elasticNode.py", "loadann"]
 CMD ["sh", "-c", "/usr/bin/python /app/src/training.py"]
-#CMD ["sh", "-c", "/usr/bin/python /app/src/training.py /gpu:0 10 10 100 128"]
+CMD ["sh", "-c", "/usr/bin/python /app/src/training.py /cpu:0 10 10 100 128"]

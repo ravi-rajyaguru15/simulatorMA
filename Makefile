@@ -1,13 +1,11 @@
 drone:
-	set DRONE_REPO_NAME:=simulator
-	set DRONE_COMMIT_SHA:=1
-	drone exec --trusted --include small_test
+	DRONE_REPO_NAME=simulator DRONE_COMMIT_SHA=1 drone exec --trusted --include small_test
 
 # training.py DEVICE HIDDEN_SIZE HIDDEN_DEPTH TRAINING_SIZE BATCH_SIZE
 docker:
 	docker build --no-cache ./ -t test
 	docker run test
-
+	
 docker-gpu:
 	docker build -f Dockerfile.gpu --no-cache ./ -t test
 	docker run --runtime=nvidia test 
