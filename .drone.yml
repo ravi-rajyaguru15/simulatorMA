@@ -39,6 +39,7 @@ pipeline:
   #     event: [push, pull_request, tag]
 
   create_docker:
+    name: create_docker
     group: build
     image: docker
     secrets:
@@ -52,11 +53,11 @@ pipeline:
 #      - echo "adding qeumu static"
 #      - docker run --rm --privileged multiarch/qemu-user-static:register --reset
 
-      - docker build --no-cache ./ -t build.es.uni-due.de/${DRONE_REPO_NAME}:${DRONE_COMMIT_SHA}
+      #- docker build --no-cache ./ -t build.es.uni-due.de/${DRONE_REPO_NAME}:${DRONE_COMMIT_SHA}
 #      - docker run alwynburger.duckdns.org/pi uname -a
-      - docker push build.es.uni-due.de/${DRONE_REPO_NAME}:${DRONE_COMMIT_SHA}
+      #- docker push build.es.uni-due.de/${DRONE_REPO_NAME}:${DRONE_COMMIT_SHA}
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      #- /var/run/docker.sock:/var/run/docker.sock
 #      - ./elasticnode/:/opt/docker/
     when:
       event: [push, pull_request, tag]
