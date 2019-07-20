@@ -1,5 +1,6 @@
 import constants
 from mcu import mcu
+from fpga import fpga
 
 class subtask:
     totalDuration = None
@@ -26,15 +27,26 @@ class subtask:
 
 
 class processing(subtask):
-    def __init__(self, device, processor, samples):
+    def __init__(self, device, samples, processor=None):
         # print "MCU ONLY PROCESSING"
-        if isinstance(processor, mcu):
+        duration = self.energyCost = 0
 
-            duration = processor.processingTime(samples)
-            self.energyCost = processor.activeEnergy(duration)
-            
-            subtask.__init__(self, duration, device, device)
+        if processor is None: processor = device.fpga
+
                     # res = result(latency=self.mcu.processingTime(task.samples), energy=self.mcu.activeEnergy(self.mcu.processingTime(task.samples)))
-        else:
+        if isinstance(processor, fpga):
             print "FPGA processing"
-    
+            
+            # overhead for mcu-fpga communication
+            # time = this.mcuToFpgaLatency()
+            # res = result(latency=time, energy=this.mcuToFpgaEnergy(time))
+            # # processing 
+            # res += this.fpga.process(this.message.samples)
+            
+            duration = device.mcuToFpgaLatency(samples)
+            self.energyCost = device.mcuToFpgaEnergy(duration)
+        
+        duration += processor.processingTime(samples)
+        self.energyCost += processor.activeEnergy(duration)
+            
+        subtask.__init__(self, duration, device, device)

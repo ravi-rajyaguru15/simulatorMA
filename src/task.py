@@ -40,7 +40,7 @@ class task:
 		if self.host is self.destination:
 			print 'local processing'
 			# local processing
-			self.subtasks = [(processing(self.host, self.host.mcu, self.samples))]
+			self.subtasks = [(processing(self.host, self.samples))]
 			self.subtaskIndex = 0
 		else:
 			print 'UNIMPLEMENTED'

@@ -62,7 +62,7 @@ class sim:
 		print "latency:\t", 	np.average(np.array(latencies))
 		print "energy:\t\t", 	np.average(np.array(energies))
 		print "jobs:\t\t", 		np.average(queueLengths)
-		print np.histogram(queueLengths, bins=range(np.max(queueLengths) + 3)) 
+		print np.histogram(queueLengths, bins=np.array(range(np.max(queueLengths) + 3)) - .5) 
 	# def simulateBatch(self, batch, attribute):
 	# 	for samples in batch:
 	# 		# print 'samples', samples

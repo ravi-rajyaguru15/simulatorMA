@@ -5,7 +5,7 @@ from task import task
 # from Queue import Queue
 
 class node:
-	message = None
+	# message = None
 	decision = None
 	jobQueue = None
 	resultsQueue = None
@@ -25,7 +25,7 @@ class node:
 		# 	print "no jobs"
 
 		# possibly create new job
-		if constants.uni.genGreaterThan(1 - constants.JOB_LIKELIHOOD): # 0.5 
+		if constants.uni.evaluate(constants.JOB_LIKELIHOOD): # 0.5 
 			self.jobQueue.append(task(self, samples=constants.SAMPLE_SIZE.gen()))
 			print "new task"
 

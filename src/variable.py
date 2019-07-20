@@ -10,8 +10,11 @@ class Variable:
 	def gen(self):
 		return self.genFunction(*self.genArgs)
 
-	def genGreaterThan(self, value):
-		return self.gen() > value
+	def evaluate(self, value):
+		return self.gen() <= value
+
+	# def genGreaterThan(self, value):
+	# 	return self.gen() > value
 		
 class Uniform(Variable):
 	start = end = None

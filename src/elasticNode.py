@@ -6,7 +6,7 @@ from fpga import fpga
 from result import result
 
 class elasticNode(node):
-	message = None
+	# message = None
 	mcu = None
 	mrf = None
 	fpga = None
@@ -19,8 +19,8 @@ class elasticNode(node):
 		self.fpga = fpga()
 
 
-	def mcuToFpgaLatency(self):
-		return self.message.size / 1024./ constants.MCU_FPGA_COMMUNICATION_SPEED.gen() + constants.MCU_MW_OVERHEAD_LATENCY.gen()
+	def mcuToFpgaLatency(self, samples):
+		return (samples * constants.SAMPLE_RAW_SIZE.gen()) / 1024./ constants.MCU_FPGA_COMMUNICATION_SPEED.gen() + constants.MCU_MW_OVERHEAD_LATENCY.gen()
 
 	def mcuToFpgaEnergy(self, time):
 		mcuEnergy = self.mcu.activeEnergy(time)
