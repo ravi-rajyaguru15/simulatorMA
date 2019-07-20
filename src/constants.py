@@ -28,13 +28,20 @@ SERVER_MESSAGE_OVERHEAD_LATENCY = Gaussian(1e-4, 1.1e-4) #
 ETHERNET_PING = Gaussian(5. / 1000., 15. / 1000.) #
 
 # voltage in V
-MCU_VOLTAGE = Gaussian(3.3, 3.3) #
-FPGA_INT_VOLTAGE = Gaussian(1.2, 1.2) #
+MCU_VOLTAGE = Constant(3.3) #
+FPGA_INT_VOLTAGE = Constant(1.2) #
 FPGA_AUX_VOLTAGE = MCU_VOLTAGE
 
 # size in bytes
-SAMPLE_RAW_SIZE = Gaussian(4, 4) # FRAGMENTATION
-SAMPLE_PROCESSED_SIZE = Gaussian(1, 1) #
+SAMPLE_SIZE = Uniform(1, 11)
+SAMPLE_RAW_SIZE = Constant(4) # FRAGMENTATION
+SAMPLE_PROCESSED_SIZE = Constant(1) #
+
+# time
+SIM_TIME = 10
+TD = 1e-3
+uni = Uniform(0, 1)
+JOB_LIKELIHOOD = 1e-3
 
 # def randomise(range):
 # 	return random.uniform(range[0], range[1])

@@ -5,97 +5,107 @@ from result import result
 from gateway import gateway
 from server import server
 
+import constants
+
+import multiprocessing
+import sys
+import numpy as np
+
 class sim:
-	ed, ed2, en, gw, srv = None, None, None, None, None
+	ed, ed2, en, gw, srv, selectedOptions = None, None, None, None, None, None
+	results = None
+	time = None
 
-	def __init__(this):
-		this.ed = endDevice()
-		this.ed2 = endDevice()
-		this.en = elasticNode()
-		this.gw = gateway()
-		this.srv = server()
+	def __init__(self, numEndDevices, numElasticNodes, numServers):
+		print numEndDevices, numElasticNodes
+		self.results = multiprocessing.Manager().Queue()
 
-	def offloadElasticNode(this, samples):
-		this.ed.message = message(samples=samples)
+		self.time = 0
+		
+		self.ed = [endDevice(self.results) for i in range(numEndDevices)]
+		# self.ed = endDevice()
+		# self.ed2 = endDevice()
+		self.en = [elasticNode(self.results) for i in range(numElasticNodes)]
+		# self.en = elasticNode()
+		self.gw = gateway()
+		self.srv = [server() for i in range(numServers)]
 
-		# offload to elastic node
-		res = this.ed.sendTo(this.en)
-		res += this.en.process(accelerated=True)
-		res += this.en.sendTo(this.ed)
-		# print 'offload elastic node:\t', res
+		devices = self.ed + self.en + self.srv
+		for device in devices: 
+			device.setOffloadingDecisions(devices)
 
-		return res
 
-	def localProcess(this, samples):
-		# process locally
-		this.ed.message = message(samples=samples)
-		res = this.ed.process() 
-		# print 'local:\t\t\t\t\t', res
+	def simulateTime(self, duration):
+		progress = 0
+		queueLengths = list()
+		while progress < duration:
+			# update all the devices
+			for en in self.en:
+				en.updateTime()
+				queueLengths.append(len(en.jobQueue))
 
-		return res
+			progress += constants.TD
 
-	def offloadPeer(this, samples):
-		# offload to neighbour
-		this.ed.message = message(samples=samples)
-		res = this.ed.sendTo(this.ed2)
-		# print res
-		res += this.ed2.process()
-		# print res
-		res += this.ed2.sendTo(this.ed)
-		# print res
-		# print 'offload p2p:\t\t\t', res
+		latencies = list()
+		energies = list()
+		for i in range(self.results.qsize()):
+			value = self.results.get()
+			
+			samples = value[0]
+			res = value[1]
 
-		return res
+			latencies.append(res.latency)
+			energies.append(res.energy)
 
-	def offloadServer(this, samples):
+		queueLengths = np.array(queueLengths)
+		print "averages:"
+		print "latency:\t", 	np.average(np.array(latencies))
+		print "energy:\t\t", 	np.average(np.array(energies))
+		print "jobs:\t\t", 		np.average(queueLengths)
+		print np.histogram(queueLengths, bins=range(np.max(queueLengths) + 3)) 
+	# def simulateBatch(self, batch, attribute):
+	# 	for samples in batch:
+	# 		# print 'samples', samples
+	# 		self.simulateAll(samples, attribute)
 
-		# offload to server
-		this.ed.message = message(samples=samples)
-		res = this.ed.sendTo(this.gw)
-		res += this.gw.sendTo(this.srv)
-		res += this.srv.process()
-		res += this.srv.sendTo(this.gw)
-		res += this.gw.sendTo(this.ed)
-		# print 'offload server:\t\t\t', res
+	# options = [offloadElasticNode, localProcessMcu, localProcessFpga, offloadPeer, offloadServer]
+	# optionsNames = ["offloadElasticNode", "localProcessMcu", "localProcessFpga", "offloadPeer", "offloadServer"]
+	# # simulate all available options, and output the chosen attribute
+	# def simulateAll(self, samples, attribute):
+	# 	# if no options selected, select all
+	# 	if self.selectedOptions is None: 
+	# 		# print "Selecting all available options"
+	# 		self.selectedOptions = range(self.numOptions())
 
-		return res
+	# 	outputs = list()
+	# 	for processing in [self.options[option] for option in self.selectedOptions]:
+	# 		outputs.append(processing(self, samples).__dict__[attribute])
+	# 		# queue.put(processing(self, samples).__dict__[attribute])
 
-	def simulateBatch(this, batch, attribute, queue):
-		for samples in batch:
-			# print 'samples', samples
-			this.simulateAll(samples, attribute, queue)
+	# 	if self.queue is not None:
+	# 		self.queue.put([samples, outputs])
+	# 	else:
+	# 		return outputs
 
-	options = [offloadElasticNode, localProcess, offloadPeer, offloadServer]
-	optionsNames = ["offloadElasticNode", "localProcess", "offloadPeer", "offloadServer"]
-	# simulate all available options, and output the chosen attribute
-	def simulateAll(this, samples, attribute, queue, selectedOptions=range(this.numOptions())):
-		outputs = list()
-		for processing in this.options:
-			outputs.append(processing(this, samples).__dict__[attribute])
-			# queue.put(processing(this, samples).__dict__[attribute])
-		# return outputs
-		if queue is not None:
-			queue.put([samples, outputs])
+	def numOptions(self):
+		return len(self.options)
+
+	def nameOptions(self):
+		return self.optionsNames
+
+	def numSelectedOptions(self):
+		if self.selectedOptions is None:
+			return self.numOptions()
 		else:
-			return outputs
-		#print samples
-		#print outputs
+			return len(self.selectedOptions)
 
-	def numOptions(this):
-		return len(this.options)
-
-	def nameOptions(this):
-		return this.optionsNames
+	def selectedNameOptions(self):
+		return [self.optionsNames[option] for option in self.selectedOptions]
 
 if __name__ == '__main__':
-	simulation = sim()
-	for i in range(1, 100, 10):
-		print i, simulation.simulateAll(i, "latency")
+	simulation = sim(int(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3]))
+	# for i in range(1, 100, 10):
+	# 	print i, simulation.simulateAll(i, "latency")
 
-			# print simulation.offloadElasticNode(100)
-			# print 
-			# print simulation.localProcess(100)
-			# print 
-			# print simulation.offloadPeer(100)
-			# print 
-			# print simulation.offloadServer(100)
+	simulation.simulateTime(constants.SIM_TIME)
+	

@@ -10,18 +10,18 @@ class mcu:
 
 	processingSpeed = constants.MCU_PROCESSING_SPEED
 
-	def __init__(this):
+	def __init__(self):
 
-		# this.processingCurrent = processingCurrent
+		# self.processingCurrent = processingCurrent
 
-		# this.messageOverheadLatency = messageOverheadLatency
+		# self.messageOverheadLatency = messageOverheadLatency
 		pass
 
-	def overheadEnergy(this):
-		return this.messageOverheadLatency.gen() * this.activeCurrent.gen() / 1000. * this.voltage.gen()
+	def overheadEnergy(self):
+		return self.messageOverheadLatency.gen() * self.activeCurrent.gen() / 1000. * self.voltage.gen()
 
-	def activeEnergy(this, time):
-		return time * this.voltage.gen() * this.activeCurrent.gen()
+	def activeEnergy(self, time):
+		return time * self.voltage.gen() * self.activeCurrent.gen()
 
-	def processingTime(this, samples):
-		return samples / this.processingSpeed.gen()
+	def processingTime(self, samples):
+		return samples / self.processingSpeed.gen()

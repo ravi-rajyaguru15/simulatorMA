@@ -11,8 +11,11 @@ docker-gpu:
 	docker run --runtime=nvidia test 
 
 local:
-	python src/training.py /cpu:0 100 1 1000 128
+	python src/training.py /cpu:0 100 1 10000 100 128
 	
 all:
 	python training.py
+
+test:
+	python src/sim.py 0 1 0
 	# python sim.py
