@@ -10,6 +10,8 @@ SERVER = 2
 # current usage in mA
 WIRELESS_RX_CURRENT = Gaussian(20., 1.) #
 WIRELESS_TX_CURRENT = Gaussian(20., 1.) #
+WIRELESS_IDLE_CURRENT = Gaussian(5, 1)
+WIRELESS_SLEEP_CURRENT = Constant(0)
 
 MCU_ACTIVE_CURRENT = Gaussian(12, 2)
 MCU_IDLE_CURRENT = Gaussian(.5, 0.1) #

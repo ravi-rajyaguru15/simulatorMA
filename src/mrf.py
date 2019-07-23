@@ -1,15 +1,30 @@
 import constants 
-import random
+from component import component
 
-class mrf:
-	voltage = constants.MCU_VOLTAGE
+import random
+import numpy as np
+
+class mrf(component):
+	
+	busy = None
 	rxCurrent, txCurrent = constants.WIRELESS_RX_CURRENT, constants.WIRELESS_TX_CURRENT
 	transmissionRate = constants.WIRELESS_SPEED
 
-	busy = None
-
 	def __init__(self):
 		self.busy = False
+
+		component.__init__(
+			self,
+			voltage = [constants.MCU_VOLTAGE],
+			activeCurrent = [0],
+			idleCurrent = [constants.WIRELESS_IDLE_CURRENT],
+			sleepCurrent = [constants.WIRELESS_SLEEP_CURRENT],
+			)
+
+	def activeEnergy(self, time):
+		print "special mrf active time"
+		return time * np.dot([voltage.gen() for voltage in self.voltage], [current.gen() for current in self.activeCurrent])
+
 
 	# def __init__(self, txCurrent=None, rxCurrent = None):
 
@@ -25,10 +40,12 @@ class mrf:
 	# 		self.rxCurrent = rxCurrent
 
 	def txEnergy(self, duration):
-		return duration * self.voltage.gen() * self.txCurrent.gen() / 1000.
+		return duration * np.dot([voltage.gen() for voltage in self.voltage], [self.txCurrent.gen()])
+
+		# return duration * self.voltage[0].gen() * self.txCurrent.gen() / 1000.
 
 	def rxEnergy(self, duration):
-		return duration * self.voltage.gen() * self.rxCurrent.gen() / 1000.
+		return duration * np.dot([voltage.gen() for voltage in self.voltage], [self.rxCurrent.gen()])
 
 	def rxtxLatency(self, messageSize):
 		# print 'size', messageSize, 'lat', messageSize / 1024. / self.transmissionRate)

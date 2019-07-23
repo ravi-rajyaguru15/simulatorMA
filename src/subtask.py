@@ -17,18 +17,19 @@ class subtask:
 
     job = None
 
-    def __init__(self, job): # , duration, energyCost, device): # , origin, destination):
+    def __init__(self, job, duration, energyCost): # , device): # , origin, destination):
         # self.startTime = currentTime
 
         # defined subtasks must first set duration and energy
 
         self.job = job
-        # self.totalDuration = duration
+        self.duration = duration
+        self.energyCost = energyCost
+
         self.progress = 0
         self.started = False
         self.finished = False
         # self.device = device
-        # self.energyCost = energyCost
 
         print "Created generic subtask", self
 
@@ -77,7 +78,7 @@ class createMessage(subtask):
         # self.samples = job.samples
 
         duration = job.creator.mcu.messageOverheadLatency.gen()
-        energyCost = job.creator.mcu.activeEnergy(self.duration)
+        energyCost = job.creator.mcu.activeEnergy(duration)
 
         subtask.__init__(self, job, duration, energyCost)
     
@@ -111,7 +112,8 @@ class processing(subtask):
         processingEnergyCost = job.processor.processingEnergy(processingDuration)
 
         # reduce message size
-      	self.size = self.samples * constants.SAMPLE_PROCESSED_SIZE.gen()
+      	# self.size = self.samples * constants.SAMPLE_PROCESSED_SIZE.gen()
+        job.datasize = job.processedMessageSize()
 
         duration = offloadingDuration + processingDuration
         energyCost = offloadingEnergyCost + processingEnergyCost
@@ -129,7 +131,7 @@ class txMessage(subtask):
 
         # source mcu does the work
         duration = job.creator.mrf.rxtxLatency(job.datasize)
-        energyCost = job.creator.mrf.txEnergy(self.duration)
+        energyCost = job.creator.mrf.txEnergy(duration)
         
         subtask.__init__(self, job, duration, energyCost)
 
@@ -160,7 +162,7 @@ class rxMessage(subtask):
         print "mrf not busy anymore"
         self.job.creator.mrf.busy = self.job.processor.mrf.busy = False
         
-        self.job.processor.addTask(processing(job))        
+        self.job.processor.addTask(processing(self.job))        
         # # destination receives 
         # receiveEnergyCost = destination.mcu.activeEnergy(this.mrf.rxtxLatency(this.message.size) destination.mrf.rxEnergy(messageSize)
         
