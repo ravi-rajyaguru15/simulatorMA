@@ -1,70 +1,81 @@
 from offloadingDecision import offloadingDecision 
 import constants 
-from task import task
+from job import job
 
+import sys 
 # from Queue import Queue
 
 class node:
 	# message = None
 	decision = None
 	jobQueue = None
+	taskQueue = None
 	resultsQueue = None
+	index = None
+	nodeType = None
 
-	def __init__(self, queue):
+	totalEnergyCost = None
+
+	def __init__(self, queue, index, nodeType):
 		self.decision = offloadingDecision()
 		self.jobQueue = list()
+		self.taskQueue = list()
 		self.resultsQueue = queue
+		self.index = index
+		self.nodeType = nodeType
+
+		self.totalEnergyCost = 0
 
 	def setOffloadingDecisions(self, options):
 		self.decision.options = options
 
+	def busy(self):
+		return len(self.jobQueue) > 0
+	# def prependTask(self, subtask):
+	# 	self.jobQueue = [subtask] + self.jobQueue
+
+	def maybeAddNewJob(self):
+		# possibly create new job
+		if constants.uni.evaluate(constants.JOB_LIKELIHOOD): # 0.5 
+
+			self.createNewJob()
+
+	def createNewJob(self):
+		self.jobQueue.append(job(self, constants.SAMPLE_SIZE.gen(), self.decision))
+		print "new task"
+
+	def addTask(self, task):
+		self.taskQueue.append(task)
+
 
 	def updateTime(self):
 		# if no jobs available, perhaps generate one
-		# if len(self.jobQueue) == 0:
-		# 	print "no jobs"
-
-		# possibly create new job
-		if constants.uni.evaluate(constants.JOB_LIKELIHOOD): # 0.5 
-			self.jobQueue.append(task(self, samples=constants.SAMPLE_SIZE.gen()))
-			print "new task"
-
 		# print len(self.jobQueue)
-		# check if there's a job now 
-		if len(self.jobQueue) > 0:
-			current = self.jobQueue[0]
 
-			# check if undecided
-			if current.destination is None:
-				self.decision.chooseDestination(current)
+		# check if there's something to be done now 
+		if len(self.taskQueue) > 0:
+			currentTask = self.taskQueue[0]
+
+
 
 			# do process and check if done
-			if current.process():
-				print 'job done'
+			currentTask.tick()
+			if currentTask.finished:
+			# 	print 'job done'
 				
-				self.resultsQueue.put([current.samples, current.computeResult()])
+			# 	self.resultsQueue.put([currentTask.samples, currentTask.computeResult()])
 
-				self.jobQueue = self.jobQueue[1:]
+				self.taskQueue = self.taskQueue[1:]
+				
+				# if isinstance ()
+				# print "finish on first job done"
+				# sys.exit(0)
 
 			# print current
 		# else:
 		# 	print "no jobs available"
 
 
-
-	# def sendTo(this, destination):
-	# 	latency = this.mcu.messageOverheadLatency.gen() + this.mrf.rxtxLatency(this.message.size)
-	# 	energy = this.mcu.overheadEnergy() + this.mrf.txEnergy(this.message.size)
-
-	# 	res = destination.receive(this.message)
-	# 	this.message = None
-
-	# 	return result(latency, energy) + res
-    
-	# def receive(this, message):
-	# 	this.message = message;
-	# 	# reception does not add latency
-	# 	return result(latency=0, energy=this.mcu.activeEnergy(this.mrf.rxtxLatency(this.message.size) + this.mrf.rxEnergy(this.message.size)))
 
 
 

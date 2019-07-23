@@ -19,26 +19,41 @@ class sim:
 	def __init__(self, numEndDevices, numElasticNodes, numServers):
 		print numEndDevices, numElasticNodes
 		self.results = multiprocessing.Manager().Queue()
+		index = 0
 
 		self.time = 0
 		
-		self.ed = [endDevice(self.results) for i in range(numEndDevices)]
+		self.ed = [endDevice(self.results, i) for i in range(numEndDevices)]
 		# self.ed = endDevice()
 		# self.ed2 = endDevice()
-		self.en = [elasticNode(self.results) for i in range(numElasticNodes)]
+		self.en = [elasticNode(self.results, i + numEndDevices) for i in range(numElasticNodes)]
 		# self.en = elasticNode()
 		self.gw = gateway()
 		self.srv = [server() for i in range(numServers)]
 
 		devices = self.ed + self.en + self.srv
+		# set all device options correctly
 		for device in devices: 
-			device.setOffloadingDecisions(devices)
+			# choose options based on policy
+			if constants.OFFLOADING_POLICY == constants.LOCAL_ONLY:
+				device.setOffloadingDecisions([device])
+			elif constants.OFFLOADING_POLICY == constants.PEER_ONLY:
+				tmpList = list(self.en)
+				tmpList.remove(device)
+				device.setOffloadingDecisions(tmpList)
 
 
 	def simulateTime(self, duration):
 		progress = 0
 		queueLengths = list()
 		while progress < duration:
+			# create new jobs
+
+			if not self.en[0].busy():
+				# 	print "no jobs"
+				self.en[0].maybeAddNewJob()
+				
+
 			# update all the devices
 			for en in self.en:
 				en.updateTime()
@@ -106,6 +121,7 @@ if __name__ == '__main__':
 	simulation = sim(int(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3]))
 	# for i in range(1, 100, 10):
 	# 	print i, simulation.simulateAll(i, "latency")
-
+	constants.JOB_LIKELIHOOD = 0
+	simulation.en[0].createNewJob()
 	simulation.simulateTime(constants.SIM_TIME)
 	

@@ -17,5 +17,5 @@ all:
 	python training.py
 
 test:
-	python src/sim.py 0 1 0
+	python src/sim.py 0 2 0
 	# python sim.py

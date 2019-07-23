@@ -11,16 +11,22 @@ class elasticNode(node):
 	mrf = None
 	fpga = None
 
-	def __init__(self, queue):
-		node.__init__(self, queue)
+	def __init__(self, queue, index):
+		node.__init__(self, queue, index, nodeType=constants.ELASTIC_NODE)
 
 		self.mcu = mcu()
 		self.mrf = mrf()
 		self.fpga = fpga()
 
+	def processingEnergy(self, duration):
+		return self.mcu.idleEnergy(duration) + self.mrf.idleEnergy(duration) + self.fpga.activeEnergy(duration)
 
-	def mcuToFpgaLatency(self, samples):
-		return (samples * constants.SAMPLE_RAW_SIZE.gen()) / 1024./ constants.MCU_FPGA_COMMUNICATION_SPEED.gen() + constants.MCU_MW_OVERHEAD_LATENCY.gen()
+	def processingTime(self, job):
+		print "ONLY FPGA processing"
+		return self.fpga.processingTime(job.samples)
+
+	def mcuToFpgaLatency(self, datasize):
+		return datasize / 1024./ constants.MCU_FPGA_COMMUNICATION_SPEED.gen() + constants.MCU_MW_OVERHEAD_LATENCY.gen()
 
 	def mcuToFpgaEnergy(self, time):
 		mcuEnergy = self.mcu.activeEnergy(time)

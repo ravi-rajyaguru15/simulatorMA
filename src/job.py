@@ -5,54 +5,43 @@ import subtask
 from result import result
 # from node import node
 
-class task:
-	size = None
+class job:
+	datasize = None
 	samples = None
 	startTime = None
-	host = None
-	destination = None
+	creator = None
+	processor = None
 
-	subtasks = None
-	subtaskIndex = None
-	currentSubTask = None
+	# subtasks = None
+	# subtaskIndex = None
+	# currentSubTask = None
 
-	finished = None
+	# finished = None
 
-	def __init__(self, origin, size=None, samples=None):
-		self.host = origin
-
-		if samples is None:
-			# if size is None:
-			warn("Must supply samples to create message")
-				# warn("Must supply size or samples to create message")
-			# self.size = size
-			# self.samples = None
-		else:
-			# self.size = samples * constants.SAMPLE_RAW_SIZE.gen()
-			self.samples = samples
+	def __init__(self, origin, samples, offloadingDecision):
+		self.creator = origin
+		self.samples = samples
+		# initialise message size to raw data
+		self.datasize = self.rawMessageSize()
 		
-		self.finished = False
+		self.setProcessor(offloadingDecision.chooseDestination(self))
+		# self.finished = False
 
 
-	def setDestination(self, decision):
-		self.destination = decision
+	def setProcessor(self, processor):
+		self.processor = processor
 
 		# populate subtasks based on types of devices
-		if self.host is self.destination:
+		if self.creator is self.processor:
 			print 'local processing'
 			# local processing
-			self.subtasks = [(subtask.processing(self.host, self.samples))]
-			self.subtaskIndex = 0
-		elif self.destination.nodeType == constants.ELASTIC_NODE:
-			print ("offloading to other elastic node")
-			self.subtasks = [
-				subtask.communication(self.host, self.rawMessageSize()),
-				# subtask.processing(self.host, self.samples),
-				# subtask.communication(self.destination, self.processedMessageSize())
-			]
+			self.creator.addTask(subtask.processing(self))
+			# otherwise we have to send task
 		else:
-			raise Exception("Other destination not implemented")
-			print 'UNIMPLEMENTED'
+			# elif self.destination.nodeType == constants.ELASTIC_NODE:
+			print ("offloading to other device")
+			self.creator.addTask(subtask.createMessage(self))
+			# subtask.communication(self.host, self.rawMessageSize()))
 
 	def process(self):
 		# figure out which subtask is active
@@ -97,8 +86,8 @@ class task:
 
 		return output
 
-	# def rawMessageSize(self):
-	# 	return self.samples * constants.SAMPLE_PROCESSED_SIZE.gen()
+	def rawMessageSize(self):
+		return self.samples * constants.SAMPLE_PROCESSED_SIZE.gen()
 
 	def processedMessageSize(self):
 		return self.samples * constants.SAMPLE_PROCESSED_SIZE.gen()

@@ -8,6 +8,6 @@ class fpga(processor):
 		processor.__init__(self, 
 			voltage = [constants.FPGA_INT_VOLTAGE, constants.FPGA_AUX_VOLTAGE],
 			activeCurrent = [constants.FPGA_ACTIVE_INT_CURRENT, constants.FPGA_ACTIVE_AUX_CURRENT],
-			idleCurrent = [constants.FPG_IDLE_INT_CURRENT, constants.FPG_IDLE_AUX_CURRENT],
-			messageOverheadLatency = constants.MCU_MESSAGE_OVERHEAD_LATENCY,
+			idleCurrent = [constants.FPGA_IDLE_INT_CURRENT, constants.FPGA_IDLE_AUX_CURRENT],
+			sleepCurrent = [constants.FPGA_SLEEP_INT_CURRENT, constants.FPGA_SLEEP_AUX_CURRENT],
 			processingSpeed = constants.FPGA_PROCESSING_SPEED)

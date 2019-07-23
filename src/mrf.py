@@ -6,25 +6,30 @@ class mrf:
 	rxCurrent, txCurrent = constants.WIRELESS_RX_CURRENT, constants.WIRELESS_TX_CURRENT
 	transmissionRate = constants.WIRELESS_SPEED
 
-	# def __init__(this, txCurrent=None, rxCurrent = None):
+	busy = None
+
+	def __init__(self):
+		self.busy = False
+
+	# def __init__(self, txCurrent=None, rxCurrent = None):
 
 	# 	if txCurrent is None:
-	# 		this.txCurrent = constants.WIRELESS_CURRENT)
+	# 		self.txCurrent = constants.WIRELESS_CURRENT)
 	# 	else:
-	# 		this.txCurrent = txCurrent
+	# 		self.txCurrent = txCurrent
 
 
 	# 	if rxCurrent is None:
-	# 		this.rxCurrent = constants.WIRELESS_CURRENT)
+	# 		self.rxCurrent = constants.WIRELESS_CURRENT)
 	# 	else:
-	# 		this.rxCurrent = rxCurrent
+	# 		self.rxCurrent = rxCurrent
 
-	def txEnergy(this, messageSize):
-		return messageSize / 1024. / this.transmissionRate.gen() * this.voltage.gen() * this.txCurrent.gen() / 1000.
+	def txEnergy(self, duration):
+		return duration * self.voltage.gen() * self.txCurrent.gen() / 1000.
 
-	def rxEnergy(this, messageSize):
-		return messageSize / 1024. / this.transmissionRate.gen() * this.voltage.gen() * this.rxCurrent.gen() / 1000.
+	def rxEnergy(self, duration):
+		return duration * self.voltage.gen() * self.rxCurrent.gen() / 1000.
 
-	def rxtxLatency(this, messageSize):
-		# print 'size', messageSize, 'lat', messageSize / 1024. / this.transmissionRate)
-		return messageSize / 1024. / this.transmissionRate.gen()
+	def rxtxLatency(self, messageSize):
+		# print 'size', messageSize, 'lat', messageSize / 1024. / self.transmissionRate)
+		return messageSize / 1024. / self.transmissionRate.gen()

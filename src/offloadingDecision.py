@@ -1,3 +1,8 @@
+import constants
+
+import warnings
+import random
+
 class offloadingDecision:
     options = None
 
@@ -5,8 +10,19 @@ class offloadingDecision:
         if self.options is None:
             print "options are None!"
 
-        decision = 0
-        
-        task.setDestination(self.options[decision])
+        # choose randomly from the options available
+        warnings.warn("need to choose differently")
+        choice = random.choice(self.options)
+        print choice
+        # task.setDestination(choice)
 
+        return choice
+
+        # if constants.OFFLOADING_POLICY == constants.LOCAL_ONLY:
+        #     decision = task.host.index
+        #     print 'decision', decision
+        # else:
+        #     choices = 
+        #     raise Exception("offloading policy not supported")
+        
     

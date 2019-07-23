@@ -20,6 +20,15 @@
                 "kind": "test",
                 "isDefault": true
             }
+        },
+        {
+            "label": "local training",
+            "type": "shell",
+            "command": "make local",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         }
     ]
 }

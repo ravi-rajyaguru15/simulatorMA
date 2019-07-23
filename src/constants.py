@@ -1,5 +1,11 @@
 
 from variable import *
+from enum import Enum
+
+# node types
+ELASTIC_NODE = 0
+END_DEVICE = 1
+SERVER = 2
 
 # current usage in mA
 WIRELESS_RX_CURRENT = Gaussian(20., 1.) #
@@ -7,11 +13,14 @@ WIRELESS_TX_CURRENT = Gaussian(20., 1.) #
 
 MCU_ACTIVE_CURRENT = Gaussian(12, 2)
 MCU_IDLE_CURRENT = Gaussian(.5, 0.1) #
+MCU_SLEEP_CURRENT = Gaussian(0.25, 0.1)
 
 FPGA_ACTIVE_INT_CURRENT = Gaussian(13.5, 1.)
-FPG_IDLE_INT_CURRENT = Constant(0)
+FPGA_IDLE_INT_CURRENT = Gaussian(13, 1.)
+FPGA_SLEEP_INT_CURRENT = Constant(0)
 FPGA_ACTIVE_AUX_CURRENT = Gaussian(8.5, .5)
-FPG_IDLE_AUX_CURRENT = Constant(0)
+FPGA_IDLE_AUX_CURRENT = Gaussian(8, 1.)
+FPGA_SLEEP_AUX_CURRENT = Constant(0)
 
 # speeds in kB/s
 WIRELESS_SPEED = Constant(250/8.) #
@@ -42,6 +51,12 @@ SIM_TIME = 10
 TD = 1e-3
 uni = Uniform(0, 1)
 JOB_LIKELIHOOD = 1e-3
+
+# offloading
+LOCAL_ONLY = 0
+PEER_ONLY = 1
+OFFLOADING_POLICY = PEER_ONLY
+
 
 # def randomise(range):
 # 	return random.uniform(range[0], range[1])
