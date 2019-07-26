@@ -1,28 +1,13 @@
 from result import result
 import constants 
+from processor import processor
 
-class fpga:
-	internalVoltage = constants.FPGA_INT_VOLTAGE
-	auxVoltage = constants.FPGA_AUX_VOLTAGE
+class fpga(processor):
 
-	activeInternalCurrent = constants.FPGA_ACTIVE_INT_CURRENT
-	idleInternalCurrent = constants.FPG_IDLE_INT_CURRENT
-	activeAuxCurrent = constants.FPGA_ACTIVE_AUX_CURRENT
-	idleAuxCurrent = constants.FPG_IDLE_AUX_CURRENT
-
-	processingSpeed = constants.FPGA_PROCESSING_SPEED
-
-	def __init__(this):
-		# this.internalVoltage = internalVoltage
-		# this.auxVoltage = auxVoltage
-		pass
-
-	def processingLatency(this, samples):
-		return samples / constants.randomise(this.processingSpeed)
-
-	def process(this, samples):
-		res = result(latency=this.processingLatency(samples), energy=this.activeEnergy(this.processingLatency(samples)))
-		return res
-
-	def activeEnergy(this, duration):
-		return duration * (constants.randomise(this.internalVoltage) * constants.randomise(this.activeInternalCurrent) + constants.randomise(this.auxVoltage) + constants.randomise(this.activeAuxCurrent))
+	def __init__(self):
+		processor.__init__(self, 
+			voltage = [constants.FPGA_INT_VOLTAGE, constants.FPGA_AUX_VOLTAGE],
+			activeCurrent = [constants.FPGA_ACTIVE_INT_CURRENT, constants.FPGA_ACTIVE_AUX_CURRENT],
+			idleCurrent = [constants.FPGA_IDLE_INT_CURRENT, constants.FPGA_IDLE_AUX_CURRENT],
+			sleepCurrent = [constants.FPGA_SLEEP_INT_CURRENT, constants.FPGA_SLEEP_AUX_CURRENT],
+			processingSpeed = constants.FPGA_PROCESSING_SPEED)
