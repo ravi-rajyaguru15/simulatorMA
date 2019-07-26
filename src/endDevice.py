@@ -1,36 +1,15 @@
 import random
 import constants
 
+from node import node
 from mcu import mcu
 from mrf import mrf
 from result import result
 
-class endDevice:
-	message = None
+class endDevice(node):
 
-	def __init__(this):
-		this.mcu = mcu()
-		this.mrf = mrf()
+	def __init__(self, queue, index):
+		node.__init__(self, queue, index, nodeType=constants.END_DEVICE)
 
-	def sendTo(this, destination):
-		latency = constants.randomise(this.mcu.messageOverheadLatency) + this.mrf.rxtxLatency(this.message.size)
-		energy = this.mcu.overheadEnergy() + this.mcu.activeEnergy(this.mrf.rxtxLatency(this.message.size)) + this.mrf.txEnergy(this.message.size)
-
-		reception = destination.receive(this.message)
-		this.message = None
-
-		return result(latency, energy) + reception
-
-
-	def receive(this, message):
-		this.message = message;
-		# reception does not add latency
-		return result(latency=0, energy=this.mcu.activeEnergy(this.mrf.rxtxLatency(this.message.size) + this.mrf.rxEnergy(this.message.size)))
-
-	def process(this):
-		time = this.mcu.processingTime(this.message.samples)
-		res = result(latency=time, energy=this.mcu.activeEnergy(time))
-
-		this.message.process()
-
-		return res
+		self.mcu = mcu()
+		self.mrf = mrf()

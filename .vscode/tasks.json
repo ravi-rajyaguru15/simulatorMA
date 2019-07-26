@@ -4,10 +4,31 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "echo",
+            "label": "run sim",
             "type": "shell",
-            "command": "lsb_release -a",
-            "problemMatcher": []
+            "command": "make local",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "sim test",
+            "type": "shell",
+            "command": "make test",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "local training",
+            "type": "shell",
+            "command": "make local",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         }
     ]
 }
