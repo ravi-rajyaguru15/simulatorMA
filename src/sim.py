@@ -4,6 +4,7 @@ from message import message
 from result import result
 from gateway import gateway
 from server import server
+from visualiser import visualiser 
 
 import constants
 
@@ -15,8 +16,10 @@ class sim:
 	ed, ed2, en, gw, srv, selectedOptions = None, None, None, None, None, None
 	results = None
 	time = None
+	visualise = None
+	visualisor = None
 
-	def __init__(self, numEndDevices, numElasticNodes, numServers):
+	def __init__(self, numEndDevices, numElasticNodes, numServers, visualise=False):
 		print numEndDevices, numElasticNodes
 		self.results = multiprocessing.Manager().Queue()
 		index = 0
@@ -42,6 +45,9 @@ class sim:
 				tmpList.remove(device)
 				device.setOffloadingDecisions(tmpList)
 
+		if visualise:
+			self.visualisor = visualiser(self)
+
 
 	def simulateTime(self, duration):
 		progress = 0
@@ -60,6 +66,9 @@ class sim:
 				queueLengths.append(len(en.jobQueue))
 
 			progress += constants.TD
+
+			if self.visualise:
+				self.visualiser.update()
 
 		latencies = list()
 		energies = list()
@@ -118,7 +127,7 @@ class sim:
 		return [self.optionsNames[option] for option in self.selectedOptions]
 
 if __name__ == '__main__':
-	simulation = sim(int(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3]))
+	simulation = sim(int(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3]), visualise=True)
 	# for i in range(1, 100, 10):
 	# 	print i, simulation.simulateAll(i, "latency")
 	constants.JOB_LIKELIHOOD = 0
