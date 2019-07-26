@@ -8,71 +8,71 @@ from server import server
 class sim:
 	ed, ed2, en, gw, srv = None, None, None, None, None
 
-	def __init__(this):
-		this.ed = endDevice()
-		this.ed2 = endDevice()
-		this.en = elasticNode()
-		this.gw = gateway()
-		this.srv = server()
+	def __init__(self):
+		self.ed = endDevice()
+		self.ed2 = endDevice()
+		self.en = elasticNode()
+		self.gw = gateway()
+		self.srv = server()
 
-	def offloadElasticNode(this, samples):
-		this.ed.message = message(samples=samples)
+	def offloadElasticNode(self, samples):
+		self.ed.message = message(samples=samples)
 
 		# offload to elastic node
-		res = this.ed.sendTo(this.en)
-		res += this.en.process(accelerated=True)
-		res += this.en.sendTo(this.ed)
+		res = self.ed.sendTo(self.en)
+		res += self.en.process(accelerated=True)
+		res += self.en.sendTo(self.ed)
 		# print 'offload elastic node:\t', res
 
 		return res
 
-	def localProcess(this, samples):
+	def localProcess(self, samples):
 		# process locally
-		this.ed.message = message(samples=samples)
-		res = this.ed.process() 
+		self.ed.message = message(samples=samples)
+		res = self.ed.process() 
 		# print 'local:\t\t\t\t\t', res
 
 		return res
 
-	def offloadPeer(this, samples):
+	def offloadPeer(self, samples):
 		# offload to neighbour
-		this.ed.message = message(samples=samples)
-		res = this.ed.sendTo(this.ed2)
+		self.ed.message = message(samples=samples)
+		res = self.ed.sendTo(self.ed2)
 		# print res
-		res += this.ed2.process()
+		res += self.ed2.process()
 		# print res
-		res += this.ed2.sendTo(this.ed)
+		res += self.ed2.sendTo(self.ed)
 		# print res
 		# print 'offload p2p:\t\t\t', res
 
 		return res
 
-	def offloadServer(this, samples):
+	def offloadServer(self, samples):
 
 		# offload to server
-		this.ed.message = message(samples=samples)
-		res = this.ed.sendTo(this.gw)
-		res += this.gw.sendTo(this.srv)
-		res += this.srv.process()
-		res += this.srv.sendTo(this.gw)
-		res += this.gw.sendTo(this.ed)
+		self.ed.message = message(samples=samples)
+		res = self.ed.sendTo(self.gw)
+		res += self.gw.sendTo(self.srv)
+		res += self.srv.process()
+		res += self.srv.sendTo(self.gw)
+		res += self.gw.sendTo(self.ed)
 		# print 'offload server:\t\t\t', res
 
 		return res
 
-	def simulateBatch(this, batch, attribute, queue):
+	def simulateBatch(self, batch, attribute, queue):
 		for samples in batch:
 			# print 'samples', samples
-			this.simulateAll(samples, attribute, queue)
+			self.simulateAll(samples, attribute, queue)
 
 	options = [offloadElasticNode, localProcess, offloadPeer, offloadServer]
 	optionsNames = ["offloadElasticNode", "localProcess", "offloadPeer", "offloadServer"]
 	# simulate all available options, and output the chosen attribute
-	def simulateAll(this, samples, attribute, queue):
+	def simulateAll(self, samples, attribute, queue=None):
 		outputs = list()
-		for processing in this.options:
-			outputs.append(processing(this, samples).__dict__[attribute])
-			# queue.put(processing(this, samples).__dict__[attribute])
+		for processing in self.options:
+			outputs.append(processing(self, samples).__dict__[attribute])
+			# queue.put(processing(self, samples).__dict__[attribute])
 		# return outputs
 		if queue is not None:
 			queue.put([samples, outputs])
@@ -81,21 +81,13 @@ class sim:
 		#print samples
 		#print outputs
 
-	def numOptions(this):
-		return len(this.options)
+	def numOptions(self):
+		return len(self.options)
 
-	def nameOptions(this):
-		return this.optionsNames
+	def nameOptions(self):
+		return self.optionsNames
 
 if __name__ == '__main__':
 	simulation = sim()
 	for i in range(1, 100, 10):
-		print i, simulation.simulateAll(i, "latency")
-
-			# print simulation.offloadElasticNode(100)
-			# print 
-			# print simulation.localProcess(100)
-			# print 
-			# print simulation.offloadPeer(100)
-			# print 
-			# print simulation.offloadServer(100)
+		print (i, simulation.simulateAll(i, "latency"))
