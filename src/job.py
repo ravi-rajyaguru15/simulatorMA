@@ -10,40 +10,70 @@ class job:
 	samples = None
 	startTime = None
 	creator = None
+	processingNode = None
 	processor = None
 
 	hardwareAccelerated = None
 
-	# subtasks = None
-	# subtaskIndex = None
-	# currentSubTask = None
+	finished = None
 
-	# finished = None
+	processed = None
+	taskGraph = None
+	currentTask = None
 
-	def __init__(self, origin, samples, offloadingDecision, hardwareAccelerated):
+	def __init__(self, origin, samples, offloadingDecision, hardwareAccelerated, taskGraph=None):
 		self.creator = origin
 		self.samples = samples
 		# initialise message size to raw data
 		self.datasize = self.rawMessageSize()
-		
-		self.setProcessor(offloadingDecision.chooseDestination(self))
-		# self.finished = False
 		self.hardwareAccelerated = hardwareAccelerated
+		
+		# self.finished = False
+		self.processed = False
+		self.finished = False
+		if taskGraph is None:
+			taskGraph = constants.DEFAULT_TASK_GRAPH
+		self.taskGraph = taskGraph
 
-	def setProcessor(self, processor):
-		self.processor = processor
+		# start at first task
+		self.currentTask = self.taskGraph[0]
+		# initiate task by setting processing node
+		self.setprocessingNode(offloadingDecision.chooseDestination(self))
 
+	def setprocessingNode(self, processingNode):
+		self.processingNode = processingNode
+
+		print ("setprocessingnode")
+
+		self.setProcessor(processingNode)
 		# populate subtasks based on types of devices
-		if self.creator is self.processor:
-			print ('local processing')
+		if not self.offloaded():
 			# local processing
-			self.creator.addTask(subtask.processing(self, self.processor.fpga))
+			if self.hardwareAccelerated:
+				# check if fpga already configured
+				if self.processingNode.fpga.isConfigured(self.currentTask):
+					self.processingNode.addTask(subtask.mcuFpgaOffload(self))
+				else:
+					self.processingNode.addTask(subtask.reconfigureFPGA(self))
+			else:
+				self.creator.addTask(subtask.processing(self))
 			# otherwise we have to send task
 		else:
 			# elif self.destination.nodeType == constants.ELASTIC_NODE:
 			print ("offloading to other device")
+			print (self.processor)
 			self.creator.addTask(subtask.createMessage(self))
 			# subtask.communication(self.host, self.rawMessageSize()))
+
+	def setProcessor(self, processingNode):
+		print ("\tprocessor", self.hardwareAccelerated)
+		if self.hardwareAccelerated:
+			self.processor = processingNode.fpga
+		else:
+			self.processor = processingNode.mcu
+
+	def offloaded(self):
+		return self.creator is not self.processingNode
 
 	def process(self):
 		print ("PANIC")
@@ -90,7 +120,7 @@ class job:
 		return output
 
 	def rawMessageSize(self):
-		return self.samples * constants.SAMPLE_PROCESSED_SIZE.gen()
+		return self.samples * constants.SAMPLE_RAW_SIZE.gen()
 
 	def processedMessageSize(self):
 		return self.samples * constants.SAMPLE_PROCESSED_SIZE.gen()

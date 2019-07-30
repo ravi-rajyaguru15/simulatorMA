@@ -5,7 +5,9 @@ import random
 import numpy as np
 
 class mrf(component):
-	
+	busyColour = (0, 1, 0, 1)
+	idleColour = (0, 0.5, 0, 1)
+
 	busy = None
 	rxCurrent, txCurrent = constants.WIRELESS_RX_CURRENT, constants.WIRELESS_TX_CURRENT
 	transmissionRate = constants.WIRELESS_SPEED

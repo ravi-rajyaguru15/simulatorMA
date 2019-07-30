@@ -7,6 +7,7 @@ from server import server
 from visualiser import visualiser 
 
 import constants
+import variable
 
 import multiprocessing
 import sys
@@ -20,24 +21,26 @@ class sim:
 	visualise = None
 	visualisor = None
 	finished = False
+	hardwareAccelerated = None
 
-	def __init__(self, numEndDevices, numElasticNodes, numServers, visualise=False):
+	def __init__(self, numEndDevices, numElasticNodes, numServers, visualise=False, hardwareAccelerated=None):
 		print (numEndDevices, numElasticNodes)
 		self.results = multiprocessing.Manager().Queue()
 		index = 0
 
 		self.time = 0
 		
-		self.ed = [endDevice(self.results, i) for i in range(numEndDevices)]
+		self.ed = [endDevice(self.results, i, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(numEndDevices)]
 		# self.ed = endDevice()
 		# self.ed2 = endDevice()
-		self.en = [elasticNode(self.results, i + numEndDevices) for i in range(numElasticNodes)]
+		self.en = [elasticNode(self.results, i + numEndDevices, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(numElasticNodes)]
 		# self.en = elasticNode()
 		self.gw = gateway()
 		self.srv = [server() for i in range(numServers)]
 
 		self.devices = self.ed + self.en + self.srv
 		# set all device options correctly
+		print (constants.OFFLOADING_POLICY)
 		for device in self.devices: 
 			# choose options based on policy
 			if constants.OFFLOADING_POLICY == constants.LOCAL_ONLY:
@@ -47,11 +50,13 @@ class sim:
 				tmpList.remove(device)
 				device.setOffloadingDecisions(tmpList)
 
+		self.hardwareAccelerated = hardwareAccelerated
 		self.visualise = visualise
 		if self.visualise:
 			self.visualiser = visualiser(self)
 
 	def stop(self):
+		print ("STOP")
 		self.finished = True
 
 	def simulateTime(self, duration):
@@ -67,15 +72,18 @@ class sim:
 				frames += 1
 
 				# create new jobs
-
-				if not self.en[0].busy():
-					# 	print "no jobs"
-					self.en[0].maybeAddNewJob()
+				for device in self.devices:
+					if not device.busy():
+						device.maybeAddNewJob()
 					
 				# update all the devices
-				for en in self.en:
-					en.updateTime()
-					queueLengths.append(len(en.jobQueue))
+				for dev in self.devices:
+					dev.updateTime()
+					queueLengths.append(len(dev.jobQueue))
+				
+				print ("jobQueues:", [len(dev.jobQueue) for dev in self.devices])
+				print ("busy:", [dev.busy() for dev in self.devices])
+				print ("tasks", [dev.currentTask for dev in self.devices])
 
 				progress += constants.TD
 
@@ -145,12 +153,56 @@ class sim:
 
 	def selectedNameOptions(self):
 		return [self.optionsNames[option] for option in self.selectedOptions]
+	
+	@staticmethod
+	def singleDelayedJobLocal(accelerated=True):
+		constants.OFFLOADING_POLICY = constants.LOCAL_ONLY
+		
+		simulation = sim(0, 2, 0, visualise=True)
+
+		constants.JOB_LIKELIHOOD = 0
+		# simulation.en[0].createNewJob()
+		# simulation.simulateTime(constants.SIM_TIME)
+		simulation.simulateTime(constants.PLOT_TD * 10)
+		simulation.devices[0].createNewJob(hardwareAccelerated=accelerated)
+		simulation.simulateTime(0.25)
+		
+	@staticmethod
+	def singleDelayedJobPeer(accelerated=True):
+		constants.OFFLOADING_POLICY = constants.PEER_ONLY
+		
+		simulation = sim(0, 2, 0, visualise=True)
+
+		constants.JOB_LIKELIHOOD = 0
+		simulation.simulateTime(constants.PLOT_TD * 10)
+		simulation.devices[0].createNewJob(hardwareAccelerated=accelerated)
+		simulation.simulateTime(constants.PLOT_TD * 150)
+		
+	@staticmethod
+	def randomPeerJobs(accelerated=True):
+		constants.OFFLOADING_POLICY = constants.PEER_ONLY
+		
+		simulation = sim(0, 4, 0, visualise=True, hardwareAccelerated=accelerated)
+
+		constants.JOB_LIKELIHOOD = 5e-2
+		simulation.simulateTime(constants.PLOT_TD * 100)
+		
+	@staticmethod
+	def randomLocalJobs(accelerated=True):
+		constants.SAMPLE_SIZE = variable.Uniform(5,6)
+		constants.OFFLOADING_POLICY = constants.LOCAL_ONLY
+		
+		simulation = sim(0, 2, 0, visualise=True)
+
+		constants.JOB_LIKELIHOOD = 5e-2
+		simulation.simulateTime(constants.PLOT_TD * 100)
+		
 
 if __name__ == '__main__':
-	simulation = sim(int(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3]), visualise=True)
 	# for i in range(1, 100, 10):
 	# 	print i, simulation.simulateAll(i, "latency")
-	constants.JOB_LIKELIHOOD = 0
-	simulation.en[0].createNewJob()
-	simulation.simulateTime(constants.SIM_TIME)
-	
+
+	# sim.singleDelayedJobLocal(True)
+	sim.singleDelayedJobPeer(True)
+	# sim.randomPeerJobs(True)
+	# sim.randomPeerJobs(False)

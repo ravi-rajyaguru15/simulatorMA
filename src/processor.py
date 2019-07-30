@@ -20,10 +20,8 @@ class processor(component):
 
 		self.processingSpeed = processingSpeed
 
-	def createRectangle(self, location, size):
-		self.rectangle = pp.Rectangle((location[0] - size[0]/2, location[1] - size[1]/2), size[0], size[1], fill=True)
+	def processingTime(self, samples, task):
+		assert(task is not None)
+		return samples / self.processingSpeed.gen() * task.complexity
 
-
-	def processingTime(self, samples):
-		return samples / self.processingSpeed.gen()
 

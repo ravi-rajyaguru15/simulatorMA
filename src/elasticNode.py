@@ -11,24 +11,28 @@ class elasticNode(node):
 	mrf = None
 	fpga = None
 
-	def __init__(self, queue, index):
-		node.__init__(self, queue, index, nodeType=constants.ELASTIC_NODE)
-
+	def __init__(self, queue, index, alwaysHardwareAccelerate):
+		
 		self.mcu = mcu()
 		self.mrf = mrf()
 		self.fpga = fpga()
 
-		self.processors = [self.mcu, self.fpga]
+		node.__init__(self, queue, index, nodeType=constants.ELASTIC_NODE, components = [self.mcu, self.fpga, self.mrf], alwaysHardwareAccelerate=alwaysHardwareAccelerate)
+
 
 	def processingEnergy(self, duration):
 		return self.mcu.idleEnergy(duration) + self.mrf.idleEnergy(duration) + self.fpga.activeEnergy(duration)
 
-	def processingTime(self, job):
-		print ("ONLY FPGA processing")
-		return self.fpga.processingTime(job.samples)
+	def reconfigurationEnergy(self, duration):
+		return self.mcu.idleEnergy(duration) + self.mrf.idleEnergy(duration) + self.fpga.reconfigurationEnergy(duration)
+	# def processingTime(self, job):
+	# 	print ("ONLY FPGA processing")
+	# 	return self.fpga.processingTime(job.samples)
 
 	def mcuToFpgaLatency(self, datasize):
-		return datasize / 1024./ constants.MCU_FPGA_COMMUNICATION_SPEED.gen() + constants.MCU_MW_OVERHEAD_LATENCY.gen()
+		latency = datasize / 1024. / constants.MCU_FPGA_COMMUNICATION_SPEED.gen() + constants.MCU_MW_OVERHEAD_LATENCY.gen()
+		print ("offloading latency:", latency)
+		return latency
 
 	def mcuToFpgaEnergy(self, time):
 		mcuEnergy = self.mcu.activeEnergy(time)

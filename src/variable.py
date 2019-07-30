@@ -1,3 +1,5 @@
+import numpy as np
+import math
 import random 
 
 class Variable:
@@ -8,7 +10,7 @@ class Variable:
 		self.genArgs = args
 
 	def gen(self):
-		return self.genFunction(*self.genArgs)
+		return np.max([0, self.genFunction(*self.genArgs)])
 
 	def evaluate(self, value):
 		return self.gen() <= value

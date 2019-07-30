@@ -1,4 +1,4 @@
-
+import tasks
 from variable import *
 from enum import Enum
 
@@ -20,9 +20,11 @@ MCU_SLEEP_CURRENT = Gaussian(0.25, 0.1)
 FPGA_ACTIVE_INT_CURRENT = Gaussian(13.5, 1.)
 FPGA_IDLE_INT_CURRENT = Gaussian(13, 1.)
 FPGA_SLEEP_INT_CURRENT = Constant(0)
+FPGA_RECONFIGURATION_INT_CURRENT = Gaussian(10., 5.)
 FPGA_ACTIVE_AUX_CURRENT = Gaussian(8.5, .5)
 FPGA_IDLE_AUX_CURRENT = Gaussian(8, 1.)
 FPGA_SLEEP_AUX_CURRENT = Constant(0)
+FPGA_RECONFIGURATION_AUX_CURRENT = Gaussian(100., 5.)
 
 # speeds in kB/s
 WIRELESS_SPEED = Constant(250/8.) #
@@ -49,16 +51,29 @@ SAMPLE_RAW_SIZE = Constant(4) # FRAGMENTATION
 SAMPLE_PROCESSED_SIZE = Constant(1) #
 
 # time
-SIM_TIME = 1e-1
+SIM_TIME = 2e-2
 TD = 1e-3
 PLOT_TD = 1e-3
 uni = Uniform(0, 1)
 JOB_LIKELIHOOD = 1e-3
+RECONFIGURATION_TIME = Constant(0.05)
 
 # offloading
 LOCAL_ONLY = 0
 PEER_ONLY = 1
 OFFLOADING_POLICY = LOCAL_ONLY
+
+# energy management
+FPGA_STAYS_ON = 0
+FPGA_IMMEDIATELY_OFF = 1
+FPGA_WAIT_OFF = 2
+FPGA_POWER_PLAN = FPGA_STAYS_ON # TODO: entirely unimplemented, sleep current and timer for sleep
+
+# batching policy
+MINIMUM_BATCH = 5
+
+# tasks
+DEFAULT_TASK_GRAPH = [tasks.A] # TODO: single task only
 
 # def randomise(range):
 # 	return random.uniform(range[0], range[1])
