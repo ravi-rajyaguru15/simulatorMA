@@ -3,6 +3,8 @@ import numpy as np
 from result import result
 import constants 
 from processor import processor
+from component import component
+from powerState import powerStates
 
 class fpga(processor):
 	busyColour = (0, 0, 1, 1)
@@ -18,6 +20,12 @@ class fpga(processor):
 			idleCurrent = [constants.FPGA_IDLE_INT_CURRENT, constants.FPGA_IDLE_AUX_CURRENT],
 			sleepCurrent = [constants.FPGA_SLEEP_INT_CURRENT, constants.FPGA_SLEEP_AUX_CURRENT],
 			processingSpeed = constants.FPGA_PROCESSING_SPEED)
+
+	def current(self):
+		if self.state == powerStates.RECONFIGURING:
+			return self.reconfiguringCurrent
+		else:
+			return component.current(self)
 
 	def isConfigured(self, task):
 		assert task is not None

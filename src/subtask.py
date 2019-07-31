@@ -97,6 +97,37 @@ class createMessage(subtask):
 		self.job.creator.mcu.busy = False
 		self.job.creator.addTask(txMessage(self.job, self.job.creator, self.job.processingNode))
 
+
+
+class batching(subtask):
+	__name__ = "Batching"
+	
+	def __init__(self, job):
+		duration = constants.TD # immediately move on (if possible)
+		energyCost = job.processingNode.energy(duration)
+	
+		subtask.__init__(self, job, duration, energyCost) 
+
+	def beginTask(self):
+		# see if batch is full enough already
+		if len(self.job.processingNode.batch) >= constants.MINIMUM_BATCH:
+			# start job
+			if self.job.hardwareAccelerated:
+				if self.job.processingNode.fpga.isConfigured(self.job.currentTask):
+					self.job.processingNode.addTask(mcuFpgaOffload(self.job))
+				else:
+					self.job.processingNode.addTask(reconfigureFPGA(self.job))
+			else:
+				self.job.processingNode.addTask(processing(self.job))
+		subtask.beginTask(self)
+
+	def finishTask(self):
+		self.job.processingNode.fpga.busy = False
+		self.job.processingNode.fpga.reconfigure(self.job.currentTask)
+
+		# move onto processing steps
+		self.job.processingNode.addTask(mcuFpgaOffload(self.job))
+
 class reconfigureFPGA(subtask):
 	__name__ = "Reconfigure FPGA"
 	
@@ -239,12 +270,18 @@ class txMessage(subtask):
 		if not self.job.processed:
 			# move job to new owner
 			print ("moving job to processingNode")
-			self.job.moveTo(self.job.processingNode)
-		
+			# move job to the processing from the creator 
+			newOwner = self.job.processingNode		
 			self.job.creator.waiting = True
 		# otherwise this is result being returned
 		else:
 			self.job.processingNode.jobActive = False
+
+			# move result of job back to the creator
+			newOwner = self.job.creator
+
+		self.job.moveTo(newOwner)
+
 
 
 class rxMessage(subtask):
@@ -271,16 +308,18 @@ class rxMessage(subtask):
 		
 		if not self.job.processed:
 			print("adding processing task 1")
-			if self.job.hardwareAccelerated:
-				if self.job.processingNode.fpga.isConfigured(self.job.currentTask):
-					self.job.processingNode.addTask(mcuFpgaOffload(self.job))
-				else:
-					self.job.processingNode.addTask(reconfigureFPGA(self.job))
-			else:
-				self.job.processingNode.addTask(processing(self.job))
+
+			self.job.processingNode.addTask(batching(self.job))
+			# if self.job.hardwareAccelerated:
+				# if self.job.processingNode.fpga.isConfigured(self.job.currentTask):
+				# 	self.job.processingNode.addTask(mcuFpgaOffload(self.job))
+				# else:
+					# self.job.processingNode.addTask(reconfigureFPGA(self.job))
+			# else:
+			# 	self.job.processingNode.addTask(processing(self.job))
 		else:
 			print("\treceived offloaded result")
-			self.job.finished = True
+			self.job.stop()
 			self.job.creator.waiting = False
 			self.job.creator.jobActive = False
 		# # destination receives 

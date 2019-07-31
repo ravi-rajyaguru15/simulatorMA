@@ -24,6 +24,8 @@ class node:
 	jobActive = None
 	alwaysHardwareAccelerate = None
 
+	batch = None
+
 	# busy = None
 
 	def __init__(self, queue, index, nodeType, components, alwaysHardwareAccelerate=None):
@@ -44,6 +46,8 @@ class node:
 		self.waitingForResult = False
 		self.jobActive = False
 		self.alwaysHardwareAccelerate = alwaysHardwareAccelerate
+
+		self.batch = list()
 
 		# self.processors = list()
 
@@ -82,7 +86,10 @@ class node:
 		if self.currentJob is job:
 			self.currentJob = None
 
-
+	# calculate the energy at the current activity of all the components
+	def energy(self, duration):
+		totalPower = np.sum([component.power() for component in self.components])
+		return totalPower * duration
 
 	def updateTime(self):
 		# if no jobs available, perhaps generate one
@@ -93,7 +100,9 @@ class node:
 			if len(self.jobQueue) > 0:
 				print ("grabbed job from queue")
 				self.currentJob = self.jobQueue[0]
-				self.currentJob.start()
+				# see if it's a brand new job
+				if not self.currentJob.started:
+					self.currentJob.start()
 				
 
 		# check if there's something to be done now 

@@ -20,11 +20,12 @@ class elasticNode(node):
 		node.__init__(self, queue, index, nodeType=constants.ELASTIC_NODE, components = [self.mcu, self.fpga, self.mrf], alwaysHardwareAccelerate=alwaysHardwareAccelerate)
 
 
-	def processingEnergy(self, duration):
-		return self.mcu.idleEnergy(duration) + self.mrf.idleEnergy(duration) + self.fpga.activeEnergy(duration)
+	# def processingEnergy(self, duration):
+	# 	return self.mcu.idleEnergy(duration) + self.mrf.idleEnergy(duration) + self.fpga.activeEnergy(duration)
 
-	def reconfigurationEnergy(self, duration):
-		return self.mcu.idleEnergy(duration) + self.mrf.idleEnergy(duration) + self.fpga.reconfigurationEnergy(duration)
+	# def reconfigurationEnergy(self, duration):
+	# 	return self.mcu.idleEnergy(duration) + self.mrf.idleEnergy(duration) + self.fpga.reconfigurationEnergy(duration)
+
 	# def processingTime(self, job):
 	# 	print ("ONLY FPGA processing")
 	# 	return self.fpga.processingTime(job.samples)

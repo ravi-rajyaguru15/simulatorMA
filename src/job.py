@@ -8,6 +8,7 @@ from result import result
 class job:
 	datasize = None
 	samples = None
+	started = None
 	startTime = None
 	
 	owner = None
@@ -31,6 +32,7 @@ class job:
 		self.hardwareAccelerated = hardwareAccelerated
 		
 		# self.finished = False
+		self.started = False
 		self.processed = False
 		self.finished = False
 		if taskGraph is None:
@@ -56,18 +58,22 @@ class job:
 		else:
 			self.processor = processingNode.mcu
 
+
 	def start(self):
+		self.started = True
+
 		# populate subtasks based on types of devices
 		if not self.offloaded():
-			# local processing
-			if self.hardwareAccelerated:
-				# check if fpga already configured
-				# if self.processingNode.fpga.isConfigured(self.currentTask):
-				# 	self.processingNode.addTask(subtask.mcuFpgaOffload(self))
-				# else:
-				self.processingNode.addTask(subtask.reconfigureFPGA(self))
-			else:
-				self.creator.addTask(subtask.processing(self))
+			self.processingNode.addTask(subtask.batching(self))
+			# # local processing
+			# if self.hardwareAccelerated:
+			# 	# check if fpga already configured
+			# 	if self.processingNode.fpga.isConfigured(self.currentTask):
+			# 		self.processingNode.addTask(subtask.mcuFpgaOffload(self))
+			# 	else:
+			# 		self.processingNode.addTask(subtask.reconfigureFPGA(self))
+			# else:
+			# 	self.creator.addTask(subtask.processing(self))
 		# otherwise we have to send task
 		else:
 			# elif self.destination.nodeType == constants.ELASTIC_NODE:
@@ -78,6 +84,11 @@ class job:
 
 		# to start with, owner is the node who created it 
 		self.owner = self.creator
+
+	def stop(self):
+		self.finished = True
+		self.owner.removeJob(self)
+
 
 
 	def offloaded(self):

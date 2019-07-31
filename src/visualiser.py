@@ -1,5 +1,6 @@
 import matplotlib as mpl
-mpl.use("QT4Agg")
+# mpl.use("QT4Agg")
+# mpl.use("Qt4Agg")
 import matplotlib.pyplot as pp
 import pylab
 import math
@@ -13,6 +14,7 @@ class visualiser:
 	grid = list()
 	ax = None
 	x,y,width,height = [None] * 4
+	canResize = False
 
 	def __init__(self, simulator):
 		self.sim = simulator
@@ -26,7 +28,11 @@ class visualiser:
 		
 		# get the QTCore PyRect object
 		geom = thismanager.window.geometry()
-		self.x,self.y,self.width,self.height = geom.getRect()
+		if isinstance(geom, str):
+			print ("STRING")
+		else:
+			self.canResize = True
+			self.x,self.y,self.width,self.height = geom.getRect()
 		self.moveWindow()
 
 
@@ -139,5 +145,6 @@ class visualiser:
 
 	# @staticmethod
 	def moveWindow(self):
-		thismanager = pylab.get_current_fig_manager()
-		thismanager.window.setGeometry(+2400, 400, self.width, self.height)
+		if self.canResize:
+			thismanager = pylab.get_current_fig_manager()
+			thismanager.window.setGeometry(+2400, 400, self.width, self.height)
