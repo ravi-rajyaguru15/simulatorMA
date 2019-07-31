@@ -148,10 +148,10 @@ class mcuFpgaOffload(subtask):
 			# always follow up with processing
 			self.job.processingNode.addTask(processing(self.job))			
 	
-	def possible(self):
-		if
-		# TODO: when offloaded, possible only if host not busy, 
-		# TODO: also only possible to start reconfigure if fpga and mcu isn't busy
+	# def possible(self):
+	# 	if
+	# 	# TODO: when offloaded, possible only if host not busy, 
+	# 	# TODO: also only possible to start reconfigure if fpga and mcu isn't busy
 
 class processing(subtask):
 	__name__ = "Processing"
@@ -235,8 +235,12 @@ class txMessage(subtask):
 	def finishTask(self):
 		self.source.mrf.busy = self.destination.mrf.busy = False
 
-		# if this is offloading then creator is waiting
+		# if offloading, this is before processing
 		if not self.job.processed:
+			# move job to new owner
+			print ("moving job to processingNode")
+			self.job.moveTo(self.job.processingNode)
+		
 			self.job.creator.waiting = True
 		# otherwise this is result being returned
 		else:

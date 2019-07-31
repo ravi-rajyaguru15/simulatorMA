@@ -10,6 +10,7 @@ class node:
 	decision = None
 	jobQueue = None
 	taskQueue = None
+	currentJob = None
 	currentTask = None
 	resultsQueue = None
 	index = None
@@ -51,7 +52,8 @@ class node:
 
 	def busy(self):
 		# busy if any are busy
-		return self.jobActive # or self.waitingForResult or np.any([device.busy for device in self.components])
+		return self.currentJob is not None
+		# return self.jobActive # or self.waitingForResult or np.any([device.busy for device in self.components])
 		# return len(self.jobQueue) > 0
 	# def prependTask(self, subtask):
 	# 	self.jobQueue = [subtask] + self.jobQueue
@@ -69,14 +71,30 @@ class node:
 			# if still None, unknown behaviour
 		assert(hardwareAccelerated is not None)
 		self.jobQueue.append(job(self, constants.SAMPLE_SIZE.gen(), self.decision, hardwareAccelerated=hardwareAccelerated))
+		print ("added job to queue")
 
 	def addTask(self, task):
 		self.taskQueue.append(task)
+
+	def removeJob(self, job):
+		print (self.jobQueue, job)
+		self.jobQueue.remove(job)
+		if self.currentJob is job:
+			self.currentJob = None
+
 
 
 	def updateTime(self):
 		# if no jobs available, perhaps generate one
 		# print len(self.jobQueue)
+
+		# see if there's a job available
+		if self.currentJob is None:
+			if len(self.jobQueue) > 0:
+				print ("grabbed job from queue")
+				self.currentJob = self.jobQueue[0]
+				self.currentJob.start()
+				
 
 		# check if there's something to be done now 
 		if len(self.taskQueue) > 0:
@@ -85,23 +103,20 @@ class node:
 			# do process and check if done
 			self.currentTask.tick()
 			if self.currentTask.finished:
-			# 	print 'job done'
+				print ("\033[34mTask done\033[0m")
 				
 			# 	self.resultsQueue.put([currentTask.samples, currentTask.computeResult()])
 				self.currentTask = None
 				self.taskQueue = self.taskQueue[1:]
 
-		# remove finished jobs
-		if len(self.jobQueue) > 0:
-			currentJob = self.jobQueue[0]
-
+		
 			# check if job is finished
-			if currentJob.finished:
-				print ('job done')
+			# if currentJob.finished:
+			# 	print ('job done')
 				
-			# 	self.resultsQueue.put([currentTask.samples, currentTask.computeResult()])
+			# # 	self.resultsQueue.put([currentTask.samples, currentTask.computeResult()])
 
-				self.jobQueue = self.jobQueue[1:]
+			# 	self.jobQueue = self.jobQueue[1:]
 				
 				# if isinstance ()
 				# print "finish on first job done"

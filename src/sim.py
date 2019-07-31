@@ -8,6 +8,7 @@ from visualiser import visualiser
 
 import constants
 import variable
+import tasks
 
 import multiprocessing
 import sys
@@ -69,6 +70,7 @@ class sim:
 		while progress < duration and not self.finished:
 			# try:
 			if True:
+				print ()
 				frames += 1
 
 				# create new jobs
@@ -81,9 +83,10 @@ class sim:
 					dev.updateTime()
 					queueLengths.append(len(dev.jobQueue))
 				
-				print ("jobQueues:", [len(dev.jobQueue) for dev in self.devices])
+				print ("\033[92mjobQueues:\t", [len(dev.jobQueue) for dev in self.devices], "\033[0m")
+				print ("\033[32mtaskQueues:\t", [len(dev.taskQueue) for dev in self.devices], "\033[0m")
 				print ("busy:", [dev.busy() for dev in self.devices])
-				print ("tasks", [dev.currentTask for dev in self.devices])
+				print ("\033[31mtasks", [dev.currentTask for dev in self.devices], "\033[0m")
 
 				progress += constants.TD
 
@@ -174,6 +177,8 @@ class sim:
 		simulation = sim(0, 2, 0, visualise=True)
 
 		constants.JOB_LIKELIHOOD = 0
+		constants.DEFAULT_TASK_GRAPH = [tasks.EASY]
+
 		simulation.simulateTime(constants.PLOT_TD * 10)
 		simulation.devices[0].createNewJob(hardwareAccelerated=accelerated)
 		simulation.simulateTime(constants.PLOT_TD * 150)
@@ -203,6 +208,6 @@ if __name__ == '__main__':
 	# 	print i, simulation.simulateAll(i, "latency")
 
 	# sim.singleDelayedJobLocal(True)
-	sim.singleDelayedJobPeer(True)
+	sim.singleDelayedJobPeer(False)
 	# sim.randomPeerJobs(True)
 	# sim.randomPeerJobs(False)

@@ -6,7 +6,12 @@ class task:
 		self.colour = colour
 		self.complexity = complexity
 
-A = task(
+EASY = task(
+	colour=(1, 1, 0, 1), 
+	complexity=1.
+	)
+
+HARD = task(
 	colour=(1, 0, 1, 1), 
 	complexity=10.
 	)

@@ -73,7 +73,7 @@ FPGA_POWER_PLAN = FPGA_STAYS_ON # TODO: entirely unimplemented, sleep current an
 MINIMUM_BATCH = 5
 
 # tasks
-DEFAULT_TASK_GRAPH = [tasks.A] # TODO: single task only
+DEFAULT_TASK_GRAPH = [tasks.EASY] # TODO: single task only
 
 # def randomise(range):
 # 	return random.uniform(range[0], range[1])

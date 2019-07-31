@@ -9,6 +9,8 @@ class job:
 	datasize = None
 	samples = None
 	startTime = None
+	
+	owner = None
 	creator = None
 	processingNode = None
 	processor = None
@@ -46,24 +48,6 @@ class job:
 		print ("setprocessingnode")
 
 		self.setProcessor(processingNode)
-		# populate subtasks based on types of devices
-		if not self.offloaded():
-			# local processing
-			if self.hardwareAccelerated:
-				# check if fpga already configured
-				if self.processingNode.fpga.isConfigured(self.currentTask):
-					self.processingNode.addTask(subtask.mcuFpgaOffload(self))
-				else:
-					self.processingNode.addTask(subtask.reconfigureFPGA(self))
-			else:
-				self.creator.addTask(subtask.processing(self))
-			# otherwise we have to send task
-		else:
-			# elif self.destination.nodeType == constants.ELASTIC_NODE:
-			print ("offloading to other device")
-			print (self.processor)
-			self.creator.addTask(subtask.createMessage(self))
-			# subtask.communication(self.host, self.rawMessageSize()))
 
 	def setProcessor(self, processingNode):
 		print ("\tprocessor", self.hardwareAccelerated)
@@ -71,6 +55,30 @@ class job:
 			self.processor = processingNode.fpga
 		else:
 			self.processor = processingNode.mcu
+
+	def start(self):
+		# populate subtasks based on types of devices
+		if not self.offloaded():
+			# local processing
+			if self.hardwareAccelerated:
+				# check if fpga already configured
+				# if self.processingNode.fpga.isConfigured(self.currentTask):
+				# 	self.processingNode.addTask(subtask.mcuFpgaOffload(self))
+				# else:
+				self.processingNode.addTask(subtask.reconfigureFPGA(self))
+			else:
+				self.creator.addTask(subtask.processing(self))
+		# otherwise we have to send task
+		else:
+			# elif self.destination.nodeType == constants.ELASTIC_NODE:
+			print ("offloading to other device")
+			print (self.processor)
+			self.creator.addTask(subtask.createMessage(self))
+			# subtask.communication(self.host, self.rawMessageSize()))
+
+		# to start with, owner is the node who created it 
+		self.owner = self.creator
+
 
 	def offloaded(self):
 		return self.creator is not self.processingNode
@@ -110,6 +118,16 @@ class job:
 		if self.currentSubTask.finished:
 			self.subtaskIndex += 1
 			self.currentSubTask = None
+
+	def moveTo(self, destinationNode):
+		# remove job from current
+		currentOwner = self.owner
+		currentOwner.removeJob(self)
+
+		# add job to new owner
+		destinationNode.jobQueue.append(self)
+		self.owner = destinationNode
+
 
 	def computeResult(self):
 		output = result()
