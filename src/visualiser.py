@@ -1,6 +1,6 @@
 import matplotlib as mpl
 # mpl.use("QT4Agg")
-# mpl.use("Qt4Agg")
+mpl.use("Qt4Agg")
 import matplotlib.pyplot as pp
 import pylab
 import math
