@@ -7,6 +7,8 @@ from mrf import mrf
 from result import result
 
 class endDevice(node):
+	def __repr__(self):
+		return "End Device {0}".format(self.index)
 
 	def __init__(self, queue, index, alwaysHardwareAccelerate):
 

@@ -1,6 +1,7 @@
 import constants
 from mcu import mcu
 from fpga import fpga
+from powerState import powerStates
 
 class subtask:
 	duration = None
@@ -10,23 +11,24 @@ class subtask:
 	started = None
 	finished = None
 
-	energyCost = None
+	# energyCost = None
 
 	# device that performed this subtask
 	device = None
 
 	job = None
+	addsLatency = None
 	# __name__ = "Unnamed Subtask"
 	
 
-	def __init__(self, job, duration, energyCost): # , device): # , origin, destination):
+	def __init__(self, job, duration, addsLatency=True): #, energyCost): # , device): # , origin, destination):
 		# self.startTime = currentTime
 
 		# defined subtasks must first set duration and energy
 
 		self.job = job
 		self.duration = duration
-		self.energyCost = energyCost
+		# self.energyCost = energyCost
 
 		self.progress = 0
 		self.started = False
@@ -48,6 +50,11 @@ class subtask:
 			# add any new tasks 
 			if self.finished:
 				self.finishTask()
+
+				# add delay to job
+				if self.addsLatency:
+					self.job.totalLatency += self.progress
+
 
 	def __str__(self):
 		return (self.__name__)
@@ -83,18 +90,19 @@ class createMessage(subtask):
 		# self.samples = job.samples
 
 		duration = job.creator.mcu.messageOverheadLatency.gen()
-		energyCost = job.creator.mcu.activeEnergy(duration)
+		# energyCost = job.creator.mcu.activeEnergy(duration)
 
-		subtask.__init__(self, job, duration, energyCost)
+		subtask.__init__(self, job, duration)
 	
 	def beginTask(self):
-		self.job.creator.mcu.busy = True
-		self.job.creator.jobActive = True
+		self.job.creator.mcu.active()
+		# self.job.creator.mcu.busy = True
+		# self.job.creator.jobActive = True
 		subtask.beginTask(self)
 
 	# must send message now 
 	def finishTask(self):
-		self.job.creator.mcu.busy = False
+		self.job.creator.mcu.idle()
 		self.job.creator.addTask(txMessage(self.job, self.job.creator, self.job.processingNode))
 
 
@@ -104,14 +112,28 @@ class batching(subtask):
 	
 	def __init__(self, job):
 		duration = constants.TD # immediately move on (if possible)
-		energyCost = job.processingNode.energy(duration)
+		# energyCost = job.processingNode.energy(duration)
 	
-		subtask.__init__(self, job, duration, energyCost) 
+		subtask.__init__(self, job, duration) 
 
 	def beginTask(self):
-		# see if batch is full enough already
+		# add current job to node's batch
+		self.job.processingNode.batch.append(self.job)
+
+		# see if batch is full enough to start now
 		if len(self.job.processingNode.batch) >= constants.MINIMUM_BATCH:
-			# start job
+			self.job.processingNode.batchProcessing = True
+			
+		# wait for another job
+		self.job.processingNode.currentJob = None # job has been backed up in batch
+
+		subtask.beginTask(self)
+
+	def finishTask(self):
+		if self.job.processingNode.batchProcessing:
+			# start first job in queue
+			firstJob = self.job.processingNode.batch
+			self.job.processingNode
 			if self.job.hardwareAccelerated:
 				if self.job.processingNode.fpga.isConfigured(self.job.currentTask):
 					self.job.processingNode.addTask(mcuFpgaOffload(self.job))
@@ -119,33 +141,29 @@ class batching(subtask):
 					self.job.processingNode.addTask(reconfigureFPGA(self.job))
 			else:
 				self.job.processingNode.addTask(processing(self.job))
-		subtask.beginTask(self)
+	# 	self.job.processingNode.fpga.idle()
+	# 	self.job.processingNode.fpga.reconfigure(self.job.currentTask)
 
-	def finishTask(self):
-		self.job.processingNode.fpga.busy = False
-		self.job.processingNode.fpga.reconfigure(self.job.currentTask)
-
-		# move onto processing steps
-		self.job.processingNode.addTask(mcuFpgaOffload(self.job))
+	# 	# move onto processing steps
+	# 	self.job.processingNode.addTask(mcuFpgaOffload(self.job))
 
 class reconfigureFPGA(subtask):
 	__name__ = "Reconfigure FPGA"
 	
 	def __init__(self, job): #  device, samples, processor=None):
 		duration = constants.RECONFIGURATION_TIME.gen()
-		energyCost = job.processingNode.reconfigurationEnergy(duration)
+		# energyCost = job.processingNode.reconfigurationEnergy(duration)
 	
-		subtask.__init__(self, job, duration, energyCost) 
+		subtask.__init__(self, job, duration)
 
 	def beginTask(self):
-		self.job.processingNode.fpga.busy = True
-		self.job.processingNode.jobActive = True
+		self.job.processingNode.fpga.reconfigure(self.job.currentTask)
+		# self.job.processingNode.jobActive = True
 		subtask.beginTask(self)
 
 	def finishTask(self):
-		self.job.processingNode.fpga.busy = False
-		self.job.processingNode.fpga.reconfigure(self.job.currentTask)
-
+		self.job.processingNode.fpga.idle()
+		
 		# move onto processing steps
 		self.job.processingNode.addTask(mcuFpgaOffload(self.job))
 
@@ -156,24 +174,26 @@ class mcuFpgaOffload(subtask):
 		print ("created mcu fpga offloading task")
 		
 		duration = job.processingNode.mcuToFpgaLatency(job.datasize)
-		energyCost = job.processingNode.mcuToFpgaEnergy(duration)
+		# energyCost = job.processingNode.mcuToFpgaEnergy(duration)
 	
-		subtask.__init__(self, job, duration, energyCost) 
+		subtask.__init__(self, job, duration)
 
 	def beginTask(self):
-		self.job.processingNode.mcu.busy = True
+		self.job.processingNode.mcu.active()
+		self.job.processingNode.fpga.active()
 		subtask.beginTask(self)
 
 	def finishTask(self):
-		self.job.processingNode.mcu.busy = False
+		self.job.processingNode.mcu.idle()
+		self.job.processingNode.fpga.idle()
 
 		if self.job.processed:
 				# check if offloaded
 			if self.job.offloaded():
 				self.job.processingNode.addTask(txMessage(self.job, self.job.processingNode, self.job.creator))
 			else:
-				self.job.finished = True
-				self.job.creator.jobActive = False
+				self.job.finish()
+				# self.job.creator.jobActive = False
 
 		else:
 			# always follow up with processing
@@ -194,20 +214,20 @@ class processing(subtask):
 		print ("created processing task")
 		
 		duration = job.processor.processingTime(job.samples, job.currentTask)
-		energyCost = job.processingNode.processingEnergy(duration)
+		# energyCost = job.processingNode.processingEnergy(duration)
 
 		# reduce message size
 
-		subtask.__init__(self, job, duration, energyCost) # , device, device)
+		subtask.__init__(self, job, duration)
 
 	def beginTask(self):
-		self.job.processor.busy = True
-		if not self.job.offloaded():
-			self.job.creator.jobActive = True
+		self.job.processor.active()
+		# if not self.job.offloaded():
+		# 	self.job.creator.jobActive = True
 		subtask.beginTask(self)
 
 	def finishTask(self):
-		self.job.processor.busy = False
+		self.job.processor.idle()
 
 		print ("creating return message")
 
@@ -224,8 +244,9 @@ class processing(subtask):
 			if self.job.offloaded():
 				self.job.processingNode.addTask(txMessage(self.job, self.job.processingNode, self.job.creator))
 			else:
-				self.job.finished = True
-				self.job.creator.jobActive = False
+				self.job.finish()
+				
+				# self.job.creator.jobActive = False
 
 
 		
@@ -235,7 +256,7 @@ class txMessage(subtask):
 	destination = None
 	source = None
 	messageSize = None
-	__name__ = "TX Message"
+	# __name__ = "TX Message"
 	
 	
 	def __init__(self, job, source, destination):
@@ -246,86 +267,119 @@ class txMessage(subtask):
 		
 		# source mcu does the work
 		duration = job.creator.mrf.rxtxLatency(job.datasize)
-		energyCost = job.creator.mrf.txEnergy(duration)
+		# energyCost = job.creator.mrf.txEnergy(duration)
 		
-		subtask.__init__(self, job, duration, energyCost)
+		subtask.__init__(self, job, duration)
 
 
 	# only possible if both source and destination mrf are available
 	def possible(self):
 		# return not self.job.creator.mrf.busy and not self.job.processingNode.mrf.busy
-		return not self.source.mrf.busy and not self.destination.mrf.busy
+		return not self.source.mrf.busy() and not self.destination.mrf.busy()
 	
 	# start new job
 	def beginTask(self):
-		# add receive task to destination
-		self.destination.addTask(rxMessage(self.job, self.duration))
-		self.source.mrf.busy = self.destination.mrf.busy = True
+		self.source.mrf.active()
+		self.destination.mrf.active()
+
 		subtask.beginTask(self)
 	
 	def finishTask(self):
-		self.source.mrf.busy = self.destination.mrf.busy = False
+		self.source.mrf.idle()
+		self.destination.mrf.idle()
 
+	
+class txJob(txMessage):
+	__name__ = "TX Job"
+	
+	def beginTask(self):
+		# add receive task to destination
+		self.destination.addTask(rxJob(self.job, self.duration))
+
+		txMessage.beginTask(self)
+
+	def finishTask(self):
 		# if offloading, this is before processing
 		if not self.job.processed:
 			# move job to new owner
 			print ("moving job to processingNode")
 			# move job to the processing from the creator 
 			newOwner = self.job.processingNode		
-			self.job.creator.waiting = True
-		# otherwise this is result being returned
-		else:
-			self.job.processingNode.jobActive = False
+			# self.job.creator.waiting = True
 
-			# move result of job back to the creator
-			newOwner = self.job.creator
+
 
 		self.job.moveTo(newOwner)
 
 
+class txResult(txMessage):
+	__name__ = "TX Result"
+	
+	def beginTask(self):
+		# add receive task to destination
+		self.destination.addTask(rxResult(self.job, self.duration))
+
+		txMessage.beginTask(self)
+
+	def finishTask(self):
+		# this is result being returned
+		# self.job.processingNode.jobActive = False
+
+		# move result of job back to the creator
+		newOwner = self.job.creator
+		self.job.moveTo(newOwner)
+
+		txMessage.finishTask(self)
 
 class rxMessage(subtask):
-	__name__ = "RX Message"
+	# __name__ = "RX Message"
 	
 	def __init__(self, job, duration):
 		print ("created rxMessage")
 
-		energyCost = job.processingNode.mrf.rxEnergy(duration)
+		# energyCost = job.processingNode.mrf.rxEnergy(duration)
 
-		subtask.__init__(self, job, duration, energyCost)
+		subtask.__init__(self, job, duration)
 
-	def beginTask(self):
-		# receiving offloaded task
-		if self.job.offloaded():
-			self.job.processingNode.jobActive = True
-		# else:
+	# WHAT?
+	# def beginTask(self):
+	# 	# receiving offloaded task
+	# 	if self.job.offloaded():
+	# 		self.job.processingNode.jobActive = True
+	# 	# else:
 
-		subtask.beginTask(self)
+	# 	subtask.beginTask(self)
 
 	def finishTask(self):
 		print ("mrf not busy anymore")
-		self.job.creator.mrf.busy = self.job.processingNode.mrf.busy = False
-		
-		if not self.job.processed:
-			print("adding processing task 1")
+		self.job.creator.mrf.idle()
+		self.job.processingNode.mrf.idle()
 
-			self.job.processingNode.addTask(batching(self.job))
-			# if self.job.hardwareAccelerated:
-				# if self.job.processingNode.fpga.isConfigured(self.job.currentTask):
-				# 	self.job.processingNode.addTask(mcuFpgaOffload(self.job))
-				# else:
-					# self.job.processingNode.addTask(reconfigureFPGA(self.job))
-			# else:
-			# 	self.job.processingNode.addTask(processing(self.job))
-		else:
-			print("\treceived offloaded result")
-			self.job.stop()
-			self.job.creator.waiting = False
-			self.job.creator.jobActive = False
 		# # destination receives 
 		# receiveEnergyCost = destination.mcu.activeEnergy(this.mrf.rxtxLatency(this.message.size) destination.mrf.rxEnergy(messageSize)
 		
 		# subtask.__init__(self, duration, energyCost, source) # , device, device)
+
+def rxJob(rxMessage):
+	__name__ = "RX Job"
+
+	def finishTask(self):
+		print("adding processing task 1")
+		self.job.processingNode.addTask(batching(self.job))
+
+		rxMessage.finishTask(self)
+
+def rxResult(rxMessage):
+	__name__ = "RX Result"
+
+	def finishTask(self):
+		print("\treceived offloaded result")
+		self.job.finish()
+		# self.job.creator.waiting = False
+		# self.job.creator.jobActive = False
+
+		rxMessage.finishTask(self)
+
 
 # class receiving(subtask):
 #     def __init__(self, device, messageSize):

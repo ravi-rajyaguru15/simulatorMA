@@ -7,14 +7,12 @@ import numpy as np
 class mrf(component):
 	busyColour = (0, 1, 0, 1)
 	idleColour = (0, 0.5, 0, 1)
+	sleepColour = (0, 0.2, 0, 1)
 
-	busy = None
 	rxCurrent, txCurrent = constants.WIRELESS_RX_CURRENT, constants.WIRELESS_TX_CURRENT
 	transmissionRate = constants.WIRELESS_SPEED
 
 	def __init__(self):
-		self.busy = False
-
 		component.__init__(
 			self,
 			voltage = [constants.MCU_VOLTAGE],

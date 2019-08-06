@@ -75,6 +75,11 @@ MINIMUM_BATCH = 5
 # tasks
 DEFAULT_TASK_GRAPH = [tasks.EASY] # TODO: single task only
 
+# visualisation
+DRAW_DEVICES = True
+DRAW_GRAPH_TOTAL_ENERGY = False
+DRAW_GRAPH_CURRENT_POWER = True
+
 # def randomise(range):
 # 	return random.uniform(range[0], range[1])
 

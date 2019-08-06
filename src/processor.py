@@ -6,7 +6,6 @@ import matplotlib.pyplot as pp
 
 class processor(component):
 	processingSpeed = None
-	busy = False
 
 	rectangle = None
 

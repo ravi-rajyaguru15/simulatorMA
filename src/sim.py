@@ -5,6 +5,7 @@ from result import result
 from gateway import gateway
 from server import server
 from visualiser import visualiser 
+from job import job
 
 import constants
 import variable
@@ -17,6 +18,7 @@ import numpy as np
 class sim:
 	ed, ed2, en, gw, srv, selectedOptions = None, None, None, None, None, None
 	results = None
+	jobResults = None
 	time = None
 	devices = None
 	visualise = None
@@ -27,6 +29,8 @@ class sim:
 	def __init__(self, numEndDevices, numElasticNodes, numServers, visualise=False, hardwareAccelerated=None):
 		print (numEndDevices, numElasticNodes)
 		self.results = multiprocessing.Manager().Queue()
+		self.jobResults = multiprocessing.Manager().Queue()
+		job.jobResultsQueue = self.jobResults
 		index = 0
 
 		self.time = 0
@@ -61,13 +65,14 @@ class sim:
 		self.finished = True
 
 	def simulateTime(self, duration):
-		progress = 0
+		# progress = 0
+		endTime = self.time + duration
 		queueLengths = list()
 		plotFrames = constants.PLOT_TD / constants.TD
 		print (plotFrames)
 		frames = 0
 
-		while progress < duration and not self.finished:
+		while self.time < endTime and not self.finished:
 			# try:
 			if True:
 				print ()
@@ -75,20 +80,39 @@ class sim:
 
 				# create new jobs
 				for device in self.devices:
-					if not device.busy():
+					if not device.hasJob():
 						device.maybeAddNewJob()
 					
 				# update all the devices
 				for dev in self.devices:
-					dev.updateTime()
+					dev.updateTime(self.time)
 					queueLengths.append(len(dev.jobQueue))
+
+				# capture energy values
+				for dev in self.devices:
+					energy = dev.energy()
+
+					# add energy to device counter
+					dev.totalEnergyCost += energy
+					# add energy to job 
+					if dev.currentJob is not None:
+						dev.currentJob.totalEnergyCost += energy
+						# see if device is in job history
+						if dev not in dev.currentJob.devicesEnergyCost.keys():
+							dev.currentJob.devicesEnergyCost[dev] = 0
+						
+						dev.currentJob.devicesEnergyCost[dev] += energy
+
+
 				
 				print ("\033[92mjobQueues:\t\t", [len(dev.jobQueue) for dev in self.devices], "\033[0m")
 				print ("\033[32mtaskQueues:\t", [len(dev.taskQueue) for dev in self.devices], "\033[0m")
-				print ("busy:", [dev.busy() for dev in self.devices])
+				print ("have jobs:", [dev.hasJob() for dev in self.devices])
+				print ("states:", [[comp.state for comp in dev.components] for dev in self.devices])
 				print ("\033[31mtasks", [dev.currentTask for dev in self.devices], "\033[0m")
 
-				progress += constants.TD
+				# progress += constants.TD
+				self.time += constants.TD
 
 				if self.visualise:
 					if frames % plotFrames == 0:
@@ -160,6 +184,7 @@ class sim:
 	@staticmethod
 	def singleDelayedJobLocal(accelerated=True):
 		constants.OFFLOADING_POLICY = constants.LOCAL_ONLY
+		constants.MINIMUM_BATCH = 1
 		
 		simulation = sim(0, 2, 0, visualise=True)
 
@@ -167,7 +192,7 @@ class sim:
 		# simulation.en[0].createNewJob()
 		# simulation.simulateTime(constants.SIM_TIME)
 		simulation.simulateTime(constants.PLOT_TD * 10)
-		simulation.devices[0].createNewJob(hardwareAccelerated=accelerated)
+		simulation.devices[0].createNewJob(simulation.time, hardwareAccelerated=accelerated)
 		simulation.simulateTime(0.25)
 		
 	@staticmethod
@@ -182,7 +207,7 @@ class sim:
 		# simulation.simulateTime(constants.SIM_TIME)
 		simulation.simulateTime(constants.PLOT_TD * 10)
 		for i in range(constants.MINIMUM_BATCH):
-			simulation.devices[0].createNewJob(hardwareAccelerated=accelerated)
+			simulation.devices[0].createNewJob(simulation.time, hardwareAccelerated=accelerated)
 			simulation.simulateTime(0.1)
 		simulation.simulateTime(0.25)
 			
@@ -197,7 +222,7 @@ class sim:
 		constants.DEFAULT_TASK_GRAPH = [tasks.EASY]
 
 		simulation.simulateTime(constants.PLOT_TD * 10)
-		simulation.devices[0].createNewJob(hardwareAccelerated=accelerated)
+		simulation.devices[0].createNewJob(simulation.time, hardwareAccelerated=accelerated)
 		simulation.simulateTime(constants.PLOT_TD * 150)
 		
 	@staticmethod
@@ -224,8 +249,10 @@ if __name__ == '__main__':
 	# for i in range(1, 100, 10):
 	# 	print i, simulation.simulateAll(i, "latency")
 
+	sim.singleDelayedJobLocal(False)
 	# sim.singleDelayedJobLocal(True)
+	# sim.singleDelayedJobPeer(False)
 	# sim.singleDelayedJobPeer(True)
 	# sim.randomPeerJobs(True)
 	# sim.randomPeerJobs(False)
-	sim.singleBatchLocal(False)
+	# sim.singleBatchLocal(False)

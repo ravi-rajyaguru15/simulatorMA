@@ -6,10 +6,19 @@ from result import result
 # from node import node
 
 class job:
+	# static results queue
+	jobResultsQueue = None
+
 	datasize = None
 	samples = None
+	
 	started = None
+	createdTime = None
 	startTime = None
+	
+	totalEnergyCost = None
+	totalLatency = None
+	devicesEnergyCost = None # track how much each device spends on this job
 	
 	owner = None
 	creator = None
@@ -24,12 +33,15 @@ class job:
 	taskGraph = None
 	currentTask = None
 
-	def __init__(self, origin, samples, offloadingDecision, hardwareAccelerated, taskGraph=None):
+	def __init__(self, createdTime, origin, samples, offloadingDecision, hardwareAccelerated, taskGraph=None):
 		self.creator = origin
 		self.samples = samples
 		# initialise message size to raw data
 		self.datasize = self.rawMessageSize()
 		self.hardwareAccelerated = hardwareAccelerated
+		self.totalEnergyCost = 0
+		self.totalLatency = 0
+		self.devicesEnergyCost = dict()
 		
 		# self.finished = False
 		self.started = False
@@ -59,8 +71,9 @@ class job:
 			self.processor = processingNode.mcu
 
 
-	def start(self):
+	def start(self, startTime):
 		self.started = True
+		self.startTime = startTime
 
 		# populate subtasks based on types of devices
 		if not self.offloaded():
@@ -85,11 +98,13 @@ class job:
 		# to start with, owner is the node who created it 
 		self.owner = self.creator
 
-	def stop(self):
+	def finish(self):
 		self.finished = True
 		self.owner.removeJob(self)
 
-
+		# add results to overall results
+		job.jobResultsQueue.put(result(self.totalLatency, self.totalEnergyCost))
+		
 
 	def offloaded(self):
 		return self.creator is not self.processingNode
@@ -139,14 +154,13 @@ class job:
 		destinationNode.jobQueue.append(self)
 		self.owner = destinationNode
 
+	# def computeResult(self):
+	# 	output = result()
 
-	def computeResult(self):
-		output = result()
+	# 	for sub in self.subtasks:
+	# 		output += result(latency=sub.totalDuration, energy=sub.energyCost)
 
-		for sub in self.subtasks:
-			output += result(latency=sub.totalDuration, energy=sub.energyCost)
-
-		return output
+	# 	return output
 
 	def rawMessageSize(self):
 		return self.samples * constants.SAMPLE_RAW_SIZE.gen()

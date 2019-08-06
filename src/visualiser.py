@@ -4,10 +4,15 @@ mpl.use("Qt4Agg")
 import matplotlib.pyplot as pp
 import pylab
 import math
+import numpy as np
 
 import constants
 from elasticNode import elasticNode
 from endDevice import endDevice
+
+DEVICES_FIGURE = 0
+DEVICES_ENERGY_FIGURE = 1
+DEVICES_POWER_FIGURE = 2
 
 class visualiser:
 	sim = None
@@ -19,9 +24,22 @@ class visualiser:
 	def __init__(self, simulator):
 		self.sim = simulator
 
-		pp.figure(0)
-		pp.xlim(0, 1)
-		pp.ylim(0, 1)
+		if constants.DRAW_DEVICES:
+			print ("Creating 1")
+			pp.figure(DEVICES_FIGURE)
+			pp.xlim(0, 1)
+			pp.ylim(0, 1)
+
+		if constants.DRAW_GRAPH_TOTAL_ENERGY:
+			print ("Creating 2")
+			pp.figure(DEVICES_ENERGY_FIGURE)
+			pp.xlim(0, len(self.sim.devices))
+
+		if constants.DRAW_GRAPH_CURRENT_POWER:
+			print ("Creating 3")
+			
+			pp.figure(DEVICES_POWER_FIGURE)
+			pp.xlim(0, len(self.sim.devices))
 		# fig, self.ax = pp.subplots()
 
 		thismanager = pylab.get_current_fig_manager()
@@ -101,18 +119,62 @@ class visualiser:
 	def update(self):
 		# print ("DRAW")
 		# self.ax.cla()
-		self.drawNodes()
-		pp.draw()
+
+		if constants.DRAW_DEVICES:
+			self.drawNodes()
+			pp.draw()
+
+		if constants.DRAW_GRAPH_TOTAL_ENERGY:
+			self.drawTotalDeviceEnergy()
+			pp.draw()
+		
+		if constants.DRAW_GRAPH_CURRENT_POWER:
+			self.drawCurrentDevicePower()
+			pp.draw()
+		
 		pp.pause(constants.TD)
 
 	@staticmethod
 	def createRectangle(targetDevice, location, size, fill=True):
 		targetDevice.rectangle = pp.Rectangle((location[0] - size[0]/2, location[1] - size[1]/2), size[0], size[1], fill=fill)
 	
+	def drawTotalDeviceEnergy(self):
+		energyList = list()
+		labels = list()
+
+		# draw graph of energy for each device
+		for dev in self.sim.devices:
+			energyList.append(dev.totalEnergyCost)
+			labels.append(dev)
+		
+		pp.figure(DEVICES_ENERGY_FIGURE)
+		pp.bar(np.array(range(len(self.sim.devices))) + 0.5, energyList, tick_label=labels, color=['b'] * len(self.sim.devices))
+		
+	maxPowerEver = 0
+	def drawCurrentDevicePower(self):
+		powerList = list()
+		labels = list()
+
+		# draw graph of energy for each device
+		for dev in self.sim.devices:
+			powerList.append(dev.energy())
+			labels.append(dev)
+
+		maxPower = np.max(powerList)
+		self.maxPowerEver = np.max([self.maxPowerEver, maxPower])
+		print (powerList)
+		
+		pp.figure(DEVICES_POWER_FIGURE)
+		pp.cla()
+		pp.bar(np.array(range(len(self.sim.devices))) + 0.5, powerList, tick_label=labels, color=['b'] * len(self.sim.devices))
+		pp.ylim(0, self.maxPowerEver * 1.1)
+		
 
 	def drawNodes(self):
 		# print ("drawing nodes:", self.sim.devices)
 
+		pp.figure(DEVICES_FIGURE)
+		pp.title("{:.3f}".format(self.sim.time))
 		# for dev, location in zip(self.sim.devices, self.grid):
 		for dev in self.sim.devices:
 			self.draw(dev)
@@ -123,18 +185,14 @@ class visualiser:
 			image = list()
 			# draw node itself
 			# change colour of border based on activity
-			node.rectangle._edgecolor = (1, 0, 0, 1) if node.busy() else (0, 0, 0, 1)
+			node.rectangle._edgecolor = (1, 0, 0, 1) if node.hasJob() else (0, 0, 0, 1)
 			image.append(node.rectangle)
 
 			# draw all processors and wireless
 			for component in node.components:
 				rectangle = component.rectangle
-				if component.busy:
-					colour = component.busyColour
-				else:
-					colour = component.idleColour
-				
-				rectangle._facecolor = colour
+								
+				rectangle._facecolor = component.colour()
 				image.append(rectangle)
 				
 			for img in image:

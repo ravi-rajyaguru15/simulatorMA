@@ -6,6 +6,9 @@ from fpga import fpga
 from result import result
 
 class elasticNode(node):
+	def __repr__(self):
+		return "Elastic Node {0}".format(self.index)
+
 	# message = None
 	mcu = None
 	mrf = None
@@ -35,10 +38,10 @@ class elasticNode(node):
 		print ("offloading latency:", latency)
 		return latency
 
-	def mcuToFpgaEnergy(self, time):
-		mcuEnergy = self.mcu.activeEnergy(time)
-		fpgaEnergy = self.fpga.activeEnergy(time)
-		return mcuEnergy + fpgaEnergy
+	# def mcuToFpgaEnergy(self, time):
+	# 	mcuEnergy = self.mcu.activeEnergy(time)
+	# 	fpgaEnergy = self.fpga.activeEnergy(time)
+	# 	return mcuEnergy + fpgaEnergy
 
 	# def process(self, task):
 	# 	print 'simple task for now'

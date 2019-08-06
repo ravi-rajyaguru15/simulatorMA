@@ -4,6 +4,7 @@ from processor import processor
 class mcu(processor):
 	busyColour = (1, 0, 0, 1)
 	idleColour = (0.5, 0, 0, 1)
+	sleepColour = (0.2, 0, 0, 1)
 
 	messageOverheadLatency = None
 

@@ -20,11 +20,12 @@ class node:
 	drawLocation = None
 
 	components = None
-	waitingForResult = None
+	# waitingForResult = None
 	jobActive = None
 	alwaysHardwareAccelerate = None
 
 	batch = None
+	batchFull = None
 
 	# busy = None
 
@@ -43,18 +44,22 @@ class node:
 
 		self.components = components
 
-		self.waitingForResult = False
+		# self.waitingForResult = False
 		self.jobActive = False
 		self.alwaysHardwareAccelerate = alwaysHardwareAccelerate
 
 		self.batch = list()
+		self.batchProcessing = False # indicates if batch has been full (should process batch)
 
 		# self.processors = list()
+
+	def __repr__(self):
+		return str(type(self)) + " " + str(self.index)
 
 	def setOffloadingDecisions(self, options):
 		self.decision.options = options
 
-	def busy(self):
+	def hasJob(self):
 		# busy if any are busy
 		return self.currentJob is not None
 		# return self.jobActive # or self.waitingForResult or np.any([device.busy for device in self.components])
@@ -68,30 +73,34 @@ class node:
 			print ("\t\t** new task ** ")
 			self.createNewJob()
 
-	def createNewJob(self, hardwareAccelerated=None):
+	def createNewJob(self, currentTime, hardwareAccelerated=None):
 		# if not set to hardwareAccelerate, use default
 		if hardwareAccelerated is None:
 			hardwareAccelerated = self.alwaysHardwareAccelerate
 			# if still None, unknown behaviour
 		assert(hardwareAccelerated is not None)
-		self.jobQueue.append(job(self, constants.SAMPLE_SIZE.gen(), self.decision, hardwareAccelerated=hardwareAccelerated))
+		self.jobQueue.append(job(currentTime, self, constants.SAMPLE_SIZE.gen(), self.decision, hardwareAccelerated=hardwareAccelerated))
 		print ("added job to queue")
 
 	def addTask(self, task):
 		self.taskQueue.append(task)
 
 	def removeJob(self, job):
+		print ("REMOVE JOB")
 		print (self.jobQueue, job)
 		self.jobQueue.remove(job)
 		if self.currentJob is job:
 			self.currentJob = None
 
+		print (self.jobQueue, job)
+		print (self.currentJob)
+
 	# calculate the energy at the current activity of all the components
-	def energy(self, duration):
+	def energy(self, duration=constants.TD):
 		totalPower = np.sum([component.power() for component in self.components])
 		return totalPower * duration
 
-	def updateTime(self):
+	def updateTime(self, currentTime):
 		# if no jobs available, perhaps generate one
 		# print len(self.jobQueue)
 
@@ -102,7 +111,7 @@ class node:
 				self.currentJob = self.jobQueue[0]
 				# see if it's a brand new job
 				if not self.currentJob.started:
-					self.currentJob.start()
+					self.currentJob.start(currentTime)
 				
 
 		# check if there's something to be done now 
