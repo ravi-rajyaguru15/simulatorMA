@@ -13,14 +13,14 @@ WIRELESS_TX_CURRENT = Gaussian(20., 1.) #
 WIRELESS_IDLE_CURRENT = Gaussian(5, 1)
 WIRELESS_SLEEP_CURRENT = Constant(0)
 
-MCU_ACTIVE_CURRENT = Gaussian(12, 2)
+MCU_ACTIVE_CURRENT = Gaussian(12, .25)
 MCU_IDLE_CURRENT = Gaussian(.5, 0.1) #
 MCU_SLEEP_CURRENT = Gaussian(0.25, 0.1)
 
 FPGA_ACTIVE_INT_CURRENT = Gaussian(13.5, 1.)
 FPGA_IDLE_INT_CURRENT = Gaussian(13, 1.)
 FPGA_SLEEP_INT_CURRENT = Constant(0)
-FPGA_RECONFIGURATION_INT_CURRENT = Gaussian(10., 5.)
+FPGA_RECONFIGURATION_INT_CURRENT = Gaussian(10., 1.)
 FPGA_ACTIVE_AUX_CURRENT = Gaussian(8.5, .5)
 FPGA_IDLE_AUX_CURRENT = Gaussian(8, 1.)
 FPGA_SLEEP_AUX_CURRENT = Constant(0)
@@ -78,7 +78,7 @@ DEFAULT_TASK_GRAPH = [tasks.EASY] # TODO: single task only
 # visualisation
 DRAW_DEVICES = True
 DRAW_GRAPH_TOTAL_ENERGY = False
-DRAW_GRAPH_CURRENT_POWER = True
+DRAW_GRAPH_CURRENT_POWER = False
 
 # def randomise(range):
 # 	return random.uniform(range[0], range[1])

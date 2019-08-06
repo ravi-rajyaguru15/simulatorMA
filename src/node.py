@@ -85,6 +85,18 @@ class node:
 	def addTask(self, task):
 		self.taskQueue.append(task)
 
+	def removeTask(self, task):
+		print ("REMOVE TASK")
+		self.taskQueue.remove(task)
+		if self.currentTask is task:
+			self.currentTask = self.nextTask()
+
+	def nextTask(self):
+		if len(self.taskQueue) > 0:
+			if self.currentTask is None:
+				self.currentTask = self.taskQueue[0]
+
+
 	def removeJob(self, job):
 		print ("REMOVE JOB")
 		print (self.jobQueue, job)
@@ -115,17 +127,19 @@ class node:
 				
 
 		# check if there's something to be done now 
-		if len(self.taskQueue) > 0:
-			self.currentTask = self.taskQueue[0]
+		if self.currentTask is None:
+			self.currentTask = self.nextTask()
 
-			# do process and check if done
+
+		# do process and check if done
+		if self.currentTask is not None:
 			self.currentTask.tick()
-			if self.currentTask.finished:
-				print ("\033[34mTask done\033[0m")
+			# if self.currentTask.finished:
+			# 	print ("\033[34mTask done\033[0m")
 				
-			# 	self.resultsQueue.put([currentTask.samples, currentTask.computeResult()])
-				self.currentTask = None
-				self.taskQueue = self.taskQueue[1:]
+			# # 	self.resultsQueue.put([currentTask.samples, currentTask.computeResult()])
+			# 	self.currentTask = None
+			# 	self.taskQueue = self.taskQueue[1:]
 
 		
 			# check if job is finished

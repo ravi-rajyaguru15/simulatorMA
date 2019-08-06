@@ -249,8 +249,8 @@ if __name__ == '__main__':
 	# for i in range(1, 100, 10):
 	# 	print i, simulation.simulateAll(i, "latency")
 
-	sim.singleDelayedJobLocal(False)
-	# sim.singleDelayedJobLocal(True)
+	# sim.singleDelayedJobLocal(False)
+	sim.singleDelayedJobLocal(True)
 	# sim.singleDelayedJobPeer(False)
 	# sim.singleDelayedJobPeer(True)
 	# sim.randomPeerJobs(True)

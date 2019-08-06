@@ -1,6 +1,8 @@
 import matplotlib as mpl
 # mpl.use("QT4Agg")
-mpl.use("Qt4Agg")
+import os
+if os.name != 'nt':
+	mpl.use("Qt4Agg")
 import matplotlib.pyplot as pp
 import pylab
 import math
@@ -150,7 +152,7 @@ class visualiser:
 		pp.figure(DEVICES_ENERGY_FIGURE)
 		pp.bar(np.array(range(len(self.sim.devices))) + 0.5, energyList, tick_label=labels, color=['b'] * len(self.sim.devices))
 		
-	maxPowerEver = 0
+	maxPowerEver = 0.5
 	def drawCurrentDevicePower(self):
 		powerList = list()
 		labels = list()

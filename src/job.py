@@ -150,6 +150,9 @@ class job:
 		currentOwner = self.owner
 		currentOwner.removeJob(self)
 
+		print ("moving from", currentOwner, "to", destinationNode)
+
+
 		# add job to new owner
 		destinationNode.jobQueue.append(self)
 		self.owner = destinationNode

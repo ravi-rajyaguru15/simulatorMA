@@ -7,6 +7,7 @@ class subtask:
 	duration = None
 	startTime = None
 	progress = None
+	owner = None
 
 	started = None
 	finished = None
@@ -21,12 +22,15 @@ class subtask:
 	# __name__ = "Unnamed Subtask"
 	
 
-	def __init__(self, job, duration, addsLatency=True): #, energyCost): # , device): # , origin, destination):
+	def __init__(self, job, duration, owner=None, addsLatency=True): #, energyCost): # , device): # , origin, destination):
 		# self.startTime = currentTime
 
 		# defined subtasks must first set duration and energy
-
 		self.job = job
+		if owner is None:
+			self.owner = self.job.owner
+		else:
+			self.owner = owner
 		self.duration = duration
 		# self.energyCost = energyCost
 
@@ -49,12 +53,15 @@ class subtask:
 
 			# add any new tasks 
 			if self.finished:
+				# finish current task
 				self.finishTask()
 
 				# add delay to job
 				if self.addsLatency:
 					self.job.totalLatency += self.progress
-
+					
+				# remove from owner
+				self.owner.removeTask(self)
 
 	def __str__(self):
 		return (self.__name__)
@@ -167,8 +174,8 @@ class reconfigureFPGA(subtask):
 		# move onto processing steps
 		self.job.processingNode.addTask(mcuFpgaOffload(self.job))
 
-class mcuFpgaOffload(subtask):
-	__name__ = "MCU FPGA Offload"
+class xmem(subtask):
+	# __name__ = "MCU FPGA Offload"
 	
 	def __init__(self, job): #  device, samples, processor=None):
 		print ("created mcu fpga offloading task")
@@ -187,18 +194,43 @@ class mcuFpgaOffload(subtask):
 		self.job.processingNode.mcu.idle()
 		self.job.processingNode.fpga.idle()
 
-		if self.job.processed:
-				# check if offloaded
-			if self.job.offloaded():
-				self.job.processingNode.addTask(txMessage(self.job, self.job.processingNode, self.job.creator))
-			else:
-				self.job.finish()
-				# self.job.creator.jobActive = False
+		# if self.job.processed:
+		# 		# check if offloaded
+		# 	if self.job.offloaded():
+		# 		self.job.processingNode.addTask(txMessage(self.job, self.job.processingNode, self.job.creator))
+		# 	else:
+		# 		self.job.finish()
+		# 		# self.job.creator.jobActive = False
 
-		else:
-			# always follow up with processing
-			self.job.processingNode.addTask(processing(self.job))			
+		# else:
+		# 	# always follow up with processing
+		# 	self.job.processingNode.addTask(processing(self.job))			
 	
+	# def possible(self):
+	# 	if
+	# 	# TODO: when offloaded, possible only if host not busy, 
+	# 	# TODO: also only possible to start reconfigure if fpga and mcu isn't busy
+class mcuFpgaOffload(xmem):
+	__name__ = "MCU->FPGA Offload"
+
+	def finishTask(self):
+		# always follow up with processing
+		self.job.processingNode.addTask(processing(self.job))
+
+		xmem.finishTask(self)
+
+class fpgaMcuOffload(xmem):
+	__name__ = "FPGA->MCU Offload"
+
+	def finishTask(self):
+		# check if offloaded
+		if self.job.offloaded():
+			self.job.processingNode.addTask(txMessage(self.job, self.job.processingNode, self.job.creator))
+		else:
+			self.job.finish()
+	
+		xmem.finishTask(self)
+
 	# def possible(self):
 	# 	if
 	# 	# TODO: when offloaded, possible only if host not busy, 
@@ -238,7 +270,7 @@ class processing(subtask):
 
 
 		if self.job.hardwareAccelerated:
-			self.job.processingNode.addTask(mcuFpgaOffload(self.job))
+			self.job.processingNode.addTask(fpgaMcuOffload(self.job))
 		else:
 			# check if offloaded
 			if self.job.offloaded():
@@ -326,9 +358,7 @@ class txResult(txMessage):
 		# self.job.processingNode.jobActive = False
 
 		# move result of job back to the creator
-		newOwner = self.job.creator
-		self.job.moveTo(newOwner)
-
+		self.job.moveTo(self.job.creator)
 		txMessage.finishTask(self)
 
 class rxMessage(subtask):
