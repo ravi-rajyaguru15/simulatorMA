@@ -141,11 +141,11 @@ def testRepeats():
     constants.MINIMUM_BATCH = 1
     constants.JOB_LIKELIHOOD = 0
     
-    REPEATS = 24
+    REPEATS = 14
 
     # results = list()
     constants.SAMPLE_SIZE = variable.Constant(1) # samples)
-    samplesList = range(1, 100, 1)
+    samplesList = range(1, 100, 10)
 
     # pool = multiprocessing.pool.ThreadPool(12)
     processes = list()
@@ -162,8 +162,13 @@ def testRepeats():
     legends = list()
     graphs = list()
     # for result in results:
+<<<<<<< HEAD
     # while not results.empty():
     for i in range(REPEATS):
+=======
+    for i in range(REPEATS):
+    # while not results.empty():
+>>>>>>> e7ecd928eb63298698030238e7f457274dc77f60
         result = results.get()
 
         legends.append(result[0])
