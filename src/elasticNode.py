@@ -1,3 +1,4 @@
+import debug
 import constants
 from node import node
 from mcu import mcu
@@ -35,7 +36,7 @@ class elasticNode(node):
 
 	def mcuToFpgaLatency(self, datasize):
 		latency = datasize / 1024. / constants.MCU_FPGA_COMMUNICATION_SPEED.gen() + constants.MCU_MW_OVERHEAD_LATENCY.gen()
-		print ("offloading latency:", latency)
+		debug.out ("offloading latency: {}".format(latency))
 		return latency
 
 	# def mcuToFpgaEnergy(self, time):

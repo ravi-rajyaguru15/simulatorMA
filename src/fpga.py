@@ -4,7 +4,7 @@ from result import result
 import constants 
 from processor import processor
 from component import component
-from powerState import powerStates
+import powerState 
 
 class fpga(processor):
 	busyColour = (0, 0, 1, 1)
@@ -27,17 +27,17 @@ class fpga(processor):
 	def reconfigure(self, task):
 		self.currentConfig = task
 		self.busyColour = task.colour
-		print ("changed fpga colour")
-		self.state = powerStates.RECONFIGURING
+		# print ("changed fpga colour")
+		self.state = powerState.RECONFIGURING
 
 	def current(self):
-		if self.state == powerStates.RECONFIGURING:
+		if self.state == powerState.RECONFIGURING:
 			return self.reconfigurationCurrent
 		else:
 			return component.current(self)
 
 	def colour(self):
-		if self.state == powerStates.RECONFIGURING:
+		if self.state == powerState.RECONFIGURING:
 			return self.reconfigurationColour
 		else:
 			return component.colour(self)

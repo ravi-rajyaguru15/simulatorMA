@@ -1,6 +1,7 @@
 from offloadingDecision import offloadingDecision 
 import constants 
 from job import job
+import debug
 
 import sys 
 import numpy as np 
@@ -32,7 +33,7 @@ class node:
 	def __init__(self, queue, index, nodeType, components, alwaysHardwareAccelerate=None):
 		self.decision = offloadingDecision()
 		self.jobQueue = list()
-		print ("jobqueue", self.jobQueue)
+		debug.out ("jobqueue" + str(self.jobQueue))
 		self.taskQueue = list()
 		self.resultsQueue = queue
 		self.index = index
@@ -70,7 +71,7 @@ class node:
 	def maybeAddNewJob(self):
 		# possibly create new job
 		if constants.uni.evaluate(constants.JOB_LIKELIHOOD): # 0.5 
-			print ("\t\t** new task ** ")
+			debug.out ("\t\t** new task ** ")
 			self.createNewJob()
 
 	def createNewJob(self, currentTime, hardwareAccelerated=None):
@@ -79,33 +80,33 @@ class node:
 			hardwareAccelerated = self.alwaysHardwareAccelerate
 			# if still None, unknown behaviour
 		assert(hardwareAccelerated is not None)
+		
 		self.jobQueue.append(job(currentTime, self, constants.SAMPLE_SIZE.gen(), self.decision, hardwareAccelerated=hardwareAccelerated))
-		print ("added job to queue")
+		debug.out("added job to queue", 'p')
 
 	def addTask(self, task):
 		self.taskQueue.append(task)
 
+		# if nothing else happening, start task
+		self.nextTask()
+
 	def removeTask(self, task):
-		print ("REMOVE TASK")
+		debug.out ("REMOVE TASK {0}".format(task))
 		self.taskQueue.remove(task)
+		debug.out ("{} {}".format(self.currentTask, task))
 		if self.currentTask is task:
-			self.currentTask = self.nextTask()
+			self.currentTask = None
+			debug.out ("next task...")
+			self.nextTask()
 
 	def nextTask(self):
-		if len(self.taskQueue) > 0:
-			if self.currentTask is None:
+		if self.currentTask is None:
+			if len(self.taskQueue) > 0:
+				debug.out (str(self) + "NEXT TASK")
 				self.currentTask = self.taskQueue[0]
+				self.currentTask.owner = self
 
 
-	def removeJob(self, job):
-		print ("REMOVE JOB")
-		print (self.jobQueue, job)
-		self.jobQueue.remove(job)
-		if self.currentJob is job:
-			self.currentJob = None
-
-		print (self.jobQueue, job)
-		print (self.currentJob)
 
 	# calculate the energy at the current activity of all the components
 	def energy(self, duration=constants.TD):
@@ -114,28 +115,21 @@ class node:
 
 	def updateTime(self, currentTime):
 		# if no jobs available, perhaps generate one
-		# print len(self.jobQueue)
+		# debug.out len(self.jobQueue)
 
 		# see if there's a job available
-		if self.currentJob is None:
-			if len(self.jobQueue) > 0:
-				print ("grabbed job from queue")
-				self.currentJob = self.jobQueue[0]
-				# see if it's a brand new job
-				if not self.currentJob.started:
-					self.currentJob.start(currentTime)
-				
+		self.nextJob(currentTime)
 
 		# check if there's something to be done now 
 		if self.currentTask is None:
-			self.currentTask = self.nextTask()
+			self.nextTask()
 
 
 		# do process and check if done
 		if self.currentTask is not None:
 			self.currentTask.tick()
 			# if self.currentTask.finished:
-			# 	print ("\033[34mTask done\033[0m")
+			# 	debug.out ("\033[34mTask done\033[0m")
 				
 			# # 	self.resultsQueue.put([currentTask.samples, currentTask.computeResult()])
 			# 	self.currentTask = None
@@ -144,19 +138,56 @@ class node:
 		
 			# check if job is finished
 			# if currentJob.finished:
-			# 	print ('job done')
+			# 	debug.out ('job done')
 				
 			# # 	self.resultsQueue.put([currentTask.samples, currentTask.computeResult()])
 
 			# 	self.jobQueue = self.jobQueue[1:]
 				
 				# if isinstance ()
-				# print "finish on first job done"
+				# debug.out "finish on first job done"
 				# sys.exit(0)
 
-			# print current
+			# debug.out current
+
+	def nextJobFromBatch(self):
+		if self.currentJob is None:
+			if len(self.batch) > 0:
+				debug.out ("grabbed job from batch")
+				self.currentJob = self.batch[0]
+
+				return self.currentJob
+
+		return None
+
+	def removeJobFromBatch(self, job):
+		if job in self.batch:
+			self.batch.remove(job)
+
+		else:
+			raise Exception("Could not find job to remove from batch")
+
+	
+	def nextJob(self, currentTime):
+		if self.currentJob is None:
+			if len(self.jobQueue) > 0:
+				debug.out ("grabbed job from queue")
+				self.currentJob = self.jobQueue[0]
+				# see if it's a brand new job
+				if not self.currentJob.started:
+					self.currentJob.start(currentTime)
 
 
+
+	def removeJob(self, job):
+		debug.out("REMOVE JOB")
+		debug.out ('{} {}'.format(self.jobQueue, job))
+		self.jobQueue.remove(job)
+		if self.currentJob is job:
+			self.currentJob = None
+
+		debug.out ('{} {}'.format(self.jobQueue, job))
+		debug.out (self.currentJob)
 	# def offloadElasticNode(this, samples):
 	# 	this.ed.message = message(samples=samples)
 
@@ -164,7 +195,7 @@ class node:
 	# 	res = this.ed.sendTo(this.en)
 	# 	res += this.en.process(accelerated=True)
 	# 	res += this.en.sendTo(this.ed)
-	# 	# print 'offload elastic node:\t', res
+	# 	# debug.out 'offload elastic node:\t', res
 
 	# 	return res
 
@@ -174,12 +205,12 @@ class node:
 	# 	# offload to neighbour
 	# 	this.ed.message = message(samples=samples)
 	# 	res = this.ed.sendTo(this.ed2)
-	# 	# print res
+	# 	# debug.out res
 	# 	res += this.ed2.process()
-	# 	# print res
+	# 	# debug.out res
 	# 	res += this.ed2.sendTo(this.ed)
-	# 	# print res
-	# 	# print 'offload p2p:\t\t\t', res
+	# 	# debug.out res
+	# 	# debug.out 'offload p2p:\t\t\t', res
 
 	# 	return res
 
@@ -192,6 +223,6 @@ class node:
 	# 	res += this.srv.process()
 	# 	res += this.srv.sendTo(this.gw)
 	# 	res += this.gw.sendTo(this.ed)
-	# 	# print 'offload server:\t\t\t', res
+	# 	# debug.out 'offload server:\t\t\t', res
 
 	# 	return res

@@ -2,6 +2,7 @@ import constants
 from mcu import mcu
 from fpga import fpga
 from powerState import powerStates
+import debug
 
 class subtask:
 	duration = None
@@ -45,7 +46,8 @@ class subtask:
 				self.beginTask()
 
 		# only start td afterwards, in order to synchronise
-		else:
+		# else:
+		if True:
 			self.progress += constants.TD
 
 			# is it done?
@@ -61,6 +63,7 @@ class subtask:
 					self.job.totalLatency += self.progress
 					
 				# remove from owner
+				debug.out("removing from tick")
 				self.owner.removeTask(self)
 
 	def __str__(self):
@@ -81,7 +84,7 @@ class subtask:
 	def beginTask(self):
 		# all versions of begin must set started
 		self.started = True
-		print ("started", self, self.job.samples)
+		debug.out("started {} {}".format(self, self.job.samples))
 		pass
 
 
@@ -92,7 +95,7 @@ class createMessage(subtask):
 	# samples = None
 
 	def __init__(self, job):
-		print ("created createMessage")
+		debug.out ("created createMessage")
 		# self.destination = job.destination
 		# self.samples = job.samples
 
@@ -112,6 +115,32 @@ class createMessage(subtask):
 		self.job.creator.mcu.idle()
 		self.job.creator.addTask(txMessage(self.job, self.job.creator, self.job.processingNode))
 
+class batchContinue(subtask):
+	__name__ = "Batch Continue"
+
+	def __init__(self, job):
+		duration = constants.TD # immediately move on
+
+		subtask.__init__(self, job, duration)
+
+	def beginTask(self):
+		self.job.processingNode.mcu.active()
+		subtask.beginTask(self)
+		
+	def finishTask(self):
+		# remove existing task from processing batch
+		self.job.processingNode.removeJobFromBatch(self.job)
+
+		# check if there's more tasks in the current batch
+		self.job = self.job.processingNode.nextJobFromBatch()
+		if self.job is not None:
+			self.job.processingNode.addTask(newJob(self.job))
+		else:
+			# no more jobs available
+			self.job.processingNode.mcu.sleep()
+			# maybe sleep FPGA
+			if constants.FPGA_POWER_PLAN != constants.FPGA_STAYS_ON:
+				self.job.processingNode.fpga.sleep()
 
 
 class batching(subtask):
@@ -124,35 +153,65 @@ class batching(subtask):
 		subtask.__init__(self, job, duration) 
 
 	def beginTask(self):
+		self.job.processingNode.mcu.active()
+
 		# add current job to node's batch
 		self.job.processingNode.batch.append(self.job)
+
+		debug.out("Batch: {0}".format(len(self.job.processingNode.batch)), 'c')
 
 		# see if batch is full enough to start now
 		if len(self.job.processingNode.batch) >= constants.MINIMUM_BATCH:
 			self.job.processingNode.batchProcessing = True
-			
+
 		# wait for another job
-		self.job.processingNode.currentJob = None # job has been backed up in batch
+		self.job.processingNode.currentJob = None # job has been backed up in batch and will be selected in finish
+
 
 		subtask.beginTask(self)
 
 	def finishTask(self):
+		self.job.processingNode.mcu.idle()
+
+		# check if processing batch
 		if self.job.processingNode.batchProcessing:
+			# grab first task
+			self.job = self.job.processingNode.nextJobFromBatch()
+			
+
 			# start first job in queue
-			firstJob = self.job.processingNode.batch
-			self.job.processingNode
-			if self.job.hardwareAccelerated:
-				if self.job.processingNode.fpga.isConfigured(self.job.currentTask):
-					self.job.processingNode.addTask(mcuFpgaOffload(self.job))
-				else:
-					self.job.processingNode.addTask(reconfigureFPGA(self.job))
-			else:
-				self.job.processingNode.addTask(processing(self.job))
+			self.job.processingNode.addTask(newJob(self.job))
+
 	# 	self.job.processingNode.fpga.idle()
 	# 	self.job.processingNode.fpga.reconfigure(self.job.currentTask)
 
 	# 	# move onto processing steps
 	# 	self.job.processingNode.addTask(mcuFpgaOffload(self.job))
+
+class newJob(subtask):
+	__name__ = "New Job"
+
+	def __init__(self, job):
+		duration = constants.TD # immediately move on (if possible)
+	
+		subtask.__init__(self, job, duration)
+
+	def beginTask(self):
+		self.job.processingNode.mcu.active()
+
+		subtask.beginTask(self)
+
+	def finishTask(self):
+		self.job.processingNode.mcu.idle()
+
+		# start first job in queue
+		if self.job.hardwareAccelerated:
+			if self.job.processingNode.fpga.isConfigured(self.job.currentTask):
+				self.job.processingNode.addTask(mcuFpgaOffload(self.job))
+			else:
+				self.job.processingNode.addTask(reconfigureFPGA(self.job))
+		else:
+			self.job.processingNode.addTask(processing(self.job))	
 
 class reconfigureFPGA(subtask):
 	__name__ = "Reconfigure FPGA"
@@ -178,7 +237,7 @@ class xmem(subtask):
 	# __name__ = "MCU FPGA Offload"
 	
 	def __init__(self, job): #  device, samples, processor=None):
-		print ("created mcu fpga offloading task")
+		debug.out ("created mcu fpga offloading task")
 		
 		duration = job.processingNode.mcuToFpgaLatency(job.datasize)
 		# energyCost = job.processingNode.mcuToFpgaEnergy(duration)
@@ -243,7 +302,7 @@ class processing(subtask):
 	def __init__(self, job): #  device, samples, processor=None):
 		# self.processor = processor
 
-		print ("created processing task")
+		debug.out ("created processing task")
 		
 		duration = job.processor.processingTime(job.samples, job.currentTask)
 		# energyCost = job.processingNode.processingEnergy(duration)
@@ -261,12 +320,12 @@ class processing(subtask):
 	def finishTask(self):
 		self.job.processor.idle()
 
-		print ("creating return message")
+		debug.out ("creating return message")
 
 		self.job.processed = True	
 		presize = self.job.datasize
 		self.job.datasize = self.job.processedMessageSize()
-		print ("datasize changed from", presize, "to", self.job.datasize)
+		debug.out ("datasize changed from {0} to {1}".format(presize, self.job.datasize))
 
 
 		if self.job.hardwareAccelerated:

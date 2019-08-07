@@ -141,26 +141,16 @@ class visualiser:
 		targetDevice.rectangle = pp.Rectangle((location[0] - size[0]/2, location[1] - size[1]/2), size[0], size[1], fill=fill)
 	
 	def drawTotalDeviceEnergy(self):
-		energyList = list()
-		labels = list()
-
-		# draw graph of energy for each device
-		for dev in self.sim.devices:
-			energyList.append(dev.totalEnergyCost)
-			labels.append(dev)
+		labels = self.sim.devicesNames()
+		energyList = self.sim.totalDevicesEnergy()
 		
 		pp.figure(DEVICES_ENERGY_FIGURE)
 		pp.bar(np.array(range(len(self.sim.devices))) + 0.5, energyList, tick_label=labels, color=['b'] * len(self.sim.devices))
 		
 	maxPowerEver = 0.5
 	def drawCurrentDevicePower(self):
-		powerList = list()
-		labels = list()
-
-		# draw graph of energy for each device
-		for dev in self.sim.devices:
-			powerList.append(dev.energy())
-			labels.append(dev)
+		labels = self.sim.devicesNames()
+		powerList = self.sim.currentDevicesEnergy()
 
 		maxPower = np.max(powerList)
 		self.maxPowerEver = np.max([self.maxPowerEver, maxPower])

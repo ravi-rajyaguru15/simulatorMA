@@ -1,5 +1,5 @@
 import constants
-from powerState import powerStates
+import powerState
 
 import numpy as np
 
@@ -15,7 +15,7 @@ class component:
 		self.sleepCurrent = sleepCurrent
 
 		# start idle
-		self.state = powerStates.SLEEP
+		self.state = powerState.SLEEP
 
 	# def activeEnergy(self, time):
 	# 	print (time)
@@ -25,22 +25,22 @@ class component:
 	# 	return time * np.dot([voltage.gen() for voltage in self.voltage], [current.gen() for current in self.idleCurrent])
 
 	def busy(self):
-		return self.state != powerStates.IDLE
+		return self.state != powerState.IDLE
 
 	# change power states
 	def active(self):
-		self.state = powerStates.ACTIVE
+		self.state = powerState.ACTIVE
 	def idle(self):
-		self.state = powerStates.IDLE
+		self.state = powerState.IDLE
 	def sleep(self):
-		self.state = powerStates.SLEEP
+		self.state = powerState.SLEEP
 
 	def colour(self):
-		if self.state == powerStates.IDLE:
+		if self.state == powerState.IDLE:
 			return self.idleColour
-		elif self.state == powerStates.ACTIVE:
+		elif self.state == powerState.ACTIVE:
 			return self.busyColour
-		elif self.state == powerStates.SLEEP:
+		elif self.state == powerState.SLEEP:
 			return self.sleepColour
 		else:
 			raise Exception("Unknown power state")
@@ -48,11 +48,11 @@ class component:
 
 	# current level right now
 	def current(self):
-		if self.state == powerStates.IDLE:
+		if self.state == powerState.IDLE:
 			return self.idleCurrent
-		elif self.state == powerStates.ACTIVE:
+		elif self.state == powerState.ACTIVE:
 			return self.activeCurrent
-		elif self.state == powerStates.SLEEP:
+		elif self.state == powerState.SLEEP:
 			return self.sleepCurrent
 		else:
 			raise Exception("Unknown power state")

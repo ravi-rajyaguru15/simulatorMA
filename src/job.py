@@ -1,5 +1,6 @@
 from warnings import warn
 
+import debug
 import constants 
 import subtask
 from result import result
@@ -59,12 +60,12 @@ class job:
 	def setprocessingNode(self, processingNode):
 		self.processingNode = processingNode
 
-		print ("setprocessingnode")
+		debug.out("setprocessingnode")
 
 		self.setProcessor(processingNode)
 
 	def setProcessor(self, processingNode):
-		print ("\tprocessor", self.hardwareAccelerated)
+		debug.out("\tprocessor " + str(self.hardwareAccelerated))
 		if self.hardwareAccelerated:
 			self.processor = processingNode.fpga
 		else:

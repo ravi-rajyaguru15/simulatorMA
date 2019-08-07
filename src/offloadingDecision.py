@@ -15,7 +15,7 @@ class offloadingDecision:
         # choose randomly from the options available
         warnings.warn("need to choose differently")
         choice = random.choice(self.options)
-        print (self.options, choice)
+        # print (self.options, choice)
         # task.setDestination(choice)
 
         return choice
