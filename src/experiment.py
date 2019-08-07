@@ -10,7 +10,7 @@ import multiprocessing.pool
 
 import plotting
 
-REPEATS = 8
+REPEATS = 3
 
 def singleDelayedJobLocal(accelerated=True):
     constants.OFFLOADING_POLICY = constants.LOCAL_ONLY
@@ -81,7 +81,7 @@ def totalEnergyJobSize():
     constants.MINIMUM_BATCH = 1
     constants.JOB_LIKELIHOOD = 0
     
-    samplesList = range(1, 100, 10)
+    samplesList = range(1, 100, 25)
     
     results = list()
 
@@ -156,13 +156,14 @@ def testRepeats():
     # pool.close()
     # pool.join()
     for process in processes: process.start()
-    for process in processes: process.join()
+    # for process in processes: process.join()
     
 
     legends = list()
     graphs = list()
     # for result in results:
-    while not results.empty():
+    # while not results.empty():
+    for i in range(REPEATS):
         result = results.get()
 
         legends.append(result[0])
