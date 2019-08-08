@@ -1,4 +1,5 @@
 .ipynb_checkpoints/
+images/*.png
 *.pyc
 *.ipynb
 .vscode/sftp.json

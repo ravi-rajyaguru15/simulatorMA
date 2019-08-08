@@ -128,7 +128,8 @@ def testRepeatsThread(i, samplesList, resultsQueue):
             print ("not all devices done: {}".format(samples))
 
         graph.append((np.sum(simulation.totalDevicesEnergy()), 0))
-            
+    
+    print ('repeat', i, 'done')
         # graph.append((np.average(thisResult), np.std(thisResult)))
     # return ("Repeat " + str(i), graph)
     resultsQueue.put(["Repeat " + str(i), graph])
@@ -141,7 +142,7 @@ def testRepeats():
     constants.MINIMUM_BATCH = 1
     constants.JOB_LIKELIHOOD = 0
     
-    REPEATS = 24
+    REPEATS = 4
 
     # results = list()
     constants.SAMPLE_SIZE = variable.Constant(1) # samples)
@@ -168,7 +169,7 @@ def testRepeats():
         legends.append(result[0])
         graphs.append(result[1])
 
-    plotting.plotMultiWithErrors(samplesList, results=graphs, legend=legends, ylim=[0, 5])
+    plotting.plotMultiWithErrors(samplesList, "testRepeats", results=graphs, legend=legends, ylim=[0, 5], show=False, save=True)
         
 
 if __name__ == '__main__':
