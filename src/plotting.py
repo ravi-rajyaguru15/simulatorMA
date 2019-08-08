@@ -1,3 +1,4 @@
+import collections 
 import datetime 
 import matplotlib as mpl
 import matplotlib.pyplot as pp
@@ -18,23 +19,31 @@ def plotWithErrors(x, y=None, errors=None, results=None):
 	pp.show()
 
 	
-def plotMultiWithErrors(x, name, results=None, legend=None, ylim=None, show=False, save=False):
+def plotMultiWithErrors(name, results=None, ylim=None, show=False, save=False):
+	print ("plotting!")
 	print (results)
-	print (results[0][0])
-	for graph in results: #, colour in zip(results, colours):
-		y = list()
+	# sort by graph key
+	orderedResults = collections.OrderedDict(sorted(results.items()))
+	legends = list()
+	for key, graph in orderedResults.items(): #, colour in zip(results, colours):
+		print (graph)
+		legends.append(key)
+		x, y = list(), list()
 		errors = list()
-	
-		for datapoint in graph:
-			y.append(datapoint[0])
-			errors.append(datapoint[1])
+		
+		# sort graph by x indices
+		orderedGraph = collections.OrderedDict(sorted(graph.items()))
+
+		for xIndex, value in orderedGraph.items():
+			x.append(xIndex)
+			y.append(value[0])
+			errors.append(value[1])
 	
 		print (x)
 		print (y)
 		pp.errorbar(x, y, yerr=errors)
 	
-	if legend is not None:
-		pp.legend(legend)
+	pp.legend(legends)
 	
 	pp.title(name)
 
@@ -56,4 +65,6 @@ def saveFig(name, unique=False):
 		os.mkdir("images")
 	except FileExistsError:
 		pass
+
+	print ("saving figure {}".format(filename))
 	pp.savefig(filename)

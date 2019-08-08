@@ -143,9 +143,9 @@ class sim:
 			
 			queueLengths = np.array(queueLengths)
 			debug.out("averages:")
-			debug.out ("latency:\t", 	np.average(np.array(latencies)))
-			debug.out ("energy:\t\t", 	np.average(np.array(energies)))
-			debug.out ("jobs:\t\t", 		np.average(queueLengths))
+			# debug.out ("latency:\t", 	np.average(np.array(latencies)))
+			# debug.out ("energy:\t\t", 	np.average(np.array(energies)))
+			# debug.out ("jobs:\t\t", 		np.average(queueLengths))
 			debug.out (np.histogram(queueLengths, bins=np.array(range(np.max(queueLengths) + 3)) - .5))
 		except:
 			debug.out ("no results available")
