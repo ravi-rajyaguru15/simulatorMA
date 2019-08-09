@@ -33,6 +33,6 @@ experiment:
 	PYTHONPATH=$${PWD} python3 sim/experiments/experiment.py
 
 .PHONY: *
-test: experiment
+test: batchsize
 	@echo "running test"
 	# python sim.py

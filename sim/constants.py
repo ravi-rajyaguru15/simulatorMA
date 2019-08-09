@@ -35,7 +35,8 @@ SERVER_PROCESSING_SPEED = Constant(1000./8./16*3000) # mcu * 3GHz / 16MHz
 MCU_FPGA_COMMUNICATION_SPEED = Constant(2000.) # 4cl * 8MHz
 
 # time in s
-MCU_MW_OVERHEAD_LATENCY = Gaussian(20e-3, 25e-3)
+MCU_BATCHING_LATENCY = Gaussian(20e-3, 5e-3)
+MCU_MW_OVERHEAD_LATENCY = Gaussian(20e-3, 5e-3)
 MCU_MESSAGE_OVERHEAD_LATENCY = Gaussian(1e-3, 4e-3) #
 SERVER_MESSAGE_OVERHEAD_LATENCY = Gaussian(1e-4, 1.1e-4) #
 ETHERNET_PING = Gaussian(5. / 1000., 15. / 1000.) #
@@ -54,7 +55,7 @@ SAMPLE_PROCESSED_SIZE = Constant(1) #
 SIM_TIME = 2e-2
 TD = 1e-3
 PLOT_TD = 1e-3
-uni = Uniform(0, 1)
+uni = Uniform(0, 1, integer=False)
 JOB_LIKELIHOOD = 1e-3
 RECONFIGURATION_TIME = Constant(0.05)
 
@@ -79,8 +80,8 @@ DEFAULT_TASK_GRAPH = [sim.tasks.EASY] # TODO: single task only
 DRAW_DEVICES = True
 DRAW_GRAPH_TOTAL_ENERGY = False
 DRAW_GRAPH_CURRENT_POWER = False
-DISPLAY = False
-SAVE = True
+DISPLAY = True
+SAVE = False
 
 # def randomise(range):
 # 	return random.uniform(range[0], range[1])

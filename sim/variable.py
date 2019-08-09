@@ -3,14 +3,17 @@ import math
 import random 
 
 class Variable:
-	genFunction = genArgs = None
+	genFunction = genArgs = integer = None
 
-	def __init__(self, function, args):
+	def __init__(self, function, args, integer=True):
 		self.genFunction = function
 		self.genArgs = args
+		self.integer = integer
 
 	def gen(self):
-		return np.max([0, self.genFunction(*self.genArgs)])
+		value = np.max([0, self.genFunction(*self.genArgs)])
+		if self.integer: value = np.round(value)
+		return value
 
 	def evaluate(self, value):
 		return self.gen() <= value
@@ -21,10 +24,10 @@ class Variable:
 class Uniform(Variable):
 	start = end = None
 
-	def __init__(self, start, end):
+	def __init__(self, start, end, integer=True):
 		self.start = start
 		self.end = end
-		Variable.__init__(self, random.uniform, (self.start, self.end, ))
+		Variable.__init__(self, random.uniform, (self.start, self.end, ), integer=integer)
 
 	# def gen(self):
 	# 	return random.uniform(self.start, self.end)

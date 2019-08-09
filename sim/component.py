@@ -25,7 +25,7 @@ class component:
 	# 	return time * np.dot([voltage.gen() for voltage in self.voltage], [current.gen() for current in self.idleCurrent])
 
 	def busy(self):
-		return self.state != sim.powerState.IDLE
+		return self.state == sim.powerState.ACTIVE
 
 	# change power states
 	def active(self):

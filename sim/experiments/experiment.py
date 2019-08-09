@@ -48,7 +48,7 @@ def singleBatchLocal(accelerated=True):
 		exp.simulateUntilTime(0.1)
 
 def singleBatchRemote(accelerated=True):
-	sim.constants.OFFLOADING_POLICY = sim.constants.LOCAL_ONLY
+	sim.constants.OFFLOADING_POLICY = sim.constants.PEER_ONLY
 	
 	exp = simulation(0, 2, 0, visualise=True)
 
@@ -72,7 +72,7 @@ def singleDelayedJobPeer(accelerated=True):
 	exp = simulation(0, 2, 0, visualise=True)
 
 	sim.constants.JOB_LIKELIHOOD = 0
-	sim.constants.DEFAULT_TASK_GRAPH = [tasks.EASY]
+	sim.constants.DEFAULT_TASK_GRAPH = [sim.tasks.EASY]
 
 	exp.simulateTime(sim.constants.PLOT_TD * 10)
 	exp.devices[0].createNewJob(exp.time, hardwareAccelerated=accelerated)
@@ -91,15 +91,13 @@ def randomPeerJobs(accelerated=True):
 # @staticmethod
 def randomLocalJobs(accelerated=True):
 	sim.constants.SAMPLE_SIZE = sim.variable.Uniform(5,6)
-	exp = simulation(0, 2, 0, visualise=True)
+	sim.constants.PLOT_TD = 1e-2
+	sim.constants.MINIMUM_BATCH = 5
+	sim.constants.JOB_LIKELIHOOD = 10e-2
 	sim.constants.OFFLOADING_POLICY = sim.constants.LOCAL_ONLY
 
-
-	sim.constants.JOB_LIKELIHOOD = 5e-2
-	exp.simulateTime(sim.constants.PLOT_TD * 100)
-
-	
-
+	exp = simulation(0, 1, 0, visualise=True, hardwareAccelerated=accelerated)
+	exp.simulateTime(.5)
 
 def testRepeatsSeparateThread(i, samples, resultsQueue):
 	# i, samplesList = args
@@ -230,6 +228,10 @@ def assembleResults(numResults, resultsQueue):
 		outputGraphs[key] = dict()
 		for x, ylist in graph.items():
 			outputGraphs[key][x] = (np.average(ylist), np.std(ylist))
+			print()
+			print(outputGraphs[key][x])
+			print(ylist)
+			print()
 	
 	return outputGraphs
 
@@ -241,9 +243,11 @@ if __name__ == '__main__':
 	# sim.singleDelayedJobLocal(True)
 	# sim.singleDelayedJobPeer(False)
 	# sim.singleDelayedJobPeer(True)
-	singleBatchLocal(True)
+	# singleBatchLocal(True)
 	# singleBatchLocal(False)
+	# singleBatchRemote(False)
 	# sim.randomPeerJobs(True)
+	randomLocalJobs(False)
 	# randomPeerJobs(False)
 	
 	# totalEnergyJobSize()

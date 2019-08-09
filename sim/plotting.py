@@ -4,6 +4,8 @@ import matplotlib as mpl
 import matplotlib.pyplot as pp
 import numpy as np
 
+import sim.constants
+
 import os
 if "DISPLAY" not in os.environ:
 	os.environ["DISPLAY"] = ":3"
@@ -20,7 +22,7 @@ def plotWithErrors(x, y=None, errors=None, results=None):
 	pp.show()
 
 	
-def plotMultiWithErrors(name, results=None, ylim=None, show=False, save=False):
+def plotMultiWithErrors(name, results=None, ylim=None): # , show=False, save=False):
 	print ("plotting!")
 	print (results)
 	# sort by graph key
@@ -51,10 +53,10 @@ def plotMultiWithErrors(name, results=None, ylim=None, show=False, save=False):
 	if ylim is not None:
 		pp.ylim(ylim)
 
-	if save:
+	if sim.constants.SAVE:
 		saveFig(name)
 
-	if show:
+	if sim.constants.DISPLAY:
 		pp.show()
 
 def saveFig(name, unique=False):

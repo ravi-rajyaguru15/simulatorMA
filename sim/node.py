@@ -63,6 +63,7 @@ class node:
 	def hasJob(self):
 		# busy if any are busy
 		return self.currentJob is not None
+		
 		# return self.jobActive # or self.waitingForResult or np.any([device.busy for device in self.components])
 		# return len(self.jobQueue) > 0
 	# def prependTask(self, subtask):
@@ -71,7 +72,7 @@ class node:
 	def maybeAddNewJob(self, currentTime):
 		# possibly create new job
 		if sim.constants.uni.evaluate(sim.constants.JOB_LIKELIHOOD): # 0.5 
-			sim.debug.out ("\t\t** new task ** ")
+			sim.debug.out ("\t\t** new job ** ")
 			self.createNewJob(currentTime)
 
 	def createNewJob(self, currentTime, hardwareAccelerated=None):
@@ -85,15 +86,16 @@ class node:
 		sim.debug.out("added job to queue", 'p')
 
 	def addTask(self, task):
+		task.owner = self
 		self.taskQueue.append(task)
 
 		# if nothing else happening, start task
 		self.nextTask()
 
 	def removeTask(self, task):
-		sim.debug.out ("REMOVE TASK {0}".format(task))
+		sim.debug.out("REMOVE TASK {0}".format(task))
 		self.taskQueue.remove(task)
-		sim.debug.out ("{} {}".format(self.currentTask, task))
+		sim.debug.out("{} {}".format(self.currentTask, task))
 		if self.currentTask is task:
 			self.currentTask = None
 			sim.debug.out ("next task...")
@@ -102,9 +104,16 @@ class node:
 	def nextTask(self):
 		if self.currentTask is None:
 			if len(self.taskQueue) > 0:
-				sim.debug.out (str(self) + "NEXT TASK")
 				self.currentTask = self.taskQueue[0]
+				# remove from queue because being processed now 
+				self.taskQueue.remove(self.currentTask)
+
 				self.currentTask.owner = self
+				sim.debug.out (str(self) + " NEXT TASK " + str(self.currentTask))
+				
+			else:
+				sim.debug.out("no next task")
+				self.currentTask = None
 
 
 
@@ -158,6 +167,10 @@ class node:
 				self.batch.remove(self.currentJob)
 
 				return self.currentJob
+			else:
+				sim.debug.out("No more jobs in batch", 'c')
+				self.batchProcessing = False
+				self.currentJob = None
 
 		return None
 
@@ -174,6 +187,7 @@ class node:
 			if len(self.jobQueue) > 0:
 				sim.debug.out ("grabbed job from queue")
 				self.currentJob = self.jobQueue[0]
+				self.jobQueue.remove(self.currentJob)
 				# see if it's a brand new job
 				if not self.currentJob.started:
 					self.currentJob.start(currentTime)

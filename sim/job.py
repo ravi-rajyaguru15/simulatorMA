@@ -158,7 +158,7 @@ class job:
 
 
 		# add job to new owner
-		destinationNode.jobQueue.append(self)
+		# destinationNode.jobQueue.append(self)
 		self.owner = destinationNode
 
 	# def computeResult(self):
