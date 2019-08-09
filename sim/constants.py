@@ -79,6 +79,8 @@ DEFAULT_TASK_GRAPH = [sim.tasks.EASY] # TODO: single task only
 DRAW_DEVICES = True
 DRAW_GRAPH_TOTAL_ENERGY = False
 DRAW_GRAPH_CURRENT_POWER = False
+DISPLAY = False
+SAVE = True
 
 # def randomise(range):
 # 	return random.uniform(range[0], range[1])

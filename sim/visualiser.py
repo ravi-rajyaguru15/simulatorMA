@@ -17,6 +17,7 @@ import numpy as np
 import sim.constants
 from sim.elasticNode import elasticNode
 from sim.endDevice import endDevice
+import sim.plotting
 
 DEVICES_FIGURE = 0
 DEVICES_ENERGY_FIGURE = 1
@@ -52,14 +53,17 @@ class visualiser:
 
 		thismanager = pylab.get_current_fig_manager()
 		
-		# get the QTCore PyRect object
-		geom = thismanager.window.geometry()
-		if isinstance(geom, str):
-			print ("STRING")
-		else:
-			self.canResize = True
-			self.x,self.y,self.width,self.height = geom.getRect()
-		self.moveWindow()
+		try:
+			# get the QTCore PyRect object
+			geom = thismanager.window.geometry()
+			if isinstance(geom, str):
+				print("STRING")
+			else:
+				self.canResize = True
+				self.x,self.y,self.width,self.height = geom.getRect()
+			self.moveWindow()
+		except AttributeError:
+			print("Cannot modify QT window")
 
 
 		grid, _, _ = visualiser.gridLayout(self.sim.devices, (1,1), (.5,.5))
@@ -131,6 +135,9 @@ class visualiser:
 		if sim.constants.DRAW_DEVICES:
 			self.drawNodes()
 			pp.draw()
+			if sim.constants.SAVE:
+				sim.plotting.saveFig("devices")
+
 
 		if sim.constants.DRAW_GRAPH_TOTAL_ENERGY:
 			self.drawTotalDeviceEnergy()

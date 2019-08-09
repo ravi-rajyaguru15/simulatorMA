@@ -68,11 +68,11 @@ class node:
 	# def prependTask(self, subtask):
 	# 	self.jobQueue = [subtask] + self.jobQueue
 
-	def maybeAddNewJob(self):
+	def maybeAddNewJob(self, currentTime):
 		# possibly create new job
 		if sim.constants.uni.evaluate(sim.constants.JOB_LIKELIHOOD): # 0.5 
 			sim.debug.out ("\t\t** new task ** ")
-			self.createNewJob()
+			self.createNewJob(currentTime)
 
 	def createNewJob(self, currentTime, hardwareAccelerated=None):
 		# if not set to hardwareAccelerate, use default

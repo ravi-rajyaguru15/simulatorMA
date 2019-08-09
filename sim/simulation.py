@@ -87,7 +87,7 @@ class simulation:
 				# create new jobs
 				for device in self.devices:
 					if not device.hasJob():
-						device.maybeAddNewJob()
+						device.maybeAddNewJob(self.time)
 					
 				sim.debug.out("tasks before {0}".format([dev.currentTask for dev in self.devices]), 'r')
 
@@ -200,13 +200,15 @@ class simulation:
 	
 
 if __name__ == '__main__':
+	print ("running sim")
+
 	# for i in range(1, 100, 10):
 	# 	print i, simulation.simulateAll(i, "latency")
 
-	# sim.singleDelayedJobLocal(False)
-	sim.singleDelayedJobLocal(True)
-	# sim.singleDelayedJobPeer(False)
-	# sim.singleDelayedJobPeer(True)
-	# sim.randomPeerJobs(True)
-	# sim.randomPeerJobs(False)
-	# sim.singleBatchLocal(False)
+	# simulation.singleDelayedJobLocal(False)
+	# simulation.singleDelayedJobLocal(True)
+	# simulation.singleDelayedJobPeer(False)
+	# simulation.singleDelayedJobPeer(True)
+	# simulation.randomPeerJobs(True)
+	simulation.randomPeerJobs(False)
+	# simulation.singleBatchLocal(False)

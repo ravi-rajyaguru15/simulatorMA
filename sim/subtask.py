@@ -113,7 +113,7 @@ class createMessage(subtask):
 	# must send message now 
 	def finishTask(self):
 		self.job.creator.mcu.idle()
-		self.job.creator.addTask(txMessage(self.job, self.job.creator, self.job.processingNode))
+		self.job.creator.addTask(txJob(self.job, self.job.creator, self.job.processingNode))
 
 class batchContinue(subtask):
 	__name__ = "Batch Continue"

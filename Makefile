@@ -19,6 +19,20 @@ requirements:
 all:
 	python3 training.py
 
-test: requirements
+jobsize:
 	PYTHONPATH=$${PWD} python3 sim/experiments/jobSize.py
+
+batchsize:
+	PYTHONPATH=$${PWD} python3 sim/experiments/batchSize.py
+
+sim:
+	@echo "sim"
+	PYTHONPATH=$${PWD} python3 sim/simulation.py
+
+experiment:
+	PYTHONPATH=$${PWD} python3 sim/experiments/experiment.py
+
+.PHONY: *
+test: experiment
+	@echo "running test"
 	# python sim.py
