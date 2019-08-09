@@ -1,9 +1,14 @@
 import matplotlib as mpl
 # mpl.use("QT4Agg")
 import os
-if os.name != 'nt':
-	mpl.use("Qt4Agg")
+
 import matplotlib.pyplot as pp
+print (os.name)
+if os.name != 'nt':
+	try:
+		mpl.use("Qt4Agg")
+	except Exception:
+		print ("Cannot load qt4 MPL")
 import pylab
 import math
 import numpy as np
