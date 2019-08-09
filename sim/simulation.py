@@ -69,7 +69,10 @@ class simulation:
 		return np.all([not device.hasJob() for device in self.devices])
 	
 	# def simulateUntilDone()
-	
+	def simulateUntilTime(self, finalTime):
+		assert(finalTime > self.time)
+		self.simulateTime(finalTime - self.time)
+
 	def simulateTime(self, duration):
 		# progress = 0
 		endTime = self.time + duration
@@ -113,9 +116,10 @@ class simulation:
 
 
 				
-				sim.debug.out("jobQueues:\t\t{0}".format([len(dev.jobQueue) for dev in self.devices]), 'g')
+				sim.debug.out("jobQueues:\t{0}".format([len(dev.jobQueue) for dev in self.devices]), 'g')
+				sim.debug.out("batch:\t\t{0}".format([len(dev.batch) for dev in self.devices]), 'c')
 				sim.debug.out("taskQueues:\t{0}".format([len(dev.taskQueue) for dev in self.devices]), 'dg')
-				sim.debug.out("have jobs: {0}".format([dev.hasJob() for dev in self.devices]))
+				sim.debug.out("have jobs:\t{0}".format([dev.hasJob() for dev in self.devices]), 'b')
 				sim.debug.out("states: {0}".format([[comp.state for comp in dev.components] for dev in self.devices]))
 				sim.debug.out("tasks after {0}".format([dev.currentTask for dev in self.devices]), 'r')
 

@@ -155,6 +155,7 @@ class node:
 			if len(self.batch) > 0:
 				sim.debug.out ("grabbed job from batch")
 				self.currentJob = self.batch[0]
+				self.batch.remove(self.currentJob)
 
 				return self.currentJob
 
@@ -182,7 +183,10 @@ class node:
 	def removeJob(self, job):
 		sim.debug.out("REMOVE JOB")
 		sim.debug.out ('{} {}'.format(self.jobQueue, job))
-		self.jobQueue.remove(job)
+		# try to remove from queue (not there if from batch)
+		if job in self.jobQueue:
+			self.jobQueue.remove(job)
+		# set as not current job
 		if self.currentJob is job:
 			self.currentJob = None
 

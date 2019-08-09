@@ -1,3 +1,5 @@
+import time 
+
 import sim.constants
 from sim.mcu import mcu
 from sim.fpga import fpga
@@ -28,7 +30,7 @@ class subtask:
 
 		# defined subtasks must first set duration and energy
 		self.job = job
-		if owner is None:
+		if owner is None and job is not None:
 			self.owner = self.job.owner
 		else:
 			self.owner = owner
@@ -84,7 +86,8 @@ class subtask:
 	def beginTask(self):
 		# all versions of begin must set started
 		self.started = True
-		sim.debug.out("started {} {}".format(self, self.job.samples))
+		# sim.debug.out("started {} {}".format(self, self.job.samples))
+		sim.debug.out("started {}".format(self))
 		pass
 
 
@@ -124,23 +127,32 @@ class batchContinue(subtask):
 		subtask.__init__(self, job, duration)
 
 	def beginTask(self):
-		self.job.processingNode.mcu.active()
 		subtask.beginTask(self)
 		
 	def finishTask(self):
-		# remove existing task from processing batch
-		self.job.processingNode.removeJobFromBatch(self.job)
+		# # remove existing task from processing batch
+		# self.job.processingNode.removeJobFromBatch(self.job)
 
 		# check if there's more tasks in the current batch
+		processingMcu, processingFpga = self.job.processingNode.mcu, self.job.processingNode.fpga
 		self.job = self.job.processingNode.nextJobFromBatch()
-		if self.job is not None:
-			self.job.processingNode.addTask(newJob(self.job))
-		else:
+
+		print (self.job)
+		time.sleep(0.5)
+		
+		# is there a new job?
+		if self.job is None:
 			# no more jobs available
-			self.job.processingNode.mcu.sleep()
+			processingMcu.sleep()
 			# maybe sleep FPGA
+			print (sim.constants.FPGA_POWER_PLAN)
 			if sim.constants.FPGA_POWER_PLAN != sim.constants.FPGA_STAYS_ON:
-				self.job.processingNode.fpga.sleep()
+				processingFpga.sleep()
+				print ("SLEEPING FPGA")
+		else:
+			self.job.processingNode.mcu.active()
+			self.job.processingNode.addTask(newJob(self.job))
+		
 
 
 class batching(subtask):
@@ -163,24 +175,27 @@ class batching(subtask):
 		# see if batch is full enough to start now
 		if len(self.job.processingNode.batch) >= sim.constants.MINIMUM_BATCH:
 			self.job.processingNode.batchProcessing = True
-
-		# wait for another job
-		self.job.processingNode.currentJob = None # job has been backed up in batch and will be selected in finish
+		
+		# job has been backed up in batch and will be selected in finish
+		self.job.processingNode.removeJob(self.job)
+		# self.job.processingNode.currenetJob = None 
 
 
 		subtask.beginTask(self)
 
 	def finishTask(self):
-		self.job.processingNode.mcu.idle()
-
 		# check if processing batch
 		if self.job.processingNode.batchProcessing:
 			# grab first task
 			self.job = self.job.processingNode.nextJobFromBatch()
-			
+			# activate job
 
 			# start first job in queue
 			self.job.processingNode.addTask(newJob(self.job))
+		# go to sleep until next task
+		else:
+			self.job.processingNode.mcu.sleep()
+
 
 	# 	self.job.processingNode.fpga.idle()
 	# 	self.job.processingNode.fpga.reconfigure(self.job.currentTask)
@@ -198,6 +213,8 @@ class newJob(subtask):
 
 	def beginTask(self):
 		self.job.processingNode.mcu.active()
+
+
 
 		subtask.beginTask(self)
 
@@ -327,7 +344,8 @@ class processing(subtask):
 		self.job.datasize = self.job.processedMessageSize()
 		sim.debug.out ("datasize changed from {0} to {1}".format(presize, self.job.datasize))
 
-
+		print (self.job.hardwareAccelerated, self.job.offloaded())
+			
 		if self.job.hardwareAccelerated:
 			self.job.processingNode.addTask(fpgaMcuOffload(self.job))
 		else:
@@ -336,6 +354,7 @@ class processing(subtask):
 				self.job.processingNode.addTask(txMessage(self.job, self.job.processingNode, self.job.creator))
 			else:
 				self.job.finish()
+	
 				
 				# self.job.creator.jobActive = False
 

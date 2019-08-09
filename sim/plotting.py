@@ -5,8 +5,9 @@ import matplotlib.pyplot as pp
 import numpy as np
 
 import os
-os.environ["DISPLAY"] = ":3"
-print(os.environ["DISPLAY"])
+if "DISPLAY" not in os.environ:
+	os.environ["DISPLAY"] = ":3"
+	print(os.environ["DISPLAY"])
 
 colours = ['b', 'r']
 

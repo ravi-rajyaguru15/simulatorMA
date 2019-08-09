@@ -5,7 +5,8 @@ oldBackend = mpl.get_backend()
 print ("existing", oldBackend)
 if os.name != 'nt':
 	try:
-		mpl.use("Qt4Agg")
+		mpl.use("TKAgg")
+		# mpl.use("Qt4Agg")
 	except ImportError:
 		mpl.use(oldBackend)
 		print ("Cannot import Qt4")
@@ -135,9 +136,8 @@ class visualiser:
 		if sim.constants.DRAW_DEVICES:
 			self.drawNodes()
 			pp.draw()
-			if sim.constants.SAVE:
-				sim.plotting.saveFig("devices")
-
+			# if sim.constants.SAVE:
+			# 	sim.plotting.saveFig("devices")
 
 		if sim.constants.DRAW_GRAPH_TOTAL_ENERGY:
 			self.drawTotalDeviceEnergy()

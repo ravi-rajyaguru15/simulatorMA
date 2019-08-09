@@ -105,6 +105,9 @@ class job:
 
 		# add results to overall results
 		job.jobResultsQueue.put(result(self.totalLatency, self.totalEnergyCost))
+
+		# see if there's a next job to continue
+		self.processingNode.addTask(sim.subtask.batchContinue(self))
 		
 
 	def offloaded(self):
