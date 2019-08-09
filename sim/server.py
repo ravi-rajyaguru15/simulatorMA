@@ -1,12 +1,12 @@
-import constants
-from result import result 
+import sim.constants
+from sim.result import result 
 
 class server:
 	message = None
-	processingSpeed = constants.SERVER_PROCESSING_SPEED
-	messageOverheadLatency = constants.SERVER_MESSAGE_OVERHEAD_LATENCY
-	transmissionRate = constants.ETHERNET_SPEED
-	transmissionPing = constants.ETHERNET_PING
+	processingSpeed = sim.constants.SERVER_PROCESSING_SPEED
+	messageOverheadLatency = sim.constants.SERVER_MESSAGE_OVERHEAD_LATENCY
+	transmissionRate = sim.constants.ETHERNET_SPEED
+	transmissionPing = sim.constants.ETHERNET_PING
 
 	def process(this):
 		res = result(latency=this.processingTime(this.message.samples), energy=0)

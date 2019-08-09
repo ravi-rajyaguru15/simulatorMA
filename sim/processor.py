@@ -1,5 +1,5 @@
-import constants
-from component import component
+import sim.constants
+from sim.component import component
 
 import numpy as np
 import matplotlib.pyplot as pp

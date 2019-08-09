@@ -1,9 +1,9 @@
 from warnings import warn
 
-import debug
-import constants 
-import subtask
-from result import result
+import sim.debug
+import sim.constants 
+import sim.subtask
+from sim.result import result
 # from node import node
 
 class job:
@@ -49,7 +49,7 @@ class job:
 		self.processed = False
 		self.finished = False
 		if taskGraph is None:
-			taskGraph = constants.DEFAULT_TASK_GRAPH
+			taskGraph = sim.constants.DEFAULT_TASK_GRAPH
 		self.taskGraph = taskGraph
 
 		# start at first task
@@ -60,12 +60,12 @@ class job:
 	def setprocessingNode(self, processingNode):
 		self.processingNode = processingNode
 
-		debug.out("setprocessingnode")
+		sim.debug.out("setprocessingnode")
 
 		self.setProcessor(processingNode)
 
 	def setProcessor(self, processingNode):
-		debug.out("\tprocessor " + str(self.hardwareAccelerated))
+		sim.debug.out("\tprocessor " + str(self.hardwareAccelerated))
 		if self.hardwareAccelerated:
 			self.processor = processingNode.fpga
 		else:
@@ -78,23 +78,23 @@ class job:
 
 		# populate subtasks based on types of devices
 		if not self.offloaded():
-			self.processingNode.addTask(subtask.batching(self))
+			self.processingNode.addTask(sim.subtask.batching(self))
 			# # local processing
 			# if self.hardwareAccelerated:
 			# 	# check if fpga already configured
 			# 	if self.processingNode.fpga.isConfigured(self.currentTask):
-			# 		self.processingNode.addTask(subtask.mcuFpgaOffload(self))
+			# 		self.processingNode.addTask(sim.subtask.mcuFpgaOffload(self))
 			# 	else:
-			# 		self.processingNode.addTask(subtask.reconfigureFPGA(self))
+			# 		self.processingNode.addTask(sim.subtask.reconfigureFPGA(self))
 			# else:
-			# 	self.creator.addTask(subtask.processing(self))
+			# 	self.creator.addTask(sim.subtask.processing(self))
 		# otherwise we have to send task
 		else:
-			# elif self.destination.nodeType == constants.ELASTIC_NODE:
+			# elif self.destination.nodeType == sim.constants.ELASTIC_NODE:
 			print ("offloading to other device")
 			print (self.processor)
-			self.creator.addTask(subtask.createMessage(self))
-			# subtask.communication(self.host, self.rawMessageSize()))
+			self.creator.addTask(sim.subtask.createMessage(self))
+			# sim.subtask.communication(self.host, self.rawMessageSize()))
 
 		# to start with, owner is the node who created it 
 		self.owner = self.creator
@@ -112,7 +112,7 @@ class job:
 
 	def process(self):
 		print ("PANIC")
-		# figure out which subtask is active
+		# figure out which sim.subtask is active
 		if self.currentSubTask is None:
 			# more subtasks available?
 			if self.subtaskIndex >= len(self.subtasks):
@@ -131,15 +131,15 @@ class job:
 						print ("destination is not ready!")
 					# create new task for receiving device
 					else:
-						nextSubTask.destination.addSubTask(subtask.communication())
-						nextSubTask.destination.addSubTask(subtask.communication())
-						nextSubTask.destination.addSubTask(subtask.communication())
-						# nextSubTask.destination.prependTask(subtask.communication())
+						nextSubTask.destination.addSubTask(sim.subtask.communication())
+						nextSubTask.destination.addSubTask(sim.subtask.communication())
+						nextSubTask.destination.addSubTask(sim.subtask.communication())
+						# nextSubTask.destination.prependTask(sim.subtask.communication())
 
 				if destinationReady:
 					self.currentSubTask = nextSubTask
 
-		# progress subtask 
+		# progress sim.subtask 
 		self.currentSubTask.tick()
 
 		if self.currentSubTask.finished:
@@ -167,14 +167,14 @@ class job:
 	# 	return output
 
 	def rawMessageSize(self):
-		return self.samples * constants.SAMPLE_RAW_SIZE.gen()
+		return self.samples * sim.constants.SAMPLE_RAW_SIZE.gen()
 
 	def processedMessageSize(self):
-		return self.samples * constants.SAMPLE_PROCESSED_SIZE.gen()
+		return self.samples * sim.constants.SAMPLE_PROCESSED_SIZE.gen()
 
 
 	# # change message from raw to processed
 	# def process(self):
 	# 	# if self.samples is None:
 	# 	# 	warn("Cannot process message without sample count")
-	# 	# self.size = self.samples * constants.SAMPLE_PROCESSED_SIZE.gen()
+	# 	# self.size = self.samples * sim.constants.SAMPLE_PROCESSED_SIZE.gen()

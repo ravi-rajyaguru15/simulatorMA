@@ -1,5 +1,5 @@
-import tasks
-from variable import *
+import sim.tasks
+from sim.variable import *
 from enum import Enum
 
 # node types
@@ -73,7 +73,7 @@ FPGA_POWER_PLAN = FPGA_STAYS_ON # TODO: entirely unimplemented, sleep current an
 MINIMUM_BATCH = 5
 
 # tasks
-DEFAULT_TASK_GRAPH = [tasks.EASY] # TODO: single task only
+DEFAULT_TASK_GRAPH = [sim.tasks.EASY] # TODO: single task only
 
 # visualisation
 DRAW_DEVICES = True
@@ -83,3 +83,5 @@ DRAW_GRAPH_CURRENT_POWER = False
 # def randomise(range):
 # 	return random.uniform(range[0], range[1])
 
+# experiments
+REPEATS = 4

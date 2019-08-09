@@ -1,16 +1,22 @@
 import matplotlib as mpl
 # mpl.use("QT4Agg")
 import os
+oldBackend = mpl.get_backend()
+print ("existing", oldBackend)
 if os.name != 'nt':
-	mpl.use("Qt4Agg")
+	try:
+		mpl.use("Qt4Agg")
+	except ImportError:
+		mpl.use(oldBackend)
+		print ("Cannot import Qt4")
 import matplotlib.pyplot as pp
 import pylab
 import math
 import numpy as np
 
-import constants
-from elasticNode import elasticNode
-from endDevice import endDevice
+import sim.constants
+from sim.elasticNode import elasticNode
+from sim.endDevice import endDevice
 
 DEVICES_FIGURE = 0
 DEVICES_ENERGY_FIGURE = 1
@@ -26,18 +32,18 @@ class visualiser:
 	def __init__(self, simulator):
 		self.sim = simulator
 
-		if constants.DRAW_DEVICES:
+		if sim.constants.DRAW_DEVICES:
 			print ("Creating 1")
 			pp.figure(DEVICES_FIGURE)
 			pp.xlim(0, 1)
 			pp.ylim(0, 1)
 
-		if constants.DRAW_GRAPH_TOTAL_ENERGY:
+		if sim.constants.DRAW_GRAPH_TOTAL_ENERGY:
 			print ("Creating 2")
 			pp.figure(DEVICES_ENERGY_FIGURE)
 			pp.xlim(0, len(self.sim.devices))
 
-		if constants.DRAW_GRAPH_CURRENT_POWER:
+		if sim.constants.DRAW_GRAPH_CURRENT_POWER:
 			print ("Creating 3")
 			
 			pp.figure(DEVICES_POWER_FIGURE)
@@ -122,19 +128,19 @@ class visualiser:
 		# print ("DRAW")
 		# self.ax.cla()
 
-		if constants.DRAW_DEVICES:
+		if sim.constants.DRAW_DEVICES:
 			self.drawNodes()
 			pp.draw()
 
-		if constants.DRAW_GRAPH_TOTAL_ENERGY:
+		if sim.constants.DRAW_GRAPH_TOTAL_ENERGY:
 			self.drawTotalDeviceEnergy()
 			pp.draw()
 		
-		if constants.DRAW_GRAPH_CURRENT_POWER:
+		if sim.constants.DRAW_GRAPH_CURRENT_POWER:
 			self.drawCurrentDevicePower()
 			pp.draw()
 		
-		pp.pause(constants.TD)
+		pp.pause(sim.constants.TD)
 
 	@staticmethod
 	def createRectangle(targetDevice, location, size, fill=True):

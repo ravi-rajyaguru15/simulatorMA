@@ -1,8 +1,8 @@
-import constants
-from mcu import mcu
-from fpga import fpga
-from powerState import powerStates
-import debug
+import sim.constants
+from sim.mcu import mcu
+from sim.fpga import fpga
+from sim.powerState import powerStates
+import sim.debug
 
 class subtask:
 	duration = None
@@ -48,7 +48,7 @@ class subtask:
 		# only start td afterwards, in order to synchronise
 		# else:
 		if True:
-			self.progress += constants.TD
+			self.progress += sim.constants.TD
 
 			# is it done?
 			self.finished = self.progress >= self.duration
@@ -63,7 +63,7 @@ class subtask:
 					self.job.totalLatency += self.progress
 					
 				# remove from owner
-				debug.out("removing from tick")
+				sim.debug.out("removing from tick")
 				self.owner.removeTask(self)
 
 	def __str__(self):
@@ -84,7 +84,7 @@ class subtask:
 	def beginTask(self):
 		# all versions of begin must set started
 		self.started = True
-		debug.out("started {} {}".format(self, self.job.samples))
+		sim.debug.out("started {} {}".format(self, self.job.samples))
 		pass
 
 
@@ -95,7 +95,7 @@ class createMessage(subtask):
 	# samples = None
 
 	def __init__(self, job):
-		debug.out ("created createMessage")
+		sim.debug.out ("created createMessage")
 		# self.destination = job.destination
 		# self.samples = job.samples
 
@@ -119,7 +119,7 @@ class batchContinue(subtask):
 	__name__ = "Batch Continue"
 
 	def __init__(self, job):
-		duration = constants.TD # immediately move on
+		duration = sim.constants.TD # immediately move on
 
 		subtask.__init__(self, job, duration)
 
@@ -139,7 +139,7 @@ class batchContinue(subtask):
 			# no more jobs available
 			self.job.processingNode.mcu.sleep()
 			# maybe sleep FPGA
-			if constants.FPGA_POWER_PLAN != constants.FPGA_STAYS_ON:
+			if sim.constants.FPGA_POWER_PLAN != sim.constants.FPGA_STAYS_ON:
 				self.job.processingNode.fpga.sleep()
 
 
@@ -147,7 +147,7 @@ class batching(subtask):
 	__name__ = "Batching"
 	
 	def __init__(self, job):
-		duration = constants.TD # immediately move on (if possible)
+		duration = sim.constants.TD # immediately move on (if possible)
 		# energyCost = job.processingNode.energy(duration)
 	
 		subtask.__init__(self, job, duration) 
@@ -158,10 +158,10 @@ class batching(subtask):
 		# add current job to node's batch
 		self.job.processingNode.batch.append(self.job)
 
-		debug.out("Batch: {0}".format(len(self.job.processingNode.batch)), 'c')
+		sim.debug.out("Batch: {0}".format(len(self.job.processingNode.batch)), 'c')
 
 		# see if batch is full enough to start now
-		if len(self.job.processingNode.batch) >= constants.MINIMUM_BATCH:
+		if len(self.job.processingNode.batch) >= sim.constants.MINIMUM_BATCH:
 			self.job.processingNode.batchProcessing = True
 
 		# wait for another job
@@ -192,7 +192,7 @@ class newJob(subtask):
 	__name__ = "New Job"
 
 	def __init__(self, job):
-		duration = constants.TD # immediately move on (if possible)
+		duration = sim.constants.TD # immediately move on (if possible)
 	
 		subtask.__init__(self, job, duration)
 
@@ -217,7 +217,7 @@ class reconfigureFPGA(subtask):
 	__name__ = "Reconfigure FPGA"
 	
 	def __init__(self, job): #  device, samples, processor=None):
-		duration = constants.RECONFIGURATION_TIME.gen()
+		duration = sim.constants.RECONFIGURATION_TIME.gen()
 		# energyCost = job.processingNode.reconfigurationEnergy(duration)
 	
 		subtask.__init__(self, job, duration)
@@ -237,7 +237,7 @@ class xmem(subtask):
 	# __name__ = "MCU FPGA Offload"
 	
 	def __init__(self, job): #  device, samples, processor=None):
-		debug.out ("created mcu fpga offloading task")
+		sim.debug.out ("created mcu fpga offloading task")
 		
 		duration = job.processingNode.mcuToFpgaLatency(job.datasize)
 		# energyCost = job.processingNode.mcuToFpgaEnergy(duration)
@@ -302,7 +302,7 @@ class processing(subtask):
 	def __init__(self, job): #  device, samples, processor=None):
 		# self.processor = processor
 
-		debug.out ("created processing task")
+		sim.debug.out ("created processing task")
 		
 		duration = job.processor.processingTime(job.samples, job.currentTask)
 		# energyCost = job.processingNode.processingEnergy(duration)
@@ -320,12 +320,12 @@ class processing(subtask):
 	def finishTask(self):
 		self.job.processor.idle()
 
-		debug.out ("creating return message")
+		sim.debug.out ("creating return message")
 
 		self.job.processed = True	
 		presize = self.job.datasize
 		self.job.datasize = self.job.processedMessageSize()
-		debug.out ("datasize changed from {0} to {1}".format(presize, self.job.datasize))
+		sim.debug.out ("datasize changed from {0} to {1}".format(presize, self.job.datasize))
 
 
 		if self.job.hardwareAccelerated:

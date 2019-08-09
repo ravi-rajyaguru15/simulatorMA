@@ -13,9 +13,12 @@ docker-gpu:
 local:
 	python3 src/training.py /cpu:0 100 1 10000 100 128
 	
+requirements:
+	pip3 install -r requirements.txt
+
 all:
 	python3 training.py
 
-test:
-	python3 src/experiment.py
+test: requirements
+	PYTHONPATH=$${PWD} python3 sim/experiments/jobSize.py
 	# python sim.py

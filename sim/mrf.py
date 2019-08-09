@@ -1,5 +1,5 @@
-import constants 
-from component import component
+import sim.constants 
+from sim.component import component
 
 import random
 import numpy as np
@@ -9,16 +9,16 @@ class mrf(component):
 	idleColour = (0, 0.5, 0, 1)
 	sleepColour = (0, 0.2, 0, 1)
 
-	rxCurrent, txCurrent = constants.WIRELESS_RX_CURRENT, constants.WIRELESS_TX_CURRENT
-	transmissionRate = constants.WIRELESS_SPEED
+	rxCurrent, txCurrent = sim.constants.WIRELESS_RX_CURRENT, sim.constants.WIRELESS_TX_CURRENT
+	transmissionRate = sim.constants.WIRELESS_SPEED
 
 	def __init__(self):
 		component.__init__(
 			self,
-			voltage = [constants.MCU_VOLTAGE],
+			voltage = [sim.constants.MCU_VOLTAGE],
 			activeCurrent = [0],
-			idleCurrent = [constants.WIRELESS_IDLE_CURRENT],
-			sleepCurrent = [constants.WIRELESS_SLEEP_CURRENT],
+			idleCurrent = [sim.constants.WIRELESS_IDLE_CURRENT],
+			sleepCurrent = [sim.constants.WIRELESS_SLEEP_CURRENT],
 			)
 
 	def activeEnergy(self, time):
@@ -29,13 +29,13 @@ class mrf(component):
 	# def __init__(self, txCurrent=None, rxCurrent = None):
 
 	# 	if txCurrent is None:
-	# 		self.txCurrent = constants.WIRELESS_CURRENT)
+	# 		self.txCurrent = sim.constants.WIRELESS_CURRENT)
 	# 	else:
 	# 		self.txCurrent = txCurrent
 
 
 	# 	if rxCurrent is None:
-	# 		self.rxCurrent = constants.WIRELESS_CURRENT)
+	# 		self.rxCurrent = sim.constants.WIRELESS_CURRENT)
 	# 	else:
 	# 		self.rxCurrent = rxCurrent
 

@@ -1,5 +1,5 @@
-import constants
-from processor import processor
+import sim.constants
+from sim.processor import processor
 
 class mcu(processor):
 	busyColour = (1, 0, 0, 1)
@@ -10,12 +10,12 @@ class mcu(processor):
 
 	def __init__(self):
 		processor.__init__(self,
-			voltage = [constants.MCU_VOLTAGE],
-			activeCurrent = [constants.MCU_ACTIVE_CURRENT],
-			idleCurrent = [constants.MCU_IDLE_CURRENT],
-			sleepCurrent = [constants.MCU_SLEEP_CURRENT],
-			processingSpeed = constants.MCU_PROCESSING_SPEED)
-		self.messageOverheadLatency = constants.MCU_MESSAGE_OVERHEAD_LATENCY
+			voltage = [sim.constants.MCU_VOLTAGE],
+			activeCurrent = [sim.constants.MCU_ACTIVE_CURRENT],
+			idleCurrent = [sim.constants.MCU_IDLE_CURRENT],
+			sleepCurrent = [sim.constants.MCU_SLEEP_CURRENT],
+			processingSpeed = sim.constants.MCU_PROCESSING_SPEED)
+		self.messageOverheadLatency = sim.constants.MCU_MESSAGE_OVERHEAD_LATENCY
 
 	def overheadTime(self):
 		return self.messageOverheadLatency.gen()

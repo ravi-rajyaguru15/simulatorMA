@@ -1,7 +1,7 @@
-from offloadingDecision import offloadingDecision 
-import constants 
-from job import job
-import debug
+from sim.offloadingDecision import offloadingDecision 
+import sim.constants 
+from sim.job import job
+import sim.debug
 
 import sys 
 import numpy as np 
@@ -33,7 +33,7 @@ class node:
 	def __init__(self, queue, index, nodeType, components, alwaysHardwareAccelerate=None):
 		self.decision = offloadingDecision()
 		self.jobQueue = list()
-		debug.out ("jobqueue" + str(self.jobQueue))
+		sim.debug.out ("jobqueue" + str(self.jobQueue))
 		self.taskQueue = list()
 		self.resultsQueue = queue
 		self.index = index
@@ -70,8 +70,8 @@ class node:
 
 	def maybeAddNewJob(self):
 		# possibly create new job
-		if constants.uni.evaluate(constants.JOB_LIKELIHOOD): # 0.5 
-			debug.out ("\t\t** new task ** ")
+		if sim.constants.uni.evaluate(sim.constants.JOB_LIKELIHOOD): # 0.5 
+			sim.debug.out ("\t\t** new task ** ")
 			self.createNewJob()
 
 	def createNewJob(self, currentTime, hardwareAccelerated=None):
@@ -81,8 +81,8 @@ class node:
 			# if still None, unknown behaviour
 		assert(hardwareAccelerated is not None)
 		
-		self.jobQueue.append(job(currentTime, self, constants.SAMPLE_SIZE.gen(), self.decision, hardwareAccelerated=hardwareAccelerated))
-		debug.out("added job to queue", 'p')
+		self.jobQueue.append(job(currentTime, self, sim.constants.SAMPLE_SIZE.gen(), self.decision, hardwareAccelerated=hardwareAccelerated))
+		sim.debug.out("added job to queue", 'p')
 
 	def addTask(self, task):
 		self.taskQueue.append(task)
@@ -91,31 +91,31 @@ class node:
 		self.nextTask()
 
 	def removeTask(self, task):
-		debug.out ("REMOVE TASK {0}".format(task))
+		sim.debug.out ("REMOVE TASK {0}".format(task))
 		self.taskQueue.remove(task)
-		debug.out ("{} {}".format(self.currentTask, task))
+		sim.debug.out ("{} {}".format(self.currentTask, task))
 		if self.currentTask is task:
 			self.currentTask = None
-			debug.out ("next task...")
+			sim.debug.out ("next task...")
 			self.nextTask()
 
 	def nextTask(self):
 		if self.currentTask is None:
 			if len(self.taskQueue) > 0:
-				debug.out (str(self) + "NEXT TASK")
+				sim.debug.out (str(self) + "NEXT TASK")
 				self.currentTask = self.taskQueue[0]
 				self.currentTask.owner = self
 
 
 
 	# calculate the energy at the current activity of all the components
-	def energy(self, duration=constants.TD):
+	def energy(self, duration=sim.constants.TD):
 		totalPower = np.sum([component.power() for component in self.components])
 		return totalPower * duration
 
 	def updateTime(self, currentTime):
 		# if no jobs available, perhaps generate one
-		# debug.out len(self.jobQueue)
+		# sim.debug.out len(self.jobQueue)
 
 		# see if there's a job available
 		self.nextJob(currentTime)
@@ -129,7 +129,7 @@ class node:
 		if self.currentTask is not None:
 			self.currentTask.tick()
 			# if self.currentTask.finished:
-			# 	debug.out ("\033[34mTask done\033[0m")
+			# 	sim.debug.out ("\033[34mTask done\033[0m")
 				
 			# # 	self.resultsQueue.put([currentTask.samples, currentTask.computeResult()])
 			# 	self.currentTask = None
@@ -138,22 +138,22 @@ class node:
 		
 			# check if job is finished
 			# if currentJob.finished:
-			# 	debug.out ('job done')
+			# 	sim.debug.out ('job done')
 				
 			# # 	self.resultsQueue.put([currentTask.samples, currentTask.computeResult()])
 
 			# 	self.jobQueue = self.jobQueue[1:]
 				
 				# if isinstance ()
-				# debug.out "finish on first job done"
+				# sim.debug.out "finish on first job done"
 				# sys.exit(0)
 
-			# debug.out current
+			# sim.debug.out current
 
 	def nextJobFromBatch(self):
 		if self.currentJob is None:
 			if len(self.batch) > 0:
-				debug.out ("grabbed job from batch")
+				sim.debug.out ("grabbed job from batch")
 				self.currentJob = self.batch[0]
 
 				return self.currentJob
@@ -171,7 +171,7 @@ class node:
 	def nextJob(self, currentTime):
 		if self.currentJob is None:
 			if len(self.jobQueue) > 0:
-				debug.out ("grabbed job from queue")
+				sim.debug.out ("grabbed job from queue")
 				self.currentJob = self.jobQueue[0]
 				# see if it's a brand new job
 				if not self.currentJob.started:
@@ -180,14 +180,14 @@ class node:
 
 
 	def removeJob(self, job):
-		debug.out("REMOVE JOB")
-		debug.out ('{} {}'.format(self.jobQueue, job))
+		sim.debug.out("REMOVE JOB")
+		sim.debug.out ('{} {}'.format(self.jobQueue, job))
 		self.jobQueue.remove(job)
 		if self.currentJob is job:
 			self.currentJob = None
 
-		debug.out ('{} {}'.format(self.jobQueue, job))
-		debug.out (self.currentJob)
+		sim.debug.out ('{} {}'.format(self.jobQueue, job))
+		sim.debug.out (self.currentJob)
 	# def offloadElasticNode(this, samples):
 	# 	this.ed.message = message(samples=samples)
 
@@ -195,7 +195,7 @@ class node:
 	# 	res = this.ed.sendTo(this.en)
 	# 	res += this.en.process(accelerated=True)
 	# 	res += this.en.sendTo(this.ed)
-	# 	# debug.out 'offload elastic node:\t', res
+	# 	# sim.debug.out 'offload elastic node:\t', res
 
 	# 	return res
 
@@ -205,12 +205,12 @@ class node:
 	# 	# offload to neighbour
 	# 	this.ed.message = message(samples=samples)
 	# 	res = this.ed.sendTo(this.ed2)
-	# 	# debug.out res
+	# 	# sim.debug.out res
 	# 	res += this.ed2.process()
-	# 	# debug.out res
+	# 	# sim.debug.out res
 	# 	res += this.ed2.sendTo(this.ed)
-	# 	# debug.out res
-	# 	# debug.out 'offload p2p:\t\t\t', res
+	# 	# sim.debug.out res
+	# 	# sim.debug.out 'offload p2p:\t\t\t', res
 
 	# 	return res
 
@@ -223,6 +223,6 @@ class node:
 	# 	res += this.srv.process()
 	# 	res += this.srv.sendTo(this.gw)
 	# 	res += this.gw.sendTo(this.ed)
-	# 	# debug.out 'offload server:\t\t\t', res
+	# 	# sim.debug.out 'offload server:\t\t\t', res
 
 	# 	return res

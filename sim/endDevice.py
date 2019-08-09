@@ -1,10 +1,11 @@
 import random
-import constants
 
-from node import node
-from mcu import mcu
-from mrf import mrf
-from result import result
+import sim.constants
+
+from sim.node import node
+from sim.mcu import mcu
+from sim.mrf import mrf
+from sim.result import result
 
 class endDevice(node):
 	def __repr__(self):

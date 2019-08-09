@@ -1,22 +1,22 @@
-from endDevice import endDevice
-from elasticNode import elasticNode
+from sim.endDevice import endDevice
+from sim.elasticNode import elasticNode
 # from message import message
-from result import result
-from gateway import gateway
-from server import server
-from visualiser import visualiser 
-from job import job
-import debug
+from sim.result import result
+from sim.gateway import gateway
+from sim.server import server
+from sim.visualiser import visualiser 
+from sim.job import job
+import sim.debug
 
-import constants
-import variable
-import tasks
+import sim.constants
+import sim.variable
+import sim.tasks
 
 import multiprocessing
 import sys
 import numpy as np
 
-class sim:
+class simulation:
 	ed, ed2, en, gw, srv, selectedOptions = None, None, None, None, None, None
 	results = None
 	jobResults = None
@@ -28,7 +28,7 @@ class sim:
 	hardwareAccelerated = None
 
 	def __init__(self, numEndDevices, numElasticNodes, numServers, visualise=False, hardwareAccelerated=None):
-		debug.out(numEndDevices + numElasticNodes)
+		sim.debug.out(numEndDevices + numElasticNodes)
 		self.results = multiprocessing.Manager().Queue()
 		self.jobResults = multiprocessing.Manager().Queue()
 		job.jobResultsQueue = self.jobResults
@@ -46,12 +46,12 @@ class sim:
 
 		self.devices = self.ed + self.en + self.srv
 		# set all device options correctly
-		# print (constants.OFFLOADING_POLICY)
+		# print (sim.constants.OFFLOADING_POLICY)
 		for device in self.devices: 
 			# choose options based on policy
-			if constants.OFFLOADING_POLICY == constants.LOCAL_ONLY:
+			if sim.constants.OFFLOADING_POLICY == sim.constants.LOCAL_ONLY:
 				device.setOffloadingDecisions([device])
-			elif constants.OFFLOADING_POLICY == constants.PEER_ONLY:
+			elif sim.constants.OFFLOADING_POLICY == sim.constants.PEER_ONLY:
 				tmpList = list(self.en)
 				tmpList.remove(device)
 				device.setOffloadingDecisions(tmpList)
@@ -62,7 +62,7 @@ class sim:
 			self.visualiser = visualiser(self)
 
 	def stop(self):
-		debug.out("STOP", 'r')
+		sim.debug.out("STOP", 'r')
 		self.finished = True
 
 	def allDone(self):
@@ -74,14 +74,14 @@ class sim:
 		# progress = 0
 		endTime = self.time + duration
 		queueLengths = list()
-		plotFrames = constants.PLOT_TD / constants.TD
-		debug.out (plotFrames)
+		plotFrames = sim.constants.PLOT_TD / sim.constants.TD
+		sim.debug.out (plotFrames)
 		frames = 0
 
 		while self.time < endTime and not self.finished:
 			# try:
 			if True:
-				debug.out('tick', 'b')
+				sim.debug.out('tick', 'b')
 				frames += 1
 
 				# create new jobs
@@ -89,7 +89,7 @@ class sim:
 					if not device.hasJob():
 						device.maybeAddNewJob()
 					
-				debug.out("tasks before {0}".format([dev.currentTask for dev in self.devices]), 'r')
+				sim.debug.out("tasks before {0}".format([dev.currentTask for dev in self.devices]), 'r')
 
 				# update all the devices
 				for dev in self.devices:
@@ -113,14 +113,14 @@ class sim:
 
 
 				
-				debug.out("jobQueues:\t\t{0}".format([len(dev.jobQueue) for dev in self.devices]), 'g')
-				debug.out("taskQueues:\t{0}".format([len(dev.taskQueue) for dev in self.devices]), 'dg')
-				debug.out("have jobs: {0}".format([dev.hasJob() for dev in self.devices]))
-				debug.out("states: {0}".format([[comp.state for comp in dev.components] for dev in self.devices]))
-				debug.out("tasks after {0}".format([dev.currentTask for dev in self.devices]), 'r')
+				sim.debug.out("jobQueues:\t\t{0}".format([len(dev.jobQueue) for dev in self.devices]), 'g')
+				sim.debug.out("taskQueues:\t{0}".format([len(dev.taskQueue) for dev in self.devices]), 'dg')
+				sim.debug.out("have jobs: {0}".format([dev.hasJob() for dev in self.devices]))
+				sim.debug.out("states: {0}".format([[comp.state for comp in dev.components] for dev in self.devices]))
+				sim.debug.out("tasks after {0}".format([dev.currentTask for dev in self.devices]), 'r')
 
-				# progress += constants.TD
-				self.time += constants.TD
+				# progress += sim.constants.TD
+				self.time += sim.constants.TD
 
 				if self.visualise:
 					if frames % plotFrames == 0:
@@ -142,13 +142,13 @@ class sim:
 				energies.append(res.energy)
 			
 			queueLengths = np.array(queueLengths)
-			debug.out("averages:")
-			# debug.out ("latency:\t", 	np.average(np.array(latencies)))
-			# debug.out ("energy:\t\t", 	np.average(np.array(energies)))
-			# debug.out ("jobs:\t\t", 		np.average(queueLengths))
-			debug.out (np.histogram(queueLengths, bins=np.array(range(np.max(queueLengths) + 3)) - .5))
+			sim.debug.out("averages:")
+			# sim.debug.out ("latency:\t", 	np.average(np.array(latencies)))
+			# sim.debug.out ("energy:\t\t", 	np.average(np.array(energies)))
+			# sim.debug.out ("jobs:\t\t", 		np.average(queueLengths))
+			sim.debug.out (np.histogram(queueLengths, bins=np.array(range(np.max(queueLengths) + 3)) - .5))
 		except:
-			debug.out ("no results available")
+			sim.debug.out ("no results available")
 
 	# def simulateBatch(self, batch, attribute):
 	# 	for samples in batch:
