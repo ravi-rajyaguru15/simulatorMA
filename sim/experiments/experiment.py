@@ -35,8 +35,8 @@ def singleBatchLocal(accelerated=True):
 	sim.constants.MINIMUM_BATCH = 2
 	sim.constants.SAMPLE_SIZE = sim.variable.Constant(1)
 	sim.constants.FPGA_POWER_PLAN = sim.constants.FPGA_IMMEDIATELY_OFF
-	# exp.en[0].createNewJob()
-	# exp.simulateTime(sim.constants.SIM_TIME)
+	sim.constants.PLOT_TD = sim.constants.TD
+	sim.constants.RECONFIGURATION_TIME = sim.variable.Constant(0.05)
 	exp.simulateTime(0.015)
 	for i in range(sim.constants.MINIMUM_BATCH):
 		exp.devices[0].createNewJob(exp.time, hardwareAccelerated=accelerated)
@@ -55,14 +55,17 @@ def singleBatchRemote(accelerated=True):
 	sim.constants.JOB_LIKELIHOOD = 0
 	sim.constants.MINIMUM_BATCH = 2
 	sim.constants.SAMPLE_SIZE = sim.variable.Constant(1)
+	sim.constants.PLOT_TD = sim.constants.TD * 2
+	sim.constants.SAMPLE_PROCESSED_SIZE = sim.variable.Constant(100, integer=True)
+	sim.constants.RECONFIGURATION_TIME = sim.variable.Constant(0.05)
 	sim.constants.FPGA_POWER_PLAN = sim.constants.FPGA_IMMEDIATELY_OFF
 	# exp.en[0].createNewJob()
 	# exp.simulateTime(sim.constants.SIM_TIME)
 	exp.simulateTime(0.015)
 	for i in range(sim.constants.MINIMUM_BATCH):
 		exp.devices[0].createNewJob(exp.time, hardwareAccelerated=accelerated)
-		exp.simulateTime(0.015)
-	exp.simulateUntilTime(0.1)
+		exp.simulateTime(0.025)
+	exp.simulateUntilTime(0.3)
 		
 
 # @staticmethod
@@ -82,6 +85,7 @@ def singleDelayedJobPeer(accelerated=True):
 def randomPeerJobs(accelerated=True):
 	sim.constants.OFFLOADING_POLICY = sim.constants.PEER_ONLY
 	sim.constants.DRAW_DEVICES = True
+	sim.constants.PLOT_TD = sim.constants.TD
 
 	exp = simulation(0, 4, 0, visualise=True, hardwareAccelerated=accelerated)
 
@@ -246,8 +250,9 @@ if __name__ == '__main__':
 	# singleBatchLocal(True)
 	# singleBatchLocal(False)
 	# singleBatchRemote(False)
+	singleBatchRemote(True)
 	# sim.randomPeerJobs(True)
-	randomLocalJobs(False)
+	# randomLocalJobs(False)
 	# randomPeerJobs(False)
 	
 	# totalEnergyJobSize()

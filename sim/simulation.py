@@ -49,12 +49,7 @@ class simulation:
 		# print (sim.constants.OFFLOADING_POLICY)
 		for device in self.devices: 
 			# choose options based on policy
-			if sim.constants.OFFLOADING_POLICY == sim.constants.LOCAL_ONLY:
-				device.setOffloadingDecisions([device])
-			elif sim.constants.OFFLOADING_POLICY == sim.constants.PEER_ONLY:
-				tmpList = list(self.en)
-				tmpList.remove(device)
-				device.setOffloadingDecisions(tmpList)
+			device.setOffloadingDecisions(self.devices)
 
 		self.hardwareAccelerated = hardwareAccelerated
 		self.visualise = visualise
@@ -89,7 +84,8 @@ class simulation:
 
 				# create new jobs
 				for device in self.devices:
-					if not device.hasJob():
+					# mcu is required for taking samples
+					if not device.mcu.isActive():
 						device.maybeAddNewJob(self.time)
 					
 				sim.debug.out("tasks before {0}".format([dev.currentTask for dev in self.devices]), 'r')
@@ -178,11 +174,11 @@ class simulation:
 	# 	else:
 	# 		return outputs
 
-	def numOptions(self):
-		return len(self.options)
+	# def numOptions(self):
+	# 	return len(self.options)
 
-	def nameOptions(self):
-		return self.optionsNames
+	# def nameOptions(self):
+	# 	return self.optionsNames
 
 	def devicesNames(self):
 		return [dev for dev in self.devices]

@@ -15,4 +15,6 @@ IDLE = powerStates("IDLE")
 ACTIVE = powerStates("ACTIVE")
 RECONFIGURING = powerStates("RECONFIGURING") # special state for FPGA
 SLEEP = powerStates("SLEEP")
+TX = powerStates("TX")
+RX = powerStates("RX")
 

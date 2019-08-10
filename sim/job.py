@@ -91,8 +91,7 @@ class job:
 		# otherwise we have to send task
 		else:
 			# elif self.destination.nodeType == sim.constants.ELASTIC_NODE:
-			print ("offloading to other device")
-			print (self.processor)
+			sim.debug.out("offloading to other device")
 			self.creator.addTask(sim.subtask.createMessage(self))
 			# sim.subtask.communication(self.host, self.rawMessageSize()))
 
@@ -154,7 +153,7 @@ class job:
 		currentOwner = self.owner
 		currentOwner.removeJob(self)
 
-		print ("moving from", currentOwner, "to", destinationNode)
+		sim.debug.out("moving from {} to {}".format(currentOwner, destinationNode))
 
 
 		# add job to new owner

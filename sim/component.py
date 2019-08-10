@@ -30,8 +30,12 @@ class component:
 	# change power states
 	def active(self):
 		self.state = sim.powerState.ACTIVE
+	def isActive(self):
+		return self.state == sim.powerState.ACTIVE
 	def idle(self):
 		self.state = sim.powerState.IDLE
+	def isIdle(self):
+		return self.state == sim.powerState.IDLE
 	def sleep(self):
 		self.state = sim.powerState.SLEEP
 
@@ -59,4 +63,6 @@ class component:
 
 	# current power level of this component
 	def power(self):
+		# print (self)
+		# print(self.voltage, self.current())
 		return np.dot([voltage.gen() for voltage in self.voltage], [current.gen() for current in self.current()])

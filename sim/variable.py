@@ -5,7 +5,7 @@ import random
 class Variable:
 	genFunction = genArgs = integer = None
 
-	def __init__(self, function, args, integer=True):
+	def __init__(self, function, args, integer=False):
 		self.genFunction = function
 		self.genArgs = args
 		self.integer = integer
@@ -24,7 +24,7 @@ class Variable:
 class Uniform(Variable):
 	start = end = None
 
-	def __init__(self, start, end, integer=True):
+	def __init__(self, start, end, integer=False):
 		self.start = start
 		self.end = end
 		Variable.__init__(self, random.uniform, (self.start, self.end, ), integer=integer)
@@ -36,9 +36,9 @@ class Uniform(Variable):
 class Constant(Variable):
 	mean = std = None
 
-	def __init__(self, mean, std=0):
+	def __init__(self, mean, std=0, integer=False):
 		self.mean = mean
-		Variable.__init__(self, Constant.genConstant, (self.mean, ))
+		Variable.__init__(self, Constant.genConstant, (self.mean, ), integer=integer)
 
 	@staticmethod
 	def genConstant(mean):
@@ -48,11 +48,11 @@ class Constant(Variable):
 class Gaussian(Variable):
 	mean = std = None
 
-	def __init__(self, mean, std):
+	def __init__(self, mean, std, integer=False):
 		self.mean = mean
 		self.std = std
 
-		Variable.__init__(self, random.gauss, (self.mean, self.std, ))
+		Variable.__init__(self, random.gauss, (self.mean, self.std, ), integer=integer)
 
 	# def gen(self):
 		# return random.gauss(self.mean, self.std)

@@ -19,20 +19,24 @@ requirements:
 all:
 	python3 training.py
 
+# experiments:
 jobsize:
 	PYTHONPATH=$${PWD} python3 sim/experiments/jobSize.py
-
 batchsize:
 	PYTHONPATH=$${PWD} python3 sim/experiments/batchSize.py
+fpgapowerplan:
+	PYTHONPATH=$${PWD} python3 sim/experiments/fpgaPowerPlan.py
+offloadingpolicy:
+	PYTHONPATH=$${PWD} python3 sim/experiments/offloadingPolicies.py
 
 sim:
 	@echo "sim"
 	PYTHONPATH=$${PWD} python3 sim/simulation.py
 
 experiment:
-	PYTHONPATH=$${PWD} python3 sim/experiments/experiment.py
+	PYTHONPATH=$${PWD} python3 sim/experiments/offloadingPolicies.py
 
 .PHONY: *
-test: batchsize
+test: offloadingpolicy
 	@echo "running test"
 	# python sim.py

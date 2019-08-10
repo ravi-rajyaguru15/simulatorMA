@@ -1,6 +1,7 @@
 from sim.offloadingDecision import offloadingDecision 
 import sim.constants 
 from sim.job import job
+from sim.fpga import fpga
 import sim.debug
 
 import sys 
@@ -31,7 +32,7 @@ class node:
 	# busy = None
 
 	def __init__(self, queue, index, nodeType, components, alwaysHardwareAccelerate=None):
-		self.decision = offloadingDecision()
+		self.decision = offloadingDecision(self)
 		self.jobQueue = list()
 		sim.debug.out ("jobqueue" + str(self.jobQueue))
 		self.taskQueue = list()
@@ -57,8 +58,14 @@ class node:
 	def __repr__(self):
 		return str(type(self)) + " " + str(self.index)
 
-	def setOffloadingDecisions(self, options):
-		self.decision.options = options
+	# def setOptions(self, options):
+		# self.setOffloadingDecisions(options)
+
+	def setOffloadingDecisions(self, devices):
+		self.decision.setOptions(devices)
+
+	def hasFpga(self):
+		return np.any([isinstance(component, fpga) for component in self.components])
 
 	def hasJob(self):
 		# busy if any are busy
@@ -196,7 +203,7 @@ class node:
 
 	def removeJob(self, job):
 		sim.debug.out("REMOVE JOB")
-		sim.debug.out ('{} {}'.format(self.jobQueue, job))
+		# sim.debug.out ('{} {}'.format(self.jobQueue, job))
 		# try to remove from queue (not there if from batch)
 		if job in self.jobQueue:
 			self.jobQueue.remove(job)
@@ -204,7 +211,7 @@ class node:
 		if self.currentJob is job:
 			self.currentJob = None
 
-		sim.debug.out ('{} {}'.format(self.jobQueue, job))
+		# sim.debug.out ('{} {}'.format(self.jobQueue, job))
 		sim.debug.out (self.currentJob)
 	# def offloadElasticNode(this, samples):
 	# 	this.ed.message = message(samples=samples)

@@ -4,6 +4,8 @@ import sim.constants
 from sim.mcu import mcu
 from sim.fpga import fpga
 from sim.powerState import powerStates
+import sim.fpgaPowerPolicy
+import sim.offloadingPolicy
 import sim.debug
 
 class subtask:
@@ -58,6 +60,8 @@ class subtask:
 
 			# is it done?
 			self.finished = self.progress >= self.duration
+
+			# print (self, self.finished, self.progress, self.duration)
 
 			# add any new tasks 
 			if self.finished:
@@ -153,9 +157,9 @@ class batchContinue(subtask):
 			processingMcu.sleep()
 			# maybe sleep FPGA
 			sim.debug.out(sim.constants.FPGA_POWER_PLAN)
-			if sim.constants.FPGA_POWER_PLAN != sim.constants.FPGA_STAYS_ON:
+			if sim.constants.FPGA_POWER_PLAN != sim.fpgaPowerPolicy.FPGA_STAYS_ON:
 				processingFpga.sleep()
-				print ("SLEEPING FPGA")
+				sim.debug.out ("SLEEPING FPGA")
 		else:
 			self.job.processingNode.mcu.active()
 			self.job.processingNode.addTask(newJob(self.job))
@@ -185,6 +189,7 @@ class batching(subtask):
 
 		# see if batch is full enough to start now
 		if len(self.job.processingNode.batch) >= sim.constants.MINIMUM_BATCH:
+			# print (self.job.processingNode, sim.constants.MINIMUM_BATCH, sim.constants.OFFLOADING_POLICY)
 			self.job.processingNode.batchProcessing = True
 		
 		# self.job.processingNode.currenetJob = None 
@@ -196,9 +201,9 @@ class batching(subtask):
 		if self.job.processingNode.batchProcessing:
 			# grab first task
 			sim.debug.out("activating job")
+			self.job.processingNode.currentJob = None
 			self.job = self.job.processingNode.nextJobFromBatch()
-			# activate job
-
+			
 			# start first job in queue
 			self.job.processingNode.addTask(newJob(self.job))
 		# go to sleep until next task
@@ -225,13 +230,9 @@ class newJob(subtask):
 	def beginTask(self):
 		self.job.processingNode.mcu.active()
 
-
-
 		subtask.beginTask(self)
 
 	def finishTask(self):
-		self.job.processingNode.mcu.idle()
-
 		# start first job in queue
 		if self.job.hardwareAccelerated:
 			if self.job.processingNode.fpga.isConfigured(self.job.currentTask):
@@ -241,7 +242,7 @@ class newJob(subtask):
 		else:
 			self.job.processingNode.addTask(processing(self.job))	
 		
-			subtask.finishTask(self)
+		subtask.finishTask(self)
 
 
 class reconfigureFPGA(subtask):
@@ -259,6 +260,7 @@ class reconfigureFPGA(subtask):
 		subtask.beginTask(self)
 
 	def finishTask(self):
+		sim.debug.out("done reconfiguration")
 		self.job.processingNode.fpga.idle()
 		
 		# move onto processing steps
@@ -391,7 +393,7 @@ class txMessage(subtask):
 	
 	
 	def __init__(self, job, source, destination):
-		print ("created txMessage")
+		sim.debug.out("created txMessage")
 
 		self.source = source
 		self.destination = destination
@@ -406,18 +408,19 @@ class txMessage(subtask):
 	# only possible if both source and destination mrf are available
 	def possible(self):
 		# return not self.job.creator.mrf.busy and not self.job.processingNode.mrf.busy
-		print ("possible?", self.source.mrf.busy(), self.destination.mrf.busy())
+		sim.debug.out ("possible? {} {}".format(self.source.mrf.busy(), self.destination.mrf.busy()))
 		return not self.source.mrf.busy() and not self.destination.mrf.busy()
 	
 	# start new job
 	def beginTask(self):
-		self.source.mrf.active()
-		self.destination.mrf.active()
+		self.source.mrf.tx()
+		self.destination.mrf.rx()
 
 		subtask.beginTask(self)
 	
 	def finishTask(self):
 		self.source.mrf.sleep()
+		self.source.mcu.sleep()
 		self.destination.mrf.sleep()
 		subtask.finishTask(self)
 
@@ -428,7 +431,7 @@ class txJob(txMessage):
 	
 	def beginTask(self):
 		# add receive task to destination
-		print("adding RX job")
+		sim.debug.out("adding RX job")
 		self.destination.addTask(rxJob(self.job, self.duration))
 
 		txMessage.beginTask(self)
@@ -437,7 +440,7 @@ class txJob(txMessage):
 		# if offloading, this is before processing
 		# if not self.job.processed:
 		# move job to new owner
-		print ("moving job to processingNode")
+		sim.debug.out ("moving job to processingNode")
 		# move job to the processing from the creator 
 		newOwner = self.job.processingNode		
 		# self.job.creator.waiting = True
@@ -468,7 +471,7 @@ class rxMessage(subtask):
 	# __name__ = "RX Message"
 	
 	def __init__(self, job, duration):
-		print ("created rxMessage")
+		sim.debug.out ("created rxMessage")
 
 		# energyCost = job.processingNode.mrf.rxEnergy(duration)
 
@@ -476,6 +479,8 @@ class rxMessage(subtask):
 
 	# WHAT?
 	# def beginTask(self):
+	# 	self.
+	# 	subtask.beginTask(self)
 	# 	# receiving offloaded task
 	# 	if self.job.offloaded():
 	# 		self.job.processingNode.jobActive = True
@@ -484,7 +489,7 @@ class rxMessage(subtask):
 	# 	subtask.beginTask(self)
 
 	def finishTask(self):
-		print ("mrf not busy anymore")
+		sim.debug.out ("mrf not busy anymore")
 		self.job.creator.mrf.sleep()
 		self.job.processingNode.mrf.sleep()
 	
@@ -499,11 +504,11 @@ class rxJob(rxMessage):
 	__name__ = "RX Job"
 	
 	def __init__(self, job, duration):
-		print ("created rxJob")
+		sim.debug.out ("created rxJob")
 		rxMessage.__init__(self, job, duration)
 
 	def finishTask(self):
-		print("adding processing task 1")
+		sim.debug.out("adding processing task 1")
 		self.job.processingNode.addTask(batching(self.job))
 
 		rxMessage.finishTask(self)
@@ -512,11 +517,11 @@ class rxResult(rxMessage):
 	__name__ = "RX Result"
 
 	def __init__(self, job, duration):
-		print ("created rxResult")
+		sim.debug.out ("created rxResult")
 		rxMessage.__init__(self, job, duration)
 
 	def finishTask(self):
-		print("\treceived offloaded result")
+		sim.debug.out("\treceived offloaded result")
 		self.job.finish()
 		# self.job.creator.waiting = False
 		# self.job.creator.jobActive = False
