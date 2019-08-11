@@ -49,6 +49,8 @@ class subtask:
 		if not self.started:
 			if self.possible():
 				self.beginTask()
+			else:
+				sim.debug.out("try again...")
 		
 		# print ("current task " + str(self.owner.currentTask))
 
@@ -81,11 +83,11 @@ class subtask:
 				# print (str(self.owner))
 
 	def __str__(self):
-		return (self.__name__)
+		return self.__repr__()
 
 		
 	def __repr__(self):
-		return (self.__name__)
+		return "{} ({:.3f})".format(self.__name__, self.duration - self.progress)
 
 
 	# default possible function is always available
@@ -380,48 +382,69 @@ class processing(subtask):
 				# self.job.creator.jobActive = False
 		subtask.finishTask(self)
 
-
-
-		
+# class txWaiting(subtask):
+# 	destination = None
+# 	source = None
 	
+
 
 class txMessage(subtask):
 	destination = None
 	source = None
-	messageSize = None
+	# messageSize = None
 	# __name__ = "TX Message"
 	
-	
-	def __init__(self, job, source, destination):
+	def __repr__(self):
+		return "{} (waiting)".format(self.__name__) if not self.started else subtask.__repr__(self)
+
+	def __init__(self, job, source, destination, jobToAdd):
 		sim.debug.out("created txMessage")
 
 		self.source = source
 		self.destination = destination
+
+		print("txmessage", source, destination)
 		
 		# source mcu does the work
 		duration = job.creator.mrf.rxtxLatency(job.datasize)
 		# energyCost = job.creator.mrf.txEnergy(duration)
-		
+		destination.addTask(jobToAdd(job, duration, self, owner=destination))
+
 		subtask.__init__(self, job, duration)
 
 
 	# only possible if both source and destination mrf are available
 	def possible(self):
-		# return not self.job.creator.mrf.busy and not self.job.processingNode.mrf.busy
-		sim.debug.out ("possible? {} {}".format(self.source.mrf.busy(), self.destination.mrf.busy()))
-		return not self.source.mrf.busy() and not self.destination.mrf.busy()
+		# possible once receiving task is active on the destination
+		# wait for receiver to be on the reception task
+		if isinstance(self.destination.currentTask, rxMessage):
+			return self.destination.currentTask.correspondingTx == self
+		else:
+			return False
+
+		# # return not self.job.creator.mrf.busy and not self.job.processingNode.mrf.busy
+		# sim.debug.out ("possible? {} {} {}".format(self.source.mrf.busy(), self.destination.mrf.busy(), self.destination.mcu.isIdle()))
+		# # when checking if possible, already switch to idle
+		# possible = not self.source.mrf.busy() and not self.destination.mrf.busy() and not self.destination.mcu.isIdle()
+		# if not possible: self.source.mrf.idle()
+		# return possible
 	
 	# start new job
 	def beginTask(self):
 		self.source.mrf.tx()
 		self.destination.mrf.rx()
+		# TODO: check these in the experiments
+		self.source.mcu.idle()
+		self.destination.mcu.idle()
+
 
 		subtask.beginTask(self)
 	
 	def finishTask(self):
 		self.source.mrf.sleep()
 		self.source.mcu.sleep()
-		self.destination.mrf.sleep()
+		# self.destination.mrf.sleep()
+
 		subtask.finishTask(self)
 
 
@@ -429,12 +452,21 @@ class txMessage(subtask):
 class txJob(txMessage):
 	__name__ = "TX Job"
 	
-	def beginTask(self):
+	def __init__(self, job, source, destination):
 		# add receive task to destination
 		sim.debug.out("adding RX job")
-		self.destination.addTask(rxJob(self.job, self.duration))
+		# destination.addTask((self.job, self.duration, self, owner=self.destination))
 
-		txMessage.beginTask(self)
+		txMessage.__init__(self, job, source, destination, jobToAdd=rxJob)
+
+	# def beginTask(self):
+	# 	if self.destination.currentTask is not None:
+	# 		print("job {} {}".format(self.destination, self.destination.currentTask))
+	# 		raise Exception("Cannot start RX task in {} from {}".format(self.source,self.destination))
+		
+	# 	# self.destination.addTask(rxJob(self.job, self.duration))
+
+	# 	txMessage.beginTask(self)
 
 	def finishTask(self):
 		# if offloading, this is before processing
@@ -453,11 +485,18 @@ class txJob(txMessage):
 class txResult(txMessage):
 	__name__ = "TX Result"
 	
-	def beginTask(self):
+	def __init__(self, job, source, destination):
 		# add receive task to destination
-		self.destination.addTask(rxResult(self.job, self.duration))
+		sim.debug.out("adding RX job")
+		# destination.addTask = rxResult(self.job, self.duration, self, owner=self.destination)
 
-		txMessage.beginTask(self)
+		txMessage.__init__(self, job, source, destination, jobToAdd=rxResult)
+
+	# def beginTask(self):
+	# 	# add receive task to destination
+	# 	# self.destination.addTask(rxResult(self.job, self.duration))
+
+	# 	txMessage.beginTask(self)
 
 	def finishTask(self):
 		# this is result being returned
@@ -468,12 +507,14 @@ class txResult(txMessage):
 		txMessage.finishTask(self)
 
 class rxMessage(subtask):
+	correspondingTx = None
 	# __name__ = "RX Message"
 	
-	def __init__(self, job, duration):
-		sim.debug.out ("created rxMessage")
+	def __init__(self, job, duration, correspondingTx, owner=None):
+	# 	sim.debug.out ("created rxMessage")
 
-		# energyCost = job.processingNode.mrf.rxEnergy(duration)
+	# 	# energyCost = job.processingNode.mrf.rxEnergy(duration)
+		self.correspondingTx = correspondingTx
 
 		subtask.__init__(self, job, duration)
 
@@ -482,7 +523,7 @@ class rxMessage(subtask):
 	# 	self.
 	# 	subtask.beginTask(self)
 	# 	# receiving offloaded task
-	# 	if self.job.offloaded():
+	# 	if self.job.o"f"floaded():
 	# 		self.job.processingNode.jobActive = True
 	# 	# else:
 
@@ -503,9 +544,9 @@ class rxMessage(subtask):
 class rxJob(rxMessage):
 	__name__ = "RX Job"
 	
-	def __init__(self, job, duration):
-		sim.debug.out ("created rxJob")
-		rxMessage.__init__(self, job, duration)
+	# def __init__(self, job, duration, txMessage, owner=None):
+	# 	sim.debug.out ("created rxJob")
+	# 	rxMessage.__init__(self, job, duration, txMessage, owner=owner)
 
 	def finishTask(self):
 		sim.debug.out("adding processing task 1")
@@ -516,13 +557,15 @@ class rxJob(rxMessage):
 class rxResult(rxMessage):
 	__name__ = "RX Result"
 
-	def __init__(self, job, duration):
-		sim.debug.out ("created rxResult")
-		rxMessage.__init__(self, job, duration)
+	# def __init__(self, job, duration, txMessage):
+	# 	sim.debug.out ("created rxResult")
+	# 	rxMessage.__init__(self, job, duration, txMessage)
 
 	def finishTask(self):
 		sim.debug.out("\treceived offloaded result")
 		self.job.finish()
+
+		self.owner.mcu.sleep()
 		# self.job.creator.waiting = False
 		# self.job.creator.jobActive = False
 

@@ -28,15 +28,17 @@ fpgapowerplan:
 	PYTHONPATH=$${PWD} python3 sim/experiments/fpgaPowerPlan.py
 offloadingpolicy:
 	PYTHONPATH=$${PWD} python3 sim/experiments/offloadingPolicies.py
+sleepTime:
+	PYTHONPATH=$${PWD} python3 sim/experiments/sleepTime.py
+
+experiment:
+	PYTHONPATH=$${PWD} python3 sim/experiments/experiment.py
 
 sim:
 	@echo "sim"
 	PYTHONPATH=$${PWD} python3 sim/simulation.py
 
-experiment:
-	PYTHONPATH=$${PWD} python3 sim/experiments/offloadingPolicies.py
-
 .PHONY: *
-test: offloadingpolicy
+test: experiment
 	@echo "running test"
 	# python sim.py

@@ -17,7 +17,6 @@ class offloadingDecision:
 
     def setOptions(self, allDevices):
         if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.LOCAL_ONLY:
-            # self.owner.setOffloadingDecisions([self.owner])
             self.options = [self.owner]
         elif sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.RANDOM_PEER_ONLY:
             # only offload to something with fpga when needed
@@ -28,7 +27,6 @@ class offloadingDecision:
         elif sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.SPECIFIC_PEER_ONLY:
             self.options = [allDevices[sim.constants.OFFLOADING_PEER]]
         elif sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.ANYTHING:
-            # only offload to something with fpga when needed
             elasticNodes = offloadingDecision.selectElasticNodes(allDevices)  # select elastic nodes from alldevices list]
             self.options = elasticNodes
         else:

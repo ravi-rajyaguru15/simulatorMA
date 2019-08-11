@@ -19,6 +19,7 @@ class node:
 	nodeType = None
 
 	totalEnergyCost = None
+	totalSleepTime = None
 	drawLocation = None
 
 	components = None
@@ -31,6 +32,10 @@ class node:
 
 	# busy = None
 
+	# drawing
+	rectangle = None 
+	location = None
+
 	def __init__(self, queue, index, nodeType, components, alwaysHardwareAccelerate=None):
 		self.decision = offloadingDecision(self)
 		self.jobQueue = list()
@@ -41,12 +46,13 @@ class node:
 		self.nodeType = nodeType
 
 		self.totalEnergyCost = 0
+		self.totalSleepTime = 0
 		
 		self.drawLocation = (0,0)
 
 		self.components = components
 
-		# self.waitingForResult = False
+		# self.waitingForResult = False'
 		self.jobActive = False
 		self.alwaysHardwareAccelerate = alwaysHardwareAccelerate
 
@@ -79,7 +85,7 @@ class node:
 	def maybeAddNewJob(self, currentTime):
 		# possibly create new job
 		if sim.constants.uni.evaluate(sim.constants.JOB_LIKELIHOOD): # 0.5 
-			sim.debug.out ("\t\t** new job ** ")
+			sim.debug.out ("\t\t** {} new job ** ".format(self))
 			self.createNewJob(currentTime)
 
 	def createNewJob(self, currentTime, hardwareAccelerated=None):
@@ -89,9 +95,12 @@ class node:
 			# if still None, unknown behaviour
 		assert(hardwareAccelerated is not None)
 		
-		self.jobQueue.append(job(currentTime, self, sim.constants.SAMPLE_SIZE.gen(), self.decision, hardwareAccelerated=hardwareAccelerated))
+		self.addJob(job(currentTime, self, sim.constants.SAMPLE_SIZE.gen(), self.decision, hardwareAccelerated=hardwareAccelerated))
 		sim.debug.out("added job to queue", 'p')
 
+	def addJob(self, job):
+		self.jobQueue.append(job)
+	
 	def addTask(self, task):
 		task.owner = self
 		self.taskQueue.append(task)
@@ -133,13 +142,14 @@ class node:
 		# if no jobs available, perhaps generate one
 		# sim.debug.out len(self.jobQueue)
 
+		sleepBefore = np.all([component.isSleeping() for component in self.components])
+
 		# see if there's a job available
 		self.nextJob(currentTime)
 
 		# check if there's something to be done now 
 		if self.currentTask is None:
 			self.nextTask()
-
 
 		# do process and check if done
 		if self.currentTask is not None:
@@ -165,6 +175,12 @@ class node:
 				# sys.exit(0)
 
 			# sim.debug.out current
+
+		sleepAfter = np.all([component.isSleeping() for component in self.components])
+
+		if sleepBefore and sleepAfter:
+			self.totalSleepTime += sim.constants.TD
+		
 
 	def nextJobFromBatch(self):
 		if self.currentJob is None:
@@ -198,6 +214,8 @@ class node:
 				# see if it's a brand new job
 				if not self.currentJob.started:
 					self.currentJob.start(currentTime)
+				else:
+					sim.debug.out("\tALREADY STARTED")
 
 
 

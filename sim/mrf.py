@@ -20,7 +20,10 @@ class mrf(component):
 			idleCurrent = [sim.constants.WIRELESS_IDLE_CURRENT],
 			sleepCurrent = [sim.constants.WIRELESS_SLEEP_CURRENT],
 			)
-		
+	
+	def busy(self):
+		return self.state == sim.powerState.TX or self.state == sim.powerState.RX or component.busy(self)
+
 	def tx(self):
 		self.state = sim.powerState.TX
 

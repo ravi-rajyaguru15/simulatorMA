@@ -75,8 +75,11 @@ class visualiser:
 		for dev, location in zip(self.sim.devices, grid):
 			# dev.location = location
 
+			# node drawing
 			visualiser.createRectangle(dev, (location[0], location[1]), (width + border * 2, height + border * 2), fill=False)
+			# visualiser.createText(dev, (location[0], location[1]))
 
+			# component drawing
 			subgrid, size, (rows, cols) = visualiser.gridLayout(dev.components, deviceSize, location, tight=True)
 			for unit, location in zip(dev.components, subgrid):
 				# unit = dev.components[i]
@@ -151,8 +154,12 @@ class visualiser:
 
 	@staticmethod
 	def createRectangle(targetDevice, location, size, fill=True):
+		targetDevice.location = location
 		targetDevice.rectangle = pp.Rectangle((location[0] - size[0]/2, location[1] - size[1]/2), size[0], size[1], fill=fill)
+	# @staticmethod 
+	# def createText(targetDevice, location):
 	
+	# 	targetDevice.title = pp.Text(x=location[0], y=location[1], horizontalalignment='center')
 	def drawTotalDeviceEnergy(self):
 		labels = self.sim.devicesNames()
 		energyList = self.sim.totalDevicesEnergy()
@@ -179,19 +186,23 @@ class visualiser:
 		# print ("drawing nodes:", self.sim.devices)
 
 		pp.figure(DEVICES_FIGURE)
-		pp.title("{:.3f}".format(self.sim.time))
+		pp.cla()
+		pp.title("Time = {:.3f}, TotalSleep = {:.3f}".format(self.sim.time, np.average([dev.totalSleepTime for dev in self.sim.devices])))
 		# for dev, location in zip(self.sim.devices, self.grid):
 		for dev in self.sim.devices:
 			self.draw(dev)
 		
 	def draw(self, node):
-		
 		try:
 			image = list()
 			# draw node itself
 			# change colour of border based on activity
 			node.rectangle._edgecolor = (1, 0, 0, 1) if node.hasJob() else (0, 0, 0, 1)
 			image.append(node.rectangle)
+
+			# update node's title to current description
+			pp.gca().text(x=node.location[0], y=node.location[1] + node.rectangle.get_height()/2 + .05, s=node, verticalalignment='center', horizontalalignment='center')
+			pp.gca().text(x=node.location[0], y=node.location[1] + node.rectangle.get_height()/2 + .02, s=node.currentTask, verticalalignment='center', horizontalalignment='center')
 
 			# draw all processors and wireless
 			for component in node.components:

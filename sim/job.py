@@ -151,10 +151,17 @@ class job:
 	def moveTo(self, destinationNode):
 		# remove job from current
 		currentOwner = self.owner
+		print ("current owner {}".format(currentOwner))
 		currentOwner.removeJob(self)
 
 		sim.debug.out("moving from {} to {}".format(currentOwner, destinationNode))
 
+		# set destination job
+		if destinationNode.currentJob is None:
+			destinationNode.currentJob = self
+		else:
+			print ("ADDING JOB BECAUSE ALREADY HAS ONE")
+			destinationNode.addJob(self)
 
 		# add job to new owner
 		# destinationNode.jobQueue.append(self)
