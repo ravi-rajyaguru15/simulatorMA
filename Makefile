@@ -21,24 +21,26 @@ all:
 
 # experiments:
 jobsize:
-	PYTHONPATH=$${PWD} python3 sim/experiments/jobSize.py
+	python3 sim/experiments/jobSize.py
 batchsize:
-	PYTHONPATH=$${PWD} python3 sim/experiments/batchSize.py
+	python3 sim/experiments/batchSize.py
 fpgapowerplan:
-	PYTHONPATH=$${PWD} python3 sim/experiments/fpgaPowerPlan.py
+	python3 sim/experiments/fpgaPowerPlan.py
 offloadingpolicy:
-	PYTHONPATH=$${PWD} python3 sim/experiments/offloadingPolicies.py
+	sim/experiments/offloadingPolicies.py
 sleepTime:
-	PYTHONPATH=$${PWD} python3 sim/experiments/sleepTime.py
+	python3 sim/experiments/sleepTime.py
 
 experiment:
-	PYTHONPATH=$${PWD} python3 sim/experiments/experiment.py
+	# PYTHONPATH=$${PWD} python3 sim/experiments/experiment.py
+	python3 sim/experiments/experiment.py
 
 sim:
 	@echo "sim"
-	PYTHONPATH=$${PWD} python3 sim/simulation.py
+	python3 sim/simulation.py
 
 .PHONY: *
 test: experiment
+	@echo $$DISPLAY
 	@echo "running test"
 	# python sim.py

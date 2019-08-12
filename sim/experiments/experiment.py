@@ -30,7 +30,7 @@ def singleDelayedJobLocal(accelerated=True):
 	
 # @staticmethod
 def singleBatchLocal(accelerated=True):
-	sim.constants.OFFLOADING_POLICY = sim.constants.LOCAL_ONLY
+	sim.constants.OFFLOADING_POLICY = sim.offloadingPolicy.LOCAL_ONLY
 	
 	exp = simulation(0, 2, 0, visualise=True)
 
@@ -88,6 +88,21 @@ def singleDelayedJobPeer(accelerated=True):
 	exp.devices[0].createNewJob(exp.time, hardwareAccelerated=accelerated)
 	exp.simulateTime(sim.constants.PLOT_TD * 150)
 
+def deadlock():
+	sim.constants.OFFLOADING_POLICY = sim.offloadingPolicy.RANDOM_PEER_ONLY
+	
+	exp = simulation(0, 2, 0, visualise=True)
+	sim.constants.SAMPLE_SIZE = sim.variable.Constant(10)
+
+	sim.constants.JOB_LIKELIHOOD = 0
+	sim.constants.DEFAULT_TASK_GRAPH = [sim.tasks.EASY]
+
+	exp.simulateTime(sim.constants.PLOT_TD * 10)
+	exp.devices[1].createNewJob(exp.time, hardwareAccelerated=False)
+	exp.simulateTime(sim.constants.TD)
+	exp.devices[0].createNewJob(exp.time, hardwareAccelerated=False)
+	exp.simulateTime(sim.constants.PLOT_TD * 150)
+
 	
 # @staticmethod
 def randomPeerJobs(accelerated=True):
@@ -113,12 +128,12 @@ def randomLocalJobs(accelerated=True):
 
 def randomJobs(offloadingPolicy=sim.offloadingPolicy.ANYTHING, hw=True):
 	sim.constants.OFFLOADING_POLICY = offloadingPolicy
-	sim.constants.JOB_LIKELIHOOD = 5e-2
+	sim.constants.JOB_LIKELIHOOD = 2e-2
 	sim.constants.SAMPLE_RAW_SIZE = sim.variable.Constant(40)
 	sim.constants.SAMPLE_SIZE = sim.variable.Constant(10)
 	sim.constants.PLOT_TD = sim.constants.TD * 1
 
-	exp = simulation(0, 4, 0, visualise=True, hardwareAccelerated=hw)
+	exp = simulation(0, 2, 0, visualise=True, hardwareAccelerated=hw)
 	# exp.simulateTime(0.02)
 	# exp.devices[1].createNewJob(exp.time, hardwareAccelerated=hw)
 	# exp.simulateUntilTime(0.1)
@@ -177,7 +192,7 @@ def testRepeatsSeparate():
 		for jobLikelihood in np.arange(1e-2, 100e-2, 1e-2):
 			# for samples in samplesList:
 			processes.append(multiprocessing.Process(target=testRepeatsSeparateThread, args=(i, jobLikelihood, results)))
-    	
+		
 	for process in processes: process.start()
 	# for process in processes: process.join()
 	
@@ -206,7 +221,7 @@ def testRepeatsThread(name, samples, resultsQueue):
 	exp.devices[0].createNewJob(exp.time, hardwareAccelerated=False)
 	exp.simulateTime(sim.constants.PLOT_TD * 1500)
 	if not exp.allDone():
-    
+	
 		raise Exception("not all devices done: {}".format(samples))
 	# print ('repeat', i, 'done')
 	
@@ -288,6 +303,7 @@ if __name__ == '__main__':
 	# randomLocalJobs(False)
 	# randomPeerJobs(False)
 	randomJobs(offloadingPolicy=sim.offloadingPolicy.RANDOM_PEER_ONLY, hw=False)
+	# deadlock()
 	
 	# totalEnergyJobSize()
 	# testRepeatsSeparate()

@@ -7,10 +7,28 @@
             "label": "sim test",
             "type": "shell",
             "command": "make test",
+            "options": {
+                "env": {
+                    "DISPLAY": "localhost:11.0",
+                    "PYTHONPATH": "${cwd}"
+                }
+            },
             "group": {
                 "kind": "test",
                 "isDefault": true
             }
+        },
+        {
+            "label": "local test",
+            "type": "shell",
+            "command": "uname -r",
+            "problemMatcher": []
+        },
+        {
+            "label": "remote test",
+            "type": "shell",
+            "command": "uname -r",
+            "problemMatcher": []
         }
     ]
 }

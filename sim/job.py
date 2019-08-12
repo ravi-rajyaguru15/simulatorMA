@@ -104,9 +104,6 @@ class job:
 
 		# add results to overall results
 		job.jobResultsQueue.put(result(self.totalLatency, self.totalEnergyCost))
-
-		# see if there's a next job to continue
-		self.processingNode.addTask(sim.subtask.batchContinue(self))
 		
 
 	def offloaded(self):
@@ -151,7 +148,7 @@ class job:
 	def moveTo(self, destinationNode):
 		# remove job from current
 		currentOwner = self.owner
-		print ("current owner {}".format(currentOwner))
+		sim.debug.out("current owner {}".format(currentOwner))
 		currentOwner.removeJob(self)
 
 		sim.debug.out("moving from {} to {}".format(currentOwner, destinationNode))
@@ -160,7 +157,7 @@ class job:
 		if destinationNode.currentJob is None:
 			destinationNode.currentJob = self
 		else:
-			print ("ADDING JOB BECAUSE ALREADY HAS ONE")
+			sim.debug.out("ADDING JOB BECAUSE ALREADY HAS ONE")
 			destinationNode.addJob(self)
 
 		# add job to new owner

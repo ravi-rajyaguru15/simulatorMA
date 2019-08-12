@@ -49,15 +49,17 @@ class subtask:
 		if not self.started:
 			if self.possible():
 				self.beginTask()
+				print ("begin {} {}".format(self, self.started))
 			else:
+				# check for deadlock
+				if self.deadlock():
+					raise Exception("DEADLOCK", self.job.creator, self.job.processingNode)
+
 				sim.debug.out("try again...")
 		
 		# print ("current task " + str(self.owner.currentTask))
-
-
-		# only start td afterwards, in order to synchronise
-		# else:
-		if True:
+		# progress task if it's been started
+		if self.started:
 			self.progress += sim.constants.TD
 
 			# is it done?
@@ -93,6 +95,8 @@ class subtask:
 	# default possible function is always available
 	def possible(self):
 		return True
+	def deadlock(self):
+		return False
 
 	def finishTask(self):
 		self.owner.currentTask = None
@@ -182,6 +186,10 @@ class batching(subtask):
 	def beginTask(self):
 		self.job.processingNode.mcu.active()
 
+
+		subtask.beginTask(self)
+
+	def finishTask(self):
 		# add current job to node's batch
 		self.job.processingNode.batch.append(self.job)
 		# job has been backed up in batch and will be selected in finish
@@ -191,16 +199,13 @@ class batching(subtask):
 
 		# see if batch is full enough to start now
 		if len(self.job.processingNode.batch) >= sim.constants.MINIMUM_BATCH:
-			# print (self.job.processingNode, sim.constants.MINIMUM_BATCH, sim.constants.OFFLOADING_POLICY)
-			self.job.processingNode.batchProcessing = True
+		# 	# print (self.job.processingNode, sim.constants.MINIMUM_BATCH, sim.constants.OFFLOADING_POLICY)
+		# 	self.job.processingNode.batchProcessing = True
 		
-		# self.job.processingNode.currenetJob = None 
+		# # self.job.processingNode.currenetJob = None 
 
-		subtask.beginTask(self)
-
-	def finishTask(self):
-		# check if processing batch
-		if self.job.processingNode.batchProcessing:
+		# # check if processing batch
+		# if self.job.processingNode.batchProcessing:
 			# grab first task
 			sim.debug.out("activating job")
 			self.job.processingNode.currentJob = None
@@ -211,6 +216,8 @@ class batching(subtask):
 		# go to sleep until next task
 		else:
 			self.job.processingNode.mcu.sleep()
+			# remove job from current owner
+			# self.job.processingNode.removeJob(self.job)
 
 		subtask.finishTask(self)
 
@@ -403,15 +410,21 @@ class txMessage(subtask):
 		self.source = source
 		self.destination = destination
 
-		print("txmessage", source, destination)
+		sim.debug.out("txmessage {} -> {}".format(source, destination))
 		
 		# source mcu does the work
 		duration = job.creator.mrf.rxtxLatency(job.datasize)
 		# energyCost = job.creator.mrf.txEnergy(duration)
-		destination.addTask(jobToAdd(job, duration, self, owner=destination))
+		
+		# create receiving task
+		rx = jobToAdd(job, duration, self, owner=destination)
+		destination.addTask(rx)
+		self.correspondingRx = rx
 
 		subtask.__init__(self, job, duration)
 
+	def waiting(self):
+		return not self.started
 
 	# only possible if both source and destination mrf are available
 	def possible(self):
@@ -421,6 +434,18 @@ class txMessage(subtask):
 			return self.destination.currentTask.correspondingTx == self
 		else:
 			return False
+	
+	# check if this task is being deadlocked
+	def deadlock(self):
+		# is destination also trying to send?
+		if isinstance(self.destination.currentTask, txMessage):
+			# is it not started
+			if not self.started and not self.destination.currentTask.started:
+				# is it trying to send to me?
+				if (self.destination is self.destination.currentTask.source) and (self.source is self.destination.currentTask.destination):
+					return True
+		# any other case is 
+		return False
 
 		# # return not self.job.creator.mrf.busy and not self.job.processingNode.mrf.busy
 		# sim.debug.out ("possible? {} {} {}".format(self.source.mrf.busy(), self.destination.mrf.busy(), self.destination.mcu.isIdle()))
@@ -432,10 +457,10 @@ class txMessage(subtask):
 	# start new job
 	def beginTask(self):
 		self.source.mrf.tx()
-		self.destination.mrf.rx()
+		# self.destination.mrf.rx()
 		# TODO: check these in the experiments
 		self.source.mcu.idle()
-		self.destination.mcu.idle()
+		# self.destination.mcu.idle()
 
 
 		subtask.beginTask(self)
@@ -502,8 +527,12 @@ class txResult(txMessage):
 		# this is result being returned
 		# self.job.processingNode.jobActive = False
 
+
+		# see if there's a next job to continue
+		self.job.processingNode.addTask(batchContinue(self.job))
+
 		# move result of job back to the creator
-		self.job.moveTo(self.job.creator)
+		# self.job.moveTo(self.job.creator)
 		txMessage.finishTask(self)
 
 class rxMessage(subtask):
@@ -518,8 +547,15 @@ class rxMessage(subtask):
 
 		subtask.__init__(self, job, duration)
 
+		
+	# only possible if the tx is waiting for it
+	def possible(self):
+		OSNAME = os.name
+		return self.correspondingTx.waiting()
+
 	# WHAT?
-	# def beginTask(self):
+	def beginTask(self):
+		self.owner.mrf.rx()
 	# 	self.
 	# 	subtask.beginTask(self)
 	# 	# receiving offloaded task
@@ -527,12 +563,13 @@ class rxMessage(subtask):
 	# 		self.job.processingNode.jobActive = True
 	# 	# else:
 
-	# 	subtask.beginTask(self)
+		subtask.beginTask(self)
 
 	def finishTask(self):
 		sim.debug.out ("mrf not busy anymore")
-		self.job.creator.mrf.sleep()
-		self.job.processingNode.mrf.sleep()
+		# self.job.creator.mrf.sleep()
+		self.owner.mrf.sleep()
+		# self.job.processingNode.mrf.sleep()
 	
 		subtask.finishTask(self)
 

@@ -85,7 +85,7 @@ class simulation:
 				# create new jobs
 				for device in self.devices:
 					# mcu is required for taking samples
-					if not device.mcu.isActive():
+					if not device.hasJob():
 						device.maybeAddNewJob(self.time)
 					
 				sim.debug.out("tasks before {0}".format([dev.currentTask for dev in self.devices]), 'r')

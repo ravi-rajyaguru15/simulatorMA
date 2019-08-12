@@ -6,11 +6,16 @@ import numpy as np
 
 import sim.constants
 
+import time 
 import os
+# print (os.environ["DISPLAY"])
 if "DISPLAY" not in os.environ:
-	os.environ["DISPLAY"] = ":3"
+	os.environ["DISPLAY"] = "localhost:11.0"
 	print(os.environ["DISPLAY"])
+else:
+    print ("Existing DISPLAY={}".format(os.environ["DISPLAY"]))
 
+time.sleep(1)
 colours = ['b', 'r']
 
 def plotWithErrors(x, y=None, errors=None, results=None):
