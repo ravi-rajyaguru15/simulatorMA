@@ -89,24 +89,30 @@ def singleDelayedJobPeer(accelerated=True):
 	exp.simulateTime(sim.constants.PLOT_TD * 150)
 
 def deadlock():
-	sim.constants.OFFLOADING_POLICY = sim.offloadingPolicy.RANDOM_PEER_ONLY
 	
-	exp = simulation(0, 2, 0, visualise=True)
-	sim.constants.SAMPLE_SIZE = sim.variable.Constant(10)
+	sim.constants.SAMPLE_SIZE = sim.variable.Gaussian(10, 2)
+	sim.constants.SAMPLE_RAW_SIZE = sim.variable.Constant(4, integer=True)
+	sim.constants.SAMPLE_PROCESSED_SIZE = sim.variable.Constant(4, integer=True)
+	sim.constants.FPGA_POWER_PLAN = sim.fpgaPowerPolicy.FPGA_IMMEDIATELY_OFF
 
-	sim.constants.JOB_LIKELIHOOD = 0
+	sim.constants.OFFLOADING_POLICY = sim.offloadingPolicy.RANDOM_PEER_ONLY
+	sim.constants.JOB_LIKELIHOOD = 0.01
 	sim.constants.DEFAULT_TASK_GRAPH = [sim.tasks.EASY]
 
-	exp.simulateTime(sim.constants.PLOT_TD * 10)
-	exp.devices[1].createNewJob(exp.time, hardwareAccelerated=False)
-	exp.simulateTime(sim.constants.TD)
-	exp.devices[0].createNewJob(exp.time, hardwareAccelerated=False)
-	exp.simulateTime(sim.constants.PLOT_TD * 150)
+	sim.constants.MINIMUM_BATCH = 2
+
+	exp = simulation(0, 4, 0, visualise=True, hardwareAccelerated=False)
+
+	# exp.simulateTime(sim.constants.PLOT_TD * 10)
+	exp.simulateTime(1)
+	# exp.simulateTime(sim.constants.TD)
+	# exp.devices[0].createNewJob(exp.time, hardwareAccelerated=False)
+	# exp.simulateTime(sim.constants.PLOT_TD * 150)
 
 	
 # @staticmethod
 def randomPeerJobs(accelerated=True):
-	sim.constants.OFFLOADING_POLICY = sim.constants.PEER_ONLY
+	sim.constants.OFFLOADING_POLICY = sim.offloadingPolicy.RANDOM_PEER_ONLY
 	sim.constants.DRAW_DEVICES = True
 	sim.constants.PLOT_TD = sim.constants.TD
 
@@ -140,7 +146,7 @@ def randomJobs(offloadingPolicy=sim.offloadingPolicy.ANYTHING, hw=True):
 	# exp.devices[1].createNewJob(exp.time, hardwareAccelerated=hw)
 	# exp.simulateUntilTime(0.25)
 	# exp.devices[1].createNewJob(exp.time, hardwareAccelerated=hw)
-	exp.simulateUntilTime(1)
+	exp.simulate() #UntilTime(1)
 
 def testRepeatsSeparateThread(i, jobLikelihood, resultsQueue):
 	# i, samplesList = args
@@ -302,8 +308,8 @@ if __name__ == '__main__':
 	# sim.randomPeerJobs(True)
 	# randomLocalJobs(False)
 	# randomPeerJobs(False)
-	randomJobs(offloadingPolicy=sim.offloadingPolicy.RANDOM_PEER_ONLY, hw=False)
-	# deadlock()
+	# randomJobs(offloadingPolicy=sim.offloadingPolicy.RANDOM_PEER_ONLY, hw=False)
+	deadlock()
 	
 	# totalEnergyJobSize()
 	# testRepeatsSeparate()

@@ -150,7 +150,7 @@ class visualiser:
 			self.drawCurrentDevicePower()
 			pp.draw()
 		
-		pp.pause(sim.constants.TD)
+		pp.pause(1e-6) # sim.constants.TD)
 
 	@staticmethod
 	def createRectangle(targetDevice, location, size, fill=True):

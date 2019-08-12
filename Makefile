@@ -28,7 +28,7 @@ fpgapowerplan:
 	python3 sim/experiments/fpgaPowerPlan.py
 offloadingpolicy:
 	sim/experiments/offloadingPolicies.py
-sleepTime:
+sleeptime:
 	python3 sim/experiments/sleepTime.py
 
 experiment:

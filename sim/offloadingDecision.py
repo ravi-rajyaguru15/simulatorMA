@@ -32,6 +32,8 @@ class offloadingDecision:
         else:
             raise Exception("Unknown offloading policy")
 
+        print(sim.constants.OFFLOADING_POLICY, self.owner, self.options)
+
     def chooseDestination(self, task):
         if self.options is None:
             raise Exception("options are None!")

@@ -21,6 +21,7 @@ class processor(component):
 
 	def processingTime(self, samples, task):
 		assert(task is not None)
+		print("processing", samples, self.processingSpeed.gen(), task.complexity, samples / self.processingSpeed.gen() * task.complexity, )
 		return samples / self.processingSpeed.gen() * task.complexity
 
 

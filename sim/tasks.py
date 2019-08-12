@@ -8,7 +8,7 @@ class task:
 
 EASY = task(
 	colour=(1, 1, 0, 1), 
-	complexity=1.
+	complexity=8e3
 	)
 
 HARD = task(

@@ -16,6 +16,8 @@ import multiprocessing
 import sys
 import numpy as np
 
+queueLengths = list()
+
 class simulation:
 	ed, ed2, en, gw, srv, selectedOptions = None, None, None, None, None, None
 	results = None
@@ -32,7 +34,6 @@ class simulation:
 		self.results = multiprocessing.Manager().Queue()
 		self.jobResults = multiprocessing.Manager().Queue()
 		job.jobResultsQueue = self.jobResults
-		index = 0
 
 		self.time = 0
 		
@@ -63,7 +64,21 @@ class simulation:
 	def allDone(self):
 		return np.all([not device.hasJob() for device in self.devices])
 	
-	# def simulateUntilDone()
+	def simulate(self):
+		frames = 0
+		plotFrames = sim.constants.PLOT_TD / sim.constants.TD
+
+		while not self.finished:
+			frames == 1
+			self.simulateTick()
+			
+			if self.visualise:
+				if frames % plotFrames == 0:
+					self.visualiser.update()
+		
+			# pass
+				# def simulateUntilDone()
+	
 	def simulateUntilTime(self, finalTime):
 		assert(finalTime > self.time)
 		self.simulateTime(finalTime - self.time)
@@ -71,7 +86,6 @@ class simulation:
 	def simulateTime(self, duration):
 		# progress = 0
 		endTime = self.time + duration
-		queueLengths = list()
 		plotFrames = sim.constants.PLOT_TD / sim.constants.TD
 		sim.debug.out (plotFrames)
 		frames = 0
@@ -79,57 +93,14 @@ class simulation:
 		while self.time < endTime and not self.finished:
 			# try:
 			if True:
-				sim.debug.out('tick {:.4f}'.format(self.time), 'b')
+				self.simulateTick()
 				frames += 1
-
-				# create new jobs
-				for device in self.devices:
-					# mcu is required for taking samples
-					if not device.hasJob():
-						device.maybeAddNewJob(self.time)
-					
-				sim.debug.out("tasks before {0}".format([dev.currentTask for dev in self.devices]), 'r')
-
-				# update all the devices
-				for dev in self.devices:
-					dev.updateTime(self.time)
-					queueLengths.append(len(dev.jobQueue))
-
-				# capture energy values
-				for dev in self.devices:
-					energy = dev.energy()
-
-					# add energy to device counter
-					dev.totalEnergyCost += energy
-					# add energy to job 
-					if dev.currentJob is not None:
-						dev.currentJob.totalEnergyCost += energy
-						# see if device is in job history
-						if dev not in dev.currentJob.devicesEnergyCost.keys():
-							dev.currentJob.devicesEnergyCost[dev] = 0
-						
-						dev.currentJob.devicesEnergyCost[dev] += energy
-
-
-				
-				sim.debug.out("have jobs:\t{0}".format([dev.hasJob() for dev in self.devices]), 'b')
-				sim.debug.out("jobQueues:\t{0}".format([len(dev.jobQueue) for dev in self.devices]), 'g')
-				sim.debug.out("batch:\t\t{0}".format([len(dev.batch) for dev in self.devices]), 'c')
-				sim.debug.out("taskQueues:\t{0}".format([len(dev.taskQueue) for dev in self.devices]), 'dg')
-				sim.debug.out("taskQueues:\t{0}".format([dev.taskQueue for dev in self.devices]), 'dg')
-				sim.debug.out("states: {0}".format([[comp.state for comp in dev.components] for dev in self.devices]))
-				sim.debug.out("tasks after {0}".format([dev.currentTask for dev in self.devices]), 'r')
-
-				# progress += sim.constants.TD
-				self.time += sim.constants.TD
 
 				if self.visualise:
 					if frames % plotFrames == 0:
 						self.visualiser.update()
-			# except:
-			# 	print "fail"
-			# 	self.finished = True
-
+		
+		# results
 		try:
 			latencies = list()
 			energies = list()
@@ -138,7 +109,7 @@ class simulation:
 				
 				samples = value[0]
 				res = value[1]
-
+	
 				latencies.append(res.latency)
 				energies.append(res.energy)
 			
@@ -149,7 +120,62 @@ class simulation:
 			# sim.debug.out ("jobs:\t\t", 		np.average(queueLengths))
 			sim.debug.out (np.histogram(queueLengths, bins=np.array(range(np.max(queueLengths) + 3)) - .5))
 		except:
-			sim.debug.out ("no results available")
+			sim.debug.out ("no results available")		
+
+
+	def simulateTick(self):
+		try:
+			sim.debug.out('tick {:.4f}'.format(self.time), 'b')
+
+			# create new jobs
+			for device in self.devices:
+				# mcu is required for taking samples
+				if not device.hasJob():
+					device.maybeAddNewJob(self.time)
+				
+			sim.debug.out("tasks before {0}".format([dev.currentTask for dev in self.devices]), 'r')
+
+			# update all the devices
+			for dev in self.devices:
+				dev.updateTime(self.time)
+				queueLengths.append(len(dev.jobQueue))
+
+			# capture energy values
+			for dev in self.devices:
+				energy = dev.energy()
+
+				# add energy to device counter
+				dev.totalEnergyCost += energy
+				# add energy to job 
+				if dev.currentJob is not None:
+					dev.currentJob.totalEnergyCost += energy
+					# see if device is in job history
+					if dev not in dev.currentJob.devicesEnergyCost.keys():
+						dev.currentJob.devicesEnergyCost[dev] = 0
+					
+					dev.currentJob.devicesEnergyCost[dev] += energy
+
+
+
+			sim.debug.out("have jobs:\t{0}".format([dev.hasJob() for dev in self.devices]), 'b')
+			sim.debug.out("jobQueues:\t{0}".format([len(dev.jobQueue) for dev in self.devices]), 'g')
+			sim.debug.out("batch:\t\t{0}".format([len(dev.batch) for dev in self.devices]), 'c')
+			sim.debug.out("taskQueues:\t{0}".format([len(dev.taskQueue) for dev in self.devices]), 'dg')
+			sim.debug.out("taskQueues:\t{0}".format([dev.taskQueue for dev in self.devices]), 'dg')
+			sim.debug.out("states: {0}".format([[comp.state for comp in dev.components] for dev in self.devices]))
+			sim.debug.out("tasks after {0}".format([dev.currentTask for dev in self.devices]), 'r')
+
+			# progress += sim.constants.TD
+			self.time += sim.constants.TD
+		except Exception:
+			print ("Exception", self.time)
+			raise Exception("crash")
+
+			# except:
+			# 	print "fail"
+			# 	self.finished = True
+
+	
 
 	# def simulateBatch(self, batch, attribute):
 	# 	for samples in batch:
