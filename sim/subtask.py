@@ -1,3 +1,5 @@
+# TX RESULT destination swap source
+
 import time 
 
 import sim.constants
@@ -11,6 +13,7 @@ import sim.debug
 class subtask:
 	duration = None
 	startTime = None
+	delay = None
 	progress = None
 	owner = None
 
@@ -41,6 +44,7 @@ class subtask:
 		# self.energyCost = energyCost
 
 		self.progress = 0
+		self.delay = 0
 		self.started = False
 		self.finished = False
 
@@ -52,9 +56,19 @@ class subtask:
 				self.beginTask()
 				sim.debug.out ("begin {} {}".format(self, self.started))
 			else:
+				self.delay += sim.constants.TD
 				# check for deadlock
 				if self.deadlock():
-					raise Exception("DEADLOCK", self.job.creator, self.job.processingNode, sim.constants.OFFLOADING_POLICY, sim.constants.JOB_LIKELIHOOD)
+					# raise Exception("DEADLOCK", self.job.creator, self.job.processingNode, sim.constants.OFFLOADING_POLICY, sim.constants.JOB_LIKELIHOOD)
+					sim.debug.out("DEADLOCK!\n\n\n")
+					# time.sleep(1.5)
+					if isinstance(self, txMessage):
+						sim.debug.out ("removing task {} from {}".format(self.correspondingRx, self.destination))
+						# resolve deadlock by making destination prioritise reception
+						# move current task to queue to be done later
+						self.destination.addTask(self.destination.currentTask) # current task not None so nextTask won't start this task again
+						self.destination.removeTask(self.correspondingRx)
+						self.destination.currentTask = self.correspondingRx # must remove task before setting as current
 
 				sim.debug.out("try again...")
 
@@ -161,7 +175,7 @@ class batchContinue(subtask):
 		self.job.processingNode.currentJob = None
 		self.job = self.job.processingNode.nextJobFromBatch()
 		
-		print ("next job from batch", self.job)
+		sim.debug.out ("next job from batch: {}".format(self.job))
 		# is there a new job?
 		if self.job is None:
 			# no more jobs available
@@ -400,7 +414,7 @@ class txMessage(subtask):
 	# __name__ = "TX Message"
 	
 	def __repr__(self):
-		return "{} (waiting)".format(self.__name__) if not self.started else subtask.__repr__(self)
+		return "{} (waiting for {})".format(self.__name__, self.destination) if not self.started else subtask.__repr__(self)
 
 	def __init__(self, job, source, destination, jobToAdd):
 		sim.debug.out("created txMessage")
@@ -432,9 +446,21 @@ class txMessage(subtask):
 		isPossible = False
 		if isinstance(self.destination.currentTask, rxMessage):
 			isPossible = self.destination.currentTask.correspondingTx == self
+		# check if rxmessage is already started (done) TODO: why so quick?
+		elif self.correspondingRx.started:
+			sim.debug.out("RX ALREADY STARTED OOPS")
+			isPossible = True
 		
 		# if not possible, wait more, otherwise no more waiting
 		self.waitingForRX = not isPossible
+
+		# print ("TX message possible?\t{} {} {} {} {}".format(self.owner, self, self.correspondingRx.owner, self.destination.currentTask, isPossible))
+		# print ("check1 {}".format(isinstance(self.destination.currentTask, rxMessage)))
+		# try:
+		# 	print ("check2 {}".format(self.destination.currentTask.correspondingTx))
+		# 	print ("RX side: {} {}".foramt(self.destination, self.destination.currentTask.correspondingTx))
+		# except:
+			# print ("COULDN'T FIND DESTINATION TX")
 
 		return isPossible
 	
@@ -444,9 +470,12 @@ class txMessage(subtask):
 		if isinstance(self.destination.currentTask, txMessage):
 			# is it not started
 			if not self.started and not self.destination.currentTask.started:
+				# is it also trying to send 
+				
+
 				# is it trying to send to me?
-				if (self.destination is self.destination.currentTask.source) and (self.source is self.destination.currentTask.destination):
-					return True
+				# if (self.destination is self.destination.currentTask.source) and (self.source is self.destination.currentTask.destination):
+				return True
 		# any other case is 
 		return False
 
@@ -544,7 +573,7 @@ class rxMessage(subtask):
 	# __name__ = "RX Message"
 
 	def __repr__(self):
-		return "{} (waiting)".format(self.__name__) if not self.started else subtask.__repr__(self)
+		return "{} (waiting for {})".format(self.__name__, self.correspondingTx.owner) if not self.started else subtask.__repr__(self)
 	
 	def __init__(self, job, duration, correspondingTx, source, destination):
 		self.source = source
@@ -559,8 +588,9 @@ class rxMessage(subtask):
 		
 	# only possible if the tx is waiting for it
 	def possible(self):
-		sim.debug.out("rx possible? {} {} {}".format(self.correspondingTx, self.destination.currentTask, self.correspondingTx == self.destination.currentTask))
-		return self.correspondingTx == self.source.currentTask
+		sim.debug.out("rx possible? {} {} {}".format(self.correspondingTx, self.source.currentTask, self.correspondingTx == self.source.currentTask))
+		# start if tx is also waiting, otherwise if tx has started already
+		return self.correspondingTx == self.source.currentTask or self.correspondingTx.started
 
 	# WHAT?
 	def beginTask(self):

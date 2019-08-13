@@ -19,21 +19,24 @@ requirements:
 all:
 	python3 training.py
 
-# experiments:
-jobsize:
-	python3 sim/experiments/jobSize.py
-batchsize:
-	python3 sim/experiments/batchSize.py
-fpgapowerplan:
-	python3 sim/experiments/fpgaPowerPlan.py
-offloadingpolicy:
-	sim/experiments/offloadingPolicies.py
-sleeptime:
-	python3 sim/experiments/sleepTime.py
+# # experiments:
+# jobsize:
+# 	python3 sim/experiments/jobSize.py
+# batchsize:
+# 	python3 sim/experiments/batchSize.py
+# fpgapowerplan:
+# 	python3 sim/experiments/fpgaPowerPlan.py
+# offloadingpolicy:
+# 	sim/experiments/offloadingPolicies.py
+# sleeptime:
+# 	python3 sim/experiments/sleepTime.py
 
-experiment:
-	# PYTHONPATH=$${PWD} python3 sim/experiments/experiment.py
-	python3 sim/experiments/experiment.py
+# experiment:
+# 	# PYTHONPATH=$${PWD} python3 sim/experiments/experiment.py
+# 	python3 sim/experiments/experiment.py
+
+.DEFAULT:
+	python3 sim/experiments/$@.py
 
 sim:
 	@echo "sim"

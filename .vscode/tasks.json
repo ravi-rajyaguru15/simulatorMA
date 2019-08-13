@@ -9,7 +9,7 @@
             "command": "make test",
             "options": {
                 "env": {
-                    // "DISPLAY": "localhost:11.0",
+                    "DISPLAY": "localhost:10.0",
                     "PYTHONPATH": "${cwd}"
                 }
             },

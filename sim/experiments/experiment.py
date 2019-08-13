@@ -14,12 +14,11 @@ import matplotlib.pyplot as pp
 import time
 import warnings
 
-
 def singleDelayedJobLocal(accelerated=True):
-	sim.constants.OFFLOADING_POLICY = sim.constants.LOCAL_ONLY
+	sim.constants.OFFLOADING_POLICY = sim.offloadingPolicy.LOCAL_ONLY
 	sim.constants.MINIMUM_BATCH = 1
 	
-	exp = simulation(0, 2, 0, visualise=True)
+	exp = simulation(0, 2, 0)
 
 	sim.constants.JOB_LIKELIHOOD = 0
 	# exp.en[0].createNewJob()
@@ -32,7 +31,7 @@ def singleDelayedJobLocal(accelerated=True):
 def singleBatchLocal(accelerated=True):
 	sim.constants.OFFLOADING_POLICY = sim.offloadingPolicy.LOCAL_ONLY
 	
-	exp = simulation(0, 2, 0, visualise=True)
+	exp = simulation(0, 2, 0)
 
 	sim.constants.JOB_LIKELIHOOD = 0
 	sim.constants.MINIMUM_BATCH = 2
@@ -53,7 +52,7 @@ def singleBatchLocal(accelerated=True):
 def singleBatchRemote(accelerated=True):
 	sim.constants.OFFLOADING_POLICY = sim.offloadingPolicy.RANDOM_PEER_ONLY
 	
-	exp = simulation(0, 2, 0, visualise=True)
+	exp = simulation(0, 2, 0)
 
 	sim.constants.JOB_LIKELIHOOD = 0
 	sim.constants.MINIMUM_BATCH = 2
@@ -79,7 +78,7 @@ def singleBatchRemote(accelerated=True):
 def singleDelayedJobPeer(accelerated=True):
 	sim.constants.OFFLOADING_POLICY = sim.offloadingPolicy.RANDOM_PEER_ONLY
 	
-	exp = simulation(0, 2, 0, visualise=True)
+	exp = simulation(0, 2, 0)
 
 	sim.constants.JOB_LIKELIHOOD = 0
 	sim.constants.DEFAULT_TASK_GRAPH = [sim.tasks.EASY]
@@ -91,7 +90,7 @@ def singleDelayedJobPeer(accelerated=True):
 def deadlock():
 	
 	sim.constants.SAMPLE_SIZE = sim.variable.Gaussian(10, 2)
-	sim.constants.SAMPLE_RAW_SIZE = sim.variable.Constant(4, integer=True)
+	sim.constants.SAMPLE_RAW_SIZE = sim.variable.Constant(40, integer=True) # TODO: change back to 4
 	sim.constants.SAMPLE_PROCESSED_SIZE = sim.variable.Constant(4, integer=True)
 	sim.constants.FPGA_POWER_PLAN = sim.fpgaPowerPolicy.FPGA_IMMEDIATELY_OFF
 
@@ -100,8 +99,10 @@ def deadlock():
 	sim.constants.DEFAULT_TASK_GRAPH = [sim.tasks.EASY]
 
 	sim.constants.MINIMUM_BATCH = 2
+	sim.constants.PLOT_TD = sim.constants.TD * 10
+	sim.constants.DISPLAY = False
 
-	exp = simulation(0, 4, 0, visualise=True, hardwareAccelerated=False)
+	exp = simulation(0, 4, 0, hardwareAccelerated=False)
 
 	# exp.simulateTime(sim.constants.PLOT_TD * 10)
 	exp.simulateTime(1)
@@ -116,7 +117,7 @@ def randomPeerJobs(accelerated=True):
 	sim.constants.DRAW_DEVICES = True
 	sim.constants.PLOT_TD = sim.constants.TD
 
-	exp = simulation(0, 4, 0, visualise=True, hardwareAccelerated=accelerated)
+	exp = simulation(0, 4, 0, hardwareAccelerated=accelerated)
 
 	sim.constants.JOB_LIKELIHOOD = 5e-2
 	exp.simulateTime(sim.constants.PLOT_TD * 100)
@@ -129,7 +130,7 @@ def randomLocalJobs(accelerated=True):
 	sim.constants.JOB_LIKELIHOOD = 10e-2
 	sim.constants.OFFLOADING_POLICY = sim.offloadingPolicy.LOCAL_ONLY
 
-	exp = simulation(0, 1, 0, visualise=True, hardwareAccelerated=accelerated)
+	exp = simulation(0, 1, 0, hardwareAccelerated=accelerated)
 	exp.simulateTime(.5)
 
 def randomJobs(offloadingPolicy=sim.offloadingPolicy.ANYTHING, hw=True):
@@ -139,7 +140,7 @@ def randomJobs(offloadingPolicy=sim.offloadingPolicy.ANYTHING, hw=True):
 	sim.constants.SAMPLE_SIZE = sim.variable.Constant(10)
 	sim.constants.PLOT_TD = sim.constants.TD * 1
 
-	exp = simulation(0, 2, 0, visualise=True, hardwareAccelerated=hw)
+	exp = simulation(0, 4, 0, hardwareAccelerated=hw)
 	# exp.simulateTime(0.02)
 	# exp.devices[1].createNewJob(exp.time, hardwareAccelerated=hw)
 	# exp.simulateUntilTime(0.1)
@@ -157,7 +158,7 @@ def testRepeatsSeparateThread(i, jobLikelihood, resultsQueue):
 	
 	# for samples in samplesList:
 
-	exp = simulation(0, 4, 0, visualise=False, hardwareAccelerated=False)
+	exp = simulation(0, 4, 0, hardwareAccelerated=False)
 
 	# exp.simulateTime(sim.constants.PLOT_TD * 10)
 	# exp.devices[0].createNewJob(exp.time, hardwareAccelerated=False)
@@ -221,7 +222,7 @@ def testRepeatsSeparate():
 def testRepeatsThread(name, samples, resultsQueue):
 	sim.constants.SAMPLE_SIZE = sim.variable.Constant(samples)
 
-	exp = simulation(0, 1, 0, visualise=False)
+	exp = simulation(0, 1, 0)
 
 	exp.simulateTime(sim.constants.PLOT_TD * 10)
 	exp.devices[0].createNewJob(exp.time, hardwareAccelerated=False)
@@ -263,7 +264,7 @@ def testRepeats():
 # creates dictionary with (avg, std) for each x for each graph
 def assembleResults(numResults, resultsQueue):
 	# process results into dict
-	print ("assembling results")
+	print ("assembling results", numResults)
 	graphs = dict()
 	for i in range(numResults):
 		result = resultsQueue.get()
@@ -308,8 +309,8 @@ if __name__ == '__main__':
 	# sim.randomPeerJobs(True)
 	# randomLocalJobs(False)
 	# randomPeerJobs(False)
-	# randomJobs(offloadingPolicy=sim.offloadingPolicy.RANDOM_PEER_ONLY, hw=False)
-	deadlock()
+	randomJobs(offloadingPolicy=sim.offloadingPolicy.ANYTHING, hw=False)
+	# deadlock()
 	
 	# totalEnergyJobSize()
 	# testRepeatsSeparate()

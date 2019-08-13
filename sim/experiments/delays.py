@@ -12,19 +12,19 @@ import traceback
 import warnings
 
 numDevices = 4
-def runThread(name, jobLikelihood, offloadingPolicy, results):
-	sim.constants.OFFLOADING_POLICY = offloadingPolicy
+def runThread(offloading, jobLikelihood, numTicks , results):
 	sim.constants.JOB_LIKELIHOOD = jobLikelihood
 
 	# sim.constants.SAMPLE_SIZE = sim.variable.Constant(samples)
 	exp = simulation(0, numDevices, 0, hardwareAccelerated=True)
 
-	exp.simulateTime(10)
+	for i in range(numTicks):
+		# exp.simulateTime(10)
+		exp.simulateTick()
+		# for j in range(len(exp.devices))
+	results.put(["Offloading Policy {}".format(offloading), jobLikelihood, np.average(exp.delays)])
 
-	if not exp.allDone():
-		warnings.warn("not all devices done: {}".format(numDevices))
-
-	results.put([name, jobLikelihood, np.average([dev.totalSleepTime for dev in exp.devices])])
+			# print (["Job Likelihood {:.2f}".format(jobLikelihood), i, exp.delays])
 
 
 def run():
@@ -34,24 +34,28 @@ def run():
 	sim.constants.SAMPLE_RAW_SIZE = sim.variable.Constant(4, integer=True)
 	sim.constants.SAMPLE_PROCESSED_SIZE = sim.variable.Constant(4, integer=True)
 	sim.constants.FPGA_POWER_PLAN = sim.fpgaPowerPolicy.FPGA_IMMEDIATELY_OFF
+	sim.constants.OFFLOADING_POLICY = sim.offloadingPolicy.RANDOM_PEER_ONLY
+	sim.constants.DRAW = False
 
 	processes = list()
-	sim.constants.MINIMUM_BATCH = 5
+	# sim.constants.MINIMUM_BATCH = 5
 	
+	numTicks = 10000
+
 	# offloadingOptions = [True, False]
 	results = multiprocessing.Queue()
-	sim.constants.REPEATS = 6
+	sim.constants.REPEATS = 9
 
-	for jobLikelihood in np.arange(1e-2, 10e-2, 1e-2):
+	for jobLikelihood in np.arange(1e-3, 2e-2, 1e-3):
 		# for fpgaPowerPlan in [sim.fpgaPowerPolicy.FPGA_STAYS_ON]: # , sim.constants.FPGA_IMMEDIATELY_OFF, sim.constants.FPGA_WAIT_OFF]:
 		for offloading in sim.offloadingPolicy.OPTIONS:
 			for i in range(sim.constants.REPEATS):
-				processes.append(multiprocessing.Process(target=runThread, args=("Offloading {}".format(offloading), jobLikelihood, offloading, results)))
+				processes.append(multiprocessing.Process(target=runThread, args=(offloading, jobLikelihood, numTicks, results)))
 	
 	for process in processes: process.start()
 	# for process in processes: process.join()
 
-	sim.plotting.plotMultiWithErrors("sleep time", results=experiment.assembleResults(len(processes), results)) # , save=True)
+	sim.plotting.plotMultiWithErrors("delays", results=experiment.assembleResults(len(processes), results)) # , save=True)
 
 try:
 	run()

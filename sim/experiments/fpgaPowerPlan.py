@@ -18,7 +18,7 @@ def runThread(name, jobLikelihood, offloadingPolicy, fpgaPowerPlan, results):
 	sim.constants.JOB_LIKELIHOOD = jobLikelihood
 
 	# sim.constants.SAMPLE_SIZE = sim.variable.Constant(samples)
-	exp = simulation(0, numDevices, 0, visualise=False, hardwareAccelerated=True)
+	exp = simulation(0, numDevices, 0, hardwareAccelerated=True)
 
 	# exp.simulateTime(0.1)
 	# exp.devices[0].createNewJob(exp.time, hardwareAccelerated=hw)

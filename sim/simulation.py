@@ -24,16 +24,19 @@ class simulation:
 	jobResults = None
 	time = None
 	devices = None
-	visualise = None
+	delays = None
+	currentDelays = None
+	# visualise = None
 	visualisor = None
 	finished = False
 	hardwareAccelerated = None
 
-	def __init__(self, numEndDevices, numElasticNodes, numServers, visualise=False, hardwareAccelerated=None):
+	def __init__(self, numEndDevices, numElasticNodes, numServers, hardwareAccelerated=None):
 		sim.debug.out(numEndDevices + numElasticNodes)
 		self.results = multiprocessing.Manager().Queue()
 		self.jobResults = multiprocessing.Manager().Queue()
 		job.jobResultsQueue = self.jobResults
+		self.delays = list()
 
 		self.time = 0
 		
@@ -53,8 +56,8 @@ class simulation:
 			device.setOffloadingDecisions(self.devices)
 
 		self.hardwareAccelerated = hardwareAccelerated
-		self.visualise = visualise
-		if self.visualise:
+		# self.visualise = visualise
+		if sim.constants.DRAW:
 			self.visualiser = visualiser(self)
 
 	def stop(self):
@@ -72,7 +75,7 @@ class simulation:
 			frames == 1
 			self.simulateTick()
 			
-			if self.visualise:
+			if sim.constants.DRAW or sim.constants.SAVE:
 				if frames % plotFrames == 0:
 					self.visualiser.update()
 		
@@ -96,7 +99,7 @@ class simulation:
 				self.simulateTick()
 				frames += 1
 
-				if self.visualise:
+				if sim.constants.DISPLAY:
 					if frames % plotFrames == 0:
 						self.visualiser.update()
 		
@@ -164,7 +167,11 @@ class simulation:
 			sim.debug.out("taskQueues:\t{0}".format([dev.taskQueue for dev in self.devices]), 'dg')
 			sim.debug.out("states: {0}".format([[comp.state for comp in dev.components] for dev in self.devices]))
 			sim.debug.out("tasks after {0}".format([dev.currentTask for dev in self.devices]), 'r')
-
+			
+			self.currentDelays = [dev.currentTask.delay if dev.currentTask is not None else 0 for dev in self.devices ]
+			self.delays.append(self.currentDelays)
+			if np.sum(self.currentDelays) > 0:
+				sim.debug.out("delays {}".format(self.currentDelays))
 			# progress += sim.constants.TD
 			self.time += sim.constants.TD
 		except Exception:

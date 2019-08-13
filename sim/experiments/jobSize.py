@@ -11,7 +11,7 @@ import multiprocessing
 def totalEnergyJobSizeThread(name, hw, samples, results):
 	sim.constants.SAMPLE_SIZE = sim.variable.Constant(samples)
 
-	exp = simulation(0, 1, 0, visualise=False)
+	exp = simulation(0, 1, 0)
 
 	exp.simulateTime(0.1)
 	exp.devices[0].createNewJob(exp.time, hardwareAccelerated=hw)

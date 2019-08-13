@@ -5,21 +5,25 @@ oldBackend = mpl.get_backend()
 print ("existing", oldBackend)
 if os.name != 'nt':
 	try:
-		mpl.use("TKAgg")
+		mpl.use("Qt5Agg")
 		# mpl.use("Qt4Agg")
 	except ImportError:
 		mpl.use(oldBackend)
-		print ("Cannot import Qt4")
+		print ("Cannot import MPL backend")
 import matplotlib.pyplot as pp
 import pylab
 import math
 import numpy as np
-
+# import sys
+# sys.exit(0)
 import sim.constants
 from sim.elasticNode import elasticNode
 from sim.endDevice import endDevice
 import sim.plotting
 
+DEVICE_SIZE = [0.2, 0.1]
+TEXT_SPACING = 0.05
+BORDER = 0.05
 DEVICES_FIGURE = 0
 DEVICES_ENERGY_FIGURE = 1
 DEVICES_POWER_FIGURE = 2
@@ -37,8 +41,8 @@ class visualiser:
 		if sim.constants.DRAW_DEVICES:
 			print ("Creating 1")
 			pp.figure(DEVICES_FIGURE)
-			pp.xlim(0, 1)
-			pp.ylim(0, 1)
+			# pp.xlim(0, 1)
+			# pp.ylim(0, 1)
 
 		if sim.constants.DRAW_GRAPH_TOTAL_ENERGY:
 			print ("Creating 2")
@@ -67,16 +71,15 @@ class visualiser:
 			print("Cannot modify QT window")
 
 
-		grid, _, _ = visualiser.gridLayout(self.sim.devices, (1,1), (.5,.5))
-		deviceSize = width, height = [0.2, 0.1]
+		grid, _, _ = visualiser.gridLayout(self.sim.devices)
+		deviceSize = width, height = DEVICE_SIZE
 		
-		border = 0.05
 		# create images for each node
 		for dev, location in zip(self.sim.devices, grid):
 			# dev.location = location
 
 			# node drawing
-			visualiser.createRectangle(dev, (location[0], location[1]), (width + border * 2, height + border * 2), fill=False)
+			visualiser.createRectangle(dev, (location[0], location[1]), (width + BORDER * 2, height + BORDER * 2), fill=False)
 			# visualiser.createText(dev, (location[0], location[1]))
 
 			# component drawing
@@ -88,10 +91,17 @@ class visualiser:
 
 	@staticmethod
 	# tight refers to whether there are gaps inbetween 
-	def gridLayout(elements, boundingBox, location, tight=False):
+	def gridLayout(elements, boundingBox=None, location=None, tight=False):
+		square = math.sqrt(len(elements))
+		if boundingBox is None:
+			boundingBox = (square, square)
+		
+		if location is None:
+			location = (boundingBox[0]/2, boundingBox[1]/2)
+		
 		grid = list()
 		# calculate layout
-		cols = math.ceil(math.sqrt(len(elements)))
+		cols = math.ceil(square)
 		rows = math.ceil(len(elements) / cols)
 		
 		if rows * cols < len(elements):
@@ -192,6 +202,18 @@ class visualiser:
 		for dev in self.sim.devices:
 			self.draw(dev)
 		
+		# limits
+		xlimits = (-DEVICE_SIZE[0] - BORDER * 4 + np.min([dev.location[0] for dev in self.sim.devices]), DEVICE_SIZE[0] + BORDER * 4 + np.max([dev.location[0] for dev in self.sim.devices]))
+		ylimits = (-DEVICE_SIZE[1] - BORDER * 4 + np.min([dev.location[1] for dev in self.sim.devices]), DEVICE_SIZE[1] + BORDER * 4 + np.max([dev.location[1] for dev in self.sim.devices]))
+
+		# print(np.min([xlimits[0], 0]))
+		# print(np.max([xlimits[1], 1]))
+		# pp.xlim(np.min([xlimits[0], 0]), np.max([xlimits[1], 1]))
+		# pp.ylim(np.min([ylimits[0], 0]), np.max([ylimits[1], 1]))
+		pp.xlim(xlimits)
+		pp.ylim(ylimits)
+		
+		
 	def draw(self, node):
 		try:
 			image = list()
@@ -201,8 +223,8 @@ class visualiser:
 			image.append(node.rectangle)
 
 			# update node's title to current description
-			pp.gca().text(x=node.location[0], y=node.location[1] + node.rectangle.get_height()/2 + .05, s=node, verticalalignment='center', horizontalalignment='center')
-			pp.gca().text(x=node.location[0], y=node.location[1] + node.rectangle.get_height()/2 + .02, s=node.currentTask, verticalalignment='center', horizontalalignment='center')
+			pp.gca().text(x=node.location[0], y=node.location[1] + node.rectangle.get_height()/2 + TEXT_SPACING * 2, s=node, verticalalignment='bottom', horizontalalignment='center')
+			pp.gca().text(x=node.location[0], y=node.location[1] + node.rectangle.get_height()/2 + TEXT_SPACING, s=node.currentTask, verticalalignment='top', horizontalalignment='center')
 
 			# draw all processors and wireless
 			for component in node.components:

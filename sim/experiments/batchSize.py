@@ -16,7 +16,7 @@ def totalEnergyBatchSizeThread(name, hw, offloadingPolicy, batchSize, results):
 	sim.constants.OFFLOADING_POLICY = offloadingPolicy # sim.constants.PEER_ONLY if offloading else sim.constants.LOCAL_ONLY
 
 	# sim.constants.SAMPLE_SIZE = sim.variable.Constant(samples)
-	exp = simulation(0, 4, 0, visualise=False, hardwareAccelerated=hw)
+	exp = simulation(0, 4, 0, hardwareAccelerated=hw)
 
 	# exp.simulateTime(0.1)
 	# exp.devices[0].createNewJob(exp.time, hardwareAccelerated=hw)

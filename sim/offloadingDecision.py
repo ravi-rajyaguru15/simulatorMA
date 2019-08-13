@@ -1,4 +1,5 @@
 import sim.constants
+import sim.debug
 # import sim.elasticNode
 
 import warnings
@@ -32,7 +33,7 @@ class offloadingDecision:
         else:
             raise Exception("Unknown offloading policy")
 
-        print(sim.constants.OFFLOADING_POLICY, self.owner, self.options)
+        # print(sim.constants.OFFLOADING_POLICY, self.owner, self.options)
 
     def chooseDestination(self, task):
         if self.options is None:
@@ -45,6 +46,7 @@ class offloadingDecision:
         choice = random.choice(self.options)
         # print (self.options, choice)
         # task.setDestination(choice)
+        sim.debug.out("Job assigned: {} -> {}".format(self.owner, choice))
 
         return choice
 
