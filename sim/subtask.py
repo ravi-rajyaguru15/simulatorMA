@@ -1,5 +1,4 @@
 # TX RESULT destination swap source
-
 import time 
 
 import sim.constants
@@ -175,7 +174,7 @@ class batchContinue(subtask):
 		self.job.processingNode.currentJob = None
 		self.job = self.job.processingNode.nextJobFromBatch()
 		
-		sim.debug.out ("next job from batch: {}".format(self.job))
+		sim.debug.out ("next job from batch {}".format(self.job))
 		# is there a new job?
 		if self.job is None:
 			# no more jobs available
