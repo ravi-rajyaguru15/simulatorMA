@@ -72,7 +72,7 @@ class simulation:
 		plotFrames = sim.constants.PLOT_TD / sim.constants.TD
 
 		while not self.finished:
-			frames == 1
+			frames += 1
 			self.simulateTick()
 			
 			if sim.constants.DRAW or sim.constants.SAVE:
@@ -99,7 +99,7 @@ class simulation:
 				self.simulateTick()
 				frames += 1
 
-				if sim.constants.DISPLAY:
+				if sim.constants.DRAW:
 					if frames % plotFrames == 0:
 						self.visualiser.update()
 		

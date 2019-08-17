@@ -53,6 +53,7 @@ def plotMultiWithErrors(name, results=None, ylim=None): # , show=False, save=Fal
 		pp.errorbar(x, y, yerr=errors)
 	
 	pp.legend(legends)
+	pp.grid()
 	
 	pp.title(name)
 

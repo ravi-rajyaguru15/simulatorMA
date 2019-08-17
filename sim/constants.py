@@ -1,6 +1,6 @@
 import sim.tasks
 from sim.variable import *
-import sim.fpgaPowerPolicy
+import sim.powerPolicy
 import sim.offloadingPolicy
 from enum import Enum
 
@@ -69,7 +69,10 @@ OFFLOADING_POLICY = sim.offloadingPolicy.LOCAL_ONLY
 OFFLOADING_PEER = 0
 
 # energy management
-FPGA_POWER_PLAN = sim.fpgaPowerPolicy.FPGA_IMMEDIATELY_OFF # TODO: entirely unimplemented, sleep current and timer for sleep
+FPGA_POWER_PLAN = sim.powerPolicy.IMMEDIATELY_OFF # TODO: entirely unimplemented, sleep current and timer for sleep
+MCU_POWER_PLAN = sim.powerPolicy.IMMEDIATELY_OFF # TODO: entirely unimplemented, sleep current and timer for sleep
+FPGA_IDLE_SLEEP = 0.1
+MCU_IDLE_SLEEP = .05
 
 # batching policy
 MINIMUM_BATCH = 5
@@ -91,3 +94,5 @@ SAVE_GRAPH = False
 
 # experiments
 REPEATS = 4
+THREAD_COUNT = 14
+MAX_DELAY = 0.1

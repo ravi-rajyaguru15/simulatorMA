@@ -13,6 +13,7 @@ import numpy as np
 import matplotlib.pyplot as pp
 import time
 import warnings
+import sys
 
 def singleDelayedJobLocal(accelerated=True):
 	sim.constants.OFFLOADING_POLICY = sim.offloadingPolicy.LOCAL_ONLY
@@ -36,7 +37,8 @@ def singleBatchLocal(accelerated=True):
 	sim.constants.JOB_LIKELIHOOD = 0
 	sim.constants.MINIMUM_BATCH = 2
 	sim.constants.SAMPLE_SIZE = sim.variable.Constant(1)
-	sim.constants.FPGA_POWER_PLAN = sim.constants.FPGA_IMMEDIATELY_OFF
+	sim.constants.FPGA_POWER_PLAN = sim.powerPolicy.IDLE_TIMEOUT
+	sim.constants.MCU_POWER_PLAN = sim.powerPolicy.IDLE_TIMEOUT
 	sim.constants.PLOT_TD = sim.constants.TD
 	sim.constants.RECONFIGURATION_TIME = sim.variable.Constant(0.05)
 	exp.simulateTime(0.015)
@@ -48,6 +50,7 @@ def singleBatchLocal(accelerated=True):
 		exp.simulateUntilTime(0.2)
 	else:
 		exp.simulateUntilTime(0.1)
+	exp.simulate()
 
 def singleBatchRemote(accelerated=True):
 	sim.constants.OFFLOADING_POLICY = sim.offloadingPolicy.RANDOM_PEER_ONLY
@@ -135,18 +138,12 @@ def randomLocalJobs(accelerated=True):
 
 def randomJobs(offloadingPolicy=sim.offloadingPolicy.ANYTHING, hw=True):
 	sim.constants.OFFLOADING_POLICY = offloadingPolicy
-	sim.constants.JOB_LIKELIHOOD = 2e-2
+	sim.constants.JOB_LIKELIHOOD = 5e-3
 	sim.constants.SAMPLE_RAW_SIZE = sim.variable.Constant(40)
 	sim.constants.SAMPLE_SIZE = sim.variable.Constant(10)
-	sim.constants.PLOT_TD = sim.constants.TD * 1
+	sim.constants.PLOT_TD = sim.constants.TD * 100
 
 	exp = simulation(0, 4, 0, hardwareAccelerated=hw)
-	# exp.simulateTime(0.02)
-	# exp.devices[1].createNewJob(exp.time, hardwareAccelerated=hw)
-	# exp.simulateUntilTime(0.1)
-	# exp.devices[1].createNewJob(exp.time, hardwareAccelerated=hw)
-	# exp.simulateUntilTime(0.25)
-	# exp.devices[1].createNewJob(exp.time, hardwareAccelerated=hw)
 	exp.simulate() #UntilTime(1)
 
 def testRepeatsSeparateThread(i, jobLikelihood, resultsQueue):
@@ -282,16 +279,34 @@ def assembleResults(numResults, resultsQueue):
 	for key, graph in graphs.items():
 		# turn each list into a (value, error) tuple
 		outputGraphs[key] = dict()
-		print()
-		print(key)
-		print (graph)
+		# print()
+		# print(key)
+		# print (graph)
 		for x, ylist in graph.items():
 			outputGraphs[key][x] = (np.average(ylist), np.std(ylist))
-			print(outputGraphs[key][x])
-			print(ylist)
-			print()
+			# print(outputGraphs[key][x])
+			# print(ylist)
+			# print()
 	
 	return outputGraphs
+
+		
+def executeMulti(processes):
+	currentThreads = 0
+	startedThreads = 0
+	finishedThreads = 0
+	while startedThreads < len(processes):
+		while currentThreads < sim.constants.THREAD_COUNT:
+			processes[startedThreads].start()
+			startedThreads += 1
+			currentThreads += 1
+		
+		# wait for at least one to finish
+		processes[finishedThreads].join()
+		finishedThreads += 1
+		currentThreads -= 1
+
+		sys.stdout.write("\rProgress: {:.2f}%".format(float(finishedThreads)/len(processes)*100.))
 
 if __name__ == '__main__':
 	# for i in range(1, 100, 10):
@@ -309,7 +324,7 @@ if __name__ == '__main__':
 	# sim.randomPeerJobs(True)
 	# randomLocalJobs(False)
 	# randomPeerJobs(False)
-	randomJobs(offloadingPolicy=sim.offloadingPolicy.ANYTHING, hw=False)
+	randomJobs(offloadingPolicy=sim.offloadingPolicy.ANYTHING, hw=True)
 	# deadlock()
 	
 	# totalEnergyJobSize()

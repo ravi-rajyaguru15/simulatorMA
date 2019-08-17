@@ -12,6 +12,7 @@ class fpga(processor):
 	sleepColour = (0, 0, 0.2, 1)
 	reconfigurationColour = (0, 0, 0.25, 1)
 
+
 	currentConfig = None
 	reconfigurationCurrent = [sim.constants.FPGA_RECONFIGURATION_INT_CURRENT, sim.constants.FPGA_RECONFIGURATION_AUX_CURRENT]
 
@@ -21,7 +22,15 @@ class fpga(processor):
 			activeCurrent = [sim.constants.FPGA_ACTIVE_INT_CURRENT, sim.constants.FPGA_ACTIVE_AUX_CURRENT],
 			idleCurrent = [sim.constants.FPGA_IDLE_INT_CURRENT, sim.constants.FPGA_IDLE_AUX_CURRENT],
 			sleepCurrent = [sim.constants.FPGA_SLEEP_INT_CURRENT, sim.constants.FPGA_SLEEP_AUX_CURRENT],
-			processingSpeed = sim.constants.FPGA_PROCESSING_SPEED)
+			processingSpeed = sim.constants.FPGA_PROCESSING_SPEED, 
+			idleTimeout = sim.constants.FPGA_IDLE_SLEEP)
+
+	def timeOutSleep(self):
+		if sim.constants.FPGA_POWER_PLAN == sim.powerPolicy.IDLE_TIMEOUT:
+			processor.timeOutSleep(self)
+		elif sim.constants.FPGA_POWER_PLAN == sim.powerPolicy.IMMEDIATELY_OFF and self.isIdle():
+			self.sleep()
+			
 
 	# power states
 	def reconfigure(self, task):
@@ -33,6 +42,7 @@ class fpga(processor):
 	# loses configuration when it sleeps
 	def sleep(self):
 		self.currentConfig = None
+		processor.sleep(self)
 
 	def current(self):
 		if self.state == sim.powerState.RECONFIGURING:
@@ -49,7 +59,6 @@ class fpga(processor):
 	def isConfigured(self, task):
 		assert task is not None
 		return self.currentConfig == task
-
 
 	# def reconfigurationEnergy(self, time):
 	# 	return time * np.dot([voltage.gen() for voltage in self.voltage], [current.gen() for current in self.reconfigurationCurrent])

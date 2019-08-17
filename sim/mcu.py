@@ -14,8 +14,14 @@ class mcu(processor):
 			activeCurrent = [sim.constants.MCU_ACTIVE_CURRENT],
 			idleCurrent = [sim.constants.MCU_IDLE_CURRENT],
 			sleepCurrent = [sim.constants.MCU_SLEEP_CURRENT],
-			processingSpeed = sim.constants.MCU_PROCESSING_SPEED)
+			processingSpeed = sim.constants.MCU_PROCESSING_SPEED, 
+			idleTimeout = sim.constants.MCU_IDLE_SLEEP)
 		self.messageOverheadLatency = sim.constants.MCU_MESSAGE_OVERHEAD_LATENCY
+
+
+	def timeOutSleep(self):
+		if sim.constants.MCU_POWER_PLAN == sim.powerPolicy.IDLE_TIMEOUT:
+			processor.timeOutSleep(self)
 
 	def overheadTime(self):
 		return self.messageOverheadLatency.gen()

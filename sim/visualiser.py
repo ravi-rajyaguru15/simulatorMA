@@ -5,7 +5,7 @@ oldBackend = mpl.get_backend()
 print ("existing", oldBackend)
 if os.name != 'nt':
 	try:
-		mpl.use("Qt5Agg")
+		mpl.use("TkAgg")
 		# mpl.use("Qt4Agg")
 	except ImportError:
 		mpl.use(oldBackend)

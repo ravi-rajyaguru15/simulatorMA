@@ -24,6 +24,7 @@ class elasticNode(node):
 		node.__init__(self, queue, index, nodeType=sim.constants.ELASTIC_NODE, components = [self.mcu, self.fpga, self.mrf], alwaysHardwareAccelerate=alwaysHardwareAccelerate)
 
 
+	
 	# def processingEnergy(self, duration):
 	# 	return self.mcu.idleEnergy(duration) + self.mrf.idleEnergy(duration) + self.fpga.activeEnergy(duration)
 

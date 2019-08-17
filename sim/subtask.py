@@ -1,11 +1,12 @@
 # TX RESULT destination swap source
 import time 
+import sys
 
 import sim.constants
 from sim.mcu import mcu
 from sim.fpga import fpga
 from sim.powerState import powerStates
-import sim.fpgaPowerPolicy
+import sim.powerPolicy
 import sim.offloadingPolicy
 import sim.debug
 
@@ -57,17 +58,37 @@ class subtask:
 			else:
 				self.delay += sim.constants.TD
 				# check for deadlock
-				if self.deadlock():
-					# raise Exception("DEADLOCK", self.job.creator, self.job.processingNode, sim.constants.OFFLOADING_POLICY, sim.constants.JOB_LIKELIHOOD)
-					sim.debug.out("DEADLOCK!\n\n\n")
-					# time.sleep(1.5)
-					if isinstance(self, txMessage):
+				if isinstance(self, txMessage):
+					if self.deadlock():
+						# raise Exception("DEADLOCK", self.job.creator, self.job.processingNode, sim.constants.OFFLOADING_POLICY, sim.constants.JOB_LIKELIHOOD)
+						sim.debug.out("DEADLOCK!\n\n\n")
+						# time.sleep(1.5)
 						sim.debug.out ("removing task {} from {}".format(self.correspondingRx, self.destination))
 						# resolve deadlock by making destination prioritise reception
 						# move current task to queue to be done later
-						self.destination.addTask(self.destination.currentTask) # current task not None so nextTask won't start this task again
-						self.destination.removeTask(self.correspondingRx)
-						self.destination.currentTask = self.correspondingRx # must remove task before setting as current
+						try:
+							self.destination.currentTask.delay = 0
+							self.destination.addTask(self.destination.currentTask) # current task not None so nextTask won't start this task again
+							self.destination.removeTask(self.correspondingRx)
+							self.destination.currentTask = self.correspondingRx # must remove task before setting as current
+						except ValueError:
+							print()
+							print("Cannot resolve deadlock!")
+							print("current", self.destination.currentTask)
+							print("duration", self.duration, self.correspondingRx.duration)
+							print("rx", self.correspondingRx, self.correspondingRx.started)
+							print("queue", self.destination.taskQueue)
+							sys.exit(0)
+
+					# # is it delayed?
+					# elif self.delay >= sim.constants.MAX_DELAY:
+					# 	print("task delayed!\n\n")
+					# 	time.sleep(.1)
+					# 	self.owner.swapTask()
+					# 	# see if it's been swapped
+					# 	if self.owner.currentTask != self:
+					# 		self.delay = 0
+
 
 				sim.debug.out("try again...")
 
@@ -179,11 +200,12 @@ class batchContinue(subtask):
 		if self.job is None:
 			# no more jobs available
 			processingMcu.sleep()
-			# maybe sleep FPGA
-			sim.debug.out(sim.constants.FPGA_POWER_PLAN)
-			if sim.constants.FPGA_POWER_PLAN != sim.fpgaPowerPolicy.FPGA_STAYS_ON:
-				processingFpga.sleep()
-				sim.debug.out ("SLEEPING FPGA")
+			# # maybe sleep FPGA
+			# sim.debug.out(sim.constants.FPGA_POWER_PLAN)
+
+			# if sim.constants.FPGA_POWER_PLAN != sim.powerPolicy.STAYS_ON:
+			# 	processingFpga.sleep()
+			# 	sim.debug.out ("SLEEPING FPGA")
 		else:
 			self.job.processingNode.mcu.active()
 			self.job.processingNode.addTask(newJob(self.job))
@@ -445,8 +467,9 @@ class txMessage(subtask):
 		isPossible = False
 		if isinstance(self.destination.currentTask, rxMessage):
 			isPossible = self.destination.currentTask.correspondingTx == self
+		
 		# check if rxmessage is already started (done) TODO: why so quick?
-		elif self.correspondingRx.started:
+		if self.correspondingRx.started:
 			sim.debug.out("RX ALREADY STARTED OOPS")
 			isPossible = True
 		
@@ -465,8 +488,8 @@ class txMessage(subtask):
 	
 	# check if this task is being deadlocked
 	def deadlock(self):
-		# is destination also trying to send?
-		if isinstance(self.destination.currentTask, txMessage):
+		# is destination also trying to send or receive?
+		if isinstance(self.destination.currentTask, txMessage) or isinstance(self.destination.currentTask, rxMessage):
 			# is it not started
 			if not self.started and not self.destination.currentTask.started:
 				# is it also trying to send 
