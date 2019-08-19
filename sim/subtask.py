@@ -174,6 +174,12 @@ class createMessage(subtask):
 
 		subtask.finishTask(self)
 
+# class idle(subtask):
+# 	__name__ = "Idle"
+
+# 	def beginTask(self):
+
+
 class batchContinue(subtask):
 	__name__ = "Batch Continue"
 
@@ -230,27 +236,31 @@ class batching(subtask):
 		subtask.beginTask(self)
 
 	def finishTask(self):
-		# add current job to node's batch
-		self.job.processingNode.batch.append(self.job)
-		# job has been backed up in batch and will be selected in finish
-		self.job.processingNode.removeJob(self.job)
-
-		sim.debug.out("Batch: {0}/{1}".format(len(self.job.processingNode.batch), sim.constants.MINIMUM_BATCH), 'c')
-
-		# see if batch is full enough to start now
-		if len(self.job.processingNode.batch) >= sim.constants.MINIMUM_BATCH:
-			# grab first task
-			sim.debug.out("activating job")
-			self.job.processingNode.currentJob = None
-			self.job = self.job.processingNode.nextJobFromBatch()
-			
-			# start first job in queue
+		# special case: hardware acceleration already there
+		if self.job.hardwareAccelerated and self.job.processingNode.fpga.isConfigured(self.job.currentTask):
 			self.job.processingNode.addTask(newJob(self.job))
-		# go to sleep until next task
-		else:
-			self.job.processingNode.mcu.sleep()
-			# remove job from current owner
-			# self.job.processingNode.removeJob(self.job)
+		else:			
+			# add current job to node's batch
+			self.job.processingNode.batch.append(self.job)
+			# job has been backed up in batch and will be selected in finish
+			self.job.processingNode.removeJob(self.job)
+
+			sim.debug.out("Batch: {0}/{1}".format(len(self.job.processingNode.batch), sim.constants.MINIMUM_BATCH), 'c')
+
+			# see if batch is full enough to start now
+			if len(self.job.processingNode.batch) >= sim.constants.MINIMUM_BATCH:
+				# grab first task
+				sim.debug.out("activating job")
+				self.job.processingNode.currentJob = None
+				self.job = self.job.processingNode.nextJobFromBatch()
+				
+				# start first job in queue
+				self.job.processingNode.addTask(newJob(self.job))
+			# go to sleep until next task
+			else:
+				self.job.processingNode.mcu.sleep()
+				# remove job from current owner
+				# self.job.processingNode.removeJob(self.job)
 
 		subtask.finishTask(self)
 
@@ -366,7 +376,8 @@ class fpgaMcuOffload(xmem):
 		if self.job.offloaded():
 			self.job.processingNode.addTask(txResult(self.job, self.job.processingNode, self.job.creator))
 		else:
-			self.job.finish()
+			self.job.processingNode.addTask(batchContinue(self.job))
+			# self.job.finish()
 	
 		xmem.finishTask(self)
 
@@ -420,12 +431,6 @@ class processing(subtask):
 				
 				# self.job.creator.jobActive = False
 		subtask.finishTask(self)
-
-# class txWaiting(subtask):
-# 	destination = None
-# 	source = None
-	
-
 
 class txMessage(subtask):
 	destination = None
@@ -571,12 +576,6 @@ class txResult(txMessage):
 
 		txMessage.__init__(self, job, source, destination, jobToAdd=rxResult)
 
-	# def beginTask(self):
-	# 	# add receive task to destination
-	# 	# self.destination.addTask(rxResult(self.job, self.duration))
-
-	# 	txMessage.beginTask(self)
-
 	def finishTask(self):
 		# this is result being returned
 		# self.job.processingNode.jobActive = False
@@ -642,10 +641,6 @@ class rxMessage(subtask):
 class rxJob(rxMessage):
 	__name__ = "RX Job"
 	
-	# def __init__(self, job, duration, txMessage, owner=None):
-	# 	sim.debug.out ("created rxJob")
-	# 	rxMessage.__init__(self, job, duration, txMessage, owner=owner)
-
 	def finishTask(self):
 		sim.debug.out("adding processing task 1")
 		self.job.processingNode.addTask(batching(self.job))
@@ -654,10 +649,6 @@ class rxJob(rxMessage):
 
 class rxResult(rxMessage):
 	__name__ = "RX Result"
-
-	# def __init__(self, job, duration, txMessage):
-	# 	sim.debug.out ("created rxResult")
-	# 	rxMessage.__init__(self, job, duration, txMessage)
 
 	def finishTask(self):
 		sim.debug.out("\treceived offloaded result")
