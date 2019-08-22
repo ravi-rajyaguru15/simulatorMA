@@ -241,14 +241,16 @@ class batching(subtask):
 			self.job.processingNode.addTask(newJob(self.job))
 		else:			
 			# add current job to node's batch
-			self.job.processingNode.batch.append(self.job)
+			self.job.processingNode.addJobToBatch(self.job)
 			# job has been backed up in batch and will be selected in finish
 			self.job.processingNode.removeJob(self.job)
 
-			sim.debug.out("Batch: {0}/{1}".format(len(self.job.processingNode.batch), sim.constants.MINIMUM_BATCH), 'c')
+			sim.debug.out("Batch: {0}/{1}".format(self.job.processingNode.maxBatchLength(), sim.constants.MINIMUM_BATCH), 'c')
 
 			# see if batch is full enough to start now
-			if len(self.job.processingNode.batch) >= sim.constants.MINIMUM_BATCH:
+			if self.job.processingNode.maxBatchLength() >= sim.constants.MINIMUM_BATCH:
+				self.job.processingNode.setCurrentBatch(self.job)
+
 				# grab first task
 				sim.debug.out("activating job")
 				self.job.processingNode.currentJob = None
@@ -389,6 +391,10 @@ class fpgaMcuOffload(xmem):
 class processing(subtask):
 	__name__ = "Processing"
 	
+	def __repr__(self):
+		return "{} [{}]".format(subtask.__repr__(self), self.job.currentTask)
+
+
 	# processor = None
 	def __init__(self, job): #  device, samples, processor=None):
 		# self.processor = processor

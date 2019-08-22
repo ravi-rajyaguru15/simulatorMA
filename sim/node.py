@@ -31,6 +31,7 @@ class node:
 	alwaysHardwareAccelerate = None
 
 	batch = None
+	currentBatch = None
 	batchFull = None
 
 	# busy = None
@@ -62,8 +63,8 @@ class node:
 		self.jobActive = False
 		self.alwaysHardwareAccelerate = alwaysHardwareAccelerate
 
-		self.batch = list()
-		self.batchProcessing = False # indicates if batch has been full (should process batch)
+		self.batch = dict()
+		# self.batchProcessing = False # indicates if batch has been full (should process batch)
 
 		# self.processors = list()
 
@@ -94,14 +95,14 @@ class node:
 			sim.debug.out ("\t\t** {} new job ** ".format(self))
 			self.createNewJob(currentTime)
 
-	def createNewJob(self, currentTime, hardwareAccelerated=None):
+	def createNewJob(self, currentTime, hardwareAccelerated=None, taskGraph=None):
 		# if not set to hardwareAccelerate, use default
 		if hardwareAccelerated is None:
 			hardwareAccelerated = self.alwaysHardwareAccelerate
 			# if still None, unknown behaviour
 		assert(hardwareAccelerated is not None)
 
-		self.addJob(job(currentTime, self, sim.constants.SAMPLE_SIZE.gen(), self.decision, hardwareAccelerated=hardwareAccelerated))
+		self.addJob(job(currentTime, self, sim.constants.SAMPLE_SIZE.gen(), self.decision, hardwareAccelerated=hardwareAccelerated, taskGraph=taskGraph))
 		sim.debug.out("added job to queue", 'p')
 
 	def addJob(self, job):
@@ -180,28 +181,55 @@ class node:
 		if asleepBefore and asleepAfter:
 			self.totalSleepTime += sim.constants.TD
 
+	def setCurrentBatch(self, job):
+		if job.hardwareAccelerated:
+			self.currentBatch = job.taskGraph[0]
+		else:
+			self.currentBatch = 0
+
+	def addJobToBatch(self, job):
+		if job.hardwareAccelerated:
+			task = job.taskGraph[0]
+		else:
+			# 0 task indicates software solutions
+			task = 0
+
+		# create list if new task
+		if task not in self.batch.keys():
+			self.batch[task] = list()
+		
+		self.batch[task].append(job)
+	
+	def maxBatchLength(self):
+		return np.max([len(item) for key, item in self.batch.items()])
 
 	def nextJobFromBatch(self):
 		if self.currentJob is None:
-			if len(self.batch) > 0:
+			# print([len(self.batch[batch]) > 0 for batch in self.batch])
+			# if len(self.batch) > 0:
+			if self.maxBatchLength() > 0:
 				sim.debug.out ("grabbed job from batch")
-				self.currentJob = self.batch[0]
-				self.batch.remove(self.currentJob)
+				self.currentJob = self.batch[self.currentBatch][0]
+				self.removeJobFromBatch(self.currentJob)
 
 				return self.currentJob
 			else:
 				sim.debug.out("No more jobs in batch", 'c')
-				self.batchProcessing = False
+				# self.batchProcessing = False
 				self.currentJob = None
+				self.currentBatch = None
 
 		return None
 
 	def removeJobFromBatch(self, job):
-		if job in self.batch:
-			self.batch.remove(job)
+		print("batch before remove", self.batch)
+		if job in self.batch[self.currentBatch]:
+			self.batch[self.currentBatch].remove(job)
 
 		else:
 			raise Exception("Could not find job to remove from batch")
+		print("batch after remove", self.batch)
+
 
 
 	def nextJob(self, currentTime):
