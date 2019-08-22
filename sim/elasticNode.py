@@ -15,13 +15,13 @@ class elasticNode(node):
 	mrf = None
 	fpga = None
 
-	def __init__(self, queue, index, alwaysHardwareAccelerate):
+	def __init__(self, platform, queue, index, alwaysHardwareAccelerate):
 		
-		self.mcu = mcu()
-		self.mrf = mrf()
-		self.fpga = fpga()
+		self.mcu = mcu(platform)
+		self.mrf = mrf(platform)
+		self.fpga = fpga(platform)
 
-		node.__init__(self, queue, index, nodeType=sim.constants.ELASTIC_NODE, components = [self.mcu, self.fpga, self.mrf], alwaysHardwareAccelerate=alwaysHardwareAccelerate)
+		node.__init__(self, platform, queue, index, components = [self.mcu, self.fpga, self.mrf], alwaysHardwareAccelerate=alwaysHardwareAccelerate)
 
 
 	
@@ -36,7 +36,7 @@ class elasticNode(node):
 	# 	return self.fpga.processingTime(job.samples)
 
 	def mcuToFpgaLatency(self, datasize):
-		latency = datasize / 1024. / sim.constants.MCU_FPGA_COMMUNICATION_SPEED.gen() + sim.constants.MCU_MW_OVERHEAD_LATENCY.gen()
+		latency = datasize / 1024. / self.platform.MCU_FPGA_COMMUNICATION_SPEED.gen() + self.platform.MCU_MW_OVERHEAD_LATENCY.gen()
 		sim.debug.out ("offloading latency: {}".format(latency))
 		return latency
 

@@ -11,13 +11,13 @@ class processor(component):
 
 	rectangle = None
 
-	def __init__(self, voltage, activeCurrent, idleCurrent, sleepCurrent, processingSpeed, idleTimeout):
+	def __init__(self, activePower, idlePower, sleepPower, processingSpeed, idleTimeout):
 		component.__init__(
 			self,
-			voltage = voltage,
-			activeCurrent = activeCurrent,
-			idleCurrent = idleCurrent,
-			sleepCurrent = sleepCurrent)
+			# voltage = voltage,
+			activePower = activePower,
+			idlePower = idlePower,
+			sleepPower = sleepPower)
 
 		self.processingSpeed = processingSpeed
 		self.idleTime = 0

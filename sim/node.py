@@ -18,12 +18,13 @@ class node:
 	currentTask = None
 	resultsQueue = None
 	index = None
-	nodeType = None
+	# nodeType = None
 
 	totalEnergyCost = None
 	totalSleepTime = None
 	drawLocation = None
 
+	platform = None
 	components = None
 	# waitingForResult = None
 	jobActive = None
@@ -38,14 +39,17 @@ class node:
 	rectangle = None
 	location = None
 
-	def __init__(self, queue, index, nodeType, components, alwaysHardwareAccelerate=None):
+	def __init__(self, platform, queue, index, components, alwaysHardwareAccelerate=None):
+		self.platform = platform
+
 		self.decision = offloadingDecision(self)
 		self.jobQueue = list()
 		sim.debug.out ("jobqueue" + str(self.jobQueue))
 		self.taskQueue = list()
+
 		self.resultsQueue = queue
 		self.index = index
-		self.nodeType = nodeType
+		# self.nodeType = nodeType
 
 		self.totalEnergyCost = 0
 		self.totalSleepTime = 0

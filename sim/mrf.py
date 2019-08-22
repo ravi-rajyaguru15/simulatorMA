@@ -9,16 +9,19 @@ class mrf(component):
 	idleColour = (0, 0.5, 0, 1)
 	sleepColour = (0, 0.2, 0, 1)
 
-	rxCurrent, txCurrent = [sim.constants.WIRELESS_RX_CURRENT], [sim.constants.WIRELESS_TX_CURRENT]
-	transmissionRate = sim.constants.WIRELESS_SPEED
+	rxPower, txPower = None, None
+	transmissionRate = None
 
-	def __init__(self):
+	def __init__(self, platform):
+		self.rxPower, self.txPower = [platform.WIRELESS_RX_CURRENT], [platform.WIRELESS_TX_CURRENT]
+		self.transmissionRate = platform.WIRELESS_SPEED
+		
 		component.__init__(
 			self,
-			voltage = [sim.constants.MCU_VOLTAGE],
-			activeCurrent = None, # active is either RX or TX
-			idleCurrent = [sim.constants.WIRELESS_IDLE_CURRENT],
-			sleepCurrent = [sim.constants.WIRELESS_SLEEP_CURRENT],
+			# voltage = [platform.MCU_VOLTAGE],
+			activePower = None, # active is either RX or TX
+			idlePower = [platform.WIRELESS_IDLE_POWER],
+			sleepPower = [platform.WIRELESS_SLEEP_POWER],
 			)
 	
 	def busy(self):
@@ -40,15 +43,25 @@ class mrf(component):
 			# pass it up to the parent
 			return component.colour(self)
 	
-
-	def current(self):
+	def power(self):
 		if self.state == sim.powerState.TX:
-			return self.txCurrent
+			return np.sum([power.gen() for power in self.txPower])
 		elif self.state == sim.powerState.RX:
-			return self.rxCurrent
+			return np.sum([power.gen() for power in self.rxPower])
+
 		else:
 			# pass it up to the parent
-			return component.current(self)
+			return component.power(self)
+    		
+
+	# def current(self):
+	# 	if self.state == sim.powerState.TX:
+	# 		return self.txCurrent
+	# 	elif self.state == sim.powerState.RX:
+	# 		return self.rxCurrent
+	# 	else:
+	# 		# pass it up to the parent
+	# 		return component.current(self)
 	
 						# def activeEnergy(self, time):
 	# 	print ("special mrf active time")

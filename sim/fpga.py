@@ -14,15 +14,18 @@ class fpga(processor):
 
 
 	currentConfig = None
-	reconfigurationCurrent = [sim.constants.FPGA_RECONFIGURATION_INT_CURRENT, sim.constants.FPGA_RECONFIGURATION_AUX_CURRENT]
+	reconfigurationPower = None
+	# [self.platform.FPGA_RECONFIGURATION_INT_Power, self.platform.FPGA_RECONFIGURATION_AUX_CURRENT]
 
-	def __init__(self):
+	def __init__(self, platform):
+		self.reconfigurationPower = [platform.FPGA_RECONFIGURATION_INT_POWER, platform.FPGA_RECONFIGURATION_AUX_POWER]
+    		
 		processor.__init__(self, 
-			voltage = [sim.constants.FPGA_INT_VOLTAGE, sim.constants.FPGA_AUX_VOLTAGE],
-			activeCurrent = [sim.constants.FPGA_ACTIVE_INT_CURRENT, sim.constants.FPGA_ACTIVE_AUX_CURRENT],
-			idleCurrent = [sim.constants.FPGA_IDLE_INT_CURRENT, sim.constants.FPGA_IDLE_AUX_CURRENT],
-			sleepCurrent = [sim.constants.FPGA_SLEEP_INT_CURRENT, sim.constants.FPGA_SLEEP_AUX_CURRENT],
-			processingSpeed = sim.constants.FPGA_PROCESSING_SPEED, 
+			# voltage = [platform.FPGA_INT_VOLTAGE, platform.FPGA_AUX_VOLTAGE],
+			activePower = [platform.FPGA_ACTIVE_INT_POWER, platform.FPGA_ACTIVE_AUX_POWER],
+			idlePower = [platform.FPGA_IDLE_INT_POWER, platform.FPGA_IDLE_AUX_POWER],
+			sleepPower = [platform.FPGA_SLEEP_INT_POWER, platform.FPGA_SLEEP_AUX_POWER],
+			processingSpeed = platform.FPGA_PROCESSING_SPEED, 
 			idleTimeout = sim.constants.FPGA_IDLE_SLEEP)
 
 	def timeOutSleep(self):
@@ -44,11 +47,17 @@ class fpga(processor):
 		self.currentConfig = None
 		processor.sleep(self)
 
-	def current(self):
+	# def current(self):
+	# 	if self.state == sim.powerState.RECONFIGURING:
+	# 		return self.reconfigurationCurrent
+	# 	else:
+	# 		return component.current(self)
+
+	def power(self):
 		if self.state == sim.powerState.RECONFIGURING:
-			return self.reconfigurationCurrent
+			return np.sum([power.gen() for power in self.reconfigurationPower])
 		else:
-			return component.current(self)
+			return component.power(self)
 
 	def colour(self):
 		if self.state == sim.powerState.RECONFIGURING:

@@ -3,9 +3,14 @@ from sim.result import result
 
 class gateway:
 	message = None
-	transmissionRate = sim.constants.ETHERNET_SPEED
-	transmissionPing = sim.constants.ETHERNET_PING
-	messageOverheadLatency = sim.constants.SERVER_MESSAGE_OVERHEAD_LATENCY
+	transmissionRate = None
+	transmissionPing = None
+	messageOverheadLatency = None
+
+	def __init__(self, platform):
+		self.transmissionRate = platform.ETHERNET_SPEED
+		self.transmissionPing = platform.ETHERNET_PING
+		self.messageOverheadLatency = platform.SERVER_MESSAGE_OVERHEAD_LATENCY
 
 	def sendTo(self, destination):
 		latency = self.messageOverheadLatency.gen() + self.txLatency(self.message.size)
