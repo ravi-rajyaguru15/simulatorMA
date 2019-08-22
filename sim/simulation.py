@@ -40,13 +40,13 @@ class simulation:
 
 		self.time = 0
 		
-		self.ed = [endDevice(self.results, i, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(numEndDevices)]
+		self.ed = [endDevice(None, self.results, i, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(numEndDevices)]
 		# self.ed = endDevice()
 		# self.ed2 = endDevice()
-		self.en = [elasticNode(self.results, i + numEndDevices, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(numElasticNodes)]
+		self.en = [elasticNode(sim.constants.DEFAULT_ELASTIC_NODE, self.results, i + numEndDevices, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(numElasticNodes)]
 		# self.en = elasticNode()
-		self.gw = gateway()
-		self.srv = [server() for i in range(numServers)]
+		self.gw = [] #gateway()
+		self.srv = [] # [server() for i in range(numServers)]
 
 		self.devices = self.ed + self.en + self.srv
 		# set all device options correctly

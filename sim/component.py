@@ -4,15 +4,18 @@ import sim.powerState
 import numpy as np
 
 class component:
-	voltage = activeCurrent = idleCurrent = None
+	voltage = activePower = idlePower = None
 	
 	state = None
+	# platform = None
 
-	def __init__(self, voltage, activeCurrent, idleCurrent, sleepCurrent):
-		self.voltage = voltage
-		self.activeCurrent = activeCurrent
-		self.idleCurrent = idleCurrent
-		self.sleepCurrent = sleepCurrent
+	def __init__(self, activePower, idlePower, sleepPower):
+		# self.platform = platform
+
+		# self.voltage = voltage
+		self.activePower = activePower
+		self.idlePower = idlePower
+		self.sleepPower = sleepPower
 
 		# start idle
 		self.state = sim.powerState.SLEEP
@@ -52,19 +55,19 @@ class component:
 			raise Exception("Unknown power state")
 		
 
-	# current level right now
-	def current(self):
-		if self.state == sim.powerState.IDLE:
-			return self.idleCurrent
-		elif self.state == sim.powerState.ACTIVE:
-			return self.activeCurrent
-		elif self.state == sim.powerState.SLEEP:
-			return self.sleepCurrent
-		else:
-			raise Exception("Unknown power state")
-
-	# current power level of this component
+	# power level right now
 	def power(self):
-		# print (self)
-		# print(self.voltage, self.current())
-		return np.dot([voltage.gen() for voltage in self.voltage], [current.gen() for current in self.current()])
+		if self.state == sim.powerState.IDLE:
+			return np.sum(power.gen() for power in self.idlePower)
+		elif self.state == sim.powerState.ACTIVE:
+			return np.sum(power.gen() for power in self.activePower)
+		elif self.state == sim.powerState.SLEEP:
+			return np.sum(power.gen() for power in self.sleepPower)
+		else:
+			raise Exception("Unknown power state: " + str(self.state))
+
+	# # Power power level of this component
+	# def power(self):
+	# 	# print (self)
+	# 	# print(self.voltage, self.current())
+	# 	return np.dot([voltage.gen() for voltage in self.voltage], [current.gen() for current in self.current()])

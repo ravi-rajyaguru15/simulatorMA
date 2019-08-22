@@ -3,10 +3,17 @@ from sim.result import result
 
 class server:
 	message = None
-	processingSpeed = sim.constants.SERVER_PROCESSING_SPEED
-	messageOverheadLatency = sim.constants.SERVER_MESSAGE_OVERHEAD_LATENCY
-	transmissionRate = sim.constants.ETHERNET_SPEED
-	transmissionPing = sim.constants.ETHERNET_PING
+	processingSpeed = None
+	messageOverheadLatency = None
+	transmissionRate = None
+	transmissionPing = None
+
+	def __init__(self, platform):
+		self.processingSpeed = platform.SERVER_PROCESSING_SPEED
+		self.messageOverheadLatency = platform.SERVER_MESSAGE_OVERHEAD_LATENCY
+		self.transmissionRate = platform.ETHERNET_SPEED
+		self.transmissionPing = platform.ETHERNET_PING
+
 
 	def process(this):
 		res = result(latency=this.processingTime(this.message.samples), energy=0)

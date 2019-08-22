@@ -224,7 +224,7 @@ class batching(subtask):
 	__name__ = "Batching"
 	
 	def __init__(self, job):
-		duration = sim.constants.MCU_BATCHING_LATENCY.gen()
+		duration = job.processingNode.platform.MCU_BATCHING_LATENCY.gen()
 		# energyCost = job.processingNode.energy(duration)
 	
 		subtask.__init__(self, job, duration) 
