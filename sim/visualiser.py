@@ -223,8 +223,10 @@ class visualiser:
 			image.append(node.rectangle)
 
 			# update node's title to current description
-			pp.gca().text(x=node.location[0], y=node.location[1] + node.rectangle.get_height()/2 + TEXT_SPACING * 2, s=node, verticalalignment='bottom', horizontalalignment='center')
-			pp.gca().text(x=node.location[0], y=node.location[1] + node.rectangle.get_height()/2 + TEXT_SPACING, s=node.currentTask, verticalalignment='top', horizontalalignment='center')
+			top = node.location[1] + node.rectangle.get_height()/2
+			pp.gca().text(x=node.location[0], y=top + TEXT_SPACING * 3, s=node, verticalalignment='center', horizontalalignment='center')
+			pp.gca().text(x=node.location[0], y=top + TEXT_SPACING * 2, s=node.currentBatch, verticalalignment='center', horizontalalignment='center')
+			pp.gca().text(x=node.location[0], y=top + TEXT_SPACING * 1, s=node.currentTask, verticalalignment='center', horizontalalignment='center')
 
 			# draw all processors and wireless
 			for component in node.components:

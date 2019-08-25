@@ -17,22 +17,25 @@ class fpga(processor):
 	reconfigurationPower = None
 	# [self.platform.FPGA_RECONFIGURATION_INT_Power, self.platform.FPGA_RECONFIGURATION_AUX_CURRENT]
 
-	def __init__(self, platform):
-		self.reconfigurationPower = [platform.FPGA_RECONFIGURATION_INT_POWER, platform.FPGA_RECONFIGURATION_AUX_POWER]
+	def __init__(self, owner):
+		self.reconfigurationPower = [owner.platform.FPGA_RECONFIGURATION_INT_POWER, owner.platform.FPGA_RECONFIGURATION_AUX_POWER]
     		
-		processor.__init__(self, 
-			# voltage = [platform.FPGA_INT_VOLTAGE, platform.FPGA_AUX_VOLTAGE],
-			activePower = [platform.FPGA_ACTIVE_INT_POWER, platform.FPGA_ACTIVE_AUX_POWER],
-			idlePower = [platform.FPGA_IDLE_INT_POWER, platform.FPGA_IDLE_AUX_POWER],
-			sleepPower = [platform.FPGA_SLEEP_INT_POWER, platform.FPGA_SLEEP_AUX_POWER],
-			processingSpeed = platform.FPGA_PROCESSING_SPEED, 
+		processor.__init__(self, owner,
+			# voltage = [platform.FPGA_ INT_VOLTAGE, platform.FPGA_AUX_VOLTAGE],
+			activePower = [owner.platform.FPGA_ACTIVE_INT_POWER, owner.platform.FPGA_ACTIVE_AUX_POWER],
+			idlePower = [owner.platform.FPGA_IDLE_INT_POWER, owner.platform.FPGA_IDLE_AUX_POWER],
+			sleepPower = [owner.platform.FPGA_SLEEP_INT_POWER, owner.platform.FPGA_SLEEP_AUX_POWER],
+			processingSpeed = owner.platform.FPGA_PROCESSING_SPEED, 
 			idleTimeout = sim.constants.FPGA_IDLE_SLEEP)
 
 	def timeOutSleep(self):
-		if sim.constants.FPGA_POWER_PLAN == sim.powerPolicy.IDLE_TIMEOUT:
-			processor.timeOutSleep(self)
-		elif sim.constants.FPGA_POWER_PLAN == sim.powerPolicy.IMMEDIATELY_OFF and self.isIdle():
-			self.sleep()
+		# do not sleep until done with batch
+		if self.owner.currentBatch is None:
+			# check if it's time to sleep device
+			if sim.constants.FPGA_POWER_PLAN == sim.powerPolicy.IDLE_TIMEOUT:
+				processor.timeOutSleep(self)
+			elif sim.constants.FPGA_POWER_PLAN == sim.powerPolicy.IMMEDIATELY_OFF and self.isIdle():
+				self.sleep()
 			
 
 	# power states

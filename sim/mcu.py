@@ -8,15 +8,15 @@ class mcu(processor):
 
 	messageOverheadLatency = None
 
-	def __init__(self, platform):
-		processor.__init__(self,
+	def __init__(self, owner):
+		processor.__init__(self, owner,
 			# voltage = [platform.MCU_VOLTAGE],
-			activePower = [platform.MCU_ACTIVE_POWER],
-			idlePower = [platform.MCU_IDLE_POWER],
-			sleepPower = [platform.MCU_SLEEP_POWER],
-			processingSpeed = platform.MCU_PROCESSING_SPEED, 
+			activePower = [owner.platform.MCU_ACTIVE_POWER],
+			idlePower = [owner.platform.MCU_IDLE_POWER],
+			sleepPower = [owner.platform.MCU_SLEEP_POWER],
+			processingSpeed = owner.platform.MCU_PROCESSING_SPEED, 
 			idleTimeout = sim.constants.MCU_IDLE_SLEEP)
-		self.messageOverheadLatency = platform.MCU_MESSAGE_OVERHEAD_LATENCY
+		self.messageOverheadLatency = owner.platform.MCU_MESSAGE_OVERHEAD_LATENCY
 
 
 	def timeOutSleep(self):

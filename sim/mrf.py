@@ -12,16 +12,16 @@ class mrf(component):
 	rxPower, txPower = None, None
 	transmissionRate = None
 
-	def __init__(self, platform):
-		self.rxPower, self.txPower = [platform.WIRELESS_RX_CURRENT], [platform.WIRELESS_TX_CURRENT]
-		self.transmissionRate = platform.WIRELESS_SPEED
+	def __init__(self, owner):
+		self.rxPower, self.txPower = [owner.platform.WIRELESS_RX_CURRENT], [owner.platform.WIRELESS_TX_CURRENT]
+		self.transmissionRate = owner.platform.WIRELESS_SPEED
 		
 		component.__init__(
-			self,
+			self, owner,
 			# voltage = [platform.MCU_VOLTAGE],
 			activePower = None, # active is either RX or TX
-			idlePower = [platform.WIRELESS_IDLE_POWER],
-			sleepPower = [platform.WIRELESS_SLEEP_POWER],
+			idlePower = [owner.platform.WIRELESS_IDLE_POWER],
+			sleepPower = [owner.platform.WIRELESS_SLEEP_POWER],
 			)
 	
 	def busy(self):

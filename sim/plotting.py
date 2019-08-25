@@ -28,7 +28,7 @@ def plotWithErrors(x, y=None, errors=None, results=None):
 	pp.show()
 
 	
-def plotMultiWithErrors(name, results=None, ylim=None): # , show=False, save=False):
+def plotMultiWithErrors(name, results=None, ylim=None, ylabel=None, xlabel=None): # , show=False, save=False):
 	print ("plotting!")
 	# print (results)
 	# sort by graph key
@@ -60,6 +60,12 @@ def plotMultiWithErrors(name, results=None, ylim=None): # , show=False, save=Fal
 	if ylim is not None:
 		pp.ylim(ylim)
 
+	if ylabel is not None:
+		pp.ylabel(ylabel)
+
+	if xlabel is not None:
+		pp.xlabel(xlabel)
+		
 	if sim.constants.SAVE_GRAPH:
 		saveFig(name)
 

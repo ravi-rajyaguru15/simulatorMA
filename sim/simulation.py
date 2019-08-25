@@ -44,6 +44,8 @@ class simulation:
 		# self.ed = endDevice()
 		# self.ed2 = endDevice()
 		self.en = [elasticNode(sim.constants.DEFAULT_ELASTIC_NODE, self.results, i + numEndDevices, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(numElasticNodes)]
+		
+		
 		# self.en = elasticNode()
 		self.gw = [] #gateway()
 		self.srv = [] # [server() for i in range(numServers)]
@@ -127,56 +129,65 @@ class simulation:
 
 
 	def simulateTick(self):
-		try:
-			sim.debug.out('tick {:.4f}'.format(self.time), 'b')
+		# try:
 
-			# create new jobs
-			for device in self.devices:
-				# mcu is required for taking samples
-				if not device.hasJob():
-					device.maybeAddNewJob(self.time)
+
+		# create new jobs
+		for device in self.devices:
+			# mcu is required for taking samples
+			if not device.hasJob():
+				device.maybeAddNewJob(self.time)
+		
+		tasksBefore = np.array([dev.currentTask for dev in self.devices])
+
+		# update all the devices
+		for dev in self.devices:
+			dev.updateTime(self.time)
+			queueLengths.append(len(dev.jobQueue))
+
+		# capture energy values
+		for dev in self.devices:
+			energy = dev.energy()
+
+			# add energy to device counter
+			dev.totalEnergyCost += energy
+			# add energy to job 
+			if dev.currentJob is not None:
+				dev.currentJob.totalEnergyCost += energy
+				# see if device is in job history
+				if dev not in dev.currentJob.devicesEnergyCost.keys():
+					dev.currentJob.devicesEnergyCost[dev] = 0
 				
-			sim.debug.out("tasks before {0}".format([dev.currentTask for dev in self.devices]), 'r')
+				dev.currentJob.devicesEnergyCost[dev] += energy
 
-			# update all the devices
-			for dev in self.devices:
-				dev.updateTime(self.time)
-				queueLengths.append(len(dev.jobQueue))
+		self.currentDelays = [dev.currentTask.delay if dev.currentTask is not None else 0 for dev in self.devices ]
+		self.delays.append(self.currentDelays)
 
-			# capture energy values
-			for dev in self.devices:
-				energy = dev.energy()
-
-				# add energy to device counter
-				dev.totalEnergyCost += energy
-				# add energy to job 
-				if dev.currentJob is not None:
-					dev.currentJob.totalEnergyCost += energy
-					# see if device is in job history
-					if dev not in dev.currentJob.devicesEnergyCost.keys():
-						dev.currentJob.devicesEnergyCost[dev] = 0
-					
-					dev.currentJob.devicesEnergyCost[dev] += energy
-
-
-
+		# print all results if interesting
+		tasksAfter = np.array([dev.currentTask for dev in self.devices])
+		if not (np.all(tasksAfter == None) and np.all(tasksBefore == None)):
+			sim.debug.out('tick {:.4f}'.format(self.time), 'b')
+		# 	sim.debug.out("nothing...")
+		# else:
+			sim.debug.out("tasks before {0}".format(tasksBefore), 'r')
 			sim.debug.out("have jobs:\t{0}".format([dev.hasJob() for dev in self.devices]), 'b')
 			sim.debug.out("jobQueues:\t{0}".format([len(dev.jobQueue) for dev in self.devices]), 'g')
 			sim.debug.out("batchLengths:\t{0}".format([[len(batch) for key, batch in dev.batch.items()] for dev in self.devices]), 'c')
+			sim.debug.out("currentBatch:\t{0}".format([dev.currentBatch for dev in self.devices]))
+			sim.debug.out("currentConfig:\t{0}".format([dev.fpga.currentConfig for dev in self.devices if isinstance(dev, elasticNode)]))
 			sim.debug.out("taskQueues:\t{0}".format([len(dev.taskQueue) for dev in self.devices]), 'dg')
-			sim.debug.out("taskQueues:\t{0}".format([dev.taskQueue for dev in self.devices]), 'dg')
+			sim.debug.out("taskQueues:\t{0}".format([[task for task in dev.taskQueue] for dev in self.devices]), 'dg')
 			sim.debug.out("states: {0}".format([[comp.state for comp in dev.components] for dev in self.devices]))
-			sim.debug.out("tasks after {0}".format([dev.currentTask for dev in self.devices]), 'r')
-			
-			self.currentDelays = [dev.currentTask.delay if dev.currentTask is not None else 0 for dev in self.devices ]
-			self.delays.append(self.currentDelays)
+			sim.debug.out("tasks after {0}".format(tasksAfter), 'r')
+		
 			if np.sum(self.currentDelays) > 0:
 				sim.debug.out("delays {}".format(self.currentDelays))
-			# progress += sim.constants.TD
-			self.time += sim.constants.TD
-		except Exception:
-			print ("Exception", self.time)
-			raise Exception("crash")
+
+		# progress += sim.constants.TD
+		self.time += sim.constants.TD
+		# except Exception:
+		# 	print ("Exception", self.time)
+		# 	raise Exception("crash")
 
 			# except:
 			# 	print "fail"

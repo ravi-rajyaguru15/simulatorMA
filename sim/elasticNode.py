@@ -17,11 +17,14 @@ class elasticNode(node):
 
 	def __init__(self, platform, queue, index, alwaysHardwareAccelerate):
 		
-		self.mcu = mcu(platform)
-		self.mrf = mrf(platform)
-		self.fpga = fpga(platform)
+		node.__init__(self, platform, queue, index, components = None, alwaysHardwareAccelerate=alwaysHardwareAccelerate)
+		
+		self.mcu = mcu(self)
+		self.mrf = mrf(self)
+		self.fpga = fpga(self)
 
-		node.__init__(self, platform, queue, index, components = [self.mcu, self.fpga, self.mrf], alwaysHardwareAccelerate=alwaysHardwareAccelerate)
+		self.components = [self.mcu, self.fpga, self.mrf]
+
 
 
 	
