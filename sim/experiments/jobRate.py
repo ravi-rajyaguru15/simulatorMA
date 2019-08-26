@@ -12,8 +12,7 @@ import traceback
 import warnings
 
 numDevices = 4
-def runThread(jobLikelihood, fpgaSleepTime, results):
-	sim.constants.FPGA_IDLE_SLEEP = fpgaSleepTime
+def runThread(jobLikelihood, results):
 	sim.constants.JOB_LIKELIHOOD = jobLikelihood
 
 	# sim.constants.SAMPLE_SIZE = sim.variable.Constant(samples)
@@ -23,10 +22,10 @@ def runThread(jobLikelihood, fpgaSleepTime, results):
 		exp.simulateTime(10)
 	except:
 		traceback.print_exc(file=sys.stdout)
-		print("Error in experiment:", jobLikelihood, fpgaSleepTime, exp.time)
+		print("Error in experiment:", jobLikelihood, exp.time)
 
 
-	results.put(["FPGA Idle Sleep {}".format(fpgaSleepTime), jobLikelihood, np.sum(exp.totalDevicesEnergy()) / numDevices])
+	results.put(["", jobLikelihood, np.average([dev.numJobs for dev in exp.devices]) / exp.time])
 
 
 def run():
@@ -37,6 +36,7 @@ def run():
 	sim.constants.SAMPLE_RAW_SIZE = sim.variable.Constant(4, integer=True)
 	sim.constants.SAMPLE_PROCESSED_SIZE = sim.variable.Constant(4, integer=True)
 	sim.constants.FPGA_POWER_PLAN = sim.powerPolicy.IDLE_TIMEOUT
+	sim.constants.FPGA_IDLE_SLEEP = 0.5
 	sim.constants.OFFLOADING_POLICY = sim.offloadingPolicy.ANYTHING
 
 	processes = list()
@@ -44,17 +44,16 @@ def run():
 	
 	# offloadingOptions = [True, False]
 	results = multiprocessing.Queue()
-	sim.constants.REPEATS = 3
+	sim.constants.REPEATS = 6
 
-	for jobLikelihood in np.arange(1e-3, 1e-2, 1e-3):
-		for fpgaSleepTime in np.arange(0, 1e-0, 2.5e-1):
-			for _ in range(sim.constants.REPEATS):
-				processes.append(multiprocessing.Process(target=runThread, args=(jobLikelihood, fpgaSleepTime, results)))
+	for jobLikelihood in np.arange(1e-4, 5e-3, 2e-4):
+		for _ in range(sim.constants.REPEATS):
+			processes.append(multiprocessing.Process(target=runThread, args=(jobLikelihood, results)))
 	
 	experiment.executeMulti(processes)
 	# for process in processes: process.join()
 
-	sim.plotting.plotMultiWithErrors("Average Energy", results=experiment.assembleResults(len(processes), results)) # , save=True)
+	sim.plotting.plotMultiWithErrors("Job Rate", results=experiment.assembleResults(len(processes), results), ylabel="Job Rate (jobs/s)", xlabel="Job Likelihood") # , save=True)
 
 try:
 	run()

@@ -3,6 +3,7 @@ from sim.variable import *
 import sim.powerPolicy
 import sim.offloadingPolicy
 from enum import Enum
+import multiprocessing
 import sim.platforms.elasticNodev4
 
 # node types
@@ -40,6 +41,7 @@ MINIMUM_BATCH = 5
 
 # tasks
 DEFAULT_TASK_GRAPH = [sim.tasks.EASY] # TODO: single task only
+MAXIMUM_TASK_QUEUE = 5
 
 # visualisation
 DRAW_DEVICES = True
@@ -55,5 +57,5 @@ SAVE_GRAPH = False
 
 # experiments
 REPEATS = 4
-THREAD_COUNT = 14
+THREAD_COUNT = multiprocessing.cpu_count()
 MAX_DELAY = 0.1

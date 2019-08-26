@@ -7,10 +7,12 @@ class component:
 	voltage = activePower = idlePower = None
 	
 	state = None
+	owner = None
 	# platform = None
 
-	def __init__(self, activePower, idlePower, sleepPower):
+	def __init__(self, owner, activePower, idlePower, sleepPower):
 		# self.platform = platform
+		self.owner = owner
 
 		# self.voltage = voltage
 		self.activePower = activePower

@@ -79,21 +79,11 @@ class job:
 		# populate subtasks based on types of devices
 		if not self.offloaded():
 			self.processingNode.addTask(sim.subtask.batching(self))
-			# # local processing
-			# if self.hardwareAccelerated:
-			# 	# check if fpga already configured
-			# 	if self.processingNode.fpga.isConfigured(self.currentTask):
-			# 		self.processingNode.addTask(sim.subtask.mcuFpgaOffload(self))
-			# 	else:
-			# 		self.processingNode.addTask(sim.subtask.reconfigureFPGA(self))
-			# else:
-			# 	self.creator.addTask(sim.subtask.processing(self))
 		# otherwise we have to send task
 		else:
 			# elif self.destination.nodeType == sim.constants.ELASTIC_NODE:
 			sim.debug.out("offloading to other device")
 			self.creator.addTask(sim.subtask.createMessage(self))
-			# sim.subtask.communication(self.host, self.rawMessageSize()))
 
 		# to start with, owner is the node who created it 
 		self.owner = self.creator

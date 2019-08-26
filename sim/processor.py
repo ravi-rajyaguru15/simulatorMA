@@ -11,9 +11,10 @@ class processor(component):
 
 	rectangle = None
 
-	def __init__(self, activePower, idlePower, sleepPower, processingSpeed, idleTimeout):
+	def __init__(self, owner, activePower, idlePower, sleepPower, processingSpeed, idleTimeout):
 		component.__init__(
 			self,
+			owner,
 			# voltage = voltage,
 			activePower = activePower,
 			idlePower = idlePower,
@@ -38,4 +39,5 @@ class processor(component):
 		else:
 			self.idleTime = 0
 		
-		sim.debug.out("idleTime: {}".format(self.idleTime))
+		if self.idleTime != 0:
+			sim.debug.out("idleTime: {:.3f}".format(self.idleTime))
