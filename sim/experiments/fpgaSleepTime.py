@@ -43,7 +43,7 @@ def run():
 
 	for jobLikelihood in np.arange(1e-3, 1e-2, 1e-3):
 		for fpgaSleepTime in np.arange(0, 1e-1, 2.5e-2):
-			for i in range(sim.constants.REPEATS):
+			for _ in range(sim.constants.REPEATS):
 				processes.append(multiprocessing.Process(target=runThread, args=(jobLikelihood, fpgaSleepTime, results)))
 	
 	experiment.executeMulti(processes)

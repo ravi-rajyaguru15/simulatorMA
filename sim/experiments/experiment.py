@@ -28,6 +28,23 @@ def singleDelayedJobLocal(accelerated=True):
 	exp.devices[0].createNewJob(exp.time, hardwareAccelerated=accelerated)
 	exp.simulateTime(0.25)
 	
+def doubleDelayedJobLocal(accelerated=True):
+	sim.constants.OFFLOADING_POLICY = sim.offloadingPolicy.LOCAL_ONLY
+	sim.constants.FPGA_POWER_PLAN = sim.powerPolicy.IDLE_TIMEOUT
+	sim.constants.MINIMUM_BATCH = 2
+	sim.constants.JOB_LIKELIHOOD = 0
+	sim.constants.PLOT_TD = sim.constants.TD * 2
+	
+	exp = simulation(0, 2, 0)
+
+	exp.simulateTime(.01)
+	exp.devices[0].createNewJob(exp.time, hardwareAccelerated=accelerated)
+	exp.simulateTime(.01)
+	exp.devices[0].createNewJob(exp.time, hardwareAccelerated=accelerated)
+	exp.simulateUntilTime(.3)
+	exp.devices[0].createNewJob(exp.time, hardwareAccelerated=accelerated)
+	exp.simulateTime(0.6)
+	
 # @staticmethod
 def singleBatchLocal(accelerated=True):
 	sim.constants.OFFLOADING_POLICY = sim.offloadingPolicy.LOCAL_ONLY
@@ -64,7 +81,7 @@ def singleBatchRemote(accelerated=True):
 	sim.constants.SAMPLE_RAW_SIZE = sim.variable.Constant(400, integer=True)
 	sim.constants.SAMPLE_PROCESSED_SIZE = sim.variable.Constant(100, integer=True)
 	sim.constants.RECONFIGURATION_TIME = sim.variable.Constant(0.05)
-	sim.constants.FPGA_POWER_PLAN = sim.fpgaPowerPolicy.FPGA_IMMEDIATELY_OFF
+	sim.constants.FPGA_POWER_PLAN = sim.powerPolicy.IMMEDIATELY_OFF
 	# exp.en[0].createNewJob()
 	# exp.simulateTime(sim.constants.SIM_TIME)
 	exp.simulateTime(0.015)
@@ -95,7 +112,7 @@ def deadlock():
 	sim.constants.SAMPLE_SIZE = sim.variable.Gaussian(10, 2)
 	sim.constants.SAMPLE_RAW_SIZE = sim.variable.Constant(40, integer=True) # TODO: change back to 4
 	sim.constants.SAMPLE_PROCESSED_SIZE = sim.variable.Constant(4, integer=True)
-	sim.constants.FPGA_POWER_PLAN = sim.fpgaPowerPolicy.FPGA_IMMEDIATELY_OFF
+	sim.constants.FPGA_POWER_PLAN = sim.powerPolicy.IMMEDIATELY_OFF
 
 	sim.constants.OFFLOADING_POLICY = sim.offloadingPolicy.RANDOM_PEER_ONLY
 	sim.constants.JOB_LIKELIHOOD = 0.01
@@ -179,7 +196,7 @@ def testRepeatsSeparate():
 	# sim.constants.JOB_LIKELIHOOD = 0
 	sim.constants.SAMPLE_RAW_SIZE = sim.variable.Constant(4, integer=True)
 	sim.constants.SAMPLE_PROCESSED_SIZE = sim.variable.Constant(4, integer=True)
-	sim.constants.FPGA_POWER_PLAN = sim.fpgaPowerPolicy.FPGA_IMMEDIATELY_OFF
+	sim.constants.FPGA_POWER_PLAN = sim.powerPolicy.IMMEDIATELY_OFF
 
 	REPEATS = 6
 
@@ -237,7 +254,7 @@ def testRepeatsThread(name, samples, resultsQueue):
 def testRepeats():
 	print ("starting experiment")
 	sim.debug.enabled = False
-	sim.constants.OFFLOADING_POLICY = sim.constants.LOCAL_ONLY
+	sim.constants.OFFLOADING_POLICY = sim.offloadingPolicy.LOCAL_ONLY
 	sim.constants.MINIMUM_BATCH = 1
 	sim.constants.JOB_LIKELIHOOD = 0
 	
@@ -256,7 +273,7 @@ def testRepeats():
 	for process in processes: process.start()
 	for process in processes: process.join()
 
-	sim.plotting.plotMultiWithErrors("testRepeats", results=assembleResults(numThreads, results), save=True)
+	sim.plotting.plotMultiWithErrors("testRepeats", results=assembleResults(numThreads, results))
 
 # creates dictionary with (avg, std) for each x for each graph
 def assembleResults(numResults, resultsQueue):
@@ -315,6 +332,7 @@ if __name__ == '__main__':
 
 	# sim.singleDelayedJobLocal(False)
 	# sim.singleDelayedJobLocal(True)
+	doubleDelayedJobLocal(True)
 	# singleDelayedJobPeer(False)
 	# sim.singleDelayedJobPeer(True)
 	# singleBatchLocal(True)
@@ -324,7 +342,7 @@ if __name__ == '__main__':
 	# sim.randomPeerJobs(True)
 	# randomLocalJobs(False)
 	# randomPeerJobs(False)
-	randomJobs(offloadingPolicy=sim.offloadingPolicy.ANYTHING, hw=True)
+	# randomJobs(offloadingPolicy=sim.offloadingPolicy.ANYTHING, hw=True)
 	# deadlock()
 	
 	# totalEnergyJobSize()
