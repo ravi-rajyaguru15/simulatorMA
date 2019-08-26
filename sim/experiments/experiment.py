@@ -189,14 +189,15 @@ def randomLocalJobs(accelerated=True):
 def randomJobs(offloadingPolicy=sim.offloadingPolicy.ANYTHING, hw=True):
 	# sim.debug.enabled = False
 	sim.constants.OFFLOADING_POLICY = offloadingPolicy
-	sim.constants.JOB_LIKELIHOOD = 1e-3 # 2e-3
+	sim.constants.JOB_LIKELIHOOD = 2e-3 # 2e-3
 	sim.constants.SAMPLE_RAW_SIZE = sim.variable.Constant(40)
 	sim.constants.SAMPLE_SIZE = sim.variable.Constant(10)
 	sim.constants.PLOT_TD = sim.constants.TD * 1000
 	sim.constants.FPGA_POWER_PLAN = sim.powerPolicy.IDLE_TIMEOUT
 	sim.constants.FPGA_IDLE_SLEEP = 0.75
+	sim.constants.MINIMUM_BATCH = 10
 
-	exp = simulation(0, 4, 0, hardwareAccelerated=hw)
+	exp = simulation(0, 3, 0, hardwareAccelerated=hw)
 	exp.simulate() #UntilTime(1)
 
 def testRepeatsSeparateThread(i, jobLikelihood, resultsQueue):

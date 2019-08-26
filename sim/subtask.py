@@ -79,6 +79,27 @@ class subtask:
 							print("rx", self.correspondingRx, self.correspondingRx.started)
 							print("queue", self.destination.taskQueue)
 							sys.exit(0)
+				elif isinstance(self, rxMessage):
+					if self.deadlock():
+						# raise Exception("DEADLOCK", self.job.creator, self.job.processingNode, sim.constants.OFFLOADING_POLICY, sim.constants.JOB_LIKELIHOOD)
+						sim.debug.out("DEADLOCK!\n\n\n")
+						# time.sleep(1.5)
+						# sim.debug.out ("removing task {} from {}".format(self.correspondingRx, self.destination))
+						# resolve deadlock by making destination prioritise reception
+						# move current task to queue to be done later
+						try:
+							self.source.currentTask.delay = 0
+							self.source.addTask(self.destination.currentTask) # current task not None so nextTask won't start this task again
+							self.source.removeTask(self.correspondingTx)
+							self.source.currentTask = self.correspondingTx # must remove task before setting as current
+						except ValueError:
+							print()
+							print("Cannot resolve deadlock!")
+							print("current", self.destination.currentTask)
+							print("duration", self.duration, self.correspondingTx.duration)
+							print("rx", self.correspondingTx, self.correspondingTx.started)
+							print("queue", self.destination.taskQueue)
+							sys.exit(0)
 
 					# # is it delayed?
 					# elif self.delay >= sim.constants.MAX_DELAY:
@@ -668,6 +689,17 @@ class rxMessage(subtask):
 		# receiveEnergyCost = destination.mcu.activeEnergy(this.mrf.rxtxLatency(this.message.size) destination.mrf.rxEnergy(messageSize)
 		
 		# subtask.__init__(self, duration, energyCost, source) # , device, device)
+
+	# check if this task is being deadlocked
+	def deadlock(self):
+		# is destination also trying to receive? sending takes presedence...
+		if isinstance(self.destination.currentTask, rxMessage):
+			# is it not started
+			if not self.started and not self.destination.currentTask.started:
+				return True
+		# any other case is 
+		return False
+
 
 class rxJob(rxMessage):
 	__name__ = "RX Job"

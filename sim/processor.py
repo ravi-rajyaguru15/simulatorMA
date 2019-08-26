@@ -39,5 +39,5 @@ class processor(component):
 		else:
 			self.idleTime = 0
 		
-		if self.idleTime != 0:
-			sim.debug.out("idleTime: {:.3f}".format(self.idleTime))
+		# if self.idleTime != 0:
+		# 	sim.debug.out("idleTime: {:.3f}".format(self.idleTime))
