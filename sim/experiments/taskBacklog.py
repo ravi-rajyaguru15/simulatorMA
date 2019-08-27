@@ -20,7 +20,7 @@ def runThread(jobLikelihood, totalTime, results):
 	exp = simulation(0, numDevices, 0, hardwareAccelerated=True)
 	for i in range(int(totalTime/jump)):
 		exp.simulateTime(jump)
-		results.put(["Job Likelihood: {:.4f}".format(jobLikelihood), i, np.max(exp.taskQueueLength)])
+		results.put(["Job Likelihood: {:.4f}".format(jobLikelihood), i * jump, np.max(exp.taskQueueLength)])
 		print(jobLikelihood, i)
 
 	print(jobLikelihood, "done")
@@ -36,6 +36,7 @@ def run():
 	sim.constants.OFFLOADING_POLICY = sim.offloadingPolicy.ANYTHING
 	sim.constants.MINIMUM_BATCH = 10
 	sim.constants.MAXIMUM_TASK_QUEUE = 1e5
+	sim.constants.THREAD_COUNT = 1e3
 
 	processes = list()
 	
@@ -55,7 +56,7 @@ def run():
 	print("done executing...")
 	# for process in processes: process.join()
 
-	sim.plotting.plotMultiWithErrors("backlog", results=experiment.assembleResults(results, numResults=totalTime/jump * len(processes))) # , save=True)
+	sim.plotting.plotMultiWithErrors("backlog", results=experiment.assembleResults(results, numResults=int(totalTime/jump * len(processes)))) # , save=True)
 
 try:
 	run()

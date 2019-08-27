@@ -72,6 +72,10 @@ class subtask:
 							self.destination.addTask(self.destination.currentTask) # current task not None so nextTask won't start this task again
 							self.destination.removeTask(self.correspondingRx)
 							self.destination.currentTask = self.correspondingRx # must remove task before setting as current
+							# self.destination.currentTask.start() # start to ensure it doesn't get removed
+							# forced to be ready now
+							self.beginTask()
+
 						except ValueError:
 							print()
 							print("Cannot resolve deadlock!")
