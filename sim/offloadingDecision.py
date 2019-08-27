@@ -8,6 +8,7 @@ import random
 class offloadingDecision:
     options = None
     owner = None
+    target = None
 
     def __init__(self, device):
         self.owner = device
@@ -17,8 +18,9 @@ class offloadingDecision:
         return [node for node in devices if node.hasFpga()]
 
     def setOptions(self, allDevices):
+        # set options for all policies that use it, or select constant target
         if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.LOCAL_ONLY:
-            self.options = [self.owner]
+            self.target = self.owner
         elif sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.RANDOM_PEER_ONLY:
             # only offload to something with fpga when needed
             elasticNodes = offloadingDecision.selectElasticNodes(allDevices)  # select elastic nodes from alldevices list]
@@ -26,10 +28,12 @@ class offloadingDecision:
                 elasticNodes.remove(self.owner)
             self.options = elasticNodes
         elif sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.SPECIFIC_PEER_ONLY:
-            self.options = [allDevices[sim.constants.OFFLOADING_PEER]]
+            self.target = allDevices[sim.constants.OFFLOADING_PEER]
         elif sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.ANYTHING:
-            elasticNodes = offloadingDecision.selectElasticNodes(allDevices)  # select elastic nodes from alldevices list]
-            self.options = elasticNodes
+            self.options = offloadingDecision.selectElasticNodes(allDevices)  # select elastic nodes from alldevices list]
+        elif sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.ANNOUNCED:
+            # self.options = offloadingDecision.selectElasticNodes(allDevices)  # for if none announced
+            self.target = self.owner
         else:
             raise Exception("Unknown offloading policy")
 
@@ -43,7 +47,12 @@ class offloadingDecision:
 
         # choose randomly from the options available
         # warnings.warn("need to choose differently")
-        choice = random.choice(self.options)
+
+
+        if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.ANNOUNCED:
+        # every other offloading policy involves randoming
+        else:
+            choice = random.choice(self.options)
         # print (self.options, choice)
         # task.setDestination(choice)
         sim.debug.out("Job assigned: {} -> {}".format(self.owner, choice))
