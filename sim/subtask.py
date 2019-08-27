@@ -85,7 +85,8 @@ class subtask:
 					if self.deadlock():
 						# raise Exception("DEADLOCK", self.job.creator, self.job.processingNode, sim.constants.OFFLOADING_POLICY, sim.constants.JOB_LIKELIHOOD)
 						sim.debug.out("RX DEADLOCK!\n\n\n")
-						time.sleep(1.5)
+						if sim.debug.enabled: 
+							time.sleep(1.5)
 						# sim.debug.out ("removing task {} from {}".format(self.correspondingRx, self.destination))
 						# resolve deadlock by making destination prioritise reception
 						# move current task to queue to be done later

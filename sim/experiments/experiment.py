@@ -194,7 +194,7 @@ def randomJobs(offloadingPolicy=sim.offloadingPolicy.ANYTHING, hw=True):
 	sim.constants.JOB_LIKELIHOOD = 2e-3 # 2e-3
 	sim.constants.SAMPLE_RAW_SIZE = sim.variable.Constant(40)
 	sim.constants.SAMPLE_SIZE = sim.variable.Constant(10)
-	sim.constants.PLOT_TD = sim.constants.TD * 1000
+	sim.constants.PLOT_TD = sim.constants.TD * 1e10
 	sim.constants.FPGA_POWER_PLAN = sim.powerPolicy.IDLE_TIMEOUT
 	sim.constants.FPGA_IDLE_SLEEP = 0.75
 	sim.constants.MINIMUM_BATCH = 10
@@ -308,8 +308,10 @@ def testRepeats():
 	sim.plotting.plotMultiWithErrors("testRepeats", results=assembleResults(numThreads, results))
 
 # creates dictionary with (avg, std) for each x for each graph
-def assembleResults(numResults, resultsQueue):
+def assembleResults(resultsQueue, numResults=None):
 	# process results into dict
+	if numResults is None:
+		numResults = resultsQueue.qsize()
 	print ("assembling results", numResults)
 	graphs = dict()
 	for i in range(numResults):
@@ -328,14 +330,8 @@ def assembleResults(numResults, resultsQueue):
 	for key, graph in graphs.items():
 		# turn each list into a (value, error) tuple
 		outputGraphs[key] = dict()
-		# print()
-		# print(key)
-		# print (graph)
 		for x, ylist in graph.items():
 			outputGraphs[key][x] = (np.average(ylist), np.std(ylist))
-			# print(outputGraphs[key][x])
-			# print(ylist)
-			# print()
 	
 	return outputGraphs
 
@@ -345,18 +341,38 @@ def executeMulti(processes):
 	startedThreads = 0
 	finishedThreads = 0
 	while startedThreads < len(processes):
-		while currentThreads < sim.constants.THREAD_COUNT:
+		while currentThreads < np.min([sim.constants.THREAD_COUNT, len(processes)]):
 			processes[startedThreads].start()
 			startedThreads += 1
 			currentThreads += 1
+			# print('started', startedThreads)
+			# print('current', currentThreads)
 		
 		# wait for at least one to finish
-		processes[finishedThreads].join()
-		finishedThreads += 1
-		currentThreads -= 1
+		# print("waiting for first to end")
+		if processes[finishedThreads].join(1) is not None:
+			finishedThreads += 1
+			currentThreads -= 1
+			# print('finished', finishedThreads)
+			# print('current', currentThreads)
 
-		sys.stdout.write("\rProgress: {:.2f}%".format(float(finishedThreads)/len(processes)*100.))
+			sys.stdout.write("\rProgress: {:.2f}%".format(float(finishedThreads)/len(processes)*100.))
+	# print("all threads have been started!")
+	# finish the last ones
+	# while finishedThreads < len(processes):
+	# 	print('waiting for join...', finishedThreads)
+	# 	print(processes[finishedThreads].__dict__)
+	# 	if processes[finishedThreads].join(1) is not None:
+	# 		finishedThreads += 1
+	# 		currentThreads -= 1
 
+	# 		print('finished', finishedThreads)
+	# 		print('current', currentThreads)
+	# 	sys.stdout.write("\rProgress: {:.2f}%".format(float(finishedThreads)/len(processes)*100.))
+	
+	# print("done!")
+
+		
 if __name__ == '__main__':
 	# for i in range(1, 100, 10):
 	# 	print i, exp.simulateAll(i, "latency")

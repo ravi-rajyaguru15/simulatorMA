@@ -44,11 +44,11 @@ DEFAULT_TASK_GRAPH = [sim.tasks.EASY] # TODO: single task only
 MAXIMUM_TASK_QUEUE = 5
 
 # visualisation
-DRAW_DEVICES = True
+DRAW_DEVICES = False
 DRAW_GRAPH_TOTAL_ENERGY = False
 DRAW_GRAPH_CURRENT_POWER = False
-DRAW = True
-SAVE = False
+# DRAW = True
+# SAVE = False
 DRAW_GRAPH = True
 SAVE_GRAPH = False
 

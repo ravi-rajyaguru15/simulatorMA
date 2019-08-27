@@ -191,7 +191,8 @@ class node:
 	# try another task if this one is stuck
 	def swapTask(self):
 		sim.debug.out(self, "SWAPPING TASK\n\n\n\n")
-		time.sleep(.1)
+		if sim.debug.enabled: 
+			time.sleep(.1)
 		# move current task to queue to be done later
 		self.addTask(self.currentTask) # current task not None so nextTask won't start this task again
 		self.currentTask = None

@@ -15,6 +15,7 @@ import sim.tasks
 import multiprocessing
 import sys
 import numpy as np
+import warnings
 
 queueLengths = list()
 
@@ -26,6 +27,7 @@ class simulation:
 	devices = None
 	delays = None
 	currentDelays = None
+	taskQueueLength = None
 	# visualise = None
 	visualisor = None
 	finished = False
@@ -51,15 +53,16 @@ class simulation:
 		self.srv = [] # [server() for i in range(numServers)]
 
 		self.devices = self.ed + self.en + self.srv
+		self.taskQueueLength = [0] * len(self.devices)
+
 		# set all device options correctly
-		# print (sim.constants.OFFLOADING_POLICY)
 		for device in self.devices: 
 			# choose options based on policy
 			device.setOffloadingDecisions(self.devices)
 
 		self.hardwareAccelerated = hardwareAccelerated
 		# self.visualise = visualise
-		if sim.constants.DRAW:
+		if sim.constants.DRAW_DEVICES:
 			self.visualiser = visualiser(self)
 
 	def stop(self):
@@ -77,7 +80,7 @@ class simulation:
 			frames += 1
 			self.simulateTick()
 			
-			if sim.constants.DRAW or sim.constants.SAVE:
+			if sim.constants.DRAW_DEVICES:
 				if frames % plotFrames == 0:
 					self.visualiser.update()
 		
@@ -101,7 +104,7 @@ class simulation:
 				self.simulateTick()
 				frames += 1
 
-				if sim.constants.DRAW:
+				if sim.constants.DRAW_DEVICES:
 					if frames % plotFrames == 0:
 						self.visualiser.update()
 		
@@ -161,13 +164,14 @@ class simulation:
 				dev.currentJob.devicesEnergyCost[dev] += energy
 
 		# check if task queue is too long
-		for dev in self.devices:
-			if len(dev.taskQueue) > sim.constants.MAXIMUM_TASK_QUEUE:
+		self.taskQueueLength = [len(dev.taskQueue) for dev in self.devices]
+		for i in range(len(self.devices)):
+			if self.taskQueueLength[i] > sim.constants.MAXIMUM_TASK_QUEUE:
 				# check distribution of job assignments
 				unique, counts = np.unique(np.array(sim.results.chosenDestinations), return_counts=True)
 				print(dict(zip(unique, counts)))
 
-				raise Exception("TaskQueue for {} too long! {} Likelihood: {}".format(dev, len(dev.taskQueue), sim.constants.JOB_LIKELIHOOD))
+				warnings.warn("TaskQueue for {} too long! {} Likelihood: {}".format(self.devices[i], len(self.devices[i].taskQueue), sim.constants.JOB_LIKELIHOOD))
 			
 
 

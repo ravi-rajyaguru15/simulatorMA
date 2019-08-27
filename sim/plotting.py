@@ -15,7 +15,7 @@ if "DISPLAY" not in os.environ:
 else:
     print ("Existing DISPLAY={}".format(os.environ["DISPLAY"]))
 
-time.sleep(1)
+# time.sleep(1)
 colours = ['b', 'r']
 
 def plotWithErrors(x, y=None, errors=None, results=None):
