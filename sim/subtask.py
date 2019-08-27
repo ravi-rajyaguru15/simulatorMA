@@ -1,6 +1,7 @@
 # TX RESULT destination swap source
 import time 
 import sys
+import traceback
 
 import sim.constants
 from sim.mcu import mcu
@@ -61,7 +62,7 @@ class subtask:
 				if isinstance(self, txMessage):
 					if self.deadlock():
 						# raise Exception("DEADLOCK", self.job.creator, self.job.processingNode, sim.constants.OFFLOADING_POLICY, sim.constants.JOB_LIKELIHOOD)
-						sim.debug.out("DEADLOCK!\n\n\n")
+						sim.debug.out("TX DEADLOCK!\n\n\n")
 						# time.sleep(1.5)
 						sim.debug.out ("removing task {} from {}".format(self.correspondingRx, self.destination))
 						# resolve deadlock by making destination prioritise reception
@@ -78,18 +79,19 @@ class subtask:
 							print("duration", self.duration, self.correspondingRx.duration)
 							print("rx", self.correspondingRx, self.correspondingRx.started)
 							print("queue", self.destination.taskQueue)
+							traceback.print_exc()
 							sys.exit(0)
 				elif isinstance(self, rxMessage):
 					if self.deadlock():
 						# raise Exception("DEADLOCK", self.job.creator, self.job.processingNode, sim.constants.OFFLOADING_POLICY, sim.constants.JOB_LIKELIHOOD)
-						sim.debug.out("DEADLOCK!\n\n\n")
-						# time.sleep(1.5)
+						sim.debug.out("RX DEADLOCK!\n\n\n")
+						time.sleep(1.5)
 						# sim.debug.out ("removing task {} from {}".format(self.correspondingRx, self.destination))
 						# resolve deadlock by making destination prioritise reception
 						# move current task to queue to be done later
 						try:
 							self.source.currentTask.delay = 0
-							self.source.addTask(self.destination.currentTask) # current task not None so nextTask won't start this task again
+							self.source.addTask(self.source.currentTask) # current task not None so nextTask won't start this task again
 							self.source.removeTask(self.correspondingTx)
 							self.source.currentTask = self.correspondingTx # must remove task before setting as current
 						except ValueError:
@@ -99,6 +101,7 @@ class subtask:
 							print("duration", self.duration, self.correspondingTx.duration)
 							print("rx", self.correspondingTx, self.correspondingTx.started)
 							print("queue", self.destination.taskQueue)
+							traceback.print_exc()
 							sys.exit(0)
 
 					# # is it delayed?
@@ -159,15 +162,21 @@ class subtask:
 	def finishTask(self):
 		# pass
 		# TODO: not setting currentTask to None
+		sim.debug.out("finishing subtask!", 'b')
+
 		self.owner.currentTask = None
+
+		sim.debug.out("current task: {} {}".format(self.owner, self.owner.currentTask))
 	
 	def beginTask(self):
 		# all versions of begin must set started
-		self.started = True
+		self.start()
 		# sim.debug.out("started {} {}".format(self, self.job.samples))
 		sim.debug.out("started {}".format(self))
 		pass
 
+	def start(self):
+		self.started = True
 
 class createMessage(subtask):
 	wirelessDuration = None
@@ -504,7 +513,7 @@ class txMessage(subtask):
 		# energyCost = job.creator.mrf.txEnergy(duration)
 		
 		# create receiving task
-		rx = jobToAdd(job, duration, self, source, destination) # owner=destination)
+		rx = jobToAdd(job, duration, self, source, destination) #, owner=destination)
 		destination.addTask(rx)
 		self.correspondingRx = rx
 		self.waitingForRX = False
@@ -570,6 +579,8 @@ class txMessage(subtask):
 		self.source.mcu.idle()
 		# self.destination.mcu.idle()
 
+		# also start rx task, to ensure that it stays active
+		self.correspondingRx.start()
 
 		subtask.beginTask(self)
 	
@@ -587,7 +598,7 @@ class txJob(txMessage):
 	
 	def __init__(self, job, source, destination):
 		# add receive task to destination
-		sim.debug.out("adding RX job")
+		sim.debug.out("adding TX job")
 		# destination.switchTask((self.job, self.duration, self, owner=self.destination))
 
 		txMessage.__init__(self, job, source, destination, jobToAdd=rxJob)
@@ -623,7 +634,7 @@ class txResult(txMessage):
 	
 	def __init__(self, job, source, destination):
 		# add receive task to destination
-		sim.debug.out("adding RX job")
+		sim.debug.out("adding TX result")
 		# destination.switchTask = rxResult(self.job, self.duration, self, owner=self.destination)
 
 		txMessage.__init__(self, job, source, destination, jobToAdd=rxResult)
@@ -646,7 +657,7 @@ class rxMessage(subtask):
 	# __name__ = "RX Message"
 
 	def __repr__(self):
-		return "{} (waiting for {})".format(self.__name__, self.correspondingTx.owner) if not self.started else subtask.__repr__(self)
+		return "{} (waiting for {})".format(self.__name__, self.source) if not self.started else subtask.__repr__(self)
 	
 	def __init__(self, job, duration, correspondingTx, source, destination):
 		self.source = source
@@ -656,12 +667,12 @@ class rxMessage(subtask):
 	# 	# energyCost = job.processingNode.mrf.rxEnergy(duration)
 		self.correspondingTx = correspondingTx
 
-		subtask.__init__(self, job, duration)
+		subtask.__init__(self, job, duration, owner=destination)
 
 		
 	# only possible if the tx is waiting for it
 	def possible(self):
-		sim.debug.out("rx possible? {} {} {}".format(self.correspondingTx, self.source.currentTask, self.correspondingTx == self.source.currentTask))
+		sim.debug.out("{} possible? corresponding TX: {} source task: {} current? {}".format(self, self.correspondingTx, self.source.currentTask, self.correspondingTx == self.source.currentTask))
 		# start if tx is also waiting, otherwise if tx has started already
 		return self.correspondingTx == self.source.currentTask or self.correspondingTx.started
 
@@ -682,6 +693,7 @@ class rxMessage(subtask):
 		# self.job.creator.mrf.sleep()
 		self.owner.mrf.sleep()
 		# self.job.processingNode.mrf.sleep()
+		sim.debug.out("finishing rxmessage!", 'b')
 	
 		subtask.finishTask(self)
 
@@ -692,10 +704,10 @@ class rxMessage(subtask):
 
 	# check if this task is being deadlocked
 	def deadlock(self):
-		# is destination also trying to receive? sending takes presedence...
-		if isinstance(self.destination.currentTask, rxMessage):
+		# is source also trying to receive? sending takes presedence...
+		if isinstance(self.source.currentTask, rxMessage):
 			# is it not started
-			if not self.started and not self.destination.currentTask.started:
+			if not self.started and not self.source.currentTask.started:
 				return True
 		# any other case is 
 		return False
@@ -723,6 +735,7 @@ class rxResult(rxMessage):
 		# self.job.creator.jobActive = False
 
 		# self.owner.currentTask = None
+		sim.debug.out("finishing rxresult!", 'b')
 
 		rxMessage.finishTask(self)
 

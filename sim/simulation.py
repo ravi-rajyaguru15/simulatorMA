@@ -160,6 +160,17 @@ class simulation:
 				
 				dev.currentJob.devicesEnergyCost[dev] += energy
 
+		# check if task queue is too long
+		for dev in self.devices:
+			if len(dev.taskQueue) > sim.constants.MAXIMUM_TASK_QUEUE:
+				# check distribution of job assignments
+				unique, counts = np.unique(np.array(sim.results.chosenDestinations), return_counts=True)
+				print(dict(zip(unique, counts)))
+
+				raise Exception("TaskQueue for {} too long! {} Likelihood: {}".format(dev, len(dev.taskQueue), sim.constants.JOB_LIKELIHOOD))
+			
+
+
 		self.currentDelays = [dev.currentTask.delay if dev.currentTask is not None else 0 for dev in self.devices ]
 		self.delays.append(self.currentDelays)
 

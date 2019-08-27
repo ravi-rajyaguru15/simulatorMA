@@ -3,7 +3,8 @@ from warnings import warn
 import sim.debug
 import sim.constants 
 import sim.subtask
-from sim.result import result
+# from sim.result import result
+import sim.results
 # from node import node
 
 class job:
@@ -54,8 +55,11 @@ class job:
 
 		# start at first task
 		self.currentTask = self.taskGraph[0]
+		
 		# initiate task by setting processing node
-		self.setprocessingNode(offloadingDecision.chooseDestination(self))
+		chosenDestination = offloadingDecision.chooseDestination(self)
+		self.setprocessingNode(chosenDestination)
+		sim.results.addChosenDestination(chosenDestination)
 
 	def setprocessingNode(self, processingNode):
 		self.processingNode = processingNode
@@ -93,7 +97,7 @@ class job:
 		self.owner.removeJob(self)
 
 		# add results to overall results
-		job.jobResultsQueue.put(result(self.totalLatency, self.totalEnergyCost))
+		# job.jobResultsQueue.put(result(self.totalLatency, self.totalEnergyCost))
 		
 
 	def offloaded(self):

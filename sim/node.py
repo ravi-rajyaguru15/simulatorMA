@@ -120,10 +120,6 @@ class node:
 		else:
 			self.taskQueue.append(task)
 
-		# if task graph gets too long, panic
-		if len(self.taskQueue) > sim.constants.MAXIMUM_TASK_QUEUE:
-			raise Exception("TaskQueue for {} too long! {} Likelihood: {}".format(self, len(self.taskQueue), sim.constants.JOB_LIKELIHOOD))
-
 		# if nothing else happening, start task
 		self.nextTask()
 

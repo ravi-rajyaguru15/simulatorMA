@@ -16,6 +16,8 @@ import time
 import warnings
 import sys
 
+
+
 def singleDelayedJobLocal(accelerated=True):
 	sim.constants.OFFLOADING_POLICY = sim.offloadingPolicy.LOCAL_ONLY
 	sim.constants.MINIMUM_BATCH = 1
@@ -201,10 +203,6 @@ def randomJobs(offloadingPolicy=sim.offloadingPolicy.ANYTHING, hw=True):
 	exp.simulate() #UntilTime(1)
 
 def testRepeatsSeparateThread(i, jobLikelihood, resultsQueue):
-	# i, samplesList = args
-	# print ('repeat', i)
-	# graph = list()
-	
 	sim.constants.JOB_LIKELIHOOD = jobLikelihood
 	
 	# for samples in samplesList:
@@ -218,11 +216,8 @@ def testRepeatsSeparateThread(i, jobLikelihood, resultsQueue):
 
 	if not exp.allDone():
 		warnings.warn("not all devices done: {}".format(jobLikelihood))
-	# print ('repeat', i, 'done')
-		# graph.append((np.average(thisResult), np.std(thisResult)))
-	# return ("Repeat " + str(i), graph)
+
 	resultsQueue.put(["Repeat " + str(i), jobLikelihood, (np.average([dev.totalSleepTime for dev in exp.devices]), 0)])
-	# resultsQueue.put(["Repeat " + str(i), jobLikelihood, (np.sum(exp.totalDevicesEnergy()), 0)])
 	
 
 def testRepeatsSeparate():
