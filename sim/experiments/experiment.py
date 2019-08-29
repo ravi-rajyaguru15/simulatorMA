@@ -194,13 +194,13 @@ def randomJobs(offloadingPolicy=sim.offloadingPolicy.ANYTHING, hw=True):
 	sim.constants.JOB_LIKELIHOOD = 9e-3 # 2e-3
 	sim.constants.SAMPLE_RAW_SIZE = sim.variable.Constant(40)
 	sim.constants.SAMPLE_SIZE = sim.variable.Constant(10)
-	sim.constants.PLOT_TD = sim.constants.TD * 1e2
+	sim.constants.PLOT_TD = sim.constants.TD * 1e1
 	sim.constants.FPGA_POWER_PLAN = sim.powerPolicy.IDLE_TIMEOUT
 	sim.constants.DRAW_DEVICES = True
 	sim.constants.FPGA_IDLE_SLEEP = 0.75
 	sim.constants.MINIMUM_BATCH = 10
 
-	exp = simulation(0, 4, 0, hardwareAccelerated=hw)
+	exp = simulation(0, 2, 0, hardwareAccelerated=hw)
 	exp.simulate() #UntilTime(1)
 
 def testRepeatsSeparateThread(i, jobLikelihood, resultsQueue):
@@ -309,14 +309,19 @@ def testRepeats():
 	sim.plotting.plotMultiWithErrors("testRepeats", results=assembleResults(numThreads, results))
 
 # creates dictionary with (avg, std) for each x for each graph
-def assembleResults(resultsQueue, numResults=None):
+# takes results as input, 
+def assembleResults(resultsQueue, outputQueue, numResults=None):
 	# process results into dict
 	if numResults is None:
 		numResults = resultsQueue.qsize()
-	print ("assembling results", numResults)
+	# print ("assembling results", numResults)
 	graphs = dict()
+	print("")
 	for i in range(numResults):
 		result = resultsQueue.get()
+
+		sys.stdout.write("\rProgress: {:.2f}%".format((i+1) / numResults * 100.0))
+		sys.stdout.flush()
 
 		graphName, sample, datapoint = result
 		if graphName not in graphs.keys():
@@ -333,11 +338,20 @@ def assembleResults(resultsQueue, numResults=None):
 		outputGraphs[key] = dict()
 		for x, ylist in graph.items():
 			outputGraphs[key][x] = (np.average(ylist), np.std(ylist))
+	outputQueue.put(outputGraphs)
 	
-	return outputGraphs
+	# return outputGraphs
 
-		
-def executeMulti(processes):
+# def executeMultiThread(processes):
+	
+
+def executeMulti(processes, results, numResults=None):
+	# results consumption thread:
+	outputData = multiprocessing.Queue()
+	assemble = multiprocessing.Process(target=assembleResults, args=(results, outputData, numResults,))
+	assemble.start()
+
+	# process simulation
 	currentThreads = 0
 	startedThreads = 0
 	finishedThreads = 0
@@ -350,14 +364,17 @@ def executeMulti(processes):
 			# print('current', currentThreads)
 		
 		# wait for at least one to finish
-		# print("waiting for first to end")
-		if processes[finishedThreads].join(1) is not None:
-			finishedThreads += 1
-			currentThreads -= 1
-			# print('finished', finishedThreads)
-			# print('current', currentThreads)
+		processes[finishedThreads].join() #  is not None:	# print ('one down...')
+		time.sleep(1)
+		finishedThreads += 1
+		currentThreads -= 1
 
-			sys.stdout.write("\rProgress: {:.2f}%".format(float(finishedThreads)/len(processes)*100.))
+
+	assemble.join()
+	# print ('outputGraph', outputGraph)
+	return outputData.get()
+	# threadManager = multiprocessing.Process(target=executeMultiThread, args=(processes,))
+	# threadManager.start()
 	# print("all threads have been started!")
 	# finish the last ones
 	# while finishedThreads < len(processes):

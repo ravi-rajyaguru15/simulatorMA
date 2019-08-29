@@ -57,5 +57,5 @@ SAVE_GRAPH = False
 
 # experiments
 REPEATS = 4
-THREAD_COUNT = multiprocessing.cpu_count()
+THREAD_COUNT = 4 # multiprocessing.cpu_count()
 MAX_DELAY = 0.1

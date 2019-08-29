@@ -51,7 +51,9 @@ def run():
 	for process in processes: process.start()
 	# for process in processes: process.join()
 
-	sim.plotting.plotMultiWithErrors("sleep time", results=experiment.assembleResults(len(processes), results)) # , save=True)
+	results = experiment.assembleResults(len(processes), results)
+	
+	sim.plotting.plotMultiWithErrors("sleep time", results=results) # , save=True)
 
 try:
 	run()

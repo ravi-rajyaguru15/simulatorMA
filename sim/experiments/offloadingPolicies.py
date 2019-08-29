@@ -24,8 +24,8 @@ def runThread(name, jobLikelihood, offloadingPolicy, results):
 	# exp.devices[0].createNewJob(exp.time, hardwareAccelerated=hw)
 	exp.simulateTime(10)
 
-	if not exp.allDone():
-		warnings.warn("not all devices done: {}".format(numDevices))
+	# if not exp.allDone():
+	# 	warnings.warn("not all devices done: {}".format(numDevices))
 
 	results.put([name, jobLikelihood, np.sum(exp.totalDevicesEnergy()) / numDevices])
 
@@ -36,23 +36,32 @@ def run():
 	sim.constants.SAMPLE_SIZE = sim.variable.Gaussian(10, 2)
 	sim.constants.SAMPLE_RAW_SIZE = sim.variable.Constant(4, integer=True)
 	sim.constants.SAMPLE_PROCESSED_SIZE = sim.variable.Constant(4, integer=True)
+	sim.constants.FPGA_POWER_PLAN = sim.powerPolicy.IDLE_TIMEOUT
+	sim.constants.FPGA_IDLE_SLEEP = 0.25
 
 	processes = list()
 	sim.constants.MINIMUM_BATCH = 5
 	
-	offloadingOptions = [sim.offloadingPolicy.LOCAL_ONLY, sim.offloadingPolicy.RANDOM_PEER_ONLY, sim.offloadingPolicy.SPECIFIC_PEER_ONLY, sim.offloadingPolicy.ANYTHING]
+	offloadingOptions = sim.offloadingPolicy.OPTIONS
 	results = multiprocessing.Queue()
-	sim.constants.REPEATS = 6
+	
+	sim.constants.REPEATS = 3
 
-	for jobLikelihood in np.arange(1e-2, 10e-2, 1e-2):
+	for jobLikelihood in np.arange(1e-3, 10e-3, 1e-3):
 		for offloadingPolicy in offloadingOptions:
 			for i in range(sim.constants.REPEATS):
 				processes.append(multiprocessing.Process(target=runThread, args=("Offloading {}".format(offloadingPolicy), jobLikelihood, offloadingPolicy, results)))
 	
-	for process in processes: process.start()
+	# outputGraph = dict()
+	# results = experiment.assembleResults(results, outputGraph, len(processes))
+	# results.start()
+	results = experiment.executeMulti(processes, results, len(processes))
+	# results.join()
+
+	sim.plotting.plotMultiWithErrors("offloadingPolicy", results=results) # , save=True)
+
 	# for process in processes: process.join()
 
-	sim.plotting.plotMultiWithErrors("offloadingPolicy", results=experiment.assembleResults(len(processes), results)) # , save=True)
 
 try:
 	run()
