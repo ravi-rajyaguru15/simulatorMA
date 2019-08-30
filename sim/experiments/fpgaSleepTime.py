@@ -12,7 +12,7 @@ import traceback
 import warnings
 
 numDevices = 4
-def runThread(jobLikelihood, fpgaSleepTime, results):
+def runThread(jobLikelihood, fpgaSleepTime, results, finished):
 	sim.constants.FPGA_IDLE_SLEEP = fpgaSleepTime
 	sim.constants.JOB_LIKELIHOOD = jobLikelihood
 
@@ -25,9 +25,8 @@ def runThread(jobLikelihood, fpgaSleepTime, results):
 		traceback.print_exc(file=sys.stdout)
 		print("Error in experiment:", jobLikelihood, fpgaSleepTime, exp.time)
 
-
 	results.put(["FPGA Idle Sleep {}".format(fpgaSleepTime), jobLikelihood, np.sum(exp.totalDevicesEnergy()) / numDevices])
-
+	finished.put(True)
 
 def run():
 	print ("starting experiment")
@@ -44,17 +43,17 @@ def run():
 	
 	# offloadingOptions = [True, False]
 	results = multiprocessing.Queue()
+	finished = multiprocessing.Queue()
 	sim.constants.REPEATS = 3
 
 	for jobLikelihood in np.arange(1e-3, 1e-2, 1e-3):
 		for fpgaSleepTime in np.arange(0, 1e-0, 2.5e-1):
 			for _ in range(sim.constants.REPEATS):
-				processes.append(multiprocessing.Process(target=runThread, args=(jobLikelihood, fpgaSleepTime, results)))
+				processes.append(multiprocessing.Process(target=runThread, args=(jobLikelihood, fpgaSleepTime, results, finished)))
 	
-	experiment.executeMulti(processes)
-	# for process in processes: process.join()
-
-	sim.plotting.plotMultiWithErrors("Average Energy", results=experiment.assembleResults(len(processes), results)) # , save=True)
+	results = experiment.executeMulti(processes, results, finished)
+	
+	sim.plotting.plotMultiWithErrors("Average Energy", results=results) # , save=True)
 
 try:
 	run()

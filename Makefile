@@ -43,7 +43,7 @@ sim:
 	python3 sim/simulation.py
 
 .PHONY: *
-test: batchSize
+test: powerPlan
 	@echo $$DISPLAY
 	@echo "running test"
 	# python sim.py
