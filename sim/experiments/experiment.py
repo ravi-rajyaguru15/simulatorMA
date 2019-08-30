@@ -360,8 +360,8 @@ def executeMulti(processes, results, finished, numResults=None):
 			processes[startedThreads].start()
 			startedThreads += 1
 			currentThreads += 1
-			print('started', startedThreads)
-			print('current', currentThreads)
+			# print('started', startedThreads)
+			# print('current', currentThreads)
 		
 		# wait for at least one to finish
 		finished.get()
