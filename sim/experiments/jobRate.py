@@ -12,7 +12,7 @@ import traceback
 import warnings
 
 numDevices = 4
-def runThread(jobLikelihood, results):
+def runThread(jobLikelihood, results, finished):
 	sim.constants.JOB_LIKELIHOOD = jobLikelihood
 
 	# sim.constants.SAMPLE_SIZE = sim.variable.Constant(samples)
@@ -24,9 +24,8 @@ def runThread(jobLikelihood, results):
 		traceback.print_exc(file=sys.stdout)
 		print("Error in experiment:", jobLikelihood, exp.time)
 
-
 	results.put(["", jobLikelihood, np.average([dev.numJobs for dev in exp.devices]) / exp.time])
-
+	finished.put(True)
 
 def run():
 	print ("starting experiment")
@@ -44,16 +43,16 @@ def run():
 	
 	# offloadingOptions = [True, False]
 	results = multiprocessing.Queue()
+	finished = multiprocessing.Queue()
 	sim.constants.REPEATS = 6
 
 	for jobLikelihood in np.arange(1e-4, 5e-3, 2e-4):
 		for _ in range(sim.constants.REPEATS):
-			processes.append(multiprocessing.Process(target=runThread, args=(jobLikelihood, results)))
+			processes.append(multiprocessing.Process(target=runThread, args=(jobLikelihood, results, finished)))
 	
-	experiment.executeMulti(processes)
-	# for process in processes: process.join()
+	results = experiment.executeMulti(processes, results, finished)
 
-	sim.plotting.plotMultiWithErrors("Job Rate", results=experiment.assembleResults(len(processes), results), ylabel="Job Rate (jobs/s)", xlabel="Job Likelihood") # , save=True)
+	sim.plotting.plotMultiWithErrors("Job Rate", results=results, ylabel="Job Rate (jobs/s)", xlabel="Job Likelihood") # , save=True)
 
 try:
 	run()
