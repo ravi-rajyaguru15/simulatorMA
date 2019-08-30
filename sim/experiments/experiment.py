@@ -342,10 +342,10 @@ def assembleResults(resultsQueue, outputQueue, numResults=None):
 	
 	# return outputGraphs
 
-# def executeMultiThread(processes):
-	
+def executeMulti(processes, results, finished, numResults=None):
+	if numResults is None:
+		numResults = len(processes)
 
-def executeMulti(processes, results, numResults=None):
 	# results consumption thread:
 	outputData = multiprocessing.Queue()
 	assemble = multiprocessing.Process(target=assembleResults, args=(results, outputData, numResults,))
@@ -360,36 +360,20 @@ def executeMulti(processes, results, numResults=None):
 			processes[startedThreads].start()
 			startedThreads += 1
 			currentThreads += 1
-			# print('started', startedThreads)
-			# print('current', currentThreads)
+			print('started', startedThreads)
+			print('current', currentThreads)
 		
 		# wait for at least one to finish
-		processes[finishedThreads].join() #  is not None:	# print ('one down...')
-		time.sleep(1)
+		finished.get()
+		# processes[finishedThreads].join() #  is not None:	# print ('one down...')
+		# time.sleep(1)
 		finishedThreads += 1
 		currentThreads -= 1
 
 
 	assemble.join()
-	# print ('outputGraph', outputGraph)
+
 	return outputData.get()
-	# threadManager = multiprocessing.Process(target=executeMultiThread, args=(processes,))
-	# threadManager.start()
-	# print("all threads have been started!")
-	# finish the last ones
-	# while finishedThreads < len(processes):
-	# 	print('waiting for join...', finishedThreads)
-	# 	print(processes[finishedThreads].__dict__)
-	# 	if processes[finishedThreads].join(1) is not None:
-	# 		finishedThreads += 1
-	# 		currentThreads -= 1
-
-	# 		print('finished', finishedThreads)
-	# 		print('current', currentThreads)
-	# 	sys.stdout.write("\rProgress: {:.2f}%".format(float(finishedThreads)/len(processes)*100.))
-	
-	# print("done!")
-
 		
 if __name__ == '__main__':
 	# for i in range(1, 100, 10):

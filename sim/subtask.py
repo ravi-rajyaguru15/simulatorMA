@@ -360,7 +360,7 @@ class reconfigureFPGA(subtask):
 	__name__ = "Reconfigure FPGA"
 	
 	def __init__(self, job): #  device, samples, processor=None):
-		duration = sim.constants.RECONFIGURATION_TIME.gen()
+		duration = job.processingNode.platform.RECONFIGURATION_TIME.gen()
 		# energyCost = job.processingNode.reconfigurationEnergy(duration)
 	
 		subtask.__init__(self, job, duration)

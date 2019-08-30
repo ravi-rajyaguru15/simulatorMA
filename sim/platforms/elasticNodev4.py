@@ -46,6 +46,7 @@ MCU_MW_OVERHEAD_LATENCY = Gaussian(20e-3, 5e-3)
 MCU_MESSAGE_OVERHEAD_LATENCY = Gaussian(5e-3, 1e-3)
 SERVER_MESSAGE_OVERHEAD_LATENCY = Gaussian(1e-4, 1.1e-4)
 ETHERNET_PING = Gaussian(5. / 1000., 15. / 1000.)
+RECONFIGURATION_TIME = Constant(0.096) #
 
 # voltage in V
 MCU_VOLTAGE = Constant(3.3) #

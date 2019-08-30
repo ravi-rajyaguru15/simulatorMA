@@ -11,7 +11,7 @@ import sys
 import traceback
 import warnings
 
-def totalEnergyBatchSizeThread(name, hw, offloadingPolicy, batchSize, results):
+def totalEnergyBatchSizeThread(name, hw, offloadingPolicy, batchSize, results, finished):
 	sim.constants.MINIMUM_BATCH = batchSize
 	sim.constants.OFFLOADING_POLICY = offloadingPolicy # sim.constants.PEER_ONLY if offloading else sim.constants.LOCAL_ONLY
 
@@ -27,6 +27,8 @@ def totalEnergyBatchSizeThread(name, hw, offloadingPolicy, batchSize, results):
 
 	results.put([name, batchSize, np.sum(exp.totalDevicesEnergy())])
 
+	finished.put(True)
+
 
 def totalEnergyBatchSize():
 	print ("starting experiment")
@@ -36,20 +38,20 @@ def totalEnergyBatchSize():
 	sim.constants.JOB_LIKELIHOOD = 2e-3
 		
 	hwOptions = [True, False]
-	offloadingOptions = [True, False]
+	offloadingOptions = sim.offloadingPolicy.OPTIONS
 	results = multiprocessing.Queue()
-	sim.constants.REPEATS = 3
+	finished = multiprocessing.Queue()
+	sim.constants.REPEATS = 16
 
 	for hw in hwOptions:
 		for offloading in offloadingOptions:
 			for batchSize in range(5, 30, 5):
 				for i in range(sim.constants.REPEATS):				
-					processes.append(multiprocessing.Process(target=totalEnergyBatchSizeThread, args=("HW Accelerator {} Offloading {}".format(hw, offloading), hw, offloading, batchSize, results)))
+					processes.append(multiprocessing.Process(target=totalEnergyBatchSizeThread, args=("HW Accelerator {} Offloading {}".format(hw, offloading), hw, offloading, batchSize, results, finished)))
 	
-	for process in processes: process.start()
-	# for process in processes: process.join()
-
-	sim.plotting.plotMultiWithErrors("totalEnergyBatchSize", results=experiment.assembleResults(len(processes), results)) # , save=True)
+	results = experiment.executeMulti(processes, results, finished)
+	
+	sim.plotting.plotMultiWithErrors("totalEnergyBatchSize", results=results) # , save=True)
 
 try:
 	totalEnergyBatchSize()

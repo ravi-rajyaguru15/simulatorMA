@@ -24,9 +24,6 @@ def runThread(offloading, jobLikelihood, numTicks , results):
 		# for j in range(len(exp.devices))
 	results.put(["Offloading Policy {}".format(offloading), jobLikelihood, np.average(exp.delays)])
 
-			# print (["Job Likelihood {:.2f}".format(jobLikelihood), i, exp.delays])
-
-
 def run():
 	print ("starting experiment")
 	sim.debug.enabled = False
@@ -52,10 +49,8 @@ def run():
 			for i in range(sim.constants.REPEATS):
 				processes.append(multiprocessing.Process(target=runThread, args=(offloading, jobLikelihood, numTicks, results)))
 	
-	for process in processes: process.start()
-	# for process in processes: process.join()
-
-	sim.plotting.plotMultiWithErrors("delays", results=experiment.assembleResults(len(processes), results)) # , save=True)
+	results = experiment.executeMulti(processes, results)
+	sim.plotting.plotMultiWithErrors("delays", results=results) # , save=True)
 
 try:
 	run()
