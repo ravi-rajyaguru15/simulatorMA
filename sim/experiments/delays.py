@@ -12,20 +12,16 @@ import traceback
 import warnings
 
 numDevices = 4
-def runThread(offloading, jobLikelihood, numTicks , results):
+def runThread(offloading, jobLikelihood, numTicks , results, finished):
 	sim.constants.JOB_LIKELIHOOD = jobLikelihood
 
 	# sim.constants.SAMPLE_SIZE = sim.variable.Constant(samples)
 	exp = simulation(0, numDevices, 0, hardwareAccelerated=True)
 
 	for i in range(numTicks):
-		# exp.simulateTime(10)
 		exp.simulateTick()
-		# for j in range(len(exp.devices))
 	results.put(["Offloading Policy {}".format(offloading), jobLikelihood, np.average(exp.delays)])
-
-			# print (["Job Likelihood {:.2f}".format(jobLikelihood), i, exp.delays])
-
+	finished.put(True)
 
 def run():
 	print ("starting experiment")
@@ -33,7 +29,7 @@ def run():
 	sim.constants.SAMPLE_SIZE = sim.variable.Gaussian(10, 2)
 	sim.constants.SAMPLE_RAW_SIZE = sim.variable.Constant(4, integer=True)
 	sim.constants.SAMPLE_PROCESSED_SIZE = sim.variable.Constant(4, integer=True)
-	sim.constants.FPGA_POWER_PLAN = sim.fpgaPowerPolicy.FPGA_IMMEDIATELY_OFF
+	sim.constants.FPGA_POWER_PLAN = sim.powerPolicy.IMMEDIATELY_OFF
 	sim.constants.OFFLOADING_POLICY = sim.offloadingPolicy.RANDOM_PEER_ONLY
 	sim.constants.DRAW = False
 
@@ -44,18 +40,17 @@ def run():
 
 	# offloadingOptions = [True, False]
 	results = multiprocessing.Queue()
+	finished = multiprocessing.Queue()
 	sim.constants.REPEATS = 9
 
 	for jobLikelihood in np.arange(1e-3, 2e-2, 1e-3):
 		# for fpgaPowerPlan in [sim.fpgaPowerPolicy.FPGA_STAYS_ON]: # , sim.constants.FPGA_IMMEDIATELY_OFF, sim.constants.FPGA_WAIT_OFF]:
 		for offloading in sim.offloadingPolicy.OPTIONS:
 			for i in range(sim.constants.REPEATS):
-				processes.append(multiprocessing.Process(target=runThread, args=(offloading, jobLikelihood, numTicks, results)))
+				processes.append(multiprocessing.Process(target=runThread, args=(offloading, jobLikelihood, numTicks, results, finished)))
 	
-	for process in processes: process.start()
-	# for process in processes: process.join()
-
-	sim.plotting.plotMultiWithErrors("delays", results=experiment.assembleResults(len(processes), results)) # , save=True)
+	results = experiment.executeMulti(processes, results, finished)
+	sim.plotting.plotMultiWithErrors("delays", results=results) # , save=True)
 
 try:
 	run()

@@ -12,23 +12,20 @@ import traceback
 import warnings
 
 numDevices = 4
-def runThread(name, jobLikelihood, offloadingPolicy, fpgaPowerPlan, results):
+def runThread(jobLikelihood, offloadingPolicy, fpgaPowerPlan, results, finished):
 	sim.constants.OFFLOADING_POLICY = offloadingPolicy
 	sim.constants.FPGA_POWER_PLAN = fpgaPowerPlan
 	sim.constants.JOB_LIKELIHOOD = jobLikelihood
 
-	# sim.constants.SAMPLE_SIZE = sim.variable.Constant(samples)
 	exp = simulation(0, numDevices, 0, hardwareAccelerated=True)
 
-	# exp.simulateTime(0.1)
-	# exp.devices[0].createNewJob(exp.time, hardwareAccelerated=hw)
 	exp.simulateTime(10)
 
-	if not exp.allDone():
-		warnings.warn("not all devices done: {}".format(numDevices))
+	# if not exp.allDone():
+	# 	warnings.warn("not all devices done: {}".format(numDevices))
 
-	results.put([name, jobLikelihood, np.sum(exp.totalDevicesEnergy()) / numDevices])
-
+	results.put(["{} FPGA {}".format(offloadingPolicy, fpgaPowerPlan), jobLikelihood, np.sum(exp.totalDevicesEnergy()) / numDevices])
+	finished.put(True)
 
 def run():
 	print ("starting experiment")
@@ -41,20 +38,21 @@ def run():
 	sim.constants.JOB_LIKELIHOOD = 2e-3
 	sim.constants.MINIMUM_BATCH = 5
 	
-	offloadingOptions = [True, False]
+	offloadingOptions = sim.offloadingPolicy.OPTIONS
 	results = multiprocessing.Queue()
+	finished = multiprocessing.Queue()
 	sim.constants.REPEATS = 6
 
 	for jobLikelihood in np.arange(1e-2, 10e-2, 1e-2):
-		for fpgaPowerPlan in [sim.constants.FPGA_STAYS_ON]: # , sim.constants.FPGA_IMMEDIATELY_OFF, sim.constants.FPGA_WAIT_OFF]:
+		for fpgaPowerPlan in sim.powerPolicy.OPTIONS: # , sim.constants.FPGA_IMMEDIATELY_OFF, sim.constants.FPGA_WAIT_OFF]:
 			for offloading in offloadingOptions:
 					for i in range(sim.constants.REPEATS):
-						processes.append(multiprocessing.Process(target=runThread, args=("Offloading {} FPGA Power Plan {}".format(offloading, fpgaPowerPlan), jobLikelihood, offloading, fpgaPowerPlan, results)))
+						processes.append(multiprocessing.Process(target=runThread, args=(jobLikelihood, offloading, fpgaPowerPlan, results, finished)))
 	
-	for process in processes: process.start()
+	results = experiment.executeMulti(processes, results, finished)
 	# for process in processes: process.join()
 
-	sim.plotting.plotMultiWithErrors("fpgaPowerPlan", results=experiment.assembleResults(len(processes), results)) # , save=True)
+	sim.plotting.plotMultiWithErrors("fpgaPowerPlan", results=results) # , save=True)
 
 try:
 	run()

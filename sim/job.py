@@ -57,7 +57,7 @@ class job:
 		self.currentTask = self.taskGraph[0]
 		
 		# initiate task by setting processing node
-		chosenDestination = offloadingDecision.chooseDestination(self)
+		chosenDestination = offloadingDecision.chooseDestination(self.currentTask)
 		self.setprocessingNode(chosenDestination)
 		sim.results.addChosenDestination(chosenDestination)
 

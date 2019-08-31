@@ -359,7 +359,7 @@ class reconfigureFPGA(subtask):
 	__name__ = "Reconfigure FPGA"
 	
 	def __init__(self, job): #  device, samples, processor=None):
-		duration = sim.constants.RECONFIGURATION_TIME.gen()
+		duration = job.processingNode.platform.RECONFIGURATION_TIME.gen()
 		# energyCost = job.processingNode.reconfigurationEnergy(duration)
 	
 		subtask.__init__(self, job, duration)
@@ -445,6 +445,7 @@ class fpgaMcuOffload(xmem):
 	# 	# TODO: also only possible to start reconfigure if fpga and mcu isn't busy
 
 class processing(subtask):
+	# TODO: test local processing without HW acceleration?
 	__name__ = "Processing"
 	
 	def __repr__(self):

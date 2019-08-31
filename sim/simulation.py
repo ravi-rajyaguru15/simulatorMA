@@ -165,13 +165,13 @@ class simulation:
 
 		# check if task queue is too long
 		self.taskQueueLength = [len(dev.taskQueue) for dev in self.devices]
-		for i in range(len(self.devices)):
-			if self.taskQueueLength[i] > sim.constants.MAXIMUM_TASK_QUEUE:
-				# check distribution of job assignments
-				unique, counts = np.unique(np.array(sim.results.chosenDestinations), return_counts=True)
-				print(dict(zip(unique, counts)))
+		# for i in range(len(self.devices)):
+		# 	if self.taskQueueLength[i] > sim.constants.MAXIMUM_TASK_QUEUE:
+		# 		# check distribution of job assignments
+		# 		unique, counts = np.unique(np.array(sim.results.chosenDestinations[:-1]), return_counts=True)
+		# 		print(dict(zip(unique, counts)))
 
-				warnings.warn("TaskQueue for {} too long! {} Likelihood: {}".format(self.devices[i], len(self.devices[i].taskQueue), sim.constants.JOB_LIKELIHOOD))
+		# 		warnings.warn("TaskQueue for {} too long! {} Likelihood: {}".format(self.devices[i], len(self.devices[i].taskQueue), sim.constants.JOB_LIKELIHOOD))
 			
 
 

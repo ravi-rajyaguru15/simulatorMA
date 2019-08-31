@@ -30,7 +30,6 @@ def plotWithErrors(x, y=None, errors=None, results=None):
 	
 def plotMultiWithErrors(name, results=None, ylim=None, ylabel=None, xlabel=None): # , show=False, save=False):
 	print ("plotting!")
-	# print (results)
 	# sort by graph key
 	orderedResults = collections.OrderedDict(sorted(results.items()))
 	legends = list()

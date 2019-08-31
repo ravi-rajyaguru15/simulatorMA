@@ -24,7 +24,6 @@ TD = 1e-3
 PLOT_TD = 1e-3
 uni = Uniform(0, 1)
 JOB_LIKELIHOOD = 1e-3
-RECONFIGURATION_TIME = Constant(0.1)
 
 # offloading
 OFFLOADING_POLICY = sim.offloadingPolicy.LOCAL_ONLY

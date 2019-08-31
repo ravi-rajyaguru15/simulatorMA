@@ -13,7 +13,7 @@ import warnings
 
 numDevices = 4
 jump = 10
-def runThread(jobLikelihood, totalTime, results):
+def runThread(jobLikelihood, totalTime, results, finished):
 	sim.constants.JOB_LIKELIHOOD = jobLikelihood
 
 	# sim.constants.SAMPLE_SIZE = sim.variable.Constant(samples)
@@ -21,9 +21,11 @@ def runThread(jobLikelihood, totalTime, results):
 	for i in range(int(totalTime/jump)):
 		exp.simulateTime(jump)
 		results.put(["Job Likelihood: {:.4f}".format(jobLikelihood), i * jump, np.max(exp.taskQueueLength)])
-		print(jobLikelihood, i)
+	
+	finished.put(True)
+		# print(jobLikelihood, i)
 
-	print(jobLikelihood, "done")
+	# print(jobLikelihood, "done")
 
 
 def run():
@@ -42,6 +44,7 @@ def run():
 	
 	# offloadingOptions = [True, False]
 	results = multiprocessing.Queue()
+	finished = multiprocessing.Queue()
 	sim.constants.REPEATS = 1
 	totalTime = 500
 
@@ -49,14 +52,11 @@ def run():
 		# for totalTime in range(10):
 		# for fpgaPowerPlan in [sim.fpgaPowerPolicy.FPGA_STAYS_ON]: # , sim.constants.FPGA_IMMEDIATELY_OFF, sim.constants.FPGA_WAIT_OFF]:
 		for i in range(sim.constants.REPEATS):
-			processes.append(multiprocessing.Process(target=runThread, args=(jobLikelihood, totalTime, results)))
+			processes.append(multiprocessing.Process(target=runThread, args=(jobLikelihood, totalTime, results, finished)))
 	
-	print("executing...")
-	experiment.executeMulti(processes)
-	print("done executing...")
-	# for process in processes: process.join()
+	results = experiment.executeMulti(processes, results, finished, numResults=int(totalTime/jump * len(processes)))
 
-	sim.plotting.plotMultiWithErrors("backlog", results=experiment.assembleResults(results, numResults=int(totalTime/jump * len(processes)))) # , save=True)
+	sim.plotting.plotMultiWithErrors("backlog", results=results) # , save=True)
 
 try:
 	run()
