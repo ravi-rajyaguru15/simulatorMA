@@ -392,7 +392,7 @@ if __name__ == '__main__':
 	# sim.randomPeerJobs(True)
 	# randomLocalJobs(False)
 	# randomPeerJobs(False)
-	randomJobs(offloadingPolicy=sim.offloadingPolicy.ANNOUNCED, hw=True)
+	randomJobs(offloadingPolicy=sim.offloadingPolicy.LOCAL_ONLY, hw=False)
 	# deadlock()
 	
 	# totalEnergyJobSize()

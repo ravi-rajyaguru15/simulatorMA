@@ -144,7 +144,6 @@ class subtask:
 				# # remove from owner
 				# sim.debug.out("removing from tick")
 				# self.owner.removeTask(self) removing when starting at least 
-				# TODO: not switching to nextTask (switching directly)
 				self.owner.nextTask()
 
 				# print ("current task " + str(self.owner.currentTask))
