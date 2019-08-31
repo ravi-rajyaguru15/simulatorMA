@@ -13,6 +13,7 @@ if os.name != 'nt':
 import matplotlib.pyplot as pp
 import pylab
 import math
+import time
 import numpy as np
 # import sys
 # sys.exit(0)
@@ -24,9 +25,10 @@ import sim.plotting
 DEVICE_SIZE = [0.2, 0.1]
 TEXT_SPACING = 0.05
 BORDER = 0.05
-DEVICES_FIGURE = 0
+DEVICES_FIGURE = 4
 DEVICES_ENERGY_FIGURE = 1
 DEVICES_POWER_FIGURE = 2
+SUBTASKS_DURATIONS_FIGURE = 3
 
 class visualiser:
 	sim = None
@@ -155,10 +157,15 @@ class visualiser:
 		if sim.constants.DRAW_GRAPH_TOTAL_ENERGY:
 			self.drawTotalDeviceEnergy()
 			pp.draw()
+
+		if sim.constants.DRAW_GRAPH_SUBTASK_DURATION:
+			self.drawSubtaskDuration()
+			pp.draw()
 		
 		if sim.constants.DRAW_GRAPH_CURRENT_POWER:
 			self.drawCurrentDevicePower()
 			pp.draw()
+		
 		
 		pp.pause(1e-6) # sim.constants.TD)
 
@@ -177,6 +184,30 @@ class visualiser:
 		pp.figure(DEVICES_ENERGY_FIGURE)
 		pp.bar(np.array(range(len(self.sim.devices))) + 0.5, energyList, tick_label=labels, color=['b'] * len(self.sim.devices))
 		
+	def drawSubtaskDuration(self):
+		subtasks = [
+			sim.subtask.batchContinue, 
+			sim.subtask.batching, 
+			sim.subtask.createMessage,
+			sim.subtask.fpgaMcuOffload, 
+			sim.subtask.mcuFpgaOffload,
+			sim.subtask.newJob,
+			sim.subtask.processing, 
+			sim.subtask.reconfigureFPGA,
+			sim.subtask.rxJob,
+			sim.subtask.rxResult,
+			sim.subtask.txJob,
+			sim.subtask.txMessage
+			]
+
+		pp.figure(SUBTASKS_DURATIONS_FIGURE)
+		pp.cla()
+		durations = [task.totalDuration for task in subtasks]
+		xs = np.array(range(len(subtasks))) + 0.5
+		pp.bar(xs, durations, color=['b'] * len(subtasks))
+		pp.xticks(xs, [task.__name__ for task in subtasks], rotation='vertical')
+
+	
 	maxPowerEver = 0.5
 	def drawCurrentDevicePower(self):
 		labels = self.sim.devicesNames()

@@ -62,8 +62,8 @@ class simulation:
 
 		self.hardwareAccelerated = hardwareAccelerated
 		# self.visualise = visualise
-		if sim.constants.DRAW_DEVICES:
-			self.visualiser = visualiser(self)
+		# if sim.constants.DRAW_DEVICES:
+		self.visualiser = visualiser(self)
 
 	def stop(self):
 		sim.debug.out("STOP", 'r')
@@ -80,9 +80,9 @@ class simulation:
 			frames += 1
 			self.simulateTick()
 			
-			if sim.constants.DRAW_DEVICES:
-				if frames % plotFrames == 0:
-					self.visualiser.update()
+			# if sim.constants.DRAW_DEVICES:
+			if frames % plotFrames == 0:
+				self.visualiser.update()
 		
 			# pass
 				# def simulateUntilDone()
@@ -104,9 +104,9 @@ class simulation:
 				self.simulateTick()
 				frames += 1
 
-				if sim.constants.DRAW_DEVICES:
-					if frames % plotFrames == 0:
-						self.visualiser.update()
+				# if sim.constants.DRAW_DEVICES:
+				if frames % plotFrames == 0:
+					self.visualiser.update()
 		
 		# results
 		try:

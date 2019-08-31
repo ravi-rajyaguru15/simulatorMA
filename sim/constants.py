@@ -15,8 +15,6 @@ DEFAULT_ELASTIC_NODE = sim.platforms.elasticNodev4
 
 # size in bytes
 SAMPLE_SIZE = Uniform(1, 11, integer=True)
-SAMPLE_RAW_SIZE = Constant(400, integer=True) # FRAGMENTATION
-SAMPLE_PROCESSED_SIZE = Constant(100, integer=True) #
 
 # time
 SIM_TIME = 2e-2
@@ -46,6 +44,7 @@ MAXIMUM_TASK_QUEUE = 5
 DRAW_DEVICES = False
 DRAW_GRAPH_TOTAL_ENERGY = False
 DRAW_GRAPH_CURRENT_POWER = False
+DRAW_GRAPH_SUBTASK_DURATION = True
 # DRAW = True
 # SAVE = False
 DRAW_GRAPH = True

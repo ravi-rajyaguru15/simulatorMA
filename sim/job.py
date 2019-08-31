@@ -38,8 +38,6 @@ class job:
 	def __init__(self, createdTime, origin, samples, offloadingDecision, hardwareAccelerated, taskGraph=None):
 		self.creator = origin
 		self.samples = samples
-		# initialise message size to raw data
-		self.datasize = self.rawMessageSize()
 		self.hardwareAccelerated = hardwareAccelerated
 		self.totalEnergyCost = 0
 		self.totalLatency = 0
@@ -55,6 +53,8 @@ class job:
 
 		# start at first task
 		self.currentTask = self.taskGraph[0]
+		# initialise message size to raw data
+		self.datasize = self.rawMessageSize()
 		
 		# initiate task by setting processing node
 		chosenDestination = offloadingDecision.chooseDestination(self.currentTask)
@@ -167,10 +167,10 @@ class job:
 	# 	return output
 
 	def rawMessageSize(self):
-		return self.samples * sim.constants.SAMPLE_RAW_SIZE.gen()
+		return self.samples * self.currentTask.rawSize
 
 	def processedMessageSize(self):
-		return self.samples * sim.constants.SAMPLE_PROCESSED_SIZE.gen()
+		return self.samples * self.currentTask.processedSize
 
 
 	# # change message from raw to processed

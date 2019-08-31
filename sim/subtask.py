@@ -13,6 +13,7 @@ import sim.debug
 
 class subtask:
 	duration = None
+	totalDuration = 0
 	startTime = None
 	delay = None
 	progress = None
@@ -42,6 +43,7 @@ class subtask:
 			self.owner = owner
 		# assert(self.owner is not None)
 		self.duration = duration
+		self.__class__.totalDuration += duration
 		# self.energyCost = energyCost
 
 		self.progress = 0
@@ -221,7 +223,7 @@ class batchContinue(subtask):
 	__name__ = "Batch Continue"
 
 	def __init__(self, job):
-		duration = sim.constants.TD # immediately move on
+		duration = job.processingNode.platform.MCU_BATCHING_LATENCY.gen()
 
 		sim.debug.out("creating batchContinue with job {}".format(job))
 
@@ -333,7 +335,7 @@ class newJob(subtask):
 	__name__ = "New Job"
 
 	def __init__(self, job):
-		duration = sim.constants.TD # immediately move on (if possible)
+		duration = job.processingNode.platform.MCU_BATCHING_LATENCY.gen() # immediately move on (if possible)
 	
 		subtask.__init__(self, job, duration)
 

@@ -196,9 +196,10 @@ def randomJobs(offloadingPolicy=sim.offloadingPolicy.ANYTHING, hw=True):
 	sim.constants.SAMPLE_SIZE = sim.variable.Constant(10)
 	sim.constants.PLOT_TD = sim.constants.TD * 1e1
 	sim.constants.FPGA_POWER_PLAN = sim.powerPolicy.IDLE_TIMEOUT
-	sim.constants.DRAW_DEVICES = True
+	sim.constants.DRAW_DEVICES = False
 	sim.constants.FPGA_IDLE_SLEEP = 0.75
-	sim.constants.MINIMUM_BATCH = 10
+	sim.constants.MINIMUM_BATCH = 5
+	sim.constants.DEFAULT_TASK_GRAPH = [sim.tasks.EASY]
 
 	exp = simulation(0, 2, 0, hardwareAccelerated=hw)
 	exp.simulate() #UntilTime(1)
@@ -206,13 +207,7 @@ def randomJobs(offloadingPolicy=sim.offloadingPolicy.ANYTHING, hw=True):
 def testRepeatsSeparateThread(i, jobLikelihood, resultsQueue):
 	sim.constants.JOB_LIKELIHOOD = jobLikelihood
 	
-	# for samples in samplesList:
-
 	exp = simulation(0, 4, 0, hardwareAccelerated=False)
-
-	# exp.simulateTime(sim.constants.PLOT_TD * 10)
-	# exp.devices[0].createNewJob(exp.time, hardwareAccelerated=False)
-	# exp.simulateTime(sim.constants.PLOT_TD * 1500)
 	exp.simulateTime(10)
 
 	if not exp.allDone():
@@ -374,7 +369,7 @@ def executeMulti(processes, results, finished, numResults=None):
 	assemble.join()
 
 	return outputData.get()
-		
+	
 if __name__ == '__main__':
 	# for i in range(1, 100, 10):
 	# 	print i, exp.simulateAll(i, "latency")
@@ -393,7 +388,7 @@ if __name__ == '__main__':
 	# sim.randomPeerJobs(True)
 	# randomLocalJobs(False)
 	# randomPeerJobs(False)
-	randomJobs(offloadingPolicy=sim.offloadingPolicy.LOCAL_ONLY, hw=False)
+	randomJobs(offloadingPolicy=sim.offloadingPolicy.LOCAL_ONLY, hw=True)
 	# deadlock()
 	
 	# totalEnergyJobSize()

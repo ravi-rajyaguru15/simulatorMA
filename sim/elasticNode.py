@@ -39,7 +39,7 @@ class elasticNode(node):
 	# 	return self.fpga.processingTime(job.samples)
 
 	def mcuToFpgaLatency(self, datasize):
-		latency = datasize / 1024. / self.platform.MCU_FPGA_COMMUNICATION_SPEED.gen() + self.platform.MCU_MW_OVERHEAD_LATENCY.gen()
+		latency = datasize / self.platform.MCU_FPGA_COMMUNICATION_SPEED.gen() + self.platform.MCU_MW_OVERHEAD_LATENCY.gen()
 		sim.debug.out ("offloading latency: {}".format(latency))
 		return latency
 
