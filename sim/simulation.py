@@ -140,6 +140,10 @@ class simulation:
 			# mcu is required for taking samples
 			if not device.hasJob():
 				device.maybeAddNewJob(self.time)
+
+		# update the destination of the offloading if it is shared
+		if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.ROUND_ROBIN:
+			sim.offloadingDecision.offloadingDecision.updateTarget(self.time)
 		
 		tasksBefore = np.array([dev.currentTask for dev in self.devices])
 

@@ -254,16 +254,31 @@ class node:
 		self.batch[task].append(job)
 	
 	def maxBatchLength(self):
-		return np.max([len(item) for key, item in self.batch.items()])
+		# investigate batch if not empty
+		if self.batch:
+			longestBatch = np.argmax([len(item) for key, item in self.batch.items()])
+			return len(self.batch[list(self.batch.keys())[longestBatch]]), longestBatch
+		else:
+			return 0, 0
 
 	def nextJobFromBatch(self):
 		if self.currentJob is None:
 			# print([len(self.batch[batch]) > 0 for batch in self.batch])
 			# if len(self.batch) > 0:
-			if self.maxBatchLength() > 0:
+			# print ("keys", self.batch.keys())
+			maxBatchLength, maxBatchIndex = self.maxBatchLength()
+			if maxBatchLength > 0:
+				# check current batch
+				if self.currentBatch is None:
+					# batch first job in batch
+					if self.batch.keys() is not None:
+						self.currentBatch = list(self.batch.keys())[maxBatchIndex]
+						# TODO: must keep going until all batches are empty
+						sim.debug.out("starting batch {}".format(self.currentBatch))
+
 				sim.debug.out ("grabbed job from batch")
-				if self.currentBatch not in self.batch.keys():
-					print ("Batch does not exist in node", self.batch, self.currentBatch)
+				# if self.currentBatch not in self.batch.keys():
+				# 	print ("Batch does not exist in node", self.batch, self.currentBatch)
 				self.currentJob = self.batch[self.currentBatch][0]
 				self.removeJobFromBatch(self.currentJob)
 

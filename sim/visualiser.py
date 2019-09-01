@@ -18,6 +18,7 @@ import numpy as np
 # import sys
 # sys.exit(0)
 import sim.constants
+import sim.offloadingDecision
 from sim.elasticNode import elasticNode
 from sim.endDevice import endDevice
 import sim.plotting
@@ -25,10 +26,10 @@ import sim.plotting
 DEVICE_SIZE = [0.2, 0.1]
 TEXT_SPACING = 0.05
 BORDER = 0.05
-DEVICES_FIGURE = 4
-DEVICES_ENERGY_FIGURE = 1
-DEVICES_POWER_FIGURE = 2
-SUBTASKS_DURATIONS_FIGURE = 3
+DEVICES_FIGURE = 5
+DEVICES_ENERGY_FIGURE = 2
+DEVICES_POWER_FIGURE = 3
+SUBTASKS_DURATIONS_FIGURE = 4
 
 class visualiser:
 	sim = None
@@ -58,38 +59,39 @@ class visualiser:
 			pp.xlim(0, len(self.sim.devices))
 		# fig, self.ax = pp.subplots()
 
-		thismanager = pylab.get_current_fig_manager()
-		
-		try:
-			# get the QTCore PyRect object
-			geom = thismanager.window.geometry()
-			if isinstance(geom, str):
-				print("STRING")
-			else:
-				self.canResize = True
-				self.x,self.y,self.width,self.height = geom.getRect()
-			self.moveWindow()
-		except AttributeError:
-			print("Cannot modify QT window")
+		if sim.constants.DRAW_DEVICES:
+			thismanager = pylab.get_current_fig_manager()
+			
+			try:
+				# get the QTCore PyRect object
+				geom = thismanager.window.geometry()
+				if isinstance(geom, str):
+					print("STRING")
+				else:
+					self.canResize = True
+					self.x,self.y,self.width,self.height = geom.getRect()
+				self.moveWindow()
+			except AttributeError:
+				print("Cannot modify QT window")
 
 
-		grid, _, _ = visualiser.gridLayout(self.sim.devices)
-		deviceSize = width, height = DEVICE_SIZE
-		
-		# create images for each node
-		for dev, location in zip(self.sim.devices, grid):
-			# dev.location = location
+			grid, _, _ = visualiser.gridLayout(self.sim.devices)
+			deviceSize = width, height = DEVICE_SIZE
+			
+			# create images for each node
+			for dev, location in zip(self.sim.devices, grid):
+				# dev.location = location
 
-			# node drawing
-			visualiser.createRectangle(dev, (location[0], location[1]), (width + BORDER * 2, height + BORDER * 2), fill=False)
-			# visualiser.createText(dev, (location[0], location[1]))
+				# node drawing
+				visualiser.createRectangle(dev, (location[0], location[1]), (width + BORDER * 2, height + BORDER * 2), fill=False)
+				# visualiser.createText(dev, (location[0], location[1]))
 
-			# component drawing
-			subgrid, size, (rows, cols) = visualiser.gridLayout(dev.components, deviceSize, location, tight=True)
-			for unit, location in zip(dev.components, subgrid):
-				# unit = dev.components[i]
-				# location = subgrid[i]
-				visualiser.createRectangle(unit, (location[0], location[1]), size)
+				# component drawing
+				subgrid, size, (rows, cols) = visualiser.gridLayout(dev.components, deviceSize, location, tight=True)
+				for unit, location in zip(dev.components, subgrid):
+					# unit = dev.components[i]
+					# location = subgrid[i]
+					visualiser.createRectangle(unit, (location[0], location[1]), size)
 
 	@staticmethod
 	# tight refers to whether there are gaps inbetween 
@@ -228,7 +230,11 @@ class visualiser:
 
 		pp.figure(DEVICES_FIGURE)
 		pp.cla()
-		pp.title("Time = {:.3f}, TotalSleep = {:.3f}".format(self.sim.time, np.average([dev.totalSleepTime for dev in self.sim.devices])))
+		if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.ROUND_ROBIN:
+			roundRobinText = ", {}".format(sim.offloadingDecision.offloadingDecision.target)
+		else:
+			roundRobinText = ""
+		pp.title("Time = {:.3f}, TotalSleep = {:.3f}{}".format(self.sim.time, np.average([dev.totalSleepTime for dev in self.sim.devices]), roundRobinText))
 		# for dev, location in zip(self.sim.devices, self.grid):
 		for dev in self.sim.devices:
 			self.draw(dev)
@@ -255,7 +261,7 @@ class visualiser:
 
 			# update node's title to current description
 			top = node.location[1] + node.rectangle.get_height()/2
-			pp.gca().text(x=node.location[0], y=top + TEXT_SPACING * 3, s=node, verticalalignment='center', horizontalalignment='center')
+			pp.gca().text(x=node.location[0], y=top + TEXT_SPACING * 3, s="{} ({})".format(node, node.maxBatchLength()[0]), verticalalignment='center', horizontalalignment='center')
 			pp.gca().text(x=node.location[0], y=top + TEXT_SPACING * 2, s=node.currentBatch, verticalalignment='center', horizontalalignment='center')
 			pp.gca().text(x=node.location[0], y=top + TEXT_SPACING * 1, s=node.currentTask, verticalalignment='center', horizontalalignment='center')
 

@@ -17,6 +17,7 @@ DEFAULT_ELASTIC_NODE = sim.platforms.elasticNodev4
 SAMPLE_SIZE = Uniform(1, 11, integer=True)
 
 # time
+TOTAL_TIME = 1e1
 SIM_TIME = 2e-2
 TD = 1e-3
 PLOT_TD = 1e-3
@@ -26,6 +27,7 @@ JOB_LIKELIHOOD = 1e-3
 # offloading
 OFFLOADING_POLICY = sim.offloadingPolicy.LOCAL_ONLY
 OFFLOADING_PEER = 0
+ROUND_ROBIN_TIMEOUT = 2
 
 # energy management
 FPGA_POWER_PLAN = sim.powerPolicy.IMMEDIATELY_OFF # TODO: entirely unimplemented, sleep current and timer for sleep
@@ -44,7 +46,7 @@ MAXIMUM_TASK_QUEUE = 5
 DRAW_DEVICES = False
 DRAW_GRAPH_TOTAL_ENERGY = False
 DRAW_GRAPH_CURRENT_POWER = False
-DRAW_GRAPH_SUBTASK_DURATION = True
+DRAW_GRAPH_SUBTASK_DURATION = False
 # DRAW = True
 # SAVE = False
 DRAW_GRAPH = True

@@ -16,7 +16,9 @@ import time
 import warnings
 import sys
 
-
+# import cProfile, pstats, io
+import profile
+# from pstats import SortKey
 
 def singleDelayedJobLocal(accelerated=True):
 	sim.constants.OFFLOADING_POLICY = sim.offloadingPolicy.LOCAL_ONLY
@@ -191,18 +193,19 @@ def randomLocalJobs(accelerated=True):
 def randomJobs(offloadingPolicy=sim.offloadingPolicy.ANYTHING, hw=True):
 	# sim.debug.enabled = False
 	sim.constants.OFFLOADING_POLICY = offloadingPolicy
-	sim.constants.JOB_LIKELIHOOD = 9e-3 # 2e-3
+	sim.constants.JOB_LIKELIHOOD = 1e-3 # 2e-3
 	sim.constants.SAMPLE_RAW_SIZE = sim.variable.Constant(40)
 	sim.constants.SAMPLE_SIZE = sim.variable.Constant(10)
-	sim.constants.PLOT_TD = sim.constants.TD * 1e1
+	sim.constants.PLOT_TD = sim.constants.TD * 1e2
 	sim.constants.FPGA_POWER_PLAN = sim.powerPolicy.IDLE_TIMEOUT
-	sim.constants.DRAW_DEVICES = False
+	sim.constants.DRAW_DEVICES = True
 	sim.constants.FPGA_IDLE_SLEEP = 0.75
-	sim.constants.MINIMUM_BATCH = 5
+	sim.constants.MINIMUM_BATCH = 5e3
 	sim.constants.DEFAULT_TASK_GRAPH = [sim.tasks.EASY]
+	sim.constants.ROUND_ROBIN_TIMEOUT = 1e1
 
 	exp = simulation(0, 2, 0, hardwareAccelerated=hw)
-	exp.simulate() #UntilTime(1)
+	exp.simulateAll() #UntilTime(1)
 
 def testRepeatsSeparateThread(i, jobLikelihood, resultsQueue):
 	sim.constants.JOB_LIKELIHOOD = jobLikelihood
@@ -361,7 +364,6 @@ def executeMulti(processes, results, finished, numResults=None):
 		# wait for at least one to finish
 		finished.get()
 		# processes[finishedThreads].join() #  is not None:	# print ('one down...')
-		# time.sleep(1)
 		finishedThreads += 1
 		currentThreads -= 1
 
@@ -388,8 +390,8 @@ if __name__ == '__main__':
 	# sim.randomPeerJobs(True)
 	# randomLocalJobs(False)
 	# randomPeerJobs(False)
-	randomJobs(offloadingPolicy=sim.offloadingPolicy.LOCAL_ONLY, hw=True)
-	# deadlock()
+	
+	profile.run('randomJobs(offloadingPolicy=sim.offloadingPolicy.ROUND_ROBIN, hw=True)')
 	
 	# totalEnergyJobSize()
 	# testRepeatsSeparate()

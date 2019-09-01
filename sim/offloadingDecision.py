@@ -36,6 +36,9 @@ class offloadingDecision:
 		elif sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.ANNOUNCED:
 			self.options = offloadingDecision.selectElasticNodes(allDevices)  # select elastic nodes from alldevices list]
 			# self.target = self.owner
+		elif sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.ROUND_ROBIN:
+			# assign static targets (will happen multiple times but that's fine)
+			offloadingDecision.options = offloadingDecision.selectElasticNodes(allDevices)  # select elastic nodes from alldevices list]
 		else:
 			raise Exception("Unknown offloading policy")
 
@@ -45,6 +48,10 @@ class offloadingDecision:
 		# if specified target, return it
 		if self.target is not None:
 			return self.target
+		# check if shared target exists
+		elif offloadingDecision.target is not None:
+			print ("shared target")
+			return offloadingDecision.target
 		elif self.options is None:
 			raise Exception("options are None!")
 		elif len(self.options) == 0:
@@ -76,12 +83,36 @@ class offloadingDecision:
 			sim.debug.out("Job assigned: {} -> {}".format(self.owner, choice))
 			# time.sleep(1)
 			return choice
-
-		# if constants.OFFLOADING_POLICY == constants.LOCAL_ONLY:
-		#     decision = task.host.index
-		#     print 'decision', decision
-		# else:
-		#     choices = 
-		#     raise Exception("offloading policy not supported")
 		
-	
+
+	previousUpdateTime = None
+	currentTargetIndex = -1
+	@staticmethod
+	def updateTarget(currentTime):
+		newTarget = False
+		# decide if 
+		if offloadingDecision.previousUpdateTime is None:
+			sim.debug.out("first round robin")
+			# start at the beginning
+			offloadingDecision.currentTargetIndex = 0
+			newTarget = True
+		elif currentTime >= (offloadingDecision.previousUpdateTime + sim.constants.ROUND_ROBIN_TIMEOUT):
+			# print ("next round robin")
+			offloadingDecision.currentTargetIndex += 1
+			if offloadingDecision.currentTargetIndex >= len(offloadingDecision.options):
+				# start from beginning again
+				offloadingDecision.currentTargetIndex = 0
+			newTarget = True
+
+		# new target has been chosen:
+		if newTarget:
+			# indicate to old target to process batch immediately
+			if offloadingDecision.target is not None:
+				sim.debug.out("offloading target", offloadingDecision.target.currentTask)
+				# time.sleep(1)
+				offloadingDecision.target.addTask(sim.subtask.batchContinue(node=offloadingDecision.target))
+
+			offloadingDecision.previousUpdateTime = currentTime
+			offloadingDecision.target = offloadingDecision.options[offloadingDecision.currentTargetIndex]
+
+			sim.debug.out("Round robin update: {}".format(offloadingDecision.target), 'r')

@@ -148,9 +148,6 @@ class subtask:
 				# self.owner.removeTask(self) removing when starting at least 
 				self.owner.nextTask()
 
-				# print ("current task " + str(self.owner.currentTask))
-				# print (str(self.owner))
-
 	def __str__(self):
 		return self.__repr__()
 
@@ -221,16 +218,24 @@ class createMessage(subtask):
 
 class batchContinue(subtask):
 	__name__ = "Batch Continue"
+	processingNode = None
 
-	def __init__(self, job):
-		duration = job.processingNode.platform.MCU_BATCHING_LATENCY.gen()
+	def __init__(self, job=None, node=None):
 
-		sim.debug.out("creating batchContinue with job {}".format(job))
+		if job is not None:
+			sim.debug.out("creating batchContinue with job {}".format(job))
+			self.processingNode = job.processingNode
+		elif node is not None:
+			sim.debug.out("creating batchContinue with node {}".format(node))
+			self.processingNode = node
+		else:
+			raise Exception("Cannot create batchContinue without job and node")
+		duration = self.processingNode.platform.MCU_BATCHING_LATENCY.gen()
 
 		subtask.__init__(self, job, duration)
 
-	def beginTask(self):
-		subtask.beginTask(self)
+	# def beginTask(self):
+	# 	subtask.beginTask(self)
 		
 	def finishTask(self):
 		# # remove existing task from processing batch
@@ -254,10 +259,10 @@ class batchContinue(subtask):
 # AttributeError: 'NoneType' object has no attribute 'processingNode')
 
 		# check if there's more tasks in the current batch
-		processingMcu, processingFpga = self.job.processingNode.mcu, self.job.processingNode.fpga
+		processingMcu, processingFpga = self.processingNode.mcu, self.processingNode.fpga
 		# delete existing job to force next being loaded
-		self.job.processingNode.currentJob = None
-		self.job = self.job.processingNode.nextJobFromBatch()
+		self.processingNode.currentJob = None
+		self.job = self.processingNode.nextJobFromBatch()
 		
 		sim.debug.out ("next job from batch {}".format(self.job))
 		# is there a new job?
@@ -303,10 +308,10 @@ class batching(subtask):
 			# job has been backed up in batch and will be selected in finish
 			self.job.processingNode.removeJob(self.job)
 
-			sim.debug.out("Batch: {0}/{1}".format(self.job.processingNode.maxBatchLength(), sim.constants.MINIMUM_BATCH), 'c')
+			sim.debug.out("Batch: {0}/{1}".format(self.job.processingNode.maxBatchLength()[0], sim.constants.MINIMUM_BATCH), 'c')
 
 			# see if batch is full enough to start now
-			if self.job.processingNode.maxBatchLength() >= sim.constants.MINIMUM_BATCH:
+			if self.job.processingNode.maxBatchLength()[0] >= sim.constants.MINIMUM_BATCH:
 				self.job.processingNode.setCurrentBatch(self.job)
 
 				# grab first task
