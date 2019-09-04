@@ -22,7 +22,10 @@ class node:
 	index = None
 	# nodeType = None
 
+	energyLevel = None
 	totalEnergyCost = None
+	averagePower = None
+	powerCount = None
 	totalSleepTime = None
 	drawLocation = None
 
@@ -54,6 +57,9 @@ class node:
 		self.index = index
 		# self.nodeType = nodeType
 
+		self.energyLevel = node.convertEnergy(platform.BATTERY_SIZE, platform.BATTERY_VOLTAGE)
+		self.averagePower = 0
+		self.powerCount = 0
 		self.totalEnergyCost = 0
 		self.totalSleepTime = 0
 
@@ -70,6 +76,12 @@ class node:
 		# self.batchProcessing = False # indicates if batch has been full (should process batch)
 
 		# self.processors = list()
+
+	@staticmethod
+	# convert mAh to Joule
+	def convertEnergy(mah, voltage):
+		return mah * voltage * 3.6
+
 
 	def __repr__(self):
 		return str(type(self)) + " " + str(self.index)
@@ -204,7 +216,24 @@ class node:
 	# calculate the energy at the current activity of all the components
 	def energy(self, duration=sim.constants.TD):
 		totalPower = np.sum([component.power() for component in self.components])
-		return totalPower * duration
+		if totalPower >= 1:
+			sim.debug.out("massive power usage!")
+			# sim.debug.enabled = True
+		self.updateAveragePower(totalPower)
+		incrementalEnergy = totalPower * duration
+		self.totalEnergyCost += incrementalEnergy
+		# TODO: assuming battery powered
+		# print (incrementalEnergy)
+		self.energyLevel -= incrementalEnergy
+		return incrementalEnergy
+
+	def updateAveragePower(self, power):
+		self.powerCount += 1
+		# 1/n
+		# self.averagePower += 1.0 / self.powerCount * (power - self.averagePower) 
+		# alpha
+		self.averagePower += sim.constants.EXPECTED_LIFETIME_ALPHA * (power - self.averagePower)
+		sim.debug.out("average power: {}, {}".format(power, self.averagePower))
 
 	def updateTime(self, currentTime):
 		# if no jobs available, perhaps generate one
@@ -231,6 +260,10 @@ class node:
 
 		if asleepBefore and asleepAfter:
 			self.totalSleepTime += sim.constants.TD
+	
+	def expectedLifetime(self):
+		# estimate total life time based on previous use
+		return self.energyLevel / self.averagePower
 
 	def setCurrentBatch(self, job):
 		if job.hardwareAccelerated:

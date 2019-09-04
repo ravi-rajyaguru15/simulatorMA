@@ -16,6 +16,7 @@ import multiprocessing
 import sys
 import numpy as np
 import warnings
+import datetime
 
 queueLengths = list()
 
@@ -32,6 +33,9 @@ class simulation:
 	visualisor = None
 	finished = False
 	hardwareAccelerated = None
+	timestamps = list()
+	lifetimes = list()
+	energylevels = list()
 
 	def __init__(self, numEndDevices, numElasticNodes, numServers, hardwareAccelerated=None):
 		sim.debug.out(numEndDevices + numElasticNodes)
@@ -156,8 +160,8 @@ class simulation:
 		for dev in self.devices:
 			energy = dev.energy()
 
-			# add energy to device counter
-			dev.totalEnergyCost += energy
+			# # add energy to device counter
+			# dev.totalEnergyCost += energy
 			# add energy to job 
 			if dev.currentJob is not None:
 				dev.currentJob.totalEnergyCost += energy
@@ -166,6 +170,12 @@ class simulation:
 					dev.currentJob.devicesEnergyCost[dev] = 0
 				
 				dev.currentJob.devicesEnergyCost[dev] += energy
+		if sim.constants.DRAW_GRAPH_EXPECTED_LIFETIME:
+			# note energy levels for plotting
+			self.timestamps.append(self.time)
+			self.lifetimes.append(self.devicesLifetimes())
+			self.energylevels.append(self.devicesEnergyLevels())
+			
 
 		# check if task queue is too long
 		self.taskQueueLength = [len(dev.taskQueue) for dev in self.devices]
@@ -252,6 +262,12 @@ class simulation:
 
 	def currentDevicesEnergy(self):
 		return [dev.energy() for dev in self.devices]
+
+	def devicesLifetimes(self):
+		return [dev.expectedLifetime() for dev in self.devices]
+
+	def devicesEnergyLevels(self):
+		return [dev.energyLevel for dev in self.devices]
 
 	def numSelectedOptions(self):
 		if self.selectedOptions is None:

@@ -191,21 +191,21 @@ def randomLocalJobs(accelerated=True):
 	exp.simulateTime(.5)
 
 def randomJobs(offloadingPolicy=sim.offloadingPolicy.ANYTHING, hw=True):
-	# sim.debug.enabled = False
+	sim.debug.enabled = False
 	sim.constants.OFFLOADING_POLICY = offloadingPolicy
 	sim.constants.JOB_LIKELIHOOD = 1e-3 # 2e-3
 	sim.constants.SAMPLE_RAW_SIZE = sim.variable.Constant(40)
 	sim.constants.SAMPLE_SIZE = sim.variable.Constant(10)
-	sim.constants.PLOT_TD = sim.constants.TD * 1e2
+	sim.constants.PLOT_TD = 10
 	sim.constants.FPGA_POWER_PLAN = sim.powerPolicy.IDLE_TIMEOUT
-	sim.constants.DRAW_DEVICES = True
+	sim.constants.DRAW_DEVICES = False
 	sim.constants.FPGA_IDLE_SLEEP = 0.75
-	sim.constants.MINIMUM_BATCH = 5e3
+	sim.constants.MINIMUM_BATCH = 5
 	sim.constants.DEFAULT_TASK_GRAPH = [sim.tasks.EASY]
 	sim.constants.ROUND_ROBIN_TIMEOUT = 1e1
 
-	exp = simulation(0, 2, 0, hardwareAccelerated=hw)
-	exp.simulateAll() #UntilTime(1)
+	exp = simulation(0, 1, 0, hardwareAccelerated=hw)
+	exp.simulate() #UntilTime(1)
 
 def testRepeatsSeparateThread(i, jobLikelihood, resultsQueue):
 	sim.constants.JOB_LIKELIHOOD = jobLikelihood
@@ -329,6 +329,7 @@ def assembleResults(resultsQueue, outputQueue, numResults=None):
 			graphs[graphName][sample] = list()
 		graphs[graphName][sample].append(datapoint)
 	
+	print("done with experiment")
 	# calculate means and averages
 	outputGraphs = dict()
 	for key, graph in graphs.items():
@@ -336,7 +337,9 @@ def assembleResults(resultsQueue, outputQueue, numResults=None):
 		outputGraphs[key] = dict()
 		for x, ylist in graph.items():
 			outputGraphs[key][x] = (np.average(ylist), np.std(ylist))
+	print ("processed")
 	outputQueue.put(outputGraphs)
+	print ("after")
 	
 	# return outputGraphs
 
@@ -367,11 +370,32 @@ def executeMulti(processes, results, finished, numResults=None):
 		finishedThreads += 1
 		currentThreads -= 1
 
-
-	assemble.join()
+	print("waiting for assemble...")
+	# assemble.join()
+	print ("outputdata")
 
 	return outputData.get()
-	
+
+def profileTarget():
+	sim.debug.enabled = False
+	sim.constants.OFFLOADING_POLICY = sim.offloadingPolicy.ANYTHING
+	sim.constants.JOB_LIKELIHOOD = 1e-3 # 2e-3
+	sim.constants.SAMPLE_RAW_SIZE = sim.variable.Constant(40)
+	sim.constants.SAMPLE_SIZE = sim.variable.Constant(10)
+	sim.constants.PLOT_TD = 10
+	sim.constants.FPGA_POWER_PLAN = sim.powerPolicy.IDLE_TIMEOUT
+	sim.constants.DRAW_DEVICES = False
+	sim.constants.FPGA_IDLE_SLEEP = 0.75
+	sim.constants.MINIMUM_BATCH = 5
+	sim.constants.DEFAULT_TASK_GRAPH = [sim.tasks.EASY]
+	sim.constants.ROUND_ROBIN_TIMEOUT = 1e1
+
+	exp = simulation(0, 1, 0, hardwareAccelerated=True)
+	exp.simulateTime(100)
+
+def testPerformance():
+	profile.run('profileTarget()')
+
 if __name__ == '__main__':
 	# for i in range(1, 100, 10):
 	# 	print i, exp.simulateAll(i, "latency")
@@ -391,7 +415,9 @@ if __name__ == '__main__':
 	# randomLocalJobs(False)
 	# randomPeerJobs(False)
 	
-	profile.run('randomJobs(offloadingPolicy=sim.offloadingPolicy.ROUND_ROBIN, hw=True)')
+	# randomJobs(offloadingPolicy=sim.offloadingPolicy.ROUND_ROBIN, hw=True)
+	# testPerformance()
+	profileTarget()
 	
 	# totalEnergyJobSize()
 	# testRepeatsSeparate()

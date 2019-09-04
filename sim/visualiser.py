@@ -15,6 +15,7 @@ import pylab
 import math
 import time
 import numpy as np
+import datetime
 # import sys
 # sys.exit(0)
 import sim.constants
@@ -30,6 +31,7 @@ DEVICES_FIGURE = 5
 DEVICES_ENERGY_FIGURE = 2
 DEVICES_POWER_FIGURE = 3
 SUBTASKS_DURATIONS_FIGURE = 4
+DEVICES_LIFETIME_FIGURE = 5
 
 class visualiser:
 	sim = None
@@ -58,6 +60,9 @@ class visualiser:
 			pp.figure(DEVICES_POWER_FIGURE)
 			pp.xlim(0, len(self.sim.devices))
 		# fig, self.ax = pp.subplots()
+		
+		if sim.constants.DRAW_GRAPH_EXPECTED_LIFETIME:
+			pp.figure(DEVICES_LIFETIME_FIGURE)
 
 		if sim.constants.DRAW_DEVICES:
 			thismanager = pylab.get_current_fig_manager()
@@ -167,6 +172,10 @@ class visualiser:
 		if sim.constants.DRAW_GRAPH_CURRENT_POWER:
 			self.drawCurrentDevicePower()
 			pp.draw()
+
+		if sim.constants.DRAW_GRAPH_EXPECTED_LIFETIME:
+			self.drawExpectedLifetimes()
+			pp.draw
 		
 		
 		pp.pause(1e-6) # sim.constants.TD)
@@ -223,7 +232,37 @@ class visualiser:
 		pp.cla()
 		pp.bar(np.array(range(len(self.sim.devices))) + 0.5, powerList, tick_label=labels, color=['b'] * len(self.sim.devices))
 		pp.ylim(0, self.maxPowerEver * 1.1)
+	
+
+	def drawExpectedLifetimes(self):
+		labels = self.sim.devicesNames()
 		
+		LIMIT = int(1e3 / sim.constants.TD)
+		
+		if LIMIT is not None:
+			# before = datetime.datetime.now()
+			if len(self.sim.lifetimes) > LIMIT:
+				self.sim.timestamps = self.sim.timestamps[-LIMIT:]
+				self.sim.lifetimes = self.sim.lifetimes[-LIMIT:]
+				self.sim.energylevels = self.sim.energylevels[-LIMIT:]
+			# print((datetime.datetime.now() - before).total_seconds())
+			
+		# pp.figure(DEVICES_LIFETIME_FIGURE)
+		fig, ax1 = pp.subplots(num=DEVICES_LIFETIME_FIGURE)
+		fig.clf()
+		pp.title("Expected Life {}".format(self.sim.time))
+		pp.plot(self.sim.timestamps, self.sim.lifetimes, 'b')
+		pp.ylabel("Lifetimes (in s)")
+		pp.grid()
+		ax2 = pp.twinx()
+		ax2.plot(self.sim.timestamps, self.sim.energylevels, 'r')
+		ax2.set_ylabel("EnergyLevels (in J)")
+		# ax2 = ax1.twinx()
+		# ax2.cla()
+		# ax2.plot(self.energylevels)
+		# ax2.set_ylabel("EnergyLevels (in J)")
+		# .legend(["Lifetimes", "EnergyLevels"])
+
 
 	def drawNodes(self):
 		# print ("drawing nodes:", self.sim.devices)
