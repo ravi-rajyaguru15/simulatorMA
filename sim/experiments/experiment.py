@@ -415,9 +415,9 @@ if __name__ == '__main__':
 	# randomLocalJobs(False)
 	# randomPeerJobs(False)
 	
-	# randomJobs(offloadingPolicy=sim.offloadingPolicy.ROUND_ROBIN, hw=True)
+	randomJobs(offloadingPolicy=sim.offloadingPolicy.ROUND_ROBIN, hw=True)
 	# testPerformance()
-	profileTarget()
+	# profileTarget()
 	
 	# totalEnergyJobSize()
 	# testRepeatsSeparate()

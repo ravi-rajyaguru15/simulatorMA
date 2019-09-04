@@ -52,7 +52,7 @@ class Gaussian(Variable):
 		self.mean = mean
 		self.std = std
 
-		Variable.__init__(self, random.gauss, (self.mean, self.std, ), integer=integer)
+		Variable.__init__(self, np.random.normal, (self.mean, self.std, ), integer=integer)
 
 	# def gen(self):
 		# return random.gauss(self.mean, self.std)

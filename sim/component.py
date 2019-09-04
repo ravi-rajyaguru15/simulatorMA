@@ -60,11 +60,11 @@ class component:
 	# power level right now
 	def power(self):
 		if self.state == sim.powerState.IDLE:
-			return np.sum(power.gen() for power in self.idlePower)
+			return np.sum([power.gen() for power in self.idlePower])
 		elif self.state == sim.powerState.ACTIVE:
-			return np.sum(power.gen() for power in self.activePower)
+			return np.sum([power.gen() for power in self.activePower])
 		elif self.state == sim.powerState.SLEEP:
-			return np.sum(power.gen() for power in self.sleepPower)
+			return np.sum([power.gen() for power in self.sleepPower])
 		else:
 			raise Exception("Unknown power state: " + str(self.state))
 

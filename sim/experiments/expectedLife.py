@@ -43,7 +43,7 @@ def run():
 	finished = multiprocessing.Queue()
 	sim.constants.REPEATS = 1
 
-	for alpha in np.linspace(-6, -3, num=4, endpoint=True):
+	for alpha in np.logspace(-3, -1, num=3, endpoint=True):
 		for _ in range(sim.constants.REPEATS):
 			processes.append(multiprocessing.Process(target=runThread, args=(alpha, results, finished)))
 	

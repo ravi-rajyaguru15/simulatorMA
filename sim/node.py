@@ -215,6 +215,9 @@ class node:
 
 	# calculate the energy at the current activity of all the components
 	def energy(self, duration=sim.constants.TD):
+		# totalPower = 0
+		# for component in self.components:
+			# totalPower += component.power()
 		totalPower = np.sum([component.power() for component in self.components])
 		if totalPower >= 1:
 			sim.debug.out("massive power usage!")
