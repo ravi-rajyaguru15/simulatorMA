@@ -13,7 +13,7 @@ import warnings
 
 numDevices = 1
 jump = 1
-totalTime = 1e3
+totalTime = 1e4
 def runThread(alpha, results, finished):
 	# sim.constants.SAMPLE_SIZE = sim.variable.Constant(samples)
 	sim.constants.EXPECTED_LIFETIME_ALPHA = alpha
@@ -34,7 +34,6 @@ def run():
 	sim.constants.OFFLOADING_POLICY = sim.offloadingPolicy.ANYTHING
 	sim.constants.JOB_LIKELIHOOD = 5e-3
 	sim.constants.MINIMUM_BATCH = 10
-	sim.constants.THREAD_COUNT = 1e3
 
 	processes = list()
 	
@@ -43,7 +42,7 @@ def run():
 	finished = multiprocessing.Queue()
 	sim.constants.REPEATS = 1
 
-	for alpha in np.logspace(-3, -1, num=3, endpoint=True):
+	for alpha in np.logspace(-4, -3, num=2, endpoint=True):
 		for _ in range(sim.constants.REPEATS):
 			processes.append(multiprocessing.Process(target=runThread, args=(alpha, results, finished)))
 	
