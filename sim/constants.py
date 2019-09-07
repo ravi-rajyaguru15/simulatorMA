@@ -28,6 +28,7 @@ JOB_LIKELIHOOD = 1e-3
 OFFLOADING_POLICY = sim.offloadingPolicy.LOCAL_ONLY
 OFFLOADING_PEER = 0
 ROUND_ROBIN_TIMEOUT = 2
+CENTRALISED_LEARNING = True
 
 # energy management
 FPGA_POWER_PLAN = sim.powerPolicy.IMMEDIATELY_OFF # TODO: entirely unimplemented, sleep current and timer for sleep

@@ -22,6 +22,7 @@ import sim.constants
 sim.constants.DRAW_GRAPH = False
 sim.constants.SAVE_GRAPH = True
 
-print(sim.constants.THREAD_COUNT)
-# import tictactoe
+import sim.experiments.roundRobin
+# print(sim.constants.THREAD_COUNT)
+# # import tictactoe
 # sim.experiments.expectedLife.run()

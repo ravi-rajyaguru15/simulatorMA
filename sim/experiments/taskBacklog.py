@@ -3,7 +3,7 @@ import sim.variable
 import sim.debug
 from sim.simulation import simulation
 import sim.plotting
-import experiment
+import sim.experiments.experiment
 
 import numpy as np
 import multiprocessing
@@ -54,7 +54,7 @@ def run():
 		for i in range(sim.constants.REPEATS):
 			processes.append(multiprocessing.Process(target=runThread, args=(jobLikelihood, totalTime, results, finished)))
 	
-	results = experiment.executeMulti(processes, results, finished, numResults=int(totalTime/jump * len(processes)))
+	results = sim.experiments.experiment.executeMulti(processes, results, finished, numResults=int(totalTime/jump * len(processes)))
 
 	sim.plotting.plotMultiWithErrors("backlog", results=results) # , save=True)
 

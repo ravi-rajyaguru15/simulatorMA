@@ -196,15 +196,15 @@ def randomJobs(offloadingPolicy=sim.offloadingPolicy.ANYTHING, hw=True):
 	sim.constants.JOB_LIKELIHOOD = 1e-3 # 2e-3
 	sim.constants.SAMPLE_RAW_SIZE = sim.variable.Constant(40)
 	sim.constants.SAMPLE_SIZE = sim.variable.Constant(10)
-	sim.constants.PLOT_TD = 10
+	sim.constants.PLOT_TD = sim.constants.TD * 10
 	sim.constants.FPGA_POWER_PLAN = sim.powerPolicy.IDLE_TIMEOUT
-	sim.constants.DRAW_DEVICES = False
+	sim.constants.DRAW_DEVICES = True
 	sim.constants.FPGA_IDLE_SLEEP = 0.75
 	sim.constants.MINIMUM_BATCH = 5
 	sim.constants.DEFAULT_TASK_GRAPH = [sim.tasks.EASY]
 	sim.constants.ROUND_ROBIN_TIMEOUT = 1e1
 
-	exp = simulation(0, 1, 0, hardwareAccelerated=hw)
+	exp = simulation(0, 4, 0, hardwareAccelerated=hw)
 	exp.simulate() #UntilTime(1)
 
 def testRepeatsSeparateThread(i, jobLikelihood, resultsQueue):
@@ -400,6 +400,7 @@ if __name__ == '__main__':
 	# for i in range(1, 100, 10):
 	# 	print i, exp.simulateAll(i, "latency")
 
+	sim.constants.DRAW_DEVICES = True
 
 	# singleDelayedJobLocal(False)
 	# sim.singleDelayedJobLocal(True)

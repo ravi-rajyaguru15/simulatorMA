@@ -12,5 +12,6 @@ SPECIFIC_PEER_ONLY = offloadingPolicy("Offload Specific Peer")
 ANYTHING = offloadingPolicy("Offloading Anywhere")
 ANNOUNCED = offloadingPolicy("Announced Offloading")
 ROUND_ROBIN = offloadingPolicy("Round Robin")
+REINFORCEMENT_LEARNING = offloadingPolicy("Reinforcement Learning")
 
-OPTIONS = [LOCAL_ONLY, RANDOM_PEER_ONLY, SPECIFIC_PEER_ONLY, ANYTHING, ANNOUNCED, ROUND_ROBIN]
+OPTIONS = [LOCAL_ONLY, RANDOM_PEER_ONLY, SPECIFIC_PEER_ONLY, ANYTHING, ANNOUNCED, ROUND_ROBIN, REINFORCEMENT_LEARNING]

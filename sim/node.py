@@ -18,7 +18,7 @@ class node:
 	currentJob = None
 	numJobs = None
 	currentTask = None
-	resultsQueue = None
+	# resultsQueue = None
 	index = None
 	# nodeType = None
 
@@ -45,15 +45,15 @@ class node:
 	rectangle = None
 	location = None
 
-	def __init__(self, platform, queue, index, components, alwaysHardwareAccelerate=None):
+	def __init__(self, simulation, platform, index, components, alwaysHardwareAccelerate=None):
 		self.platform = platform
 
-		self.decision = offloadingDecision(self)
+		self.decision = offloadingDecision(self, simulation)
 		self.jobQueue = list()
 		sim.debug.out ("jobqueue" + str(self.jobQueue))
 		self.taskQueue = deque()
 
-		self.resultsQueue = queue
+		# self.resultsQueue = queue
 		self.index = index
 		# self.nodeType = nodeType
 

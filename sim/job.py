@@ -26,6 +26,7 @@ class job:
 	creator = None
 	processingNode = None
 	processor = None
+	decision = None
 
 	hardwareAccelerated = None
 
@@ -57,9 +58,9 @@ class job:
 		self.datasize = self.rawMessageSize()
 		
 		# initiate task by setting processing node
-		chosenDestination = offloadingDecision.chooseDestination(self.currentTask)
-		self.setprocessingNode(chosenDestination)
-		sim.results.addChosenDestination(chosenDestination)
+		self.decision = offloadingDecision.chooseDestination(self.currentTask)
+		self.setprocessingNode(self.decision.targetDevice)
+		sim.results.addChosenDestination(self.decision.targetDevice)
 
 	def setprocessingNode(self, processingNode):
 		self.processingNode = processingNode
@@ -88,7 +89,8 @@ class job:
 			# elif self.destination.nodeType == sim.constants.ELASTIC_NODE:
 			sim.debug.out("offloading to other device")
 			self.creator.addTask(sim.subtask.createMessage(self))
-
+		
+		
 		# to start with, owner is the node who created it 
 		self.owner = self.creator
 

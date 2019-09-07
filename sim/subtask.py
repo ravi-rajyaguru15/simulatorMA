@@ -311,7 +311,7 @@ class batching(subtask):
 			sim.debug.out("Batch: {0}/{1}".format(self.job.processingNode.maxBatchLength()[0], sim.constants.MINIMUM_BATCH), 'c')
 
 			# see if batch is full enough to start now
-			if self.job.processingNode.maxBatchLength()[0] >= sim.constants.MINIMUM_BATCH:
+			if self.job.processingNode.maxBatchLength()[0] >= sim.constants.MINIMUM_BATCH or self.job.decision.targetAction == sim.offloadingDecision.TRIGGER:
 				self.job.processingNode.setCurrentBatch(self.job)
 
 				# grab first task
@@ -319,7 +319,7 @@ class batching(subtask):
 				self.job.processingNode.currentJob = None
 				self.job = self.job.processingNode.nextJobFromBatch()
 				
-				# start first job in queupe
+				# start first job in queue
 				self.job.processingNode.addTask(newJob(self.job), appendLeft=True)
 			# go to sleep until next task
 			else:

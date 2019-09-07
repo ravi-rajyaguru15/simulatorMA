@@ -3,7 +3,7 @@ import sim.variable
 import sim.debug
 from sim.simulation import simulation
 import sim.plotting
-import experiment
+import sim.experiments.experiment
 
 import numpy as np
 import multiprocessing
@@ -50,7 +50,7 @@ def run():
 		for _ in range(sim.constants.REPEATS):
 			processes.append(multiprocessing.Process(target=runThread, args=(jobLikelihood, results, finished)))
 	
-	results = experiment.executeMulti(processes, results, finished)
+	results = sim.experiments.experiment.executeMulti(processes, results, finished)
 
 	sim.plotting.plotMultiWithErrors("Job Rate", results=results, ylabel="Job Rate (jobs/s)", xlabel="Job Likelihood") # , save=True)
 

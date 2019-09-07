@@ -11,9 +11,23 @@ class offloadingDecision:
 	options = None
 	owner = None
 	target = None
+	simulation = None
+	agent = None
 
-	def __init__(self, device):
+	def __init__(self, device, systemState=None):
 		self.owner = device
+		self.systemState = systemState
+
+		# setup learning if needed
+		if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
+			# create either private or shared agent
+			if not sim.constants.CENTRALISED_LEARNING:
+				self.agent = agent(self.systemState)
+			else:
+				# create shared agent if required
+				if offloadingDecision.agent is None:
+					offloadingDecision.agent = agent(self.systemState)
+				self.agent = offloadingDecision.agent
 
 	@staticmethod
 	def selectElasticNodes(devices):
@@ -47,11 +61,11 @@ class offloadingDecision:
 	def chooseDestination(self, task):
 		# if specified target, return it
 		if self.target is not None:
-			return self.target
+			return decision(self.target)
 		# check if shared target exists
 		elif offloadingDecision.target is not None:
 			print ("shared target")
-			return offloadingDecision.target
+			return decision(offloadingDecision.target)
 		elif self.options is None:
 			raise Exception("options are None!")
 		elif len(self.options) == 0:
@@ -70,14 +84,17 @@ class offloadingDecision:
 				# nobody has a batch going
 				if np.sum(decisionFactors) == 0:
 					# then have to do it yourself
-					choice = self.owner
+					choice = decision(self.owner)
 				else:
 					largestBatches = np.argmax(decisionFactors)
 					# print('largest:', largestBatches)
-					choice = self.options[largestBatches]
-
+					choice = decision(self.options[largestBatches])
+			elif sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
+				self.systemState.updateTask(task)
+				raise Exception("not implemented")
+				# choice = 
 			else:
-				choice = random.choice(self.options)
+				choice = decision(random.choice(self.options))
 			# print (self.options, choice)
 			# task.setDestination(choice)
 			sim.debug.out("Job assigned: {} -> {}".format(self.owner, choice))
@@ -116,3 +133,28 @@ class offloadingDecision:
 			offloadingDecision.target = offloadingDecision.options[offloadingDecision.currentTargetIndex]
 
 			sim.debug.out("Round robin update: {}".format(offloadingDecision.target), 'r')
+
+
+
+class action:
+	name = None
+	def __init__(self,name):
+		self.name = name
+
+BATCH = action("Batch")
+TRIGGER = action("Trigger")
+
+class decision:
+	targetDevice = None
+	targetAction = None
+
+	def __init__(self, device, action=BATCH):
+		self.targetDevice = device
+		self.targetAction = action
+
+
+class agent:
+	systemState = None
+
+	def __init__(self, systemState):
+		self.systemState = systemState

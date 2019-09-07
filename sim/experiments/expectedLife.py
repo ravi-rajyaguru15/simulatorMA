@@ -50,9 +50,9 @@ def run():
 	print ('plot time')
 	sim.plotting.plotMultiWithErrors("expectedLife", results=results) # , save=True)
 
-# try:
-# 	run()
-# except:
-# 	traceback.print_exc(file=sys.stdout)
+try:
+	run()
+except:
+	traceback.print_exc(file=sys.stdout)
 
-# 	print ("ERROR")
+	print ("ERROR")

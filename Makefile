@@ -42,7 +42,7 @@ testq:
 	python3 sim/tictactoe.py
 
 .PHONY: *
-test: docker
+test: experiment
 	@echo $$DISPLAY
 	@echo "running test"
 	# python sim.py

@@ -3,7 +3,7 @@ import sim.variable
 import sim.debug
 import sim.simulation
 import sim.plotting
-import experiment
+import sim.experiments.experiment
 
 import numpy as np
 import multiprocessing
@@ -40,7 +40,7 @@ def totalEnergyJobSize():
 			for i in range(sim.constants.REPEATS):				
 				processes.append(multiprocessing.Process(target=totalEnergyJobSizeThread, args=(hw, samples, results, finished)))
 	
-	results = experiment.executeMulti(processes, results, finished)
+	results = sim.experiments.experiment.executeMulti(processes, results, finished)
 
 	sim.plotting.plotMultiWithErrors("totalEnergyJobSize", results=results) #, save=True)
 

@@ -11,6 +11,7 @@ import sim.debug
 import sim.constants
 import sim.variable
 import sim.tasks
+import sim.systemState
 
 import multiprocessing
 import sys
@@ -36,6 +37,7 @@ class simulation:
 	timestamps = list()
 	lifetimes = list()
 	energylevels = list()
+	systemState = None
 
 	def __init__(self, numEndDevices, numElasticNodes, numServers, hardwareAccelerated=None):
 		sim.debug.out(numEndDevices + numElasticNodes)
@@ -43,13 +45,17 @@ class simulation:
 		self.jobResults = multiprocessing.Manager().Queue()
 		job.jobResultsQueue = self.jobResults
 		self.delays = list()
+		self.systemState = sim.systemState.systemState(self)
 
 		self.time = 0
 		
-		self.ed = [endDevice(None, self.results, i, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(numEndDevices)]
+		if numEndDevices > 0:
+			print ("End devices not supported")
+			sys.exit(0)
+		self.ed = [] # endDevice(None, self, self.results, i, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(numEndDevices)]
 		# self.ed = endDevice()
 		# self.ed2 = endDevice()
-		self.en = [elasticNode(sim.constants.DEFAULT_ELASTIC_NODE, self.results, i + numEndDevices, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(numElasticNodes)]
+		self.en = [elasticNode(self.systemState, sim.constants.DEFAULT_ELASTIC_NODE, self.results, i + numEndDevices, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(numElasticNodes)]
 		
 		
 		# self.en = elasticNode()
