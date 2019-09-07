@@ -1,10 +1,25 @@
 drone:
 	DRONE_REPO_NAME=simulator DRONE_COMMIT_SHA=1 drone exec --trusted --include small_test
 
-# training.py DEVICE HIDDEN_SIZE HIDDEN_DEPTH TRAINING_SIZE BATCH_SIZE
-docker:
+dockerBasic:
+	docker build ./basicDocker -t keras-python3
+
+localdocker:
+	./sim/entrypoint.py
+
+
+NAME:=$(shell uname -r)
+relpathwindows:=/mnt/c
+relpathlinux:="$(pwd)"
+docker: dockerBasic
 	docker build --no-cache ./ -t test
-	docker run test
+	# echo name: $(NAME)
+    ifneq (,$(findstring Microsoft,$(NAME)) )
+		docker run -v $(relpathwindows)/output:/output test
+    else
+		docker run -v $(relpathlinux)/output:/output test
+    endif
+	
 	
 docker-gpu:
 	docker build -f Dockerfile.gpu --no-cache ./ -t test
@@ -15,25 +30,6 @@ local:
 	
 requirements:
 	pip3 install -r requirements.txt
-
-all:
-	python3 training.py
-
-# # experiments:
-# jobsize:
-# 	python3 sim/experiments/jobSize.py
-# batchsize:
-# 	python3 sim/experiments/batchSize.py
-# fpgapowerplan:
-# 	python3 sim/experiments/fpgaPowerPlan.py
-# offloadingpolicy:
-# 	sim/experiments/offloadingPolicies.py
-# sleeptime:
-# 	python3 sim/experiments/sleepTime.py
-
-# experiment:
-# 	# PYTHONPATH=$${PWD} python3 sim/experiments/experiment.py
-# 	python3 sim/experiments/experiment.py
 
 .DEFAULT:
 	python3 sim/experiments/$@.py
@@ -46,7 +42,7 @@ testq:
 	python3 sim/tictactoe.py
 
 .PHONY: *
-test: testq
+test: docker
 	@echo $$DISPLAY
 	@echo "running test"
 	# python sim.py

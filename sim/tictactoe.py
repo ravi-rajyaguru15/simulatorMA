@@ -7,7 +7,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import rl.agents
 import rl.memory
 import keras
-import keras.utils
+# import keras.utils
 
 # %matplotlib inline
 import sim.dqn as dqn
@@ -123,7 +123,7 @@ model.add(keras.layers.Activation('relu'))
 model.add(keras.layers.Dense(numActions))
 model.add(keras.layers.Activation('linear'))
 print(model.summary())
-keras.utils.plot_model(model, show_shapes=True, expand_nested=True)
+# keras.utils.plot_model(model, show_shapes=True, expand_nested=True)
 
 memory = rl.memory.SequentialMemory(limit=1000000, window_length=1) # window length?
 
@@ -183,10 +183,14 @@ print ("Percent of succesful episodes: {:.2f} %".format(sum(rList)/num_episodes 
 
 plt.figure(1)
 plt.plot(jList)
+plt.savefig('/output/jlist.png')
 plt.figure(2)
 plt.plot(rList)
+plt.savefig('/output/rlist.png')
 plt.figure(3)
 plt.plot(lossList)
+plt.savefig('/output/loss.png')
+
 
 
 # plt.show()

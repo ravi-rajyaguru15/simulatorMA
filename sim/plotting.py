@@ -73,11 +73,11 @@ def plotMultiWithErrors(name, results=None, ylim=None, ylabel=None, xlabel=None)
 
 def saveFig(name, unique=False):
 	if unique:
-		filename = "images/{}_{}.png".format(name, datetime.datetime.now())
+		filename = "/output/{}_{}.png".format(name, datetime.datetime.now())
 	else:
-		filename = "images/{}.png".format(name)
+		filename = "/output/{}.png".format(name)
 	try:
-		os.mkdir("images")
+		os.mkdir("/output")
 	except FileExistsError:
 		pass
 
