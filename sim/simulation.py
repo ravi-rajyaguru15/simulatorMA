@@ -6,12 +6,13 @@ from sim.gateway import gateway
 from sim.server import server
 from sim.visualiser import visualiser 
 from sim.job import job
+import sim.offloadingDecision
+import sim.offloadingPolicy
 import sim.debug
 
 import sim.constants
 import sim.variable
 import sim.tasks
-import sim.systemState
 
 import multiprocessing
 import sys
@@ -45,7 +46,7 @@ class simulation:
 		self.jobResults = multiprocessing.Manager().Queue()
 		job.jobResultsQueue = self.jobResults
 		self.delays = list()
-		self.systemState = sim.systemState.systemState(self)
+		self.systemState = sim.offloadingDecision.systemState(self)
 
 		self.time = 0
 		
@@ -55,7 +56,7 @@ class simulation:
 		self.ed = [] # endDevice(None, self, self.results, i, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(numEndDevices)]
 		# self.ed = endDevice()
 		# self.ed2 = endDevice()
-		self.en = [elasticNode(self.systemState, sim.constants.DEFAULT_ELASTIC_NODE, self.results, i + numEndDevices, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(numElasticNodes)]
+		self.en = [elasticNode(self, sim.constants.DEFAULT_ELASTIC_NODE, self.results, i + numEndDevices, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(numElasticNodes)]
 		
 		
 		# self.en = elasticNode()
@@ -72,7 +73,7 @@ class simulation:
 
 		self.hardwareAccelerated = hardwareAccelerated
 		# self.visualise = visualise
-		# if sim.constants.DRAW_DEVICES:
+		# if sim.constants.DRAW_DEVICES: 
 		self.visualiser = visualiser(self)
 
 	def stop(self):
@@ -143,7 +144,8 @@ class simulation:
 
 	def simulateTick(self):
 		# try:
-
+		if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
+			self.systemState.update()
 
 		# create new jobs
 		for device in self.devices:

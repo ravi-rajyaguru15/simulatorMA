@@ -1,4 +1,7 @@
 # from sim import simulation
+import sys
+print (sys.path)
+sys.path.insert(0, ".")
 from sim.simulation import simulation
 import sim.constants
 import sim.variable
@@ -191,7 +194,8 @@ def randomLocalJobs(accelerated=True):
 	exp.simulateTime(.5)
 
 def randomJobs(offloadingPolicy=sim.offloadingPolicy.ANYTHING, hw=True):
-	sim.debug.enabled = False
+	print("random jobs")
+	sim.debug.enabled = True
 	sim.constants.OFFLOADING_POLICY = offloadingPolicy
 	sim.constants.JOB_LIKELIHOOD = 1e-3 # 2e-3
 	sim.constants.SAMPLE_RAW_SIZE = sim.variable.Constant(40)
@@ -205,6 +209,7 @@ def randomJobs(offloadingPolicy=sim.offloadingPolicy.ANYTHING, hw=True):
 	sim.constants.ROUND_ROBIN_TIMEOUT = 1e1
 
 	exp = simulation(0, 4, 0, hardwareAccelerated=hw)
+	print("start simulation")
 	exp.simulate() #UntilTime(1)
 
 def testRepeatsSeparateThread(i, jobLikelihood, resultsQueue):
@@ -416,7 +421,7 @@ if __name__ == '__main__':
 	# randomLocalJobs(False)
 	# randomPeerJobs(False)
 	
-	randomJobs(offloadingPolicy=sim.offloadingPolicy.ROUND_ROBIN, hw=True)
+	randomJobs(offloadingPolicy=sim.offloadingPolicy.REINFORCEMENT_LEARNING, hw=True)
 	# testPerformance()
 	# profileTarget()
 	

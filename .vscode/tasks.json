@@ -18,18 +18,6 @@
                 "kind": "test",
                 "isDefault": true
             }
-        },
-        {
-            "label": "local test",
-            "type": "shell",
-            "command": "uname -r",
-            "problemMatcher": []
-        },
-        {
-            "label": "remote test",
-            "type": "shell",
-            "command": "uname -r",
-            "problemMatcher": []
         }
     ]
 }

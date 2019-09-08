@@ -1,13 +1,27 @@
 import numpy as np
 import random
+import matplotlib as mpl
+
+import os 
+# oldBackend = mpl.get_backend()
+# print ("existing", oldBackend)
+# if os.name != 'nt':
+# 	try:
+# 		mpl.use("pdf")
+# 		# mpl.use("Qt4Agg")
+# 	except ImportError:
+# 		mpl.use(oldBackend)
+# 		print ("Cannot import MPL backend")
 import matplotlib.pyplot as plt
 import sys
-import os 
+# os.environ['DISPLAY'] = "localhost:10.0"
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
-import rl.agents
-import rl.memory
+# import rl.agents
+# import rl.memory
+import rl
+import rl.util
 import keras
-# import keras.utils
+import keras.utils
 
 # %matplotlib inline
 import sim.dqn as dqn
@@ -46,19 +60,19 @@ class scenario:
 		return nextState, reward, done
 	
 
-def forward(agent, env):
+def forward(model, env):
 	# forward
 	observation = [0 if i != env.state else 1 for i in range(len(env.observation_space))]
-	q_values = agent.compute_q_values([observation])
+	q_values = model.predict(np.array(observation).reshape((1, 1, len(env.observation_space))))
 
-	action = agent.policy.select_action(q_values=q_values)
+	action = policy.select_action(q_values=q_values[0])
 
 	#Get new state and reward from environment
 	nextState,reward,done = env.step(action)
 
 	return nextState, reward, done, action
 	
-def backward(agent, env, oldState, reward, done, action):
+def backward(model, trainable_model, env, oldState, reward, done, action):
 	# backward
 	observation = [0 if i != oldState else 1 for i in range(len(env.observation_space))]
 	observationAfter = [0 if i != env.state else 1 for i in range(len(env.observation_space))]
@@ -67,7 +81,7 @@ def backward(agent, env, oldState, reward, done, action):
 	# We perform this prediction on the target_model instead of the model for reasons
 	# outlined in Mnih (2015). In short: it makes the algorithm more stable.
 	batch = np.array([np.array([np.array(observationAfter)])])
-	target_q_values = agent.model.predict_on_batch(batch) # TODO: target_model
+	target_q_values = model.predict_on_batch(batch) # TODO: target_model
 	q_batch = np.max(target_q_values, axis=1).flatten()
 	
 	targets = np.zeros((1, numActions))
@@ -76,7 +90,7 @@ def backward(agent, env, oldState, reward, done, action):
 
 	# Compute r_t + gamma * max_a Q(s_t+1, a) and update the target targets accordingly,
 	# but only for the affected output units (as given by action_batch).
-	discounted_reward_batch = agent.gamma * q_batch
+	discounted_reward_batch = gamma * q_batch
 	# Set discounted reward to zero for all states that were terminal.
 	discounted_reward_batch *= [0. if done else 1.] 
 	# assert discounted_reward_batch.shape == reward_batch.shape
@@ -95,13 +109,13 @@ def backward(agent, env, oldState, reward, done, action):
 	x = [np.array([[observation]])] + [targets, masks]
 	y = [dummy_targets, targets]
 
-	agent.trainable_model._make_train_function()
-	metrics = agent.trainable_model.train_on_batch(x, y)
+	trainable_model._make_train_function()
+	metrics = trainable_model.train_on_batch(x, y)
 	metrics = metrics[1:3]
-	metrics += agent.policy.metrics
+	metrics += policy.metrics
 
-	agent.step += 1
-	agent.update_target_model_hard()
+	# agent.step += 1
+	# agent.update_target_model_hard()
 
 	return metrics
 
@@ -112,20 +126,25 @@ env = scenario() # gym.make('FrozenLake-v0')
 
 # Next, we build a very simple model.
 model = keras.models.Sequential()
+print (env.observation_space.shape)
 model.add(keras.layers.Flatten(input_shape=(1,) + env.observation_space.shape))
 print('input shape', (1,) + env.observation_space.shape)
-model.add(keras.layers.Dense(4))
-model.add(keras.layers.Activation('relu'))
-model.add(keras.layers.Dense(16))
-model.add(keras.layers.Activation('relu'))
+# model.add(keras.layers.Dense(4))
+# model.add(keras.layers.Activation('relu'))
+# model.add(keras.layers.Dense(16))
+# model.add(keras.layers.Activation('relu'))
 # model.add(Dense(16))
 # model.add(Activation('relu'))
 model.add(keras.layers.Dense(numActions))
 model.add(keras.layers.Activation('linear'))
-print(model.summary())
-# keras.utils.plot_model(model, show_shapes=True, expand_nested=True)
+model.summary()
 
-memory = rl.memory.SequentialMemory(limit=1000000, window_length=1) # window length?
+
+# plt.figure(6, figsize=(10,10))
+keras.utils.plot_model(model, to_file='model.png', show_shapes=True, expand_nested=True, dpi=300)
+plt.imshow(mpl.image.imread('model.png'))
+plt.axis('off')
+# memory = rl.memory.SequentialMemory(limit=1000000, window_length=1) # window length?
 
 
 # Select a policy. We use eps-greedy action selection, which means that a random action is selected
@@ -133,20 +152,53 @@ memory = rl.memory.SequentialMemory(limit=1000000, window_length=1) # window len
 # the agent initially explores the environment (high eps) and then gradually sticks to what it knows
 # (low eps). We also set a dedicated eps value that is used during testing. Note that we set it to 0.05
 # so that the agent still performs some random actions. This ensures that the agent cannot get stuck.
-policy = rl.policy.LinearAnnealedPolicy(rl.policy.EpsGreedyQPolicy(), attr='eps', value_max=1., value_min=.01, value_test=.05, nb_steps=100)
+# policy = rl.policy.LinearAnnealedPolicy(rl.policy.EpsGreedyQPolicy(), attr='eps', value_max=1., value_min=.01, value_test=.05, nb_steps=100)
+policy = rl.policy.EpsGreedyQPolicy(eps=.1)
 
-agent = dqn.DQNAgent(model, enable_double_dqn=False, nb_actions=numActions, gamma=.99, memory=memory, policy=policy, nb_steps_warmup=2, train_interval=1, batch_size=1)
-agent.compile(keras.optimizers.Adam(lr=.001), metrics=['mae'])
-agent.training = True
-print(agent.trainable_model.metrics_names)
+gamma=.99
+# agent = dqn.DQNAgent(model, enable_double_dqn=False, nb_actions=numActions, gamma=.99, memory=memory, policy=policy, nb_steps_warmup=2, train_interval=1, batch_size=1)
+optimizer = keras.optimizers.Adam(lr=.001)
+# agent.compile(, metrics=['mae'])
+metrics = ['mae']
+def clipped_masked_error(args):
+	y_true, y_pred, mask = args
+	loss = rl.util.huber_loss(y_true, y_pred, np.inf)# self.delta_clip)
+	loss *= mask  # apply element-wise mask
+	return keras.backend.sum(loss, axis=-1)
 
-print('initial weights:', agent.model.get_weights())
+# Create trainable model. The problem is that we need to mask the output since we only
+# ever want to update the Q values for a certain action. The way we achieve this is by
+# using a custom Lambda layer that computes the loss. This gives us the necessary flexibility
+# to mask out certain parameters by passing in multiple inputs to the Lambda layer.
+y_pred = model.output
+y_true = keras.layers.Input(name='y_true', shape=(numActions,))
+mask = keras.layers.Input(name='mask', shape=(numActions,))
+loss_out = keras.layers.Lambda(clipped_masked_error, output_shape=(1,), name='loss')([y_true, y_pred, mask])
+ins = [model.input] if type(model.input) is not list else model.input
+trainable_model = keras.Model(inputs=ins + [y_true, mask], outputs=[loss_out, y_pred])
+assert len(trainable_model.output_names) == 2
+combined_metrics = {trainable_model.output_names[1]: metrics}
+losses = [
+	lambda y_true, y_pred: y_pred,  # loss is computed in Lambda layer
+	lambda y_true, y_pred: keras.backend.zeros_like(y_pred),  # we only include this for the metrics
+]
+trainable_model.compile(optimizer=optimizer, loss=losses, metrics=combined_metrics)
+# self.trainable_model = trainable_model
+# agent.training = True
+print(trainable_model.metrics_names)
+print(trainable_model.summary())
+plt.figure(5, figsize=(25,25))
+keras.utils.plot_model(trainable_model, to_file='trainable_model.png', show_shapes=True, expand_nested=True, dpi=300)
+plt.imshow(mpl.image.imread('trainable_model.png'))
+plt.axis('off')
+
+print('initial weights:', model.get_weights())
 
 
 # Set learning parameters
 y = .99
 e = 0.1
-num_episodes = int(1e3)
+num_episodes = int(1e2)
 #create lists to contain total rewards and steps per episode
 jList = []
 rList = []
@@ -168,8 +220,8 @@ for i in range(num_episodes):
 		j+=1
 		
 		oldState = env.state
-		nextState, reward, done, action = forward(agent, env)
-		metrics = backward(agent, env, oldState, reward, done, action)
+		nextState, reward, done, action = forward(model, env)
+		metrics = backward(model,trainable_model,  env, oldState, reward, done, action)
 
 		lossList.append(metrics[0])
 		metricsList.append(metrics)
@@ -180,17 +232,26 @@ for i in range(num_episodes):
 	jList.append(j)
 	rList.append(rAll)
 print ("Percent of succesful episodes: {:.2f} %".format(sum(rList)/num_episodes * 100.0))
-
+import os
+# print (os.environ["DISPLAY"])
+if "DISPLAY" not in os.environ:
+	os.environ["DISPLAY"] = "localhost:10.0"
+	print("set display to", os.environ["DISPLAY"])
+else:
+    print ("Existing DISPLAY={}".format(os.environ["DISPLAY"]))
 plt.figure(1)
-plt.plot(jList)
-plt.savefig('/output/jlist.png')
+plt.title('duration')
+plt.plot(jList);
+# plt.savefig('/output/jlist.png')
 plt.figure(2)
-plt.plot(rList)
-plt.savefig('/output/rlist.png')
+plt.title('rewards')
+plt.plot(rList);
+# plt.savefig('/output/rlist.png')
 plt.figure(3)
-plt.plot(lossList)
-plt.savefig('/output/loss.png')
-
+plt.title('loss')
+plt.plot(lossList);
+# plt.savefig('/output/loss.png')
+# plt.show()
 
 
 # plt.show()

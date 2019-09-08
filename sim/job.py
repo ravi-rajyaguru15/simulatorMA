@@ -1,4 +1,5 @@
 from warnings import warn
+import sys
 
 import sim.debug
 import sim.constants 
@@ -23,6 +24,7 @@ class job:
 	devicesEnergyCost = None # track how much each device spends on this job
 	
 	owner = None
+	simulation = None
 	creator = None
 	processingNode = None
 	processor = None
@@ -38,6 +40,9 @@ class job:
 
 	def __init__(self, createdTime, origin, samples, offloadingDecision, hardwareAccelerated, taskGraph=None):
 		self.creator = origin
+		self.simulation = origin.simulation
+		print ('sim', self.simulation)
+
 		self.samples = samples
 		self.hardwareAccelerated = hardwareAccelerated
 		self.totalEnergyCost = 0
@@ -76,6 +81,8 @@ class job:
 		else:
 			self.processor = processingNode.mcu
 
+	def reward(self):
+		return 1
 
 	def start(self, startTime):
 		self.started = True
@@ -98,6 +105,8 @@ class job:
 		self.finished = True
 		self.owner.removeJob(self)
 
+		if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
+			self.owner.decision.agent.backward(self.reward(), self.simulation.finished)
 		# add results to overall results
 		# job.jobResultsQueue.put(result(self.totalLatency, self.totalEnergyCost))
 		

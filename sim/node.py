@@ -18,6 +18,7 @@ class node:
 	currentJob = None
 	numJobs = None
 	currentTask = None
+	simulation = None
 	# resultsQueue = None
 	index = None
 	# nodeType = None
@@ -48,7 +49,8 @@ class node:
 	def __init__(self, simulation, platform, index, components, alwaysHardwareAccelerate=None):
 		self.platform = platform
 
-		self.decision = offloadingDecision(self, simulation)
+		self.decision = offloadingDecision(self, simulation.systemState)
+		self.simulation = simulation
 		self.jobQueue = list()
 		sim.debug.out ("jobqueue" + str(self.jobQueue))
 		self.taskQueue = deque()
@@ -236,7 +238,7 @@ class node:
 		# self.averagePower += 1.0 / self.powerCount * (power - self.averagePower) 
 		# alpha
 		self.averagePower += sim.constants.EXPECTED_LIFETIME_ALPHA * (power - self.averagePower)
-		sim.debug.out("average power: {}, {}".format(power, self.averagePower))
+		# sim.debug.out("average power: {}, {}".format(power, self.averagePower))
 
 	def updateTime(self, currentTime):
 		# if no jobs available, perhaps generate one
