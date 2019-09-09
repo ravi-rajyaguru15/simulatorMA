@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: simulator
+spec:
+  revisionHistoryLimit: 1
+  strategy:
+    type: "Recreate"
+  selector:
+    matchLabels:
+      app: simulator
+  template:
+    metadata:
+      labels:
+        app: simulator
+    spec:
+      containers:
+      - name: simulator
+        image: git.uni-due.de:6666/adf694g/simulator:latest
+        resources:
+          limits:
+            memory: "64Gi"
+            cpu: "15.5"
+        # ports:
+        # - containerPort: <Port>
+      imagePullSecrets:
+        - name: regcred
