@@ -3,6 +3,7 @@ import random
 import matplotlib as mpl
 
 import os 
+import warnings
 # oldBackend = mpl.get_backend()
 # print ("existing", oldBackend)
 # if os.name != 'nt':
@@ -60,10 +61,52 @@ class scenario:
 		return nextState, reward, done
 	
 
+
+# import sim.memory
+class singleStateScenario:
+	# s0/0 - s1 - s2 - s3/1
+	# -- s0/0 - s1 - s2/1
+	def __init__(self):
+		pass
+
+	state = None
+	def reset(self):
+		# print('reset')
+		self.state = 1/3.
+		return self.state
+
+	action_space = np.array([0, 1]) # left, right
+	observation_space = np.array([0])
+
+	def step(self, action):
+		done = False
+		if action == 0:
+			nextState = self.state - 1/3.
+		else:
+			nextState = self.state + 1/3.
+
+			
+		reward = 0
+		if nextState == 0 or nextState == 1.:
+			reward = 1 if (nextState == 1.) else 0
+			done = True
+
+		self.state = nextState
+		return nextState, reward, done
+	
+
 def forward(model, env):
 	# forward
-	observation = [0 if i != env.state else 1 for i in range(len(env.observation_space))]
+	# observation = [0 if i != env.state else 1 for i in range(len(env.observation_space))]
+	observation = [env.state]
 	q_values = model.predict(np.array(observation).reshape((1, 1, len(env.observation_space))))
+
+	# # inspection model
+	# inspect = keras.Model(inputs=model.input, outputs=model.get_layer(index=0).output)
+	# # inspectOutput = inspect.predict(np.array(observation).reshape((1, 1, len(env.observation_space))))
+	# print(observation)
+	# print(np.array(observation).reshape((1, 1, len(env.observation_space))))
+	# print(inspect.predict(np.array(observation).reshape((1, 1, len(env.observation_space)))))
 
 	action = policy.select_action(q_values=q_values[0])
 
@@ -119,10 +162,11 @@ def backward(model, trainable_model, env, oldState, reward, done, action):
 
 	return metrics
 
-numStates = len(scenario.observation_space)
-numActions = len(scenario.action_space)
+env = singleStateScenario() # gym.make('FrozenLake-v0')
+
 # states
-env = scenario() # gym.make('FrozenLake-v0')
+numStates = len(env.observation_space)
+numActions = len(env.action_space)
 
 # Next, we build a very simple model.
 model = keras.models.Sequential()
@@ -138,7 +182,6 @@ print('input shape', (1,) + env.observation_space.shape)
 model.add(keras.layers.Dense(numActions))
 model.add(keras.layers.Activation('linear'))
 model.summary()
-
 
 # plt.figure(6, figsize=(10,10))
 keras.utils.plot_model(model, to_file='model.png', show_shapes=True, expand_nested=True, dpi=300)
@@ -198,7 +241,7 @@ print('initial weights:', model.get_weights())
 # Set learning parameters
 y = .99
 e = 0.1
-num_episodes = int(1e2)
+num_episodes = int(1e3)
 #create lists to contain total rewards and steps per episode
 jList = []
 rList = []
@@ -217,6 +260,7 @@ for i in range(num_episodes):
 	j = 0
 	#The Q-Network
 	while j < 99 and not done:
+		# warnings.warn("short job!")
 		j+=1
 		
 		oldState = env.state
@@ -255,4 +299,3 @@ plt.plot(lossList);
 
 
 # plt.show()
-
