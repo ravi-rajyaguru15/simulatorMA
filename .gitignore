@@ -1,3 +1,5 @@
+*.png
+*.yaml
 .vscode/launch.json
 .ipynb_checkpoints/
 images/*.png

@@ -184,9 +184,9 @@ model.add(keras.layers.Activation('linear'))
 model.summary()
 
 # plt.figure(6, figsize=(10,10))
-keras.utils.plot_model(model, to_file='model.png', show_shapes=True, expand_nested=True, dpi=300)
-plt.imshow(mpl.image.imread('model.png'))
-plt.axis('off')
+# keras.utils.plot_model(model, to_file='model.png', show_shapes=True, expand_nested=True, dpi=300)
+# plt.imshow(mpl.image.imread('model.png'))
+# plt.axis('off')
 # memory = rl.memory.SequentialMemory(limit=1000000, window_length=1) # window length?
 
 
@@ -230,10 +230,10 @@ trainable_model.compile(optimizer=optimizer, loss=losses, metrics=combined_metri
 # agent.training = True
 print(trainable_model.metrics_names)
 print(trainable_model.summary())
-plt.figure(5, figsize=(25,25))
-keras.utils.plot_model(trainable_model, to_file='trainable_model.png', show_shapes=True, expand_nested=True, dpi=300)
-plt.imshow(mpl.image.imread('trainable_model.png'))
-plt.axis('off')
+# plt.figure(5, figsize=(25,25))
+# keras.utils.plot_model(trainable_model, to_file='trainable_model.png', show_shapes=True, expand_nested=True, dpi=300)
+# plt.imshow(mpl.image.imread('trainable_model.png'))
+# plt.axis('off')
 
 print('initial weights:', model.get_weights())
 

@@ -7,7 +7,7 @@ import sys
 import os 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 print (sys.path)
-sys.path.insert(0, '/app')
+sys.path.insert(0, '.')
 import rl.agents
 import rl.memory
 import keras
@@ -16,7 +16,7 @@ import keras.utils
 
 
 # import sim 
-import sim.experiments.expectedLife
+# import sim.experiments.expectedLife
 import sim.constants
 
 print("cores:", sim.constants.THREAD_COUNT)

@@ -17,6 +17,7 @@ spec:
       containers:
       - name: simulator
         image: git.uni-due.de:6666/embedded-systems/elastic-node/simulator:latest
+        imagePullPolicy: Always
         resources:
           limits:
             memory: "64Gi"
