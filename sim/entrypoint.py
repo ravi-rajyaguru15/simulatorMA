@@ -19,10 +19,12 @@ import keras.utils
 import sim.experiments.expectedLife
 import sim.constants
 
+print("cores:", sim.constants.THREAD_COUNT)
+
 sim.constants.DRAW_GRAPH = False
 sim.constants.SAVE_GRAPH = True
 
-import sim.experiments.roundRobin
+# import sim.experiments.roundRobin
 # print(sim.constants.THREAD_COUNT)
-# # import tictactoe
+import sim.tictactoe
 # sim.experiments.expectedLife.run()

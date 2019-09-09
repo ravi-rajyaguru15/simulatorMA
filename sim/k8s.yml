@@ -16,11 +16,11 @@ spec:
     spec:
       containers:
       - name: simulator
-        image: git.uni-due.de:6666/adf694g/simulator:latest
+        image: git.uni-due.de:6666/embedded-systems/elastic-node/simulator:latest
         resources:
           limits:
             memory: "64Gi"
-            cpu: "15.5"
+            cpu: "15"
         # ports:
         # - containerPort: <Port>
       imagePullSecrets:
