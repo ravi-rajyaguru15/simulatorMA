@@ -13,7 +13,8 @@ import rl.memory
 import keras
 import keras.utils
 
-
+import glob
+print(glob.glob("/output/*.*"))
 
 # import sim 
 # import sim.experiments.expectedLife
