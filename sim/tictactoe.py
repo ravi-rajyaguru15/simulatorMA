@@ -286,15 +286,15 @@ else:
 plt.figure(1)
 plt.title('duration')
 plt.plot(jList);
-# plt.savefig('/output/jlist.png')
+plt.savefig('/output/jlist.png')
 plt.figure(2)
 plt.title('rewards')
 plt.plot(rList);
-# plt.savefig('/output/rlist.png')
+plt.savefig('/output/rlist.png')
 plt.figure(3)
 plt.title('loss')
 plt.plot(lossList);
-# plt.savefig('/output/loss.png')
+plt.savefig('/output/loss.png')
 # plt.show()
 
 

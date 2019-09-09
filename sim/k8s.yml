@@ -14,6 +14,10 @@ spec:
       labels:
         app: simulator
     spec:
+      volumes:
+        - name: kubedata
+          persistentVolumeClaim:
+              claimName: kubedata-claim
       containers:
       - name: simulator
         image: git.uni-due.de:6666/embedded-systems/elastic-node/simulator:latest
@@ -22,6 +26,9 @@ spec:
           limits:
             memory: "64Gi"
             cpu: "15"
+        volumeMounts:
+          - name:  kubedata
+            mountPath:  /output
         # ports:
         # - containerPort: <Port>
       imagePullSecrets:
