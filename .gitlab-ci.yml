@@ -42,5 +42,7 @@ build:
 deploy:
   stage: deploy
   script:
-    - kubectl apply -f sim/k8s.yml
-  
+    - echo "Deploying staging"
+  environment: 
+    name: staging/$CI_COMMIT_REF_NAME
+    url: https://build.es.uni-due.de
