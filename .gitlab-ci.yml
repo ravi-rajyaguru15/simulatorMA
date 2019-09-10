@@ -39,7 +39,7 @@ build:
     - docker push $CI_REGISTRY_IMAGE:latest
     
 
-deploy:
+# deploy:
   stage: deploy
   image: lachlanevenson/k8s-kubectl:latest
   environment: 
