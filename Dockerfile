@@ -1,4 +1,4 @@
-FROM keras-python3
+FROM git.uni-due.de:6666/embedded-systems/docker-images/keras-python3:latest
 
 WORKDIR /app
 

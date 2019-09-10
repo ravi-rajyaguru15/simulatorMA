@@ -1,6 +1,0 @@
-numpy
-matplotlib
-PyQt5
-keras-rl
-keras
-# pydot
