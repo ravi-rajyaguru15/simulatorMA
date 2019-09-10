@@ -19,5 +19,11 @@
                 "isDefault": true
             }
         }
+        ,
+        {
+            "label": "redeploy",
+            "type": "shell",
+            "command": "kubectl patch deployment simulator -p \"{\"spec\": {\"template\": {\"metadata\": { \"labels\": {  \"redeploy\": \"$(date +%s)\"}}}}}"        }"
+
     ]
 }
