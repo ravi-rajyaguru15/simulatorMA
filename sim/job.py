@@ -41,7 +41,7 @@ class job:
 	def __init__(self, createdTime, origin, samples, offloadingDecision, hardwareAccelerated, taskGraph=None):
 		self.creator = origin
 		self.simulation = origin.simulation
-		print ('sim', self.simulation)
+		# print ('sim', self.simulation)
 
 		self.samples = samples
 		self.hardwareAccelerated = hardwareAccelerated
