@@ -71,7 +71,7 @@ def plotMultiWithErrors(name, results=None, ylim=None, ylabel=None, xlabel=None)
 	if sim.constants.DRAW_GRAPH:
 		pp.show()
 
-def saveFig(name, unique=False):
+def saveFig(name, unique=True):
 	if unique:
 		filename = "/output/{}_{}.png".format(name, datetime.datetime.now())
 	else:

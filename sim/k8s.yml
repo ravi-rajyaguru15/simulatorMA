@@ -1,18 +1,18 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: batch/v1
+kind: Job
 metadata:
   name: simulator
 spec:
-  revisionHistoryLimit: 1
-  strategy:
-    type: "Recreate"
-  selector:
-    matchLabels:
-      app: simulator
+  # revisionHistoryLimit: 1
+  # strategy:
+  #   type: "Recreate"
+  # selector:
+  #   matchLabels:
+  #     app: simulator
   template:
-    metadata:
-      labels:
-        app: simulator
+    # metadata:
+    #   labels:
+    #     app: simulator
     spec:
       volumes:
         - name: share
@@ -29,6 +29,7 @@ spec:
         volumeMounts:
           - name:  share
             mountPath:  /output
+      restartPolicy: Never
         # ports:
         # - containerPort: <Port>
       imagePullSecrets:
