@@ -41,6 +41,13 @@ build:
 
 deploy:
   stage: deploy
+  image: lachlanevenson/k8s-kubectl:latest
+  environment: 
+    name: deploy
+    url: https://build.es.uni-due.de
   script:
+    - kubectl version
+    - sed -i "s/__CI_BUILD_REF_SLUG__/${CI_ENVIRONMENT_SLUG}/" sim/k8s.yml
     - kubectl apply -f sim/k8s.yml
+    - kubectl rollout status -f sim/k8s.yml
   
