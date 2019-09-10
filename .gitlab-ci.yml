@@ -41,6 +41,8 @@ deploy:
   environment: 
     name: deploy
     url: https://build.es.uni-due.de
+  only:
+  - deploy    
   script:
     - kubectl version
     # - kubectl config set-context --current --namespace=ajb
