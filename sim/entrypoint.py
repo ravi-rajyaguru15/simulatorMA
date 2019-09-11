@@ -25,11 +25,11 @@ print("cores:", sim.constants.THREAD_COUNT)
 sim.constants.DRAW_GRAPH = False
 sim.constants.SAVE_GRAPH = True
 
-# import sim.experiments.offloadingPolicies
-# import sim.experiments.roundRobin
+import sim.experiments.offloadingPolicies
+import sim.experiments.roundRobin
 # print(sim.constants.THREAD_COUNT)
 import sim.tictactoe
 # sim.experiments.expectedLife.run()
 
-import subprocess
-subprocess.run(["/usr/local/bin/syncSciebo"])
+# import subprocess
+# subprocess.run(["/usr/local/bin/syncSciebo"])
