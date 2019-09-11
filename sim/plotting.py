@@ -3,6 +3,7 @@ import datetime
 import matplotlib as mpl
 import matplotlib.pyplot as pp
 import numpy as np
+import pickle
 
 import sim.constants
 
@@ -30,6 +31,9 @@ def plotWithErrors(x, y=None, errors=None, results=None):
 	
 def plotMultiWithErrors(name, results=None, ylim=None, ylabel=None, xlabel=None): # , show=False, save=False):
 	print ("plotting!")
+	filename = "/output/{}_{}".format(name, datetime.datetime.now()).replace(":", ".")
+	pickle.dump((name, results, ylim, ylabel, xlabel), open("{}.pickle".format(filename), "wb"))
+	
 	# sort by graph key
 	orderedResults = collections.OrderedDict(sorted(results.items()))
 	legends = list()
@@ -66,20 +70,17 @@ def plotMultiWithErrors(name, results=None, ylim=None, ylabel=None, xlabel=None)
 		pp.xlabel(xlabel)
 		
 	if sim.constants.SAVE_GRAPH:
-		saveFig(name)
+		saveFig(filename)
 
 	if sim.constants.DRAW_GRAPH:
 		pp.show()
 
-def saveFig(name, unique=True):
-	if unique:
-		filename = "/output/{}_{}.png".format(name, datetime.datetime.now())
-	else:
-		filename = "/output/{}.png".format(name)
+def saveFig(filename):
 	try:
 		os.mkdir("/output")
 	except FileExistsError:
 		pass
 
 	print ("saving figure {}".format(filename))
-	pp.savefig(filename)
+	pp.savefig("{}.png".format(filename))
+
