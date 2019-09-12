@@ -19,7 +19,7 @@ def runThread(jobLikelihood, offloadingPolicy, results, finished):
 
 	exp = simulation(0, numDevices, 0, hardwareAccelerated=True)
 
-	exp.simulateTime(10)
+	exp.simulateTime(sim.constants.TOTAL_TIME)
 
 	# if not exp.allDone():
 	# 	warnings.warn("not all devices done: {}".format(numDevices))
@@ -43,7 +43,7 @@ def run():
 	results = multiprocessing.Queue()
 	finished = multiprocessing.Queue()
 	
-	sim.constants.REPEATS = 3
+	sim.constants.REPEATS = 5
 
 	for jobLikelihood in np.arange(1e-3, 10e-3, 1e-3):
 		for offloadingPolicy in offloadingOptions:

@@ -103,7 +103,7 @@ class offloadingDecision:
 			elif sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
 				self.systemState.updateTask(task)
 				choice = self.agent.forward(self.options)
-				print(choice)
+				sim.debug.out(choice)
 				# raise Exception("not implemented")
 				# choice = 
 			else:
@@ -270,7 +270,7 @@ class agent:
 	def decodeIndex(index, options):
 		deviceIndex = int(index / numActionsPerDevice)
 		actionIndex = index - deviceIndex * numActionsPerDevice
-		print (index, options)
+		sim.debug.out(index, options)
 		result = decision(options[deviceIndex], action=possibleActions[actionIndex])
 		return result
 
@@ -278,7 +278,7 @@ class agent:
 	def forward(self, options):
 		self.beforeState = self.systemState.currentState
 		qValues = self.model.predict(self.beforeState.reshape((1, 1, systemState.stateCount)))[0]
-		print ('q', qValues)
+		sim.debug.out('q', qValues)
 		actionIndex = self.policy.select_action(q_values=qValues)
 		self.latestAction = actionIndex
 		return agent.decodeIndex(actionIndex, options)

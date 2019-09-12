@@ -197,13 +197,13 @@ def randomJobs(offloadingPolicy=sim.offloadingPolicy.ANYTHING, hw=True):
 	print("random jobs")
 	sim.debug.enabled = True
 	sim.constants.OFFLOADING_POLICY = offloadingPolicy
-	sim.constants.JOB_LIKELIHOOD = 1e-3 # 2e-3
+	sim.constants.JOB_LIKELIHOOD = 9e-3 # 2e-3
 	sim.constants.SAMPLE_RAW_SIZE = sim.variable.Constant(40)
 	sim.constants.SAMPLE_SIZE = sim.variable.Constant(10)
-	sim.constants.PLOT_TD = sim.constants.TD * 10
+	sim.constants.PLOT_TD = sim.constants.TD * 1
 	sim.constants.FPGA_POWER_PLAN = sim.powerPolicy.IDLE_TIMEOUT
 	sim.constants.DRAW_DEVICES = True
-	sim.constants.FPGA_IDLE_SLEEP = 0.75
+	sim.constants.FPGA_IDLE_SLEEP = 0.075
 	sim.constants.MINIMUM_BATCH = 5
 	sim.constants.DEFAULT_TASK_GRAPH = [sim.tasks.EASY]
 	sim.constants.ROUND_ROBIN_TIMEOUT = 1e1
@@ -421,7 +421,7 @@ if __name__ == '__main__':
 	# randomLocalJobs(False)
 	# randomPeerJobs(False)
 	
-	randomJobs(offloadingPolicy=sim.offloadingPolicy.REINFORCEMENT_LEARNING, hw=True)
+	randomJobs(offloadingPolicy=sim.offloadingPolicy.LOCAL_ONLY, hw=True)
 	# testPerformance()
 	# profileTarget()
 	
