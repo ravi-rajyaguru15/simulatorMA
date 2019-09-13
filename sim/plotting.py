@@ -38,7 +38,6 @@ def plotMultiWithErrors(name, results=None, ylim=None, ylabel=None, xlabel=None)
 	orderedResults = collections.OrderedDict(sorted(results.items()))
 	legends = list()
 	for key, graph in orderedResults.items(): #, colour in zip(results, colours):
-		print (graph)
 		legends.append(key)
 		x, y = list(), list()
 		errors = list()
@@ -51,8 +50,6 @@ def plotMultiWithErrors(name, results=None, ylim=None, ylabel=None, xlabel=None)
 			y.append(value[0])
 			errors.append(value[1])
 	
-		print (x)
-		print (y)
 		pp.errorbar(x, y, yerr=errors)
 	
 	pp.legend(legends)

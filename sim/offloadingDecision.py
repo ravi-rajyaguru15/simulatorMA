@@ -22,7 +22,7 @@ class offloadingDecision:
 	owner = None
 	target = None
 	simulation = None
-	agent = None
+	learningAgent = None
 
 	def __init__(self, device, systemState=None):
 		self.owner = device
@@ -60,12 +60,12 @@ class offloadingDecision:
 		if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
 			# create either private or shared agent
 			if not sim.constants.CENTRALISED_LEARNING:
-				self.agent = agent(len(self.options), self.systemState)
+				self.learningAgent = agent(len(self.options), self.systemState)
 			else:
 				# create shared agent if required
-				if offloadingDecision.agent is None:
-					offloadingDecision.agent = agent(len(self.options), self.systemState)
-				self.agent = offloadingDecision.agent
+				if offloadingDecision.learningAgent is None:
+					offloadingDecision.learningAgent = agent(len(self.options), self.systemState)
+				self.learningAgent = offloadingDecision.learningAgent
 
 		# print(sim.constants.OFFLOADING_POLICY, self.owner, self.options)
 
@@ -102,8 +102,8 @@ class offloadingDecision:
 					choice = decision(self.options[largestBatches])
 			elif sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
 				self.systemState.updateTask(task)
-				choice = self.agent.forward(self.options)
-				print(choice)
+				choice = self.learningAgent.forward(self.options)
+				sim.debug.out(choice)
 				# raise Exception("not implemented")
 				# choice = 
 			else:
@@ -270,7 +270,7 @@ class agent:
 	def decodeIndex(index, options):
 		deviceIndex = int(index / numActionsPerDevice)
 		actionIndex = index - deviceIndex * numActionsPerDevice
-		print (index, options)
+		sim.debug.out(index, options)
 		result = decision(options[deviceIndex], action=possibleActions[actionIndex])
 		return result
 
@@ -278,7 +278,7 @@ class agent:
 	def forward(self, options):
 		self.beforeState = self.systemState.currentState
 		qValues = self.model.predict(self.beforeState.reshape((1, 1, systemState.stateCount)))[0]
-		print ('q', qValues)
+		sim.debug.out('q', qValues)
 		actionIndex = self.policy.select_action(q_values=qValues)
 		self.latestAction = actionIndex
 		return agent.decodeIndex(actionIndex, options)

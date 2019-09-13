@@ -106,9 +106,11 @@ class job:
 		self.owner.removeJob(self)
 
 		if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
-			self.owner.decision.agent.backward(self.reward(), self.simulation.finished)
+			self.owner.decision.learningAgent.backward(self.reward(), self.simulation.finished)
 
 		self.simulation.completedJobs += 1
+
+		# print("finished job", self.simulation.completedJobs)
 		# add results to overall results
 		# job.jobResultsQueue.put(result(self.totalLatency, self.totalEnergyCost))
 		
@@ -116,41 +118,41 @@ class job:
 	def offloaded(self):
 		return self.creator is not self.processingNode
 
-	def process(self):
-		print ("PANIC")
-		# figure out which sim.subtask is active
-		if self.currentSubTask is None:
-			# more subtasks available?
-			if self.subtaskIndex >= len(self.subtasks):
-				self.finished = True
-				return True
-			else:
-				# if task requires a destination, wait until destination is available
-				nextSubTask = self.subtasks[self.subtaskIndex]
+	# def process(self):
+	# 	print ("PANIC")
+	# 	# figure out which sim.subtask is active
+	# 	if self.currentSubTask is None:
+	# 		# more subtasks available?
+	# 		if self.subtaskIndex >= len(self.subtasks):
+	# 			self.finished = True
+	# 			return True
+	# 		else:
+	# 			# if task requires a destination, wait until destination is available
+	# 			nextSubTask = self.subtasks[self.subtaskIndex]
 
-				# if not dependent on destination, always start
-				destinationReady = True
-				if nextSubTask.destination is not None:
-					# check if destination of message has something to do 
-					if nextSubTask.destination.busy():
-						destinationReady = False
-						print ("destination is not ready!")
-					# create new task for receiving device
-					else:
-						nextSubTask.destination.addSubTask(sim.subtask.communication())
-						nextSubTask.destination.addSubTask(sim.subtask.communication())
-						nextSubTask.destination.addSubTask(sim.subtask.communication())
-						# nextSubTask.destination.prependTask(sim.subtask.communication())
+	# 			# if not dependent on destination, always start
+	# 			destinationReady = True
+	# 			if nextSubTask.destination is not None:
+	# 				# check if destination of message has something to do 
+	# 				if nextSubTask.destination.busy():
+	# 					destinationReady = False
+	# 					print ("destination is not ready!")
+	# 				# create new task for receiving device
+	# 				else:
+	# 					nextSubTask.destination.addSubTask(sim.subtask.communication())
+	# 					nextSubTask.destination.addSubTask(sim.subtask.communication())
+	# 					nextSubTask.destination.addSubTask(sim.subtask.communication())
+	# 					# nextSubTask.destination.prependTask(sim.subtask.communication())
 
-				if destinationReady:
-					self.currentSubTask = nextSubTask
+	# 			if destinationReady:
+	# 				self.currentSubTask = nextSubTask
 
-		# progress sim.subtask 
-		self.currentSubTask.tick()
+	# 	# progress sim.subtask 
+	# 	self.currentSubTask.tick()
 
-		if self.currentSubTask.finished:
-			self.subtaskIndex += 1
-			self.currentSubTask = None
+	# 	if self.currentSubTask.finished:
+	# 		self.subtaskIndex += 1
+	# 		self.currentSubTask = None
 
 	def moveTo(self, destinationNode):
 		# remove job from current

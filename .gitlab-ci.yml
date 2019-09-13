@@ -47,6 +47,6 @@ deploy:
     - kubectl version
     # - kubectl config set-context --current --namespace=ajb
     - sed -i "s/__CI_BUILD_REF_SLUG__/${CI_ENVIRONMENT_SLUG}/" sim/k8s.yml
-    - kubectl apply -f sim/k8s.yml
+    - kubectl create -f sim/k8s.yml
     # - kubectl rollout status -f sim/k8s.yml
   

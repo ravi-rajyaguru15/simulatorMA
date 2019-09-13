@@ -11,4 +11,4 @@ spec:
   accessModes:
     - ReadWriteOnce
   hostPath:
-    path: "/mnt/share/AlwynData/"
+    path: "/mnt/sciebo/graphs/"

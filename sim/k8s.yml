@@ -1,18 +1,10 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: simulator
+  generateName: simulator
 spec:
-  # revisionHistoryLimit: 1
-  # strategy:
-  #   type: "Recreate"
-  # selector:
-  #   matchLabels:
-  #     app: simulator
+  ttlSecondsAfterFinished: 604800 # 7 days 
   template:
-    # metadata:
-    #   labels:
-    #     app: simulator
     spec:
       volumes:
         - name: share

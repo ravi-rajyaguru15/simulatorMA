@@ -273,7 +273,7 @@ class visualiser:
 			roundRobinText = ", {}".format(sim.offloadingDecision.offloadingDecision.target)
 		else:
 			roundRobinText = ""
-		pp.title("Time = {:.3f}, TotalSleep = {:.3f}{}".format(self.sim.time, np.average([dev.totalSleepTime for dev in self.sim.devices]), roundRobinText))
+		pp.title("Time = {:.3f}, TotalSleep = {:.3f}, AveragePower {:.3f}{}".format(self.sim.time, np.average([dev.totalSleepTime for dev in self.sim.devices]), np.average(self.sim.totalDevicesEnergy()) / self.sim.time, roundRobinText))
 		# for dev, location in zip(self.sim.devices, self.grid):
 		for dev in self.sim.devices:
 			self.draw(dev)
