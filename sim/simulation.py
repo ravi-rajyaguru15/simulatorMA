@@ -39,6 +39,7 @@ class simulation:
 	lifetimes = list()
 	energylevels = list()
 	systemState = None
+	completedJobs = None
 
 	def __init__(self, numEndDevices, numElasticNodes, numServers, hardwareAccelerated=None):
 		sim.debug.out(numEndDevices + numElasticNodes)
@@ -47,6 +48,7 @@ class simulation:
 		job.jobResultsQueue = self.jobResults
 		self.delays = list()
 		self.systemState = sim.offloadingDecision.systemState(self)
+		self.completedJobs = 0
 
 		self.time = 0
 		
@@ -98,6 +100,12 @@ class simulation:
 			# pass
 				# def simulateUntilDone()
 	
+	# if multiple jobs finish in the same line, 
+	def simulateUntilJobDone(self):
+		numJobs = self.completedJobs
+		while self.completedJobs == numJobs:
+			self.simulateTick()
+
 	def simulateUntilTime(self, finalTime):
 		assert(finalTime > self.time)
 		self.simulateTime(finalTime - self.time)

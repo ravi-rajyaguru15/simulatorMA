@@ -42,7 +42,7 @@ testq:
 	python3 sim/tictactoe.py
 
 .PHONY: *
-test: roundRobin
+test: trainingLoss
 	@echo $$DISPLAY
 	@echo "running test"
 	# python sim.py

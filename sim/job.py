@@ -107,6 +107,8 @@ class job:
 
 		if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
 			self.owner.decision.agent.backward(self.reward(), self.simulation.finished)
+
+		self.simulation.completedJobs += 1
 		# add results to overall results
 		# job.jobResultsQueue.put(result(self.totalLatency, self.totalEnergyCost))
 		
