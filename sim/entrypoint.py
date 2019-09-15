@@ -26,10 +26,10 @@ sim.constants.DRAW_GRAPH = False
 sim.constants.SAVE_GRAPH = True
 sim.constants.TOTAL_TIME = 1e4
 
-import sim.experiments.offloadingPolicies
+# import sim.experiments.offloadingPolicies
 # import sim.experiments.roundRobin
 # print(sim.constants.THREAD_COUNT)
-# import sim.tictactoe
+import sim.tictactoe
 # sim.experiments.expectedLife.run()
 
 # import subprocess

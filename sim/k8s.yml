@@ -17,7 +17,7 @@ spec:
         resources:
           limits:
             memory: "64Gi"
-            cpu: "15"
+            cpu: "4"
         volumeMounts:
           - name:  share
             mountPath:  /output
