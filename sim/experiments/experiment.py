@@ -184,7 +184,7 @@ def randomPeerJobs(accelerated=True):
 	
 # @staticmethod
 def randomLocalJobs(accelerated=True):
-	sim.constants.SAMPLE_SIZE = sim.variable.Uniform(5,6)
+	sim.constants.SAMPLE_SIZE = sim.variable.Uniform(5.5,1)
 	sim.constants.PLOT_TD = 1e-2
 	sim.constants.MINIMUM_BATCH = 5
 	sim.constants.JOB_LIKELIHOOD = 10e-2
@@ -195,7 +195,7 @@ def randomLocalJobs(accelerated=True):
 
 def randomJobs(offloadingPolicy=sim.offloadingPolicy.ANYTHING, hw=True):
 	print("random jobs")
-	sim.debug.enabled = True
+	sim.debug.enabled = False
 	sim.constants.OFFLOADING_POLICY = offloadingPolicy
 	sim.constants.JOB_LIKELIHOOD = 9e-3 # 2e-3
 	sim.constants.SAMPLE_RAW_SIZE = sim.variable.Constant(40)
@@ -423,7 +423,7 @@ if __name__ == '__main__':
 	# randomLocalJobs(False)
 	# randomPeerJobs(False)
 	
-	randomJobs(offloadingPolicy=sim.offloadingPolicy.LOCAL_ONLY, hw=True)
+	randomJobs(offloadingPolicy=sim.offloadingPolicy.REINFORCEMENT_LEARNING, hw=True)
 	# testPerformance()
 	# profileTarget()
 	

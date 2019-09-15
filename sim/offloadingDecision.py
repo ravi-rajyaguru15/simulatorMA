@@ -83,7 +83,6 @@ class offloadingDecision:
 			raise Exception("No options available!")
 		else:
 			# choose randomly from the options available
-			# warnings.warn("need to choose differently")
 			if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.ANNOUNCED:
 				# every other offloading policy involves randoming
 				batches = np.array([len(dev.batch[task]) if task in dev.batch.keys() else 0 for dev in self.options])
@@ -101,17 +100,14 @@ class offloadingDecision:
 					# print('largest:', largestBatches)
 					choice = decision(self.options[largestBatches])
 			elif sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
+				self.systemState.updateDevice(self.owner)
 				self.systemState.updateTask(task)
 				choice = self.learningAgent.forward(self.options)
 				sim.debug.out(choice)
-				# raise Exception("not implemented")
-				# choice = 
 			else:
 				choice = decision(random.choice(self.options))
-			# print (self.options, choice)
-			# task.setDestination(choice)
+
 			sim.debug.out("Job assigned: {} -> {}".format(self.owner, choice))
-			# time.sleep(1)
 			return choice
 		
 
@@ -152,20 +148,47 @@ class systemState:
 	simulation = None
 	stateCount = 2
 	currentState = None
+	batchLengths = None
+	selfBatch = None
+	selfExpectedLife = None
+	expectedLife = None
+
 
 	def __init__(self, simulation):
 		self.simulation = simulation
 
+	def updateSystem(self):
+		self.expectedLife = np.array(self.simulation.devicesLifetimes())
+		self.systemExpectedLife = np.min(self.expectedLife)
+
+		self.update()
+
 	def update(self):
-		self.currentStateIndex = 0
-		self.currentState = self.onehot(self.currentStateIndex)
+		self.currentState = np.array([self.selfExpectedLife, self.systemExpectedLife, self.expectedLife, self.selfBatch, self.batchLengths]).flatten()
+
+		# self.currentStateIndex = 0
+		# self.currentState = self.onehot(self.currentStateIndex)
 
 	def onehot(self, index):
 		return np.array([1.0 if i == index else 0.0 for i in range(systemState.stateCount)])
 
 	# update the system state based on which task is to be done
 	def updateTask(self, task):
-		pass
+		self.batchLengths = np.array(self.simulation.taskBatchLengths(task))
+		print()
+		print('batchlengths', self.batchLengths)
+		print()
+		print(np.array([self.batchLengths, self.systemExpectedLife, self.expectedLife]).flatten())
+		print([self.batchLengths, self.systemExpectedLife, self.expectedLife])
+
+		self.update()
+
+	def updateDevice(self, device):
+		self.selfBatch = device.batch[device.currentTask] if device.currentTask is not None else 0
+		self.selfExpectedLife = device.expectedLifetime()
+
+		self.update()
+
 
 
 class action:
@@ -258,13 +281,6 @@ class agent:
 		]
 		self.trainable_model.compile(optimizer=self.optimizer, loss=losses)
 
-		# keras.utils.plot_model(self.trainable_model, dpi=300)
-		# pp.figure(0)
-		# pp.imshow(mpl.image.imread('model.png'))
-		# pp.axis('off')
-		# pp.show()
-		# sys.exit(0)
-
 	# convert decision to a specific action 
 	@staticmethod
 	def decodeIndex(index, options):
@@ -277,6 +293,8 @@ class agent:
 	# predict best action using Q values
 	def forward(self, options):
 		self.beforeState = self.systemState.currentState
+		print("beforestate", self.systemState.currentState
+		)
 		qValues = self.model.predict(self.beforeState.reshape((1, 1, systemState.stateCount)))[0]
 		sim.debug.out('q', qValues)
 		actionIndex = self.policy.select_action(q_values=qValues)
@@ -285,9 +303,6 @@ class agent:
 
 	# update based on resulting system state and reward
 	def backward(self, reward, finished):
-		# backward
-		# observation = [0 if i != oldState else 1 for i in range(len(env.observation_space))]
-		# observationAfter = [0 if i != env.state else 1 for i in range(len(env.observation_space))]
 
 		# Compute the q_values given state1, and extract the maximum for each sample in the batch.
 		# We perform this prediction on the target_model instead of the model for reasons

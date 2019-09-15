@@ -14,14 +14,14 @@ DEFAULT_ELASTIC_NODE = sim.platforms.elasticNodev4
 # SERVER = 2
 
 # size in bytes
-SAMPLE_SIZE = Uniform(1, 11, integer=True)
+SAMPLE_SIZE = Uniform(5, 10, integer=True)
 
 # time
 TOTAL_TIME = 1e1
 SIM_TIME = 2e-2
 TD = 1e-3
 PLOT_TD = 1e-3
-uni = Uniform(0, 1)
+uni = Uniform(0.5, 1)
 JOB_LIKELIHOOD = 1e-3
 
 # offloading
@@ -70,3 +70,4 @@ REPEATS = 4
 THREAD_COUNT = multiprocessing.cpu_count()
 MAX_DELAY = 0.1
 EXPECTED_LIFETIME_ALPHA = 0.1
+MEASUREMENT_NOISE = False

@@ -186,10 +186,3 @@ class job:
 
 	def processedMessageSize(self):
 		return self.samples * self.currentTask.processedSize
-
-
-	# # change message from raw to processed
-	# def process(self):
-	# 	# if self.samples is None:
-	# 	# 	warn("Cannot process message without sample count")
-	# 	# self.size = self.samples * sim.constants.SAMPLE_PROCESSED_SIZE.gen()

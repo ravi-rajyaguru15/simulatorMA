@@ -268,7 +268,10 @@ class node:
 	
 	def expectedLifetime(self):
 		# estimate total life time based on previous use
-		return self.energyLevel / self.averagePower
+		if self.averagePower == 0:
+			return np.inf
+		else:
+			return self.energyLevel / self.averagePower
 
 	def setCurrentBatch(self, job):
 		if job.hardwareAccelerated:

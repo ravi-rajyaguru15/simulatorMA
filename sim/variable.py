@@ -2,8 +2,11 @@ import numpy as np
 import math
 import random 
 
+import sim.constants
+
 class Variable:
 	genFunction = genArgs = integer = None
+	mean = std = None
 
 	def __init__(self, function, args, integer=False):
 		self.genFunction = function
@@ -11,7 +14,11 @@ class Variable:
 		self.integer = integer
 
 	def gen(self):
-		value = np.max([0, self.genFunction(*self.genArgs)])
+		if sim.constants.MEASUREMENT_NOISE:
+			value = self.genFunction(*self.genArgs)
+		else:
+			value = self.mean
+		value = np.max([0, value])
 		if self.integer: value = np.round(value)
 		return value
 
@@ -22,20 +29,14 @@ class Variable:
 	# 	return self.gen() > value
 		
 class Uniform(Variable):
-	start = end = None
+	limit = None
 
-	def __init__(self, start, end, integer=False):
-		self.start = start
-		self.end = end
-		Variable.__init__(self, random.uniform, (self.start, self.end, ), integer=integer)
-
-	# def gen(self):
-	# 	return random.uniform(self.start, self.end)
-
+	def __init__(self, mean, limit, integer=False):
+		self.limit = limit
+		self.mean = mean
+		Variable.__init__(self, random.uniform, (self.mean - self.limit/2, self.mean + self.limit/2, ), integer=integer)
 
 class Constant(Variable):
-	mean = std = None
-
 	def __init__(self, mean, std=0, integer=False):
 		self.mean = mean
 		Variable.__init__(self, Constant.genConstant, (self.mean, ), integer=integer)
@@ -46,8 +47,6 @@ class Constant(Variable):
 
 
 class Gaussian(Variable):
-	mean = std = None
-
 	def __init__(self, mean, std, integer=False):
 		self.mean = mean
 		self.std = std

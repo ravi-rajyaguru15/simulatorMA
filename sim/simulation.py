@@ -153,7 +153,7 @@ class simulation:
 	def simulateTick(self):
 		# try:
 		if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
-			self.systemState.update()
+			self.systemState.updateSystem()
 
 		# create new jobs
 		for device in self.devices:
@@ -217,7 +217,7 @@ class simulation:
 			sim.debug.out("tasks before {0}".format(tasksBefore), 'r')
 			sim.debug.out("have jobs:\t{0}".format([dev.hasJob() for dev in self.devices]), 'b')
 			sim.debug.out("jobQueues:\t{0}".format([len(dev.jobQueue) for dev in self.devices]), 'g')
-			sim.debug.out("batchLengths:\t{0}".format([[len(batch) for key, batch in dev.batch.items()] for dev in self.devices]), 'c')
+			sim.debug.out("batchLengths:\t{0}".format(self.batchLengths()), 'c')
 			sim.debug.out("currentBatch:\t{0}".format([dev.currentBatch for dev in self.devices]))
 			sim.debug.out("currentConfig:\t{0}".format([dev.fpga.currentConfig for dev in self.devices if isinstance(dev, elasticNode)]))
 			sim.debug.out("taskQueues:\t{0}".format([len(dev.taskQueue) for dev in self.devices]), 'dg')
@@ -230,45 +230,15 @@ class simulation:
 
 		# progress += sim.constants.TD
 		self.time += sim.constants.TD
-		# except Exception:
-		# 	print ("Exception", self.time)
-		# 	raise Exception("crash")
 
-			# except:
-			# 	print "fail"
-			# 	self.finished = True
+	def taskBatchLengths(self, task):
+		return [len(dev.batch[task]) if task in dev.batch else 0 for dev in self.devices]
 
+	def batchLengths(self):
+		return [[len(batch) for key, batch in dev.batch.items()] for dev in self.devices]
 	
-
-	# def simulateBatch(self, batch, attribute):
-	# 	for samples in batch:
-	# 		# print 'samples', samples
-	# 		self.simulateAll(samples, attribute)
-
-	# options = [offloadElasticNode, localProcessMcu, localProcessFpga, offloadPeer, offloadServer]
-	# optionsNames = ["offloadElasticNode", "localProcessMcu", "localProcessFpga", "offloadPeer", "offloadServer"]
-	# # simulate all available options, and output the chosen attribute
-	# def simulateAll(self, samples, attribute):
-	# 	# if no options selected, select all
-	# 	if self.selectedOptions is None: 
-	# 		# print "Selecting all available options"
-	# 		self.selectedOptions = range(self.numOptions())
-
-	# 	outputs = list()
-	# 	for processing in [self.options[option] for option in self.selectedOptions]:
-	# 		outputs.append(processing(self, samples).__dict__[attribute])
-	# 		# queue.put(processing(self, samples).__dict__[attribute])
-
-	# 	if self.queue is not None:
-	# 		self.queue.put([samples, outputs])
-	# 	else:
-	# 		return outputs
-
-	# def numOptions(self):
-	# 	return len(self.options)
-
-	# def nameOptions(self):
-	# 	return self.optionsNames
+	def maxBatchLengths(self):
+		return [np.max(lengths) if len(lengths) > 0 else 0 for lengths in self.batchLengths()]
 
 	def devicesNames(self):
 		return [dev for dev in self.devices]
