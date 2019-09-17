@@ -202,7 +202,7 @@ def randomJobs(offloadingPolicy=sim.offloadingPolicy.ANYTHING, hw=True):
 	sim.constants.SAMPLE_SIZE = sim.variable.Constant(10)
 	sim.constants.PLOT_TD = sim.constants.TD * 1
 	sim.constants.FPGA_POWER_PLAN = sim.powerPolicy.IDLE_TIMEOUT
-	sim.constants.DRAW_DEVICES = True
+	sim.constants.DRAW_DEVICES = False
 	sim.constants.FPGA_IDLE_SLEEP = 0.075
 	sim.constants.MINIMUM_BATCH = 5
 	sim.constants.DEFAULT_TASK_GRAPH = [sim.tasks.EASY]
@@ -210,7 +210,8 @@ def randomJobs(offloadingPolicy=sim.offloadingPolicy.ANYTHING, hw=True):
 
 	exp = simulation(0, 4, 0, hardwareAccelerated=hw)
 	print("start simulation")
-	exp.simulate() #UntilTime(1)
+	# exp.simulate() #UntilTime(1)
+	exp.simulateTime(5)
 
 def testRepeatsSeparateThread(i, jobLikelihood, resultsQueue):
 	sim.constants.JOB_LIKELIHOOD = jobLikelihood
@@ -385,7 +386,7 @@ def executeMulti(processes, results, finished, numResults=None):
 
 def profileTarget():
 	sim.debug.enabled = False
-	sim.constants.OFFLOADING_POLICY = sim.offloadingPolicy.ANYTHING
+	sim.constants.OFFLOADING_POLICY = sim.offloadingPolicy.REINFORCEMENT_LEARNING
 	sim.constants.JOB_LIKELIHOOD = 1e-3 # 2e-3
 	sim.constants.SAMPLE_RAW_SIZE = sim.variable.Constant(40)
 	sim.constants.SAMPLE_SIZE = sim.variable.Constant(10)
@@ -396,6 +397,7 @@ def profileTarget():
 	sim.constants.MINIMUM_BATCH = 5
 	sim.constants.DEFAULT_TASK_GRAPH = [sim.tasks.EASY]
 	sim.constants.ROUND_ROBIN_TIMEOUT = 1e1
+	sim.constants.MEASUREMENT_NOISE = True
 
 	exp = simulation(0, 1, 0, hardwareAccelerated=True)
 	exp.simulateTime(10)
@@ -424,7 +426,7 @@ if __name__ == '__main__':
 	# randomLocalJobs(False)
 	# randomPeerJobs(False)
 	
-	# randomJobs(offloadingPolicy=sim.offloadingPolicy.REINFORCEMENT_LEARNING, hw=True)
+	# randomJobs(offloadingPolicy=sim.offloadingPolicy.LOCAL_ONLY, hw=True)
 	# testPerformance()
 	# profileTarget()
 	

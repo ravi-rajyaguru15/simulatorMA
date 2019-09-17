@@ -4,6 +4,7 @@ class task:
 	complexity = None
 	rawSize = None
 	processedSize = None
+	identifier = 0
 
 	def __init__(self, name, colour, complexity, rawSize, processedSize):
 		self.name = name
@@ -11,6 +12,9 @@ class task:
 		self.complexity = complexity
 		self.rawSize = rawSize
 		self.processedSize = processedSize
+
+		task.identifier += 1
+		self.identifier = task.identifier
 
 	def __repr__(self):
 		return self.name

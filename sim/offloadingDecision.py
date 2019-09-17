@@ -1,5 +1,6 @@
 import sim.constants
 import sim.debug
+import sim.offloadingPolicy
 # import sim.elasticNode
 
 import matplotlib.pyplot as pp
@@ -9,12 +10,13 @@ import warnings
 import random
 import time
 import numpy as np
+import sys
+# if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
 import rl
 import rl.util
 import rl.policy
 import keras
 import keras.backend
-import sys
 
 
 class offloadingDecision:
@@ -146,18 +148,26 @@ class offloadingDecision:
 
 class systemState:
 	simulation = None
-	stateCount = 2
 	currentState = None
+	# simulation states
 	batchLengths = None
+	expectedLife = None
+	# self states
 	selfBatch = None
 	selfExpectedLife = None
-	expectedLife = None
-
+	selfCurrentConfiguration = None
+	# task states
+	taskSize = None
+	taskIdentifier = None
+	# deadlineRemaining = None
 	# task size, data size, identifier, current config, deadline
 
+	stateCount = None
 
 	def __init__(self, simulation):
 		self.simulation = simulation
+		print("statecount", self.stateCount)
+		self.stateCount = self.simulation.numDevices + 6
 
 	def updateSystem(self):
 		self.expectedLife = np.array(self.simulation.devicesLifetimes())
@@ -166,10 +176,9 @@ class systemState:
 		self.update()
 
 	def update(self):
-		self.currentState = np.array([self.selfExpectedLife, self.systemExpectedLife, self.expectedLife, self.selfBatch, self.batchLengths]).flatten()
-
-		# self.currentStateIndex = 0
-		# self.currentState = self.onehot(self.currentStateIndex)
+		self.currentState = np.array([self.taskIdentifier, self.taskSize, self.selfExpectedLife, self.systemExpectedLife, self.expectedLife, self.selfBatch, self.batchLengths]).flatten()
+		print (len(self.currentState), self.stateCount)
+		assert len(self.currentState) == self.stateCount
 
 	def onehot(self, index):
 		return np.array([1.0 if i == index else 0.0 for i in range(systemState.stateCount)])
@@ -177,11 +186,7 @@ class systemState:
 	# update the system state based on which task is to be done
 	def updateTask(self, task):
 		self.batchLengths = np.array(self.simulation.taskBatchLengths(task))
-		print()
-		print('batchlengths', self.batchLengths)
-		print()
-		print(np.array([self.batchLengths, self.systemExpectedLife, self.expectedLife]).flatten())
-		print([self.batchLengths, self.systemExpectedLife, self.expectedLife])
+		self.taskIdentifier = task.identifier
 
 		self.update()
 
@@ -232,6 +237,7 @@ class agent:
 		self.numActions = numDevices * numActionsPerDevice
 		self.gamma = sim.constants.GAMMA
 
+		print(sim.constants.OFFLOADING_POLICY)
 		self.policy = rl.policy.EpsGreedyQPolicy(eps=sim.constants.EPS)
 		# self.dqn = rl.agents.DQNAgent(model=self.model, policy=rl.policy.LinearAnnealedPolicy(, attr='eps', value_max=sim.constants.EPS_MAX, value_min=sim.constants.EPS_MIN, value_test=.05, nb_steps=sim.constants.EPS_STEP_COUNT), enable_double_dqn=False, gamma=.99, batch_size=1, nb_actions=self.numActions)
 		self.optimizer = keras.optimizers.Adam(lr=sim.constants.LEARNING_RATE)

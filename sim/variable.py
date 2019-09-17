@@ -4,16 +4,16 @@ import random
 
 import sim.constants
 
+CACHE_SIZE = int(1e5)
 class Variable:
 	genFunction = genArgs = integer = None
 	mean = std = None
+	cache = []
 
 	def __init__(self, function, args, integer=False):
 		self.genFunction = function
 		self.genArgs = args
 		self.integer = integer
-
-		
 
 	def gen(self):
 		if not sim.constants.MEASUREMENT_NOISE:
@@ -22,10 +22,22 @@ class Variable:
 			else:
 				return self.mean
 		else:
-			value = self.genFunction(*self.genArgs)
-		value = np.max([0, value])
-		if self.integer: value = np.round(value)
-		return value
+			value = self.sample()
+			# value = self.genFunction(*self.genArgs)
+			# value = np.max([0, value])
+			# if self.integer: value = np.round(value)
+			return value
+
+	def sample(self):
+		if len(self.cache) == 0:
+			# generate a new set of samples
+			arr = self.genFunction(*self.genArgs, CACHE_SIZE)
+			arr[np.where(arr < 0)] = 0
+			if self.integer:
+				arr = np.round(arr)
+			self.cache = arr.tolist()
+		
+		return self.cache.pop()
 
 	def evaluate(self, value):
 		return self.gen() <= value
@@ -39,7 +51,7 @@ class Uniform(Variable):
 	def __init__(self, mean, limit, integer=False):
 		self.limit = limit
 		self.mean = mean
-		Variable.__init__(self, random.uniform, (self.mean - self.limit/2, self.mean + self.limit/2, ), integer=integer)
+		Variable.__init__(self, np.random.uniform, (self.mean - self.limit/2, self.mean + self.limit/2, ), integer=integer)
 
 class Constant(Variable):
 	def __init__(self, mean, std=0, integer=False):
@@ -47,8 +59,8 @@ class Constant(Variable):
 		Variable.__init__(self, Constant.genConstant, (self.mean, ), integer=integer)
 
 	@staticmethod
-	def genConstant(mean):
-		return mean
+	def genConstant(mean, numSamples=CACHE_SIZE):
+		return np.array([mean] * numSamples)
 
 
 class Gaussian(Variable):

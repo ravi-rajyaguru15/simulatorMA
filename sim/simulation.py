@@ -28,6 +28,7 @@ class simulation:
 	jobResults = None
 	time = None
 	devices = None
+	numDevices = None
 	delays = None
 	currentDelays = None
 	taskQueueLength = None
@@ -47,7 +48,6 @@ class simulation:
 		self.jobResults = multiprocessing.Manager().Queue()
 		job.jobResultsQueue = self.jobResults
 		self.delays = list()
-		self.systemState = sim.offloadingDecision.systemState(self)
 		self.completedJobs = 0
 
 		self.time = 0
@@ -55,6 +55,10 @@ class simulation:
 		if numEndDevices > 0:
 			print ("End devices not supported")
 			sys.exit(0)
+		# requires simulation to be populated
+		self.numDevices = numEndDevices + numElasticNodes
+		self.systemState = sim.offloadingDecision.systemState(self)
+		
 		self.ed = [] # endDevice(None, self, self.results, i, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(numEndDevices)]
 		# self.ed = endDevice()
 		# self.ed2 = endDevice()
@@ -68,16 +72,17 @@ class simulation:
 		self.devices = self.ed + self.en + self.srv
 		self.taskQueueLength = [0] * len(self.devices)
 
+		self.hardwareAccelerated = hardwareAccelerated
+		self.visualiser = visualiser(self)
+
+
 		# set all device options correctly
+		# needs simulation and system state to be populated
 		for device in self.devices: 
 			# choose options based on policy
 			device.setOffloadingDecisions(self.devices)
 
-		self.hardwareAccelerated = hardwareAccelerated
-		# self.visualise = visualise
-		# if sim.constants.DRAW_DEVICES: 
-		self.visualiser = visualiser(self)
-
+		
 	def stop(self):
 		sim.debug.out("STOP", 'r')
 		self.finished = True
