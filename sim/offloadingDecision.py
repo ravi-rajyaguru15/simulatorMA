@@ -153,6 +153,8 @@ class systemState:
 	selfExpectedLife = None
 	expectedLife = None
 
+	# task size, data size, identifier, current config, deadline
+
 
 	def __init__(self, simulation):
 		self.simulation = simulation

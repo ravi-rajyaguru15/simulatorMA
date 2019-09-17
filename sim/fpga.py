@@ -58,7 +58,7 @@ class fpga(processor):
 
 	def power(self):
 		if self.state == sim.powerState.RECONFIGURING:
-			return np.sum([power.gen() for power in self.reconfigurationPower])
+			return component._total(self.reconfigurationPower)
 		else:
 			return component.power(self)
 

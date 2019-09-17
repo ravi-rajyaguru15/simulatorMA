@@ -398,16 +398,17 @@ def profileTarget():
 	sim.constants.ROUND_ROBIN_TIMEOUT = 1e1
 
 	exp = simulation(0, 1, 0, hardwareAccelerated=True)
-	exp.simulateTime(100)
+	exp.simulateTime(10)
 
 def testPerformance():
-	profile.run('profileTarget()')
+	profile.run('profileTarget()', sort='cumtime')
 
 if __name__ == '__main__':
 	# for i in range(1, 100, 10):
 	# 	print i, exp.simulateAll(i, "latency")
 
-	sim.constants.DRAW_DEVICES = True
+	# sim.constants.DRAW_DEVICES = True
+	testPerformance()
 
 	# singleDelayedJobLocal(False)
 	# sim.singleDelayedJobLocal(True)
@@ -423,7 +424,7 @@ if __name__ == '__main__':
 	# randomLocalJobs(False)
 	# randomPeerJobs(False)
 	
-	randomJobs(offloadingPolicy=sim.offloadingPolicy.REINFORCEMENT_LEARNING, hw=True)
+	# randomJobs(offloadingPolicy=sim.offloadingPolicy.REINFORCEMENT_LEARNING, hw=True)
 	# testPerformance()
 	# profileTarget()
 	

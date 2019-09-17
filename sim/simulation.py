@@ -210,23 +210,24 @@ class simulation:
 
 		# print all results if interesting
 		tasksAfter = np.array([dev.currentTask for dev in self.devices])
-		if not (np.all(tasksAfter == None) and np.all(tasksBefore == None)):
-			sim.debug.out('tick {:.4f}'.format(self.time), 'b')
-		# 	sim.debug.out("nothing...")
-		# else:
-			sim.debug.out("tasks before {0}".format(tasksBefore), 'r')
-			sim.debug.out("have jobs:\t{0}".format([dev.hasJob() for dev in self.devices]), 'b')
-			sim.debug.out("jobQueues:\t{0}".format([len(dev.jobQueue) for dev in self.devices]), 'g')
-			sim.debug.out("batchLengths:\t{0}".format(self.batchLengths()), 'c')
-			sim.debug.out("currentBatch:\t{0}".format([dev.currentBatch for dev in self.devices]))
-			sim.debug.out("currentConfig:\t{0}".format([dev.fpga.currentConfig for dev in self.devices if isinstance(dev, elasticNode)]))
-			sim.debug.out("taskQueues:\t{0}".format([len(dev.taskQueue) for dev in self.devices]), 'dg')
-			sim.debug.out("taskQueues:\t{0}".format([[task for task in dev.taskQueue] for dev in self.devices]), 'dg')
-			sim.debug.out("states: {0}".format([[comp.state for comp in dev.components] for dev in self.devices]))
-			sim.debug.out("tasks after {0}".format(tasksAfter), 'r')
-		
-			if np.sum(self.currentDelays) > 0:
-				sim.debug.out("delays {}".format(self.currentDelays))
+		if sim.debug.enabled:
+			if not (np.all(tasksAfter == None) and np.all(tasksBefore == None)):
+				sim.debug.out('tick {:.4f}'.format(self.time), 'b')
+			# 	sim.debug.out("nothing...")
+			# else:
+				sim.debug.out("tasks before {0}".format(tasksBefore), 'r')
+				sim.debug.out("have jobs:\t{0}".format([dev.hasJob() for dev in self.devices]), 'b')
+				sim.debug.out("jobQueues:\t{0}".format([len(dev.jobQueue) for dev in self.devices]), 'g')
+				sim.debug.out("batchLengths:\t{0}".format(self.batchLengths()), 'c')
+				sim.debug.out("currentBatch:\t{0}".format([dev.currentBatch for dev in self.devices]))
+				sim.debug.out("currentConfig:\t{0}".format([dev.fpga.currentConfig for dev in self.devices if isinstance(dev, elasticNode)]))
+				sim.debug.out("taskQueues:\t{0}".format([len(dev.taskQueue) for dev in self.devices]), 'dg')
+				sim.debug.out("taskQueues:\t{0}".format([[task for task in dev.taskQueue] for dev in self.devices]), 'dg')
+				sim.debug.out("states: {0}".format([[comp.state for comp in dev.components] for dev in self.devices]))
+				sim.debug.out("tasks after {0}".format(tasksAfter), 'r')
+			
+				if np.sum(self.currentDelays) > 0:
+					sim.debug.out("delays {}".format(self.currentDelays))
 
 		# progress += sim.constants.TD
 		self.time += sim.constants.TD

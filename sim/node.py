@@ -32,6 +32,7 @@ class node:
 
 	platform = None
 	components = None
+	processors = None
 	# waitingForResult = None
 	jobActive = None
 	alwaysHardwareAccelerate = None
@@ -67,7 +68,7 @@ class node:
 
 		self.drawLocation = (0,0)
 
-		self.components = components
+		self.setComponents(components)
 
 		# self.waitingForResult = False'
 		self.jobActive = False
@@ -78,6 +79,15 @@ class node:
 		# self.batchProcessing = False # indicates if batch has been full (should process batch)
 
 		# self.processors = list()
+
+	def setComponents(self, components):
+		if components is None:
+			return
+		self.components = components
+		self.processors = [component for component in self.components if isinstance(component, sim.processor.processor)]
+		for processor in self.processors:
+			processor.timeOutSleep()
+
 
 	@staticmethod
 	# convert mAh to Joule
@@ -95,7 +105,7 @@ class node:
 		self.decision.setOptions(devices)
 
 	def hasFpga(self):
-		return np.any([isinstance(component, fpga) for component in self.components])
+		return np.any([isinstance(component, fpga) for component in self.processors])
 
 	def hasJob(self):
 		# busy if any are busy
@@ -213,14 +223,25 @@ class node:
 		self.nextTask()
 
 	def asleep(self):
-		return np.all([component.isSleeping() for component in self.components])
+		for component in self.components:
+			# if anything awake, device not sleeping
+			if not component.isSleeping():
+				return False
+		# if it gets here, nothing is awake
+		return True
+
 
 	# calculate the energy at the current activity of all the components
 	def energy(self, duration=sim.constants.TD):
 		# totalPower = 0
 		# for component in self.components:
 			# totalPower += component.power()
-		totalPower = np.sum([component.power() for component in self.components])
+		
+		# calculate total power for all components
+		totalPower = 0
+		for component in self.components:
+			totalPower += component.power()
+
 		if totalPower >= 1:
 			sim.debug.out("massive power usage!")
 			# sim.debug.enabled = True

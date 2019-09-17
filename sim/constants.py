@@ -39,8 +39,8 @@ EPS_MAX = 1.
 EPS_STEP_COUNT = 1000
 
 # energy management
-FPGA_POWER_PLAN = sim.powerPolicy.IMMEDIATELY_OFF # TODO: entirely unimplemented, sleep current and timer for sleep
-MCU_POWER_PLAN = sim.powerPolicy.IMMEDIATELY_OFF # TODO: entirely unimplemented, sleep current and timer for sleep
+FPGA_POWER_PLAN = sim.powerPolicy.IMMEDIATELY_OFF
+MCU_POWER_PLAN = sim.powerPolicy.IMMEDIATELY_OFF
 FPGA_IDLE_SLEEP = 0.1
 MCU_IDLE_SLEEP = .05
 

@@ -22,7 +22,7 @@ class elasticNode(node):
 		self.mrf = mrf(self)
 		self.fpga = fpga(self)
 
-		self.components = [self.mcu, self.fpga, self.mrf]
+		self.setComponents([self.mcu, self.fpga, self.mrf])
 
 
 

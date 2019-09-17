@@ -13,11 +13,16 @@ class Variable:
 		self.genArgs = args
 		self.integer = integer
 
+		
+
 	def gen(self):
-		if sim.constants.MEASUREMENT_NOISE:
-			value = self.genFunction(*self.genArgs)
+		if not sim.constants.MEASUREMENT_NOISE:
+			if self.integer:
+				return np.round(self.mean)
+			else:
+				return self.mean
 		else:
-			value = self.mean
+			value = self.genFunction(*self.genArgs)
 		value = np.max([0, value])
 		if self.integer: value = np.round(value)
 		return value
