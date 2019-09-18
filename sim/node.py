@@ -1,4 +1,4 @@
-from sim.offloadingDecision import offloadingDecision
+from sim.offloadingDecision import currentSubtask
 import sim.constants
 from sim.job import job
 from sim.fpga import fpga
@@ -17,7 +17,7 @@ class node:
 	taskQueue = None
 	currentJob = None
 	numJobs = None
-	currentTask = None
+	currentSubtask = None
 	simulation = None
 	# resultsQueue = None
 	index = None
@@ -50,7 +50,7 @@ class node:
 	def __init__(self, simulation, platform, index, components, alwaysHardwareAccelerate=None):
 		self.platform = platform
 
-		self.decision = offloadingDecision(self, simulation.systemState)
+		self.decision = currentSubtask(self, simulation.systemState)
 		self.simulation = simulation
 		self.jobQueue = list()
 		sim.debug.out ("jobqueue" + str(self.jobQueue))
@@ -137,7 +137,7 @@ class node:
 		self.jobQueue.append(job)
 
 	# appends one job to the end of the task queue (used for queueing future tasks)
-	def addTask(self, task, appendLeft=False):
+	def addSubtask(self, task, appendLeft=False):
 		task.owner = self
 		if appendLeft:
 			self.taskQueue.appendleft(task)
@@ -148,7 +148,7 @@ class node:
 		self.nextTask()
 
 	# # add follow-up task when one task is finished, used for state progression
-	# def addTask(self, task):
+	# def addSubtask(self, task):
 	# 	task.owner = self
 	# 	sim.debug.out("switching from {} to {}".format(self.currentTask, task))
 
@@ -157,60 +157,60 @@ class node:
 	def removeTask(self, task):
 		sim.debug.out("REMOVE TASK {0}".format(task))
 		self.taskQueue.remove(task)
-		sim.debug.out("{} {}".format(self.currentTask, task))
-		if self.currentTask is task:
-			self.currentTask = None
+		sim.debug.out("{} {}".format(self.currentSubtask, task))
+		if self.currentSubtask is task:
+			self.currentSubtask = None
 			sim.debug.out ("next task...")
 			self.nextTask()
 
 	def nextTask(self):
 		# only change task if not performing one at the moment
-		if self.currentTask is None:
+		if self.currentSubtask is None:
 			# check if there is another task is available
 			if len(self.taskQueue) > 0:
 				# do receive tasks first, because other device is waiting
 				for task in self.taskQueue:
 					if isinstance(task, sim.subtask.rxMessage):
-						self.currentTask = task
+						self.currentSubtask = task
 						self.taskQueue.remove(task)
 						break
 				# if still nothing, do a normal task
-				if self.currentTask is None:
+				if self.currentSubtask is None:
 					# if any of the tasks have been started continue that
 					for task in self.taskQueue:
 						if task.started:
-							self.currentTask = task
+							self.currentSubtask = task
 							self.taskQueue.remove(task)
 							break
 					
 					# lastly, see if tx messages are available
-					if self.currentTask is None:
+					if self.currentSubtask is None:
 						# do receive tasks first, because other device is waiting
 						for task in self.taskQueue:
 							if isinstance(task, sim.subtask.txMessage):
-								self.currentTask = task
+								self.currentSubtask = task
 								self.taskQueue.remove(task)
 								break
 
 						# if nothing else to do, just do the oldest task that isn't a new job
-						if self.currentTask is None:
-							self.currentTask = self.taskQueue.popleft()
+						if self.currentSubtask is None:
+							self.currentSubtask = self.taskQueue.popleft()
 
 				if len(self.taskQueue) > 1:
 					sim.debug.out("")
-					sim.debug.out("nextTask: {} {}".format(self.currentTask, self.taskQueue))
+					sim.debug.out("nextTask: {} {}".format(self.currentSubtask, self.taskQueue))
 					sim.debug.out("")
 					
 				# self.currentTask = self.taskQueue[0]
 				# remove from queue because being processed now
 				# self.taskQueue.remove(self.currentTask)
 
-				self.currentTask.owner = self
-				sim.debug.out (str(self) + " NEXT TASK " + str(self.currentTask))
+				self.currentSubtask.owner = self
+				sim.debug.out (str(self) + " NEXT TASK " + str(self.currentSubtask))
 
 			else:
 				# sim.debug.out("no next task")
-				self.currentTask = None
+				self.currentSubtask = None
 
 	# try another task if this one is stuck
 	def swapTask(self):
@@ -218,8 +218,8 @@ class node:
 		if sim.debug.enabled: 
 			time.sleep(.1)
 		# move current task to queue to be done later
-		self.addTask(self.currentTask) # current task not None so nextTask won't start this task again
-		self.currentTask = None
+		self.addSubtask(self.currentSubtask) # current task not None so nextTask won't start this task again
+		self.currentSubtask = None
 		self.nextTask()
 
 	def asleep(self):
@@ -269,12 +269,12 @@ class node:
 		self.nextJob(currentTime)
 
 		# check if there's something to be done now
-		if self.currentTask is None:
+		if self.currentSubtask is None:
 			self.nextTask()
 
 		# do process and check if done
-		if self.currentTask is not None:
-			self.currentTask.tick()
+		if self.currentSubtask is not None:
+			self.currentSubtask.tick()
 
 		# check for idle sleep trigger
 		for component in self.components:

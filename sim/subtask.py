@@ -70,18 +70,18 @@ class subtask:
 						# resolve deadlock by making destination prioritise reception
 						# move current task to queue to be done later
 						try:
-							self.destination.currentTask.delay = 0
-							self.destination.addTask(self.destination.currentTask) # current task not None so nextTask won't start this task again
+							self.destination.currentSubtask.delay = 0
+							self.destination.addTask(self.destination.currentSubtask) # current task not None so nextTask won't start this task again
 							self.destination.removeTask(self.correspondingRx)
-							self.destination.currentTask = self.correspondingRx # must remove task before setting as current
-							# self.destination.currentTask.start() # start to ensure it doesn't get removed
+							self.destination.currentSubtask = self.correspondingRx # must remove task before setting as current
+							# self.destination.currentSubtask.start() # start to ensure it doesn't get removed
 							# forced to be ready now
 							self.beginTask()
 
 						except ValueError:
 							print()
 							print("Cannot resolve deadlock!")
-							print("current", self.destination.currentTask)
+							print("current", self.destination.currentSubtask)
 							print("duration", self.duration, self.correspondingRx.duration)
 							print("rx", self.correspondingRx, self.correspondingRx.started)
 							print("queue", self.destination.taskQueue)
@@ -97,14 +97,14 @@ class subtask:
 						# resolve deadlock by making destination prioritise reception
 						# move current task to queue to be done later
 						try:
-							self.source.currentTask.delay = 0
-							self.source.addTask(self.source.currentTask) # current task not None so nextTask won't start this task again
+							self.source.currentSubtask.delay = 0
+							self.source.addTask(self.source.currentSubtask) # current task not None so nextTask won't start this task again
 							self.source.removeTask(self.correspondingTx)
-							self.source.currentTask = self.correspondingTx # must remove task before setting as current
+							self.source.currentSubtask = self.correspondingTx # must remove task before setting as current
 						except ValueError:
 							print()
 							print("Cannot resolve deadlock!")
-							print("current", self.destination.currentTask)
+							print("current", self.destination.currentSubtask)
 							print("duration", self.duration, self.correspondingTx.duration)
 							print("rx", self.correspondingTx, self.correspondingTx.started)
 							print("queue", self.destination.taskQueue)
@@ -117,14 +117,14 @@ class subtask:
 					# 	time.sleep(.1)
 					# 	self.owner.swapTask()
 					# 	# see if it's been swapped
-					# 	if self.owner.currentTask != self:
+					# 	if self.owner.currentSubtask != self:
 					# 		self.delay = 0
 
 
 				sim.debug.out("try again...")
 
 				
-		# print ("current task " + str(self.owner.currentTask))
+		# print ("current task " + str(self.owner.currentSubtask))
 		# progress task if it's been started
 		if self.started:
 			self.progress += sim.constants.TD
@@ -163,13 +163,11 @@ class subtask:
 		return False
 
 	def finishTask(self):
-		# pass
-		# TODO: not setting currentTask to None
 		sim.debug.out("finishing subtask!", 'b')
 
-		self.owner.currentTask = None
+		self.owner.currentSubtask = None
 
-		sim.debug.out("current task: {} {}".format(self.owner, self.owner.currentTask))
+		sim.debug.out("current task: {} {}".format(self.owner, self.owner.currentSubtask))
 	
 	def beginTask(self):
 		# all versions of begin must set started
@@ -240,23 +238,6 @@ class batchContinue(subtask):
 	def finishTask(self):
 		# # remove existing task from processing batch
 		# self.job.processingNode.removeJobFromBatch(self.job)
-
-# 		raise Exception(Traceback (most recent call last):
-#   File "sim/experiments/experiment.py", line 382, in <module>
-#     randomJobs(offloadingPolicy=sim.offloadingPolicy.ANYTHING, hw=True)
-#   File "sim/experiments/experiment.py", line 200, in randomJobs
-#     exp.simulate() #UntilTime(1)
-#   File "/home/alwynster/git/simulator/sim/simulation.py", line 78, in simulate
-#     self.simulateTick()
-#   File "/home/alwynster/git/simulator/sim/simulation.py", line 145, in simulateTick
-#     dev.updateTime(self.time)
-#   File "/home/alwynster/git/simulator/sim/node.py", line 211, in updateTime
-#     self.currentTask.tick()
-#   File "/home/alwynster/git/simulator/sim/subtask.py", line 109, in tick
-#     self.finishTask()
-#   File "/home/alwynster/git/simulator/sim/subtask.py", line 204, in finishTask
-#     processingMcu, processingFpga = self.job.processingNode.mcu, self.job.processingNode.fpga
-# AttributeError: 'NoneType' object has no attribute 'processingNode')
 
 		# check if there's more tasks in the current batch
 		processingMcu, processingFpga = self.processingNode.mcu, self.processingNode.fpga
@@ -540,8 +521,8 @@ class txMessage(subtask):
 		# possible once receiving task is active on the destination
 		# wait for receiver to be on the reception task
 		isPossible = False
-		if isinstance(self.destination.currentTask, rxMessage):
-			isPossible = self.destination.currentTask.correspondingTx == self
+		if isinstance(self.destination.currentSubtask, rxMessage):
+			isPossible = self.destination.currentSubtask.correspondingTx == self
 		
 		# check if rxmessage is already started (done) TODO: why so quick?
 		if self.correspondingRx.started:
@@ -551,11 +532,11 @@ class txMessage(subtask):
 		# if not possible, wait more, otherwise no more waiting
 		self.waitingForRX = not isPossible
 
-		# print ("TX message possible?\t{} {} {} {} {}".format(self.owner, self, self.correspondingRx.owner, self.destination.currentTask, isPossible))
-		# print ("check1 {}".format(isinstance(self.destination.currentTask, rxMessage)))
+		# print ("TX message possible?\t{} {} {} {} {}".format(self.owner, self, self.correspondingRx.owner, self.destination.currentSubtask, isPossible))
+		# print ("check1 {}".format(isinstance(self.destination.currentSubtask, rxMessage)))
 		# try:
-		# 	print ("check2 {}".format(self.destination.currentTask.correspondingTx))
-		# 	print ("RX side: {} {}".foramt(self.destination, self.destination.currentTask.correspondingTx))
+		# 	print ("check2 {}".format(self.destination.currentSubtask.correspondingTx))
+		# 	print ("RX side: {} {}".foramt(self.destination, self.destination.currentSubtask.correspondingTx))
 		# except:
 			# print ("COULDN'T FIND DESTINATION TX")
 
@@ -564,14 +545,14 @@ class txMessage(subtask):
 	# check if this task is being deadlocked
 	def deadlock(self):
 		# is destination also trying to send or receive?
-		if isinstance(self.destination.currentTask, txMessage) or isinstance(self.destination.currentTask, rxMessage):
+		if isinstance(self.destination.currentSubtask, txMessage) or isinstance(self.destination.currentSubtask, rxMessage):
 			# is it not started
-			if not self.started and not self.destination.currentTask.started:
+			if not self.started and not self.destination.currentSubtask.started:
 				# is it also trying to send 
 				
 
 				# is it trying to send to me?
-				# if (self.destination is self.destination.currentTask.source) and (self.source is self.destination.currentTask.destination):
+				# if (self.destination is self.destination.currentSubtask.source) and (self.source is self.destination.currentSubtask.destination):
 				return True
 		# any other case is 
 		return False
@@ -616,8 +597,8 @@ class txJob(txMessage):
 		txMessage.__init__(self, job, source, destination, jobToAdd=rxJob)
 
 	# def beginTask(self):
-	# 	if self.destination.currentTask is not None:
-	# 		print("job {} {}".format(self.destination, self.destination.currentTask))
+	# 	if self.destination.currentSubtask is not None:
+	# 		print("job {} {}".format(self.destination, self.destination.currentSubtask))
 	# 		raise Exception("Cannot start RX task in {} from {}".format(self.source,self.destination))
 		
 	# 	# self.destination.switchTask(rxJob(self.job, self.duration))
@@ -636,7 +617,7 @@ class txJob(txMessage):
 		self.job.moveTo(newOwner)
 
 		# # after offloading job, no task 
-		# self.owner.currentTask = None
+		# self.owner.currentSubtask = None
 
 		txMessage.finishTask(self)
 
@@ -684,9 +665,9 @@ class rxMessage(subtask):
 		
 	# only possible if the tx is waiting for it
 	def possible(self):
-		sim.debug.out("{} possible? corresponding TX: {} source task: {} current? {}".format(self, self.correspondingTx, self.source.currentTask, self.correspondingTx == self.source.currentTask))
+		sim.debug.out("{} possible? corresponding TX: {} source task: {} current? {}".format(self, self.correspondingTx, self.source.currentSubtask, self.correspondingTx == self.source.currentSubtask))
 		# start if tx is also waiting, otherwise if tx has started already
-		return self.correspondingTx == self.source.currentTask or self.correspondingTx.started
+		return self.correspondingTx == self.source.currentSubtask or self.correspondingTx.started
 
 	# WHAT?
 	def beginTask(self):
@@ -717,9 +698,9 @@ class rxMessage(subtask):
 	# check if this task is being deadlocked
 	def deadlock(self):
 		# is source also trying to receive? sending takes presedence...
-		if isinstance(self.source.currentTask, rxMessage):
+		if isinstance(self.source.currentSubtask, rxMessage):
 			# is it not started
-			if not self.started and not self.source.currentTask.started:
+			if not self.started and not self.source.currentSubtask.started:
 				return True
 		# any other case is 
 		return False
@@ -746,7 +727,7 @@ class rxResult(rxMessage):
 		# self.job.creator.waiting = False
 		# self.job.creator.jobActive = False
 
-		# self.owner.currentTask = None
+		# self.owner.currentSubtask = None
 		sim.debug.out("finishing rxresult!", 'b')
 
 		rxMessage.finishTask(self)

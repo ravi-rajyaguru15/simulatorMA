@@ -270,7 +270,7 @@ class visualiser:
 		pp.figure(DEVICES_FIGURE)
 		pp.cla()
 		if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.ROUND_ROBIN:
-			roundRobinText = ", {}".format(sim.offloadingDecision.offloadingDecision.target)
+			roundRobinText = ", {}".format(sim.offloadingDecision.currentSubtask.target)
 		else:
 			roundRobinText = ""
 		pp.title("Time = {:.3f}, TotalSleep = {:.3f}, AveragePower {:.3f}{}".format(self.sim.time, np.average([dev.totalSleepTime for dev in self.sim.devices]), np.average(self.sim.totalDevicesEnergy()) / self.sim.time, roundRobinText))
@@ -302,7 +302,7 @@ class visualiser:
 			top = node.location[1] + node.rectangle.get_height()/2
 			pp.gca().text(x=node.location[0], y=top + TEXT_SPACING * 3, s="{} ({})".format(node, node.maxBatchLength()[0]), verticalalignment='center', horizontalalignment='center')
 			pp.gca().text(x=node.location[0], y=top + TEXT_SPACING * 2, s=node.currentBatch, verticalalignment='center', horizontalalignment='center')
-			pp.gca().text(x=node.location[0], y=top + TEXT_SPACING * 1, s=node.currentTask, verticalalignment='center', horizontalalignment='center')
+			pp.gca().text(x=node.location[0], y=top + TEXT_SPACING * 1, s=node.currentSubtask, verticalalignment='center', horizontalalignment='center')
 
 			# draw all processors and wireless
 			for component in node.components:

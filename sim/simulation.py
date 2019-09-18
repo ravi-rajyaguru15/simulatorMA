@@ -168,9 +168,9 @@ class simulation:
 
 		# update the destination of the offloading if it is shared
 		if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.ROUND_ROBIN:
-			sim.offloadingDecision.offloadingDecision.updateTarget(self.time)
+			sim.offloadingDecision.currentSubtask.updateTarget(self.time)
 		
-		tasksBefore = np.array([dev.currentTask for dev in self.devices])
+		tasksBefore = np.array([dev.currentSubtask for dev in self.devices])
 
 		# update all the devices
 		for dev in self.devices:
@@ -210,11 +210,11 @@ class simulation:
 			
 
 
-		self.currentDelays = [dev.currentTask.delay if dev.currentTask is not None else 0 for dev in self.devices ]
+		self.currentDelays = [dev.currentSubtask.delay if dev.currentSubtask is not None else 0 for dev in self.devices ]
 		self.delays.append(self.currentDelays)
 
 		# print all results if interesting
-		tasksAfter = np.array([dev.currentTask for dev in self.devices])
+		tasksAfter = np.array([dev.currentSubtask for dev in self.devices])
 		if sim.debug.enabled:
 			if not (np.all(tasksAfter == None) and np.all(tasksBefore == None)):
 				sim.debug.out('tick {:.4f}'.format(self.time), 'b')

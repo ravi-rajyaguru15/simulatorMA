@@ -21,7 +21,9 @@ def runThread(results, finished):
 	try:
 		for i in range(numJobs):
 			exp.simulateUntilJobDone()
-			results.put(["", exp.completedJobs, sim.offloadingDecision.offloadingDecision.learningAgent.loss])
+			results.put(["Loss", exp.completedJobs, sim.offloadingDecision.currentSubtask.learningAgent.loss])
+			results.put(["Reward", exp.completedJobs, sim.offloadingDecision.currentSubtask.learningAgent.latestReward])
+			results.put(["Action", exp.completedJobs, sim.offloadingDecision.currentSubtask.learningAgent.latestAction])
 	except:
 		traceback.print_exc(file=sys.stdout)
 		print("Error in experiment:", exp.time)
@@ -49,7 +51,7 @@ def run():
 	for _ in range(sim.constants.REPEATS):
 		processes.append(multiprocessing.Process(target=runThread, args=(results, finished)))
 	
-	results = sim.experiments.experiment.executeMulti(processes, results, finished, numResults=numJobs*sim.constants.REPEATS)
+	results = sim.experiments.experiment.executeMulti(processes, results, finished, numResults=numJobs*sim.constants.REPEATS*3)
 	
 	sim.plotting.plotMultiWithErrors("Learning Loss", results=results, ylabel="Loss", xlabel="Job #") # , save=True)
 
