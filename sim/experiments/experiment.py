@@ -208,7 +208,7 @@ def randomJobs(offloadingPolicy=sim.offloadingPolicy.ANYTHING, hw=True):
 	sim.constants.DEFAULT_TASK_GRAPH = [sim.tasks.EASY]
 	sim.constants.ROUND_ROBIN_TIMEOUT = 1e1
 
-	exp = simulation(0, 4, 0, hardwareAccelerated=hw)
+	exp = simulation(hardwareAccelerated=hw)
 	print("start simulation")
 	# exp.simulate() #UntilTime(1)
 	exp.simulateTime(5)
@@ -216,7 +216,7 @@ def randomJobs(offloadingPolicy=sim.offloadingPolicy.ANYTHING, hw=True):
 def testRepeatsSeparateThread(i, jobLikelihood, resultsQueue):
 	sim.constants.JOB_LIKELIHOOD = jobLikelihood
 	
-	exp = simulation(0, 4, 0, hardwareAccelerated=False)
+	exp = simulation(hardwareAccelerated=False)
 	exp.simulateTime(10)
 
 	if not exp.allDone():
@@ -410,7 +410,7 @@ if __name__ == '__main__':
 	# 	print i, exp.simulateAll(i, "latency")
 
 	# sim.constants.DRAW_DEVICES = True
-	testPerformance()
+	# testPerformance()
 
 	# singleDelayedJobLocal(False)
 	# sim.singleDelayedJobLocal(True)
@@ -426,7 +426,7 @@ if __name__ == '__main__':
 	# randomLocalJobs(False)
 	# randomPeerJobs(False)
 	
-	# randomJobs(offloadingPolicy=sim.offloadingPolicy.LOCAL_ONLY, hw=True)
+	randomJobs(offloadingPolicy=sim.offloadingPolicy.REINFORCEMENT_LEARNING, hw=True)
 	# testPerformance()
 	# profileTarget()
 	

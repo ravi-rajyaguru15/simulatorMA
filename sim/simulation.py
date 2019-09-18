@@ -42,8 +42,8 @@ class simulation:
 	systemState = None
 	completedJobs = None
 
-	def __init__(self, numEndDevices, numElasticNodes, numServers, hardwareAccelerated=None):
-		sim.debug.out(numEndDevices + numElasticNodes)
+	def __init__(self, hardwareAccelerated=None): # numEndDevices, numElasticNodes, numServers,
+		# sim.debug.out(numEndDevices + numElasticNodes)
 		self.results = multiprocessing.Manager().Queue()
 		self.jobResults = multiprocessing.Manager().Queue()
 		job.jobResultsQueue = self.jobResults
@@ -52,24 +52,24 @@ class simulation:
 
 		self.time = 0
 		
-		if numEndDevices > 0:
-			print ("End devices not supported")
-			sys.exit(0)
+		# if numEndDevices > 0:
+		# 	print ("End devices not supported")
+		# 	sys.exit(0)
 		# requires simulation to be populated
-		self.numDevices = numEndDevices + numElasticNodes
+		# self.numDevices = numEndDevices + numElasticNodes
 		self.systemState = sim.offloadingDecision.systemState(self)
 		
-		self.ed = [] # endDevice(None, self, self.results, i, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(numEndDevices)]
+		# self.ed = [] # endDevice(None, self, self.results, i, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(numEndDevices)]
 		# self.ed = endDevice()
 		# self.ed2 = endDevice()
-		self.en = [elasticNode(self, sim.constants.DEFAULT_ELASTIC_NODE, self.results, i + numEndDevices, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(numElasticNodes)]
+		self.devices = [elasticNode(self, sim.constants.DEFAULT_ELASTIC_NODE, self.results, i, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(sim.constants.NUM_DEVICES)]
 		
 		
-		# self.en = elasticNode()
-		self.gw = [] #gateway()
-		self.srv = [] # [server() for i in range(numServers)]
+		# # self.en = elasticNode()
+		# self.gw = [] #gateway()
+		# self.srv = [] # [server() for i in range(numServers)]
 
-		self.devices = self.ed + self.en + self.srv
+		# self.devices = self.ed + self.en + self.srv
 		self.taskQueueLength = [0] * len(self.devices)
 
 		self.hardwareAccelerated = hardwareAccelerated
@@ -168,7 +168,7 @@ class simulation:
 
 		# update the destination of the offloading if it is shared
 		if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.ROUND_ROBIN:
-			sim.offloadingDecision.currentSubtask.updateTarget(self.time)
+			sim.offloadingDecision.currentSubtask.updateOffloadingTarget(self.time)
 		
 		tasksBefore = np.array([dev.currentSubtask for dev in self.devices])
 

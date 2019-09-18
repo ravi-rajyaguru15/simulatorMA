@@ -64,8 +64,10 @@ class job:
 		
 		# initiate task by setting processing node
 		self.decision = offloadingDecision.chooseDestination(self.currentTask)
-		self.setprocessingNode(self.decision.targetDevice)
-		sim.results.addChosenDestination(self.decision.targetDevice)
+		selectedDevice = self.simulation.devices[self.decision.targetDeviceIndex]
+		sim.debug.out("selected", selectedDevice)
+		self.setprocessingNode(selectedDevice)
+		sim.results.addChosenDestination(selectedDevice)
 
 	def setprocessingNode(self, processingNode):
 		self.processingNode = processingNode
@@ -90,12 +92,12 @@ class job:
 
 		# populate subtasks based on types of devices
 		if not self.offloaded():
-			self.processingNode.addTask(sim.subtask.batching(self))
+			self.processingNode.addSubtask(sim.subtask.batching(self))
 		# otherwise we have to send task
 		else:
 			# elif self.destination.nodeType == sim.constants.ELASTIC_NODE:
 			sim.debug.out("offloading to other device")
-			self.creator.addTask(sim.subtask.createMessage(self))
+			self.creator.addSubtask(sim.subtask.createMessage(self))
 		
 		
 		# to start with, owner is the node who created it 

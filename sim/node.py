@@ -1,4 +1,4 @@
-from sim.offloadingDecision import currentSubtask
+import sim.offloadingDecision
 import sim.constants
 from sim.job import job
 from sim.fpga import fpga
@@ -50,7 +50,7 @@ class node:
 	def __init__(self, simulation, platform, index, components, alwaysHardwareAccelerate=None):
 		self.platform = platform
 
-		self.decision = currentSubtask(self, simulation.systemState)
+		self.decision = sim.offloadingDecision.offloadingDecision(self, simulation.systemState)
 		self.simulation = simulation
 		self.jobQueue = list()
 		sim.debug.out ("jobqueue" + str(self.jobQueue))

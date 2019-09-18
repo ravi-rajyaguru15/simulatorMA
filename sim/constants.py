@@ -66,6 +66,7 @@ SAVE_GRAPH = False
 # 	return random.uniform(range[0], range[1])
 
 # experiments
+NUM_DEVICES = 2
 REPEATS = 4
 THREAD_COUNT = multiprocessing.cpu_count()
 MAX_DELAY = 0.1

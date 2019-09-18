@@ -13,19 +13,20 @@ import traceback
 import warnings
 import profile
 
-numDevices = 4
+sim.constants.NUM_DEVICES = 4
 numJobs = int(1e2)
 def runThread(results, finished):
-	exp = simulation(0, numDevices, 0, hardwareAccelerated=True)
+	exp = simulation(hardwareAccelerated=True)
 
 	try:
 		for i in range(numJobs):
 			exp.simulateUntilJobDone()
-			results.put(["Loss", exp.completedJobs, sim.offloadingDecision.currentSubtask.learningAgent.loss])
-			results.put(["Reward", exp.completedJobs, sim.offloadingDecision.currentSubtask.learningAgent.latestReward])
-			results.put(["Action", exp.completedJobs, sim.offloadingDecision.currentSubtask.learningAgent.latestAction])
+			results.put(["Loss", exp.completedJobs, sim.offloadingDecision.offloadingDecision.learningAgent.loss])
+			results.put(["Reward", exp.completedJobs, sim.offloadingDecision.offloadingDecision.learningAgent.latestReward])
+			results.put(["Action", exp.completedJobs, sim.offloadingDecision.offloadingDecision.learningAgent.latestAction])
 	except:
 		traceback.print_exc(file=sys.stdout)
+		sys.exit(0)
 		print("Error in experiment:", exp.time)
 
 	finished.put(True)
