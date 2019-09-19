@@ -411,6 +411,7 @@ class agent:
 
 		self.loss = metrics[0]
 		self.latestReward = reward
+		print('reward', reward)
 
 		sim.debug.out("loss: {} reward: {}".format(self.loss, self.latestReward), 'r')
 

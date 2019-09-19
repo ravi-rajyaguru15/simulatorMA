@@ -14,14 +14,14 @@ import warnings
 import profile
 
 sim.constants.NUM_DEVICES = 4
-numJobs = int(1e2)
+numJobs = int(1e3)
 def runThread(results, finished):
 	exp = simulation(hardwareAccelerated=True)
 
 	try:
 		for i in range(numJobs):
 			exp.simulateUntilJobDone()
-			results.put(["Loss", exp.completedJobs, sim.offloadingDecision.offloadingDecision.learningAgent.loss])
+			results.put(["Loss", exp.completedJobs, sim.offloadingDecision.offloadingDecision.learningAgent.loss / 1e12])
 			results.put(["Reward", exp.completedJobs, sim.offloadingDecision.offloadingDecision.learningAgent.latestReward])
 			results.put(["Action", exp.completedJobs, sim.offloadingDecision.offloadingDecision.learningAgent.latestAction])
 	except:
@@ -40,12 +40,12 @@ def run():
 	# sim.constants.TOTAL_TIME = 1e3
 
 	processes = list()
-	sim.constants.MINIMUM_BATCH = 5
+	sim.constants.MINIMUM_BATCH = 1e5
 	
 	# offloadingOptions = [True, False]
 	results = multiprocessing.Queue()
 	finished = multiprocessing.Queue()
-	sim.constants.REPEATS = 100
+	sim.constants.REPEATS = 1
 
 	# for jobLikelihood in np.arange(1e-3, 1e-2, 1e-3):
 	# 	for roundRobin in np.arange(1e0, 1e1, 2.5):

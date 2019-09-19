@@ -120,47 +120,11 @@ class job:
 	def offloaded(self):
 		return self.creator is not self.processingNode
 
-	# def process(self):
-	# 	print ("PANIC")
-	# 	# figure out which sim.subtask is active
-	# 	if self.currentSubTask is None:
-	# 		# more subtasks available?
-	# 		if self.subtaskIndex >= len(self.subtasks):
-	# 			self.finished = True
-	# 			return True
-	# 		else:
-	# 			# if task requires a destination, wait until destination is available
-	# 			nextSubTask = self.subtasks[self.subtaskIndex]
-
-	# 			# if not dependent on destination, always start
-	# 			destinationReady = True
-	# 			if nextSubTask.destination is not None:
-	# 				# check if destination of message has something to do 
-	# 				if nextSubTask.destination.busy():
-	# 					destinationReady = False
-	# 					print ("destination is not ready!")
-	# 				# create new task for receiving device
-	# 				else:
-	# 					nextSubTask.destination.addSubTask(sim.subtask.communication())
-	# 					nextSubTask.destination.addSubTask(sim.subtask.communication())
-	# 					nextSubTask.destination.addSubTask(sim.subtask.communication())
-	# 					# nextSubTask.destination.prependTask(sim.subtask.communication())
-
-	# 			if destinationReady:
-	# 				self.currentSubTask = nextSubTask
-
-	# 	# progress sim.subtask 
-	# 	self.currentSubTask.tick()
-
-	# 	if self.currentSubTask.finished:
-	# 		self.subtaskIndex += 1
-	# 		self.currentSubTask = None
-
 	def moveTo(self, destinationNode):
 		# remove job from current
 		currentOwner = self.owner
 		sim.debug.out("current owner {}".format(currentOwner))
-		currentOwner.removeJob(self)
+		currentOwner.removeJob(self) 
 
 		sim.debug.out("moving from {} to {}".format(currentOwner, destinationNode))
 

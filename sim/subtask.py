@@ -293,7 +293,7 @@ class batching(subtask):
 
 			# see if batch is full enough to start now, or
 			# if decided to start locally
-			print(self.job.processingNode.batchLength(self.job.currentTask), sim.constants.MINIMUM_BATCH, self.job.decision, sim.offloadingDecision.LOCAL)
+			# print(self.job.processingNode.batchLength(self.job.currentTask), sim.constants.MINIMUM_BATCH, self.job.decision, sim.offloadingDecision.LOCAL)
 			if self.job.processingNode.batchLength(self.job.currentTask) >= sim.constants.MINIMUM_BATCH or (self.job.decision == sim.offloadingDecision.LOCAL):
 				self.job.processingNode.setCurrentBatch(self.job)
 

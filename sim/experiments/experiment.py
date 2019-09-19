@@ -339,7 +339,7 @@ def testRepeatsSeparate():
 		if graphName not in graphs.keys():
 			graphs[graphName] = dict()
 			
-		print (graphName, sample, datapoint)
+		# print (graphName, sample, datapoint)
 		# legends.append(result[0])
 		graphs[graphName][sample] = datapoint
 
