@@ -289,11 +289,12 @@ class batching(subtask):
 			# job has been backed up in batch and will be selected in finish
 			self.job.processingNode.removeJob(self.job)
 
-			sim.debug.out("Batch: {0}/{1}".format(self.job.processingNode.maxBatchLength()[0], sim.constants.MINIMUM_BATCH), 'c')
+			sim.debug.out("Batch: {0}/{1}".format(self.job.processingNode.batchLength(self.job.currentTask), sim.constants.MINIMUM_BATCH), 'c')
 
 			# see if batch is full enough to start now, or
 			# if decided to start locally
-			if self.job.processingNode.maxBatchLength()[0] >= sim.constants.MINIMUM_BATCH or (self.job.decision == sim.offloadingDecision.LOCAL):
+			print(self.job.processingNode.batchLength(self.job.currentTask), sim.constants.MINIMUM_BATCH, self.job.decision, sim.offloadingDecision.LOCAL)
+			if self.job.processingNode.batchLength(self.job.currentTask) >= sim.constants.MINIMUM_BATCH or (self.job.decision == sim.offloadingDecision.LOCAL):
 				self.job.processingNode.setCurrentBatch(self.job)
 
 				# grab first task
@@ -423,8 +424,8 @@ class fpgaMcuOffload(xmem):
 		if self.job.offloaded():
 			self.job.processingNode.addSubtask(txResult(self.job, self.job.processingNode, self.job.creator), appendLeft=True)
 		else:
+			self.job.finish()
 			self.job.processingNode.addSubtask(batchContinue(self.job), appendLeft=True)
-			# self.job.finish()
 	
 		xmem.finishTask(self)
 
@@ -448,8 +449,7 @@ class processing(subtask):
 		sim.debug.out ("created processing task")
 		
 		duration = job.processor.processingTime(job.samples, job.currentTask)
-		# energyCost = job.processingNode.processingEnergy(duration)
-
+		
 		# reduce message size
 		subtask.__init__(self, job, duration)
 
@@ -725,37 +725,7 @@ class rxResult(rxMessage):
 		self.job.finish()
 
 		self.owner.mcu.sleep()
-		# self.job.creator.waiting = False
-		# self.job.creator.jobActive = False
 
-		# self.owner.currentSubtask = None
 		sim.debug.out("finishing rxresult!", 'b')
 
 		rxMessage.finishTask(self)
-
-
-# class receiving(subtask):
-#     def __init__(self, device, messageSize):
-#         # destination mcu
-#         duration = device.processingTime(samples)
-#         energyCost = device.mcu.activeEnergy(duration)
-			
-#         # reception latency does not add overhead
-#         subtask.__init__(self, duration=0, energyCost=energyCost, device=destination) # , device, device)
-
-#         print "MESSAGE SIZE NOT CHANGING"
-
-	# def sendTo(this, destination):
-	# 	latency = this.mcu.messageOverheadLatency.gen() + this.mrf.rxtxLatency(this.message.size)
-	# 	energy = this.mcu.overheadEnergy() + this.mrf.txEnergy(this.message.size)
-
-	# 	res = destination.receive(this.message)
-	# 	this.message = None
-
-	# 	return result(latency, energy) + res
-	
-	# def receive(this, message):
-	# 	this.message = message;
-	# 	# reception does not add latency
-	# 	return result(latency=0, energy=this.mcu.activeEnergy(this.mrf.rxtxLatency(this.message.size) + this.mrf.rxEnergy(this.message.size)))
-

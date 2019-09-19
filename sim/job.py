@@ -65,7 +65,7 @@ class job:
 		# initiate task by setting processing node
 		self.decision = offloadingDecision.chooseDestination(self.currentTask)
 		selectedDevice = self.simulation.devices[self.decision.targetDeviceIndex]
-		sim.debug.out("selected", selectedDevice)
+		sim.debug.out("selected {}".format(selectedDevice))
 		self.setprocessingNode(selectedDevice)
 		sim.results.addChosenDestination(selectedDevice)
 

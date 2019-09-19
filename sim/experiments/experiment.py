@@ -23,6 +23,81 @@ import sys
 import profile
 # from pstats import SortKey
 
+def testActions():
+	sim.constants.JOB_LIKELIHOOD = 0
+	sim.constants.OFFLOADING_POLICY = sim.offloadingPolicy.REINFORCEMENT_LEARNING
+	sim.constants.NUM_DEVICES = 2
+	sim.constants.DRAW_DEVICES = True
+	sim.constants.MINIMUM_BATCH = 3
+	
+	exp = simulation(True)
+
+	exp.simulateTime(sim.constants.PLOT_TD * 10)
+	dev = exp.devices[0]
+	time.sleep(1)
+	
+	# fix decision to local
+	first = sim.job.job(exp.time, dev, 5, dev.decision, hardwareAccelerated=True)
+	exp.systemState.updateDevice(dev)
+	decision = sim.offloadingDecision.possibleActions[3]
+	if decision.local: decision.targetDeviceIndex = exp.systemState.selfDeviceIndex
+	selectedDevice = exp.devices[decision.targetDeviceIndex]
+	first.decision = decision	
+	first.setprocessingNode(selectedDevice)
+	dev.addJob(first)
+	exp.simulateUntilJobDone()
+	print ("local done")
+	time.sleep(1)
+
+	# fix decision to wait
+	second = sim.job.job(exp.time, dev, 5, dev.decision, hardwareAccelerated=True)
+	decision = sim.offloadingDecision.possibleActions[2]
+	if decision.local: decision.targetDeviceIndex = exp.systemState.selfDeviceIndex
+	second.decision = decision	
+	second.setprocessingNode(selectedDevice)
+	dev.addJob(second)
+	exp.simulateTime(sim.constants.PLOT_TD * 10)
+	print ("wait done")
+	time.sleep(1)
+	# batch 1 
+
+	# offload from 1 to 0
+	dev2 = exp.devices[1]
+	third = sim.job.job(exp.time, dev2, 5, dev2.decision, hardwareAccelerated=True)
+	exp.systemState.updateDevice(dev2)
+	decision = sim.offloadingDecision.possibleActions[0]
+	if decision.local: decision.targetDeviceIndex = exp.systemState.selfDeviceIndex
+	selectedDevice = exp.devices[decision.targetDeviceIndex]
+	third.decision = decision	
+	third.setprocessingNode(selectedDevice)
+	dev2.addJob(third)
+	exp.simulateTime(sim.constants.PLOT_TD * 10)
+	print ("offload 1 0")
+	time.sleep(1)
+	# batch 2 
+
+	# offload from 0 to 0
+	fourth = sim.job.job(exp.time, dev, 5, dev.decision, hardwareAccelerated=True)
+	exp.systemState.updateDevice(dev)
+	decision = sim.offloadingDecision.possibleActions[0]
+	print ('decision', decision)
+	if decision.local: decision.targetDeviceIndex = exp.systemState.selfDeviceIndex
+	selectedDevice = exp.devices[decision.targetDeviceIndex]
+	fourth.decision = decision
+	fourth.setprocessingNode(selectedDevice)
+	dev.addJob(fourth)
+	# batch 3 
+	print ("offload 0 0")
+	exp.simulateUntilJobDone()
+	exp.simulateUntilJobDone()
+	exp.simulateUntilJobDone()
+	time.sleep(1)
+
+	print("job done")
+	exp.simulateTime(sim.constants.PLOT_TD * 100)
+
+		
+
 def singleDelayedJobLocal(accelerated=True):
 	sim.constants.OFFLOADING_POLICY = sim.offloadingPolicy.LOCAL_ONLY
 	sim.constants.MINIMUM_BATCH = 1
@@ -195,14 +270,14 @@ def randomLocalJobs(accelerated=True):
 
 def randomJobs(offloadingPolicy=sim.offloadingPolicy.ANYTHING, hw=True):
 	print("random jobs")
-	sim.debug.enabled = False
+	sim.debug.enabled = True
 	sim.constants.OFFLOADING_POLICY = offloadingPolicy
 	sim.constants.JOB_LIKELIHOOD = 9e-3 # 2e-3
 	sim.constants.SAMPLE_RAW_SIZE = sim.variable.Constant(40)
 	sim.constants.SAMPLE_SIZE = sim.variable.Constant(10)
 	sim.constants.PLOT_TD = sim.constants.TD * 1
 	sim.constants.FPGA_POWER_PLAN = sim.powerPolicy.IDLE_TIMEOUT
-	sim.constants.DRAW_DEVICES = False
+	sim.constants.DRAW_DEVICES = True
 	sim.constants.FPGA_IDLE_SLEEP = 0.075
 	sim.constants.MINIMUM_BATCH = 5
 	sim.constants.DEFAULT_TASK_GRAPH = [sim.tasks.EASY]
@@ -425,8 +500,9 @@ if __name__ == '__main__':
 	# sim.randomPeerJobs(True)
 	# randomLocalJobs(False)
 	# randomPeerJobs(False)
+	testActions()
 	
-	randomJobs(offloadingPolicy=sim.offloadingPolicy.REINFORCEMENT_LEARNING, hw=True)
+	# randomJobs(offloadingPolicy=sim.offloadingPolicy.REINFORCEMENT_LEARNING, hw=True)
 	# testPerformance()
 	# profileTarget()
 	

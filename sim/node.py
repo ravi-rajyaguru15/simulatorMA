@@ -296,7 +296,7 @@ class node:
 
 	def setCurrentBatch(self, job):
 		if job.hardwareAccelerated:
-			self.currentBatch = job.taskGraph[0]
+			self.currentBatch = job.currentTask
 		else:
 			self.currentBatch = 0
 		sim.debug.out("Setting current batch to {} ({})".format(self.currentBatch, job), 'b')
@@ -304,7 +304,7 @@ class node:
 
 	def addJobToBatch(self, job):
 		if job.hardwareAccelerated:
-			task = job.taskGraph[0]
+			task = job.currentTask
 		else:
 			# 0 task indicates software solutions
 			task = 0
@@ -322,6 +322,11 @@ class node:
 			return len(self.batch[list(self.batch.keys())[longestBatch]]), longestBatch
 		else:
 			return 0, 0
+
+	def batchLength(self, task):
+		# return batch length for a specific task
+		if task in self.batch:
+			return len(self.batch[task])
 
 	def nextJobFromBatch(self):
 		if self.currentJob is None:

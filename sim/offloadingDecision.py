@@ -15,8 +15,9 @@ import sys
 import rl
 import rl.util
 import rl.policy
-import keras
-import keras.backend
+import tensorflow as tf
+import tensorflow.keras as keras
+import tensorflow.keras.backend
 
 
 class offloadingDecision:
@@ -104,9 +105,9 @@ class offloadingDecision:
 			elif sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
 				self.systemState.updateDevice(self.owner)
 				self.systemState.updateTask(task)
-				sim.debug.out("systemstate:", self.systemState)
+				sim.debug.out("systemstate: {}".format(self.systemState))
 				choice = self.learningAgent.forward()
-				sim.debug.out("choice:", choice)
+				sim.debug.out("choice: {}".format(choice))
 			else:
 				choice = action.findAction(random.choice(self.options).index)
 
@@ -321,7 +322,7 @@ class agent:
 			correctQ, predictedQ, mask = args
 			loss = rl.util.huber_loss(correctQ, predictedQ, np.inf)
 			loss *= mask  # apply element-wise mask
-			return keras.backend.sum(loss, axis=-1)
+			return tf.keras.backend.sum(loss, axis=-1)
 
 		# Create trainable model. The problem is that we need to mask the output since we only
 		# ever want to update the Q values for a certain action. The way we achieve this is by
@@ -338,7 +339,7 @@ class agent:
 		# combined_metrics = {trainable_model.output_names[1]: metrics}
 		losses = [
 			lambda correctQ, predictedQ: predictedQ,  # loss is computed in Lambda layer
-			lambda correctQ, predictedQ: keras.backend.zeros_like(predictedQ),  # we only include this for the metrics
+			lambda correctQ, predictedQ: tf.keras.backend.zeros_like(predictedQ),  # we only include this for the metrics
 		]
 		self.trainable_model.compile(optimizer=self.optimizer, loss=losses)
 
@@ -355,19 +356,19 @@ class agent:
 	# predict best action using Q values
 	def forward(self):
 		self.beforeState = np.array(self.systemState.currentState)
-		sim.debug.out("beforestate", self.systemState.currentState)
+		sim.debug.out("beforestate {}".format(self.systemState.currentState))
 		qValues = self.model.predict(self.beforeState.reshape((1, 1, self.systemState.stateCount)))[0]
-		sim.debug.out('q', qValues)
+		sim.debug.out('q {}'.format(qValues))
 		actionIndex = self.policy.select_action(q_values=qValues)
 		self.latestAction = actionIndex
 
 		choice = possibleActions[actionIndex]
-		
+		sim.debug.out("choice: {}".format(choice), 'r')
 		# must set local choices index
 		if choice.local:
 			choice.targetDeviceIndex = self.systemState.selfDeviceIndex
 		# return agent.decodeIndex(actionIndex, options)
-		return possibleActions[actionIndex]
+		return choice
 
 	# update based on resulting system state and reward
 	def backward(self, reward, finished):
@@ -410,6 +411,8 @@ class agent:
 
 		self.loss = metrics[0]
 		self.latestReward = reward
+
+		sim.debug.out("loss: {} reward: {}".format(self.loss, self.latestReward), 'r')
 
 		# agent.step += 1
 		# agent.update_target_model_hard()
