@@ -158,7 +158,7 @@ class simulation:
 	def simulateTick(self):
 		# try:
 		if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
-			self.systemState.updateSystem()
+			self.systemState.updateSystem(self)
 
 		# create new jobs
 		for device in self.devices:
@@ -255,6 +255,9 @@ class simulation:
 	def currentDevicesEnergy(self):
 		return [dev.energy() for dev in self.devices]
 
+	def systemLifetime(self):
+		return np.min(self.devicesLifetimes())
+		
 	def devicesLifetimes(self):
 		return [dev.expectedLifetime() for dev in self.devices]
 

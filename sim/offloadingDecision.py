@@ -15,6 +15,7 @@ import sys
 import rl
 import rl.util
 import rl.policy
+# import rl.core.agent
 import tensorflow as tf
 import tensorflow.keras as keras
 import tensorflow.keras.backend
@@ -72,7 +73,7 @@ class offloadingDecision:
 
 		# print(sim.constants.OFFLOADING_POLICY, self.owner, self.options)
 
-	def chooseDestination(self, task):
+	def chooseDestination(self, task, job, currentTime):
 		# if specified fixed target, return it
 		if self.target is not None:
 			return possibleActions[self.target.index]
@@ -104,6 +105,7 @@ class offloadingDecision:
 					choice = action.findAction(self.options[largestBatches].index)
 			elif sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
 				self.systemState.updateDevice(self.owner)
+				self.systemState.updateJob(job, currentTime)
 				self.systemState.updateTask(task)
 				sim.debug.out("systemstate: {}".format(self.systemState))
 				choice = self.learningAgent.forward()
@@ -164,7 +166,7 @@ class systemState:
 	# task states
 	taskSize = None
 	taskIdentifier = None
-	# deadlineRemaining = None
+	deadlineRemaining = None
 	# task size, data size, identifier, current config, deadline
 
 	stateCount = None
@@ -172,20 +174,20 @@ class systemState:
 	def __init__(self, simulation):
 		self.simulation = simulation
 		print("statecount", self.stateCount)
-		self.stateCount = sim.constants.NUM_DEVICES * 2 + 6
+		self.stateCount = sim.constants.NUM_DEVICES * 2 + 7
 		self.batchLengths = [0] * sim.constants.NUM_DEVICES
 
 	def __repr__(self):
 		return str(self.currentState)
 
-	def updateSystem(self):
-		self.expectedLife = self.simulation.devicesLifetimes()
-		self.systemExpectedLife = np.min(self.expectedLife)
+	def updateSystem(self, simulation):
+		self.expectedLife = simulation.devicesLifetimes()
+		self.systemExpectedLife = simulation.systemLifetime()
 
 		self.update()
 
 	def update(self):
-		elements = [self.taskIdentifier, self.taskSize, self.selfDeviceIndex, self.selfExpectedLife, self.systemExpectedLife, self.expectedLife, self.selfBatch, self.batchLengths]
+		elements = [self.taskIdentifier, self.taskSize, self.selfDeviceIndex, self.selfExpectedLife, self.systemExpectedLife, self.expectedLife, self.deadlineRemaining, self.selfBatch, self.batchLengths]
 		# ensure everything is a list 
 		elements = [element if isinstance(element, list) else [element] for element in elements]
 		# flatten into single list
@@ -210,6 +212,11 @@ class systemState:
 
 		self.update()
 
+	def updateJob(self, job, currentTime):
+		self.deadlineRemaining = np.max([0, job.deadlineTime - currentTime])
+
+		self.update()
+
 	def updateDevice(self, device):
 		self.selfBatch = len(device.batch[self.currentTask]) if self.currentTask is not None and self.currentTask in device.batch else 0
 		self.selfExpectedLife = device.expectedLifetime()
@@ -227,6 +234,9 @@ class systemState:
 
 
 
+
+def mean_q(correctQ, predictedQ):
+	return tf.keras.backend.mean(tf.keras.backend.max(predictedQ, axis=-1))
 class action:
 	name = None
 	targetDeviceIndex = None
@@ -283,7 +293,23 @@ class agent:
 	beforeState = None
 	latestAction = None
 	latestReward = None
+	latestMAE = None
+	latestMeanQ = None
 	gamma = None
+
+
+	@property
+	def metrics_names(self):
+		# Throw away individual losses and replace output name since this is hidden from the user.
+		assert len(self.trainable_model.output_names) == 2
+		dummy_output_name = self.trainable_model.output_names[1]
+		model_metrics = [name for idx, name in enumerate(self.trainable_model.metrics_names) if idx not in (1, 2)]
+		model_metrics = [name.replace(dummy_output_name + '_', '') for name in model_metrics]
+
+		names = model_metrics + self.policy.metrics_names[:]
+		# if self.processor is not None:
+		# 	names += self.processor.metrics_names[:]
+		return names
 
 	def __init__(self, systemState):
 		self.systemState = systemState
@@ -314,10 +340,14 @@ class agent:
 		if sim.debug.enabled:
 			self.model.summary()
 
+
 		self.createTrainableModel()
 	
 	def createTrainableModel(self):
 		# COPIED FROM KERAS-RL LIBRARY
+		metrics = ['mae']
+		metrics += [mean_q]  # register default metrics
+
 		def clipped_masked_error(args):
 			correctQ, predictedQ, mask = args
 			loss = rl.util.huber_loss(correctQ, predictedQ, np.inf)
@@ -336,12 +366,12 @@ class agent:
 		ins = [self.model.input] if type(self.model.input) is not list else self.model.input
 		self.trainable_model = keras.models.Model(inputs=ins + [correctQ, mask], outputs=[lossOut, predictedQ])
 		assert len(self.trainable_model.output_names) == 2
-		# combined_metrics = {trainable_model.output_names[1]: metrics}
+		combined_metrics = {self.trainable_model.output_names[1]: metrics}
 		losses = [
 			lambda correctQ, predictedQ: predictedQ,  # loss is computed in Lambda layer
 			lambda correctQ, predictedQ: tf.keras.backend.zeros_like(predictedQ),  # we only include this for the metrics
 		]
-		self.trainable_model.compile(optimizer=self.optimizer, loss=losses)
+		self.trainable_model.compile(optimizer=self.optimizer, loss=losses, metrics=combined_metrics)
 
 	# # convert decision to a specific action 
 	# @staticmethod
@@ -372,6 +402,7 @@ class agent:
 
 	# update based on resulting system state and reward
 	def backward(self, reward, finished):
+		metrics = [np.nan for _ in self.metrics_names]
 
 		# Compute the q_values given state1, and extract the maximum for each sample in the batch.
 		# We perform this prediction on the target_model instead of the model for reasons
@@ -406,12 +437,17 @@ class agent:
 
 		self.trainable_model._make_train_function()
 		metrics = self.trainable_model.train_on_batch(x, y)
-		metrics = metrics[1:3]
+		# metrics = metrics[1:3]
+		metrics = [metric for idx, metric in enumerate(metrics) if idx not in (1, 2)]  # throw away individual losses
 		metrics += self.policy.metrics
+		# print(metrics, self.metrics_names)
+
 
 		self.loss = metrics[0]
-		self.latestReward = reward
-		print('reward', reward)
+		self.latestReward = R
+		self.latestMAE = metrics[1]
+		self.latestMeanQ = metrics[2]
+		# print('reward', reward)
 
 		sim.debug.out("loss: {} reward: {}".format(self.loss, self.latestReward), 'r')
 

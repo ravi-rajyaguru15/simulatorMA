@@ -396,21 +396,48 @@ def assembleResults(resultsQueue, outputQueue, numResults=None):
 	# print ("assembling results", numResults)
 	graphs = dict()
 	print("")
+	normaliseDict = dict()
 	for i in range(numResults):
 		result = resultsQueue.get()
 
 		sys.stdout.write("\rProgress: {:.2f}%".format((i+1) / numResults * 100.0))
 		sys.stdout.flush()
 
-		graphName, sample, datapoint = result
+		if len(result) == 4:
+			graphName, sample, datapoint, normalise = result
+		else:
+			graphName, sample, datapoint = result
+			normalise = False
+
 		if graphName not in graphs.keys():
 			graphs[graphName] = dict()
+			normaliseDict[graphName] = normalise
 			
 		if sample not in graphs[graphName].keys():
 			graphs[graphName][sample] = list()
 		graphs[graphName][sample].append(datapoint)
+
+	# normalise if required
+	print()
+	print("normalise:", normaliseDict)
+	print("find max")
+	maxDict = dict()
+	for name in graphs:
+		if not normaliseDict[name]: continue
+
+		graphDict = graphs[name]
+		maxDict[name] = 0
+		for sample in graphDict:
+			print(sample, graphDict[sample])
+			maxDict[name] = np.max([maxDict[name], np.max(np.abs(graphDict[sample]))])
+			# graphDict[sample] = np.array(graphDict[sample]) / 
 	
-	print (graphs)
+	print('max', maxDict)
+	for name in maxDict:
+		maximum = maxDict[name]
+		for sample in graphs[name]:
+			graphs[name][sample] /= maximum
+
 	
 	print("done with experiment")
 	# calculate means and averages

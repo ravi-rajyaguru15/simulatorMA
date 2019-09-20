@@ -18,6 +18,8 @@ class job:
 	started = None
 	createdTime = None
 	startTime = None
+	deadlineTime = None
+	startExpectedLifetime = None
 	
 	totalEnergyCost = None
 	totalLatency = None
@@ -41,7 +43,9 @@ class job:
 	def __init__(self, createdTime, origin, samples, offloadingDecision, hardwareAccelerated, taskGraph=None):
 		self.creator = origin
 		self.simulation = origin.simulation
-		# print ('sim', self.simulation)
+
+		self.startExpectedLifetime = self.simulation.systemLifetime()
+		self.createdTime = createdTime
 
 		self.samples = samples
 		self.hardwareAccelerated = hardwareAccelerated
@@ -59,15 +63,19 @@ class job:
 
 		# start at first task
 		self.currentTask = self.taskGraph[0]
+		self.deadlineTime = createdTime + self.currentTask.deadline.gen()
 		# initialise message size to raw data
 		self.datasize = self.rawMessageSize()
 		
 		# initiate task by setting processing node
-		self.decision = offloadingDecision.chooseDestination(self.currentTask)
+		self.decision = offloadingDecision.chooseDestination(self.currentTask, self, self.simulation.time)
 		selectedDevice = self.simulation.devices[self.decision.targetDeviceIndex]
 		sim.debug.out("selected {}".format(selectedDevice))
 		self.setprocessingNode(selectedDevice)
 		sim.results.addChosenDestination(selectedDevice)
+		
+	def deadlineMet(self):
+		return self.deadlineTime > self.simulation.time
 
 	def setprocessingNode(self, processingNode):
 		self.processingNode = processingNode
@@ -84,7 +92,11 @@ class job:
 			self.processor = processingNode.mcu
 
 	def reward(self):
-		return 1
+		jobReward = 1 if self.finished else 0
+		deadlineReward = 0 if self.deadlineMet() else -0.5
+		expectedLifetimeReward = -.5 if (self.startExpectedLifetime > self.simulation.systemLifetime()) else 0
+
+		return jobReward + deadlineReward + expectedLifetimeReward
 
 	def start(self, startTime):
 		self.started = True
