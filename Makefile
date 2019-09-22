@@ -1,21 +1,50 @@
+PYTHON=python3.7
+
 drone:
 	DRONE_REPO_NAME=simulator DRONE_COMMIT_SHA=1 drone exec --trusted --include small_test
 
-# training.py DEVICE HIDDEN_SIZE HIDDEN_DEPTH TRAINING_SIZE BATCH_SIZE
-docker:
+dockerBasic:
+	docker build ./basicDocker -t keras-python3
+
+localdocker:
+	./sim/entrypoint.py
+
+
+NAME:=$(shell uname -r)
+relpathwindows:=/mnt/c
+relpathlinux:="$(pwd)"
+docker: dockerBasic
 	docker build --no-cache ./ -t test
-	docker run test
+	# echo name: $(NAME)
+    ifneq (,$(findstring Microsoft,$(NAME)) )
+		docker run -v $(relpathwindows)/output:/output test
+    else
+		docker run -v $(relpathlinux)/output:/output test
+    endif
+	
 	
 docker-gpu:
 	docker build -f Dockerfile.gpu --no-cache ./ -t test
 	docker run --runtime=nvidia test 
 
 local:
-	python3 src/training.py /cpu:0 100 1 10000 100 128
+	$(PYTHON) src/training.py /cpu:0 100 1 10000 100 128
 	
-all:
-	python3 training.py
+requirements:
+	pip3 install -r requirements.txt
 
-test:
-	python3 src/sim.py
+.DEFAULT:
+	$(PYTHON) sim/experiments/$@.py
+
+sim:
+	@echo "sim"
+	$(PYTHON) sim/simulation.py
+
+testq:
+	$(PYTHON) sim/tictactoe.py
+
+.PHONY: *
+test: experiment
+	@echo $$DISPLAY
+	@echo "running test"
 	# python sim.py

@@ -1,4 +1,10 @@
+node_modules/
+package_lock.json
+*.png
+*.yaml
+.vscode/launch.json
 .ipynb_checkpoints/
+images/*.png
 *.pyc
 *.ipynb
 .vscode/sftp.json
