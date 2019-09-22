@@ -377,7 +377,7 @@ class node:
 				self.jobQueue.remove(self.currentJob)
 				# see if it's a brand new job
 				if not self.currentJob.started:
-					self.currentJob.start(currentTime)
+					self.currentJob.start(currentTime, self.batchLength(self.currentJob.currentTask))
 				else:
 					sim.debug.out("\tALREADY STARTED")
 

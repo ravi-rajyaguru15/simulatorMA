@@ -5,6 +5,7 @@ from sim.simulation import simulation
 import sim.plotting
 import sim.experiments.experiment
 import sim.offloadingDecision
+import sim.job
 
 import numpy as np
 import multiprocessing
@@ -21,11 +22,7 @@ def runThread(results, finished):
 	try:
 		for i in range(numJobs):
 			exp.simulateUntilJobDone()
-			results.put(["Loss", exp.completedJobs, sim.offloadingDecision.offloadingDecision.learningAgent.loss, True])
-			results.put(["Reward", exp.completedJobs, sim.offloadingDecision.offloadingDecision.learningAgent.latestReward, True])
-			results.put(["Action", exp.completedJobs, sim.offloadingDecision.offloadingDecision.learningAgent.latestAction, True])
-			results.put(["MAE", exp.completedJobs, sim.offloadingDecision.offloadingDecision.learningAgent.latestMAE, True])
-			results.put(["MeanQ", exp.completedJobs, sim.offloadingDecision.offloadingDecision.learningAgent.latestMeanQ, True])
+			results.put(["Batch Size", exp.completedJobs, sim.job.jobResultsQueue.get().batchSize])
 	except:
 		traceback.print_exc(file=sys.stdout)
 		sys.exit(0)

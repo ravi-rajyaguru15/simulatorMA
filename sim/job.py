@@ -39,6 +39,7 @@ class job:
 	processed = None
 	taskGraph = None
 	currentTask = None
+	batchSize = None
 
 	def __init__(self, createdTime, origin, samples, offloadingDecision, hardwareAccelerated, taskGraph=None):
 		self.creator = origin
@@ -103,17 +104,20 @@ class job:
 
 		return jobReward + deadlineReward + expectedLifetimeReward
 
-	def start(self, startTime):
+	def start(self, startTime, batchSize=None):
 		self.started = True
 		self.startTime = startTime
 		
 		# to start with, owner is the node who created it 
 		self.owner = self.creator
 
-		self.activate()
+		self.activate(batchSize)
 		
 
-	def activate(self):
+	def activate(self, batchSize=None):
+		self.batchSize = batchSize
+		print("batch job:", self.batchSize)
+
 		# populate subtasks based on types of devices
 		if not self.offloaded():
 			self.processingNode.addSubtask(sim.subtask.batching(self))
@@ -139,7 +143,8 @@ class job:
 
 		# print("finished job", self.simulation.completedJobs)
 		# add results to overall results
-		# job.jobResultsQueue.put(result(self.totalLatency, self.totalEnergyCost))
+		# job.jobResultsQueue.put(self.totalLatency, self.totalEnergyCost))
+		job.jobResultsQueue.put(self)
 		
 
 	def offloaded(self):
