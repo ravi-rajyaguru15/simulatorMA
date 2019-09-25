@@ -29,13 +29,16 @@ class offloadingDecision:
 	simulation = None
 	learningAgent = None
 
+
 	def __init__(self, device, systemState):
 		self.owner = device
 		self.systemState = systemState
 
-		offloadingDecision.possibleActions = [action("Offload", i) for i in range(sim.constants.NUM_DEVICES)] + [WAIT, LOCAL]
+		offloadingDecision.possibleActions = [action("Offload", i) for i in range(sim.constants.NUM_DEVICES)] + [BATCH, LOCAL]
 		print('actions', offloadingDecision.possibleActions)
 		offloadingDecision.numActionsPerDevice = len(offloadingDecision.possibleActions)
+
+
 
 	@staticmethod
 	def selectElasticNodes(devices):
@@ -188,7 +191,7 @@ class action:
 	# 	assert len(targets) == 1
 	# 	return targets[0]
 
-WAIT = action("Wait") # TODO: wait does nothing
+BATCH = action("Batch") # TODO: wait does nothing
 LOCAL = action("Local")
 # OFFLOAD = action("Offload")
 
@@ -250,6 +253,12 @@ class agent:
 		# self.dqn.training = True
 
 		self.createModel()
+
+		self.history = dict()
+		self.history["loss"] = []
+		self.history["reward"] = []
+		self.history["q"] = []
+		self.history["action"] = []
 
 	def createModel(self):
 		# create basic model
@@ -368,14 +377,21 @@ class agent:
 		metrics += self.policy.metrics
 		# print(metrics, self.metrics_names)
 
-
+		# new metrics
 		self.loss = metrics[0]
 		self.latestReward = R
 		self.latestMAE = metrics[1]
 		self.latestMeanQ = metrics[2]
+
+		# metrics history
+		self.history["loss"].append(self.loss)
+		self.history["reward"].append(self.latestReward)
+		self.history["q"].append(self.latestMeanQ)
+
 		# print('reward', reward)
 
 		sim.debug.out("loss: {} reward: {}".format(self.loss, self.latestReward), 'r')
+		print("loss: {} reward: {}".format(self.loss, self.latestReward), 'r')
 
 		# agent.step += 1
 		# agent.update_target_model_hard()

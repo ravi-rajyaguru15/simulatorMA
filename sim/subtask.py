@@ -455,6 +455,9 @@ class processing(subtask):
 
 	def beginTask(self):
 		self.job.processor.active()
+
+		self.job.batchSize = self.job.processingNode.batchLength(self.job.currentTask)
+
 		# if not self.job.offloaded():
 		# 	self.job.creator.jobActive = True
 		subtask.beginTask(self)

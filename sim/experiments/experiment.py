@@ -25,6 +25,7 @@ import profile
 
 
 def randomJobs(offloadingPolicy=sim.offloadingPolicy.ANYTHING, hw=True):
+	sim.constants.NUM_DEVICES = 1
 	print("random jobs")
 	sim.debug.enabled = False
 	sim.constants.OFFLOADING_POLICY = offloadingPolicy

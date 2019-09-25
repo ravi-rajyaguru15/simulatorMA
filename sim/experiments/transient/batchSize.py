@@ -15,7 +15,7 @@ import warnings
 import profile
 
 sim.constants.NUM_DEVICES = 1
-numJobs = int(1e4)
+numJobs = int(1e2)
 def runThread(results, finished):
 	exp = simulation(hardwareAccelerated=True)
 
@@ -57,7 +57,7 @@ def run():
 	results = sim.experiments.experiment.executeMulti(processes, results, finished, numResults=numJobs*sim.constants.REPEATS)
 	
 	sim.plotting.plotMultiWithErrors("Learning Loss", results=results, ylabel="Loss", xlabel="Job #") # , save=True)
-
+	sim.plotting.plotAgentHistory()
 try:
 	run()
 except:

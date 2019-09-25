@@ -105,19 +105,17 @@ class job:
 
 		return jobReward + deadlineReward + expectedLifetimeReward
 
-	def start(self, startTime, batchSize=None):
+	def start(self, startTime):
 		self.started = True
 		self.startTime = startTime
 		
 		# to start with, owner is the node who created it 
 		self.owner = self.creator
 
-		self.activate(batchSize)
+		self.activate()
 		
 
-	def activate(self, batchSize=None):
-		self.batchSize = batchSize if batchSize is not None else 0
-		print("batch job:", self.batchSize)
+	def activate(self):
 
 		# populate subtasks based on types of devices
 		if not self.offloaded():
