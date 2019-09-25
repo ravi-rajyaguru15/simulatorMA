@@ -53,7 +53,7 @@ def assembleResults(resultsQueue, outputQueue, numResults=None):
 	# process results into dict
 	if numResults is None:
 		numResults = resultsQueue.qsize()
-	# print ("assembling results", numResults)
+	print ("assembling results", numResults)
 	graphs = dict()
 	print("")
 	normaliseDict = dict()
@@ -81,6 +81,7 @@ def assembleResults(resultsQueue, outputQueue, numResults=None):
 	print()
 	print("normalise:", normaliseDict)
 	print("find max")
+	print("graphs", graphs)
 	maxDict = dict()
 	for name in graphs:
 		if not normaliseDict[name]: continue

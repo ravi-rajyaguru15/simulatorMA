@@ -3,20 +3,21 @@ import sim.debug
 import sim.offloadingPolicy
 # import sim.elasticNode
 
-import matplotlib.pyplot as pp
-import matplotlib as mpl
-import matplotlib.image
-import warnings
-import random
-import time
+# import matplotlib.pyplot as pp
+# import matplotlib as mpl
+# import matplotlib.image
+# import warnings
+# import random
+# import time
 import numpy as np
-import sys
+# import sys
 # if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
 import rl
 import rl.util
 import rl.policy
 # import rl.core.agent
 import tensorflow as tf
+
 import tensorflow.keras as keras
 import tensorflow.keras.backend
 
@@ -31,6 +32,10 @@ class offloadingDecision:
 	def __init__(self, device, systemState):
 		self.owner = device
 		self.systemState = systemState
+
+		offloadingDecision.possibleActions = [action("Offload", i) for i in range(sim.constants.NUM_DEVICES)] + [WAIT, LOCAL]
+		print('actions', offloadingDecision.possibleActions)
+		offloadingDecision.numActionsPerDevice = len(offloadingDecision.possibleActions)
 
 	@staticmethod
 	def selectElasticNodes(devices):
@@ -76,11 +81,11 @@ class offloadingDecision:
 	def chooseDestination(self, task, job, currentTime):
 		# if specified fixed target, return it
 		if self.target is not None:
-			return possibleActions[self.target.index]
+			return offloadingDecision.possibleActions[self.target.index]
 		# check if shared target exists
 		elif offloadingDecision.target is not None:
 			print ("shared target")
-			return possibleActions[offloadingDecision.target.index]
+			return offloadingDecision.possibleActions[offloadingDecision.target.index]
 		elif self.options is None:
 			raise Exception("options are None!")
 		elif len(self.options) == 0:
@@ -188,9 +193,7 @@ LOCAL = action("Local")
 # OFFLOAD = action("Offload")
 
 # TODO: offloading to self
-possibleActions = [action("Offload", i) for i in range(sim.constants.NUM_DEVICES)] + [WAIT, LOCAL]
-print('actions', possibleActions)
-numActionsPerDevice = len(possibleActions)
+possibleActions = None
 
 
 
@@ -236,7 +239,7 @@ class agent:
 
 	def __init__(self, systemState):
 		self.systemState = systemState
-		self.numActions = len(possibleActions)
+		self.numActions = len(offloadingDecision.possibleActions)
 		self.gamma = sim.constants.GAMMA
 
 		sim.debug.out(sim.constants.OFFLOADING_POLICY)
@@ -315,7 +318,7 @@ class agent:
 		actionIndex = self.policy.select_action(q_values=qValues)
 		self.latestAction = actionIndex
 
-		choice = possibleActions[actionIndex]
+		choice = offloadingDecision.possibleActions[actionIndex]
 		sim.debug.out("choice: {}".format(choice), 'r')
 		# must set local choices index
 		if choice.local:

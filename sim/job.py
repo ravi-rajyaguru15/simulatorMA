@@ -1,11 +1,12 @@
-from warnings import warn
 import sys
+from warnings import warn
 
+import sim.constants
 import sim.debug
-import sim.constants 
-import sim.subtask
 # from sim.result import result
 import sim.results
+import sim.subtask
+
 # from node import node
 
 class job:
@@ -115,7 +116,7 @@ class job:
 		
 
 	def activate(self, batchSize=None):
-		self.batchSize = batchSize
+		self.batchSize = batchSize if batchSize is not None else 0
 		print("batch job:", self.batchSize)
 
 		# populate subtasks based on types of devices
@@ -144,7 +145,8 @@ class job:
 		# print("finished job", self.simulation.completedJobs)
 		# add results to overall results
 		# job.jobResultsQueue.put(self.totalLatency, self.totalEnergyCost))
-		job.jobResultsQueue.put(self)
+		print ("pushing", self.batchSize)
+		job.jobResultsQueue.put((self.batchSize,))
 		
 
 	def offloaded(self):

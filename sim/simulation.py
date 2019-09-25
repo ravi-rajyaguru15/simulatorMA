@@ -46,8 +46,8 @@ class simulation:
 	def __init__(self, hardwareAccelerated=None): # numEndDevices, numElasticNodes, numServers,
 		# sim.debug.out(numEndDevices + numElasticNodes)
 		self.results = multiprocessing.Manager().Queue()
-		self.jobResults = multiprocessing.Manager().Queue()
-		job.jobResultsQueue = self.jobResults
+		# self.jobResults = multiprocessing.Manager().Queue()
+		job.jobResultsQueue = multiprocessing.Manager().Queue()
 		self.delays = list()
 		self.completedJobs = 0
 

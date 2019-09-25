@@ -14,15 +14,18 @@ import traceback
 import warnings
 import profile
 
-sim.constants.NUM_DEVICES = 4
-numJobs = int(1e2)
+sim.constants.NUM_DEVICES = 1
+numJobs = int(1e4)
 def runThread(results, finished):
 	exp = simulation(hardwareAccelerated=True)
 
 	try:
 		for i in range(numJobs):
 			exp.simulateUntilJobDone()
-			results.put(["Batch Size", exp.completedJobs, sim.job.jobResultsQueue.get().batchSize])
+			batch = sim.job.job.jobResultsQueue.get()
+			batch = batch[0]
+			print("batch:", batch)
+			results.put(["Batch Size", exp.completedJobs, batch])
 	except:
 		traceback.print_exc(file=sys.stdout)
 		sys.exit(0)
@@ -51,7 +54,7 @@ def run():
 	for _ in range(sim.constants.REPEATS):
 		processes.append(multiprocessing.Process(target=runThread, args=(results, finished)))
 	
-	results = sim.experiments.experiment.executeMulti(processes, results, finished, numResults=numJobs*sim.constants.REPEATS*5)
+	results = sim.experiments.experiment.executeMulti(processes, results, finished, numResults=numJobs*sim.constants.REPEATS)
 	
 	sim.plotting.plotMultiWithErrors("Learning Loss", results=results, ylabel="Loss", xlabel="Job #") # , save=True)
 

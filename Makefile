@@ -44,7 +44,7 @@ testq:
 	$(PYTHON) sim/tictactoe.py
 
 .PHONY: *
-test: experiment
+test: transient/batchSize
 	@echo $$DISPLAY
 	@echo "running test"
 	# python sim.py
