@@ -15,9 +15,11 @@ import warnings
 import profile
 
 sim.constants.NUM_DEVICES = 1
-numJobs = int(1e2)
-def runThread(results, finished):
+numJobs = int(1e1)
+
+def runThread(results, finished, histories):
 	exp = simulation(hardwareAccelerated=True)
+	sim.simulation.current = exp
 
 	try:
 		for i in range(numJobs):
@@ -32,6 +34,7 @@ def runThread(results, finished):
 		print("Error in experiment:", exp.time)
 
 	finished.put(True)
+	histories.put(sim.offloadingDecision.learningAgent.history)
 
 def run():
 	print ("starting experiment")
@@ -47,17 +50,19 @@ def run():
 	# offloadingOptions = [True, False]
 	results = multiprocessing.Queue()
 	finished = multiprocessing.Queue()
+	histories = multiprocessing.Queue()
 	sim.constants.REPEATS = 1
 
 	# for jobLikelihood in np.arange(1e-3, 1e-2, 1e-3):
 	# 	for roundRobin in np.arange(1e0, 1e1, 2.5):
 	for _ in range(sim.constants.REPEATS):
-		processes.append(multiprocessing.Process(target=runThread, args=(results, finished)))
+		processes.append(multiprocessing.Process(target=runThread, args=(results, finished, histories)))
 	
 	results = sim.experiments.experiment.executeMulti(processes, results, finished, numResults=numJobs*sim.constants.REPEATS)
 	
 	sim.plotting.plotMultiWithErrors("Learning Loss", results=results, ylabel="Loss", xlabel="Job #") # , save=True)
-	sim.plotting.plotAgentHistory()
+	sim.plotting.plotAgentHistory(sim.offloadingDecision.offloadingDecision.learningAgent.history)
+
 try:
 	run()
 except:

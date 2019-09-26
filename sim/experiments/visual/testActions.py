@@ -10,8 +10,9 @@ sim.constants.DRAW_DEVICES = True
 sim.constants.MINIMUM_BATCH = 3
 
 exp = simulation(True)
+sim.simulation.current = exp
 
-exp.simulateTime(sim.constants.PLOT_TD * 10)
+exp.simulateTime(sim.constants.PLOT_TD * 1)
 dev = exp.devices[0]
 time.sleep(1)
 

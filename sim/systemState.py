@@ -71,8 +71,8 @@ class systemState:
 
 		self.update()
 
-	def updateJob(self, job, currentTime):
-		self.deadlineRemaining = np.max([0, job.deadlineTime - currentTime])
+	def updateJob(self, job):
+		self.deadlineRemaining = np.max([0, job.deadlineTime - self.currentTime.current])
 
 		self.update()
 

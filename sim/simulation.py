@@ -6,6 +6,7 @@ from sim.gateway import gateway
 from sim.server import server
 from sim.visualiser import visualiser 
 from sim.job import job
+from sim.clock import clock
 import sim.systemState
 import sim.offloadingDecision
 import sim.offloadingPolicy
@@ -22,6 +23,7 @@ import warnings
 import datetime
 
 queueLengths = list()
+current = None
 
 class simulation:
 	ed, ed2, en, gw, srv, selectedOptions = None, None, None, None, None, None
@@ -51,20 +53,23 @@ class simulation:
 		self.delays = list()
 		self.completedJobs = 0
 
-		self.time = 0
+		self.time = clock()
+		sim.offloadingDecision.sharedClock = self.time
 		
-		# if numEndDevices > 0:
-		# 	print ("End devices not supported")
-		# 	sys.exit(0)
 		# requires simulation to be populated
-		# self.numDevices = numEndDevices + numElasticNodes
 		sim.systemState.current = sim.systemState.systemState()
+		useSharedAgent = sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING and sim.constants.CENTRALISED_LEARNING
+			
+		if useSharedAgent:
+			# create shared learning agent
+			sim.offloadingDecision.sharedAgent = sim.offloadingDecision.agent(sim.systemState.current)
 		
 		# self.ed = [] # endDevice(None, self, self.results, i, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(numEndDevices)]
 		# self.ed = endDevice()
 		# self.ed2 = endDevice()
 		self.devices = [elasticNode(self, sim.constants.DEFAULT_ELASTIC_NODE, self.results, i, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(sim.constants.NUM_DEVICES)]
-		
+		if useSharedAgent:
+			sim.offloadingDecision.sharedAgent.setDevices(self.devices)
 		
 		# # self.en = elasticNode()
 		# self.gw = [] #gateway()
@@ -111,6 +116,9 @@ class simulation:
 		numJobs = self.completedJobs
 		while self.completedJobs == numJobs:
 			self.simulateTick()
+
+	def getCompletedJobs(self): return self.completedJobs
+	def incrementCompletedJobs(self): self.completedJobs += 1
 
 	def simulateUntilTime(self, finalTime):
 		assert(finalTime > self.time)
@@ -165,11 +173,11 @@ class simulation:
 		for device in self.devices:
 			# mcu is required for taking samples
 			if not device.hasJob():
-				device.maybeAddNewJob(self.time)
+				device.maybeAddNewJob()
 
 		# update the destination of the offloading if it is shared
 		if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.ROUND_ROBIN:
-			sim.offloadingDecision.currentSubtask.updateOffloadingTarget(self.time)
+			sim.offloadingDecision.updateOffloadingTarget()
 		
 		tasksBefore = np.array([dev.currentSubtask for dev in self.devices])
 
@@ -218,7 +226,7 @@ class simulation:
 		tasksAfter = np.array([dev.currentSubtask for dev in self.devices])
 		if sim.debug.enabled:
 			if not (np.all(tasksAfter == None) and np.all(tasksBefore == None)):
-				sim.debug.out('tick {:.4f}'.format(self.time), 'b')
+				sim.debug.out('tick {}'.format(self.time), 'b')
 			# 	sim.debug.out("nothing...")
 			# else:
 				sim.debug.out("tasks before {0}".format(tasksBefore), 'r')
@@ -236,7 +244,7 @@ class simulation:
 					sim.debug.out("delays {}".format(self.currentDelays))
 
 		# progress += sim.constants.TD
-		self.time += sim.constants.TD
+		self.time.increment()
 
 	def taskBatchLengths(self, task):
 		return [len(dev.batch[task]) if task in dev.batch else 0 for dev in self.devices]

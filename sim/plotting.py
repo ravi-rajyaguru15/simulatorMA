@@ -28,7 +28,25 @@ def plotWithErrors(x, y=None, errors=None, results=None):
 	pp.errorbar(x, y, yerr=errors)
 	pp.show()
 
-	
+
+def plotAgentHistory(dictionary):
+	print("plotting agent")
+	filename = "/output/{}_{}".format("agentHistory", datetime.datetime.now()).replace(":", ".")
+	pickle.dump(dictionary, open("{}.pickle".format(filename), "wb"))
+
+	# create graphs
+	for key in dictionary:
+		pp.plot(dictionary[key])
+	pp.legend(dictionary.keys())
+	pp.grid()
+	pp.title("Agent History")
+		
+	if sim.constants.SAVE_GRAPH:
+		saveFig(filename)
+
+	if sim.constants.DRAW_GRAPH:
+		pp.show()
+
 def plotMultiWithErrors(name, results=None, ylim=None, ylabel=None, xlabel=None): # , show=False, save=False):
 	print ("plotting!")
 	filename = "/output/{}_{}".format(name, datetime.datetime.now()).replace(":", ".")

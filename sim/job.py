@@ -27,7 +27,7 @@ class job:
 	devicesEnergyCost = None # track how much each device spends on this job
 	
 	owner = None
-	simulation = None
+	# simulation = None
 	creator = None
 	processingNode = None
 	processor = None
@@ -41,13 +41,19 @@ class job:
 	taskGraph = None
 	currentTask = None
 	batchSize = None
+	incrementCompletedJobs = None
 
-	def __init__(self, createdTime, origin, samples, offloadingDecision, hardwareAccelerated, taskGraph=None):
+	def __init__(self, currentTime, origin, samples, offloadingDecision, hardwareAccelerated, taskGraph=None):
 		self.creator = origin
-		self.simulation = origin.simulation
+		# self.simulation = origin.simulation
 
-		self.startExpectedLifetime = self.simulation.systemLifetime()
-		self.createdTime = createdTime
+		assert sim.simulation.current is not None
+		simulation = sim.simulation.current
+		self.incrementCompletedJobs = simulation.incrementCompletedJobs
+		self.systemLifetime = simulation.systemLifetime
+		self.startExpectedLifetime = self.systemLifetime()
+		self.currentTime = currentTime
+		self.createdTime = self.currentTime.current
 
 		self.samples = samples
 		self.hardwareAccelerated = hardwareAccelerated
@@ -65,24 +71,25 @@ class job:
 
 		# start at first task
 		self.currentTask = self.taskGraph[0]
-		self.deadlineTime = createdTime + self.currentTask.deadline.gen()
+		self.deadlineTime = self.createdTime + self.currentTask.deadline.gen()
 		# initialise message size to raw data
 		self.datasize = self.rawMessageSize()
 		
 		# initiate task by setting processing node
-		self.applyDecision(offloadingDecision.chooseDestination(self.currentTask, self, self.simulation.time))
+		self.applyDecision(offloadingDecision.chooseDestination(self.currentTask, self))
 		
 	def applyDecision(self, decision):
 		# initiate task by setting processing node
 		self.decision = decision
-		selectedDevice = self.simulation.devices[self.decision.targetDeviceIndex]
-		sim.debug.out("selected {}".format(selectedDevice))
-		self.setprocessingNode(selectedDevice)
-		sim.results.addChosenDestination(selectedDevice)
+		
+		# selectedDevice = self.simulation.devices[self.decision.targetDeviceIndex]
+		sim.debug.out("selected {}".format(self.decision.targetDevice))
+		self.setprocessingNode(self.decision.targetDevice)
+		sim.results.addChosenDestination(self.decision.targetDevice)
 		
 
 	def deadlineMet(self):
-		return self.deadlineTime > self.simulation.time
+		return self.deadlineTime > self.currentTime
 
 	def setprocessingNode(self, processingNode):
 		self.processingNode = processingNode
@@ -101,13 +108,15 @@ class job:
 	def reward(self):
 		jobReward = 1 if self.finished else 0
 		deadlineReward = 0 if self.deadlineMet() else -0.5
-		expectedLifetimeReward = -.5 if (self.startExpectedLifetime > self.simulation.systemLifetime()) else 0
+		expectedLifetimeReward = -.5 if (self.startExpectedLifetime > self.systemLifetime()) else 0
+
+		print('reward:', jobReward, deadlineReward, expectedLifetimeReward)
 
 		return jobReward + deadlineReward + expectedLifetimeReward
 
-	def start(self, startTime):
+	def start(self):
 		self.started = True
-		self.startTime = startTime
+		self.startTime = self.currentTime.current
 		
 		# to start with, owner is the node who created it 
 		self.owner = self.creator
@@ -132,13 +141,13 @@ class job:
 		self.owner.removeJob(self)
 
 		if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
-			sim.systemState.current.updateJob(self, sim.systemState.current.currentTime)
+			sim.systemState.current.updateJob(self)
 			sim.systemState.current.updateTask(self.currentTask)
 			sim.systemState.current.updateDevice(self.owner)
 			agent = self.owner.decision.learningAgent
 			agent.backward(self.reward(), self.finished)
 
-		self.simulation.completedJobs += 1
+		self.incrementCompletedJobs()
 
 		# print("finished job", self.simulation.completedJobs)
 		# add results to overall results

@@ -612,7 +612,7 @@ class txJob(txMessage):
 	def finishTask(self):
 		# if using rl, update model
 		if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
-			sim.systemState.current.updateJob(self.job, sim.systemState.current.currentTime)
+			sim.systemState.current.updateJob(self.job)
 			sim.systemState.current.updateTask(self.job.currentTask)
 			sim.systemState.current.updateDevice(self.owner)
 			agent = self.owner.decision.learningAgent
@@ -729,7 +729,7 @@ class rxJob(rxMessage):
 			print("updating decision upon reception")
 			print("owner:", self.job.owner)
 			sim.systemState.current.updateDevice(self.job.owner)
-			sim.systemState.current.updateJob(self.job, self.owner.simulation.time)
+			sim.systemState.current.updateJob(self.job)
 			sim.systemState.current.updateTask(self.job.currentTask)
 			sim.debug.out("systemstate: {}".format(sim.systemState.current))
 			# print("systemstate: {}".format(sim.systemState.current))

@@ -1,4 +1,4 @@
-PYTHON=python3.7
+PYTHON=python3.6
 
 drone:
 	DRONE_REPO_NAME=simulator DRONE_COMMIT_SHA=1 drone exec --trusted --include small_test

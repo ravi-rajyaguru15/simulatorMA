@@ -3,6 +3,7 @@ import sys
 print (sys.path)
 sys.path.insert(0, ".")
 from sim.simulation import simulation
+import sim.simulation
 import sim.constants
 import sim.variable
 import sim.offloadingPolicy
@@ -32,7 +33,7 @@ def randomJobs(offloadingPolicy=sim.offloadingPolicy.ANYTHING, hw=True):
 	sim.constants.JOB_LIKELIHOOD = 9e-3 # 2e-3
 	sim.constants.SAMPLE_RAW_SIZE = sim.variable.Constant(40)
 	sim.constants.SAMPLE_SIZE = sim.variable.Constant(10)
-	sim.constants.PLOT_TD = sim.constants.TD * 1
+	sim.constants.PLOT_TD = sim.constants.TD * 100
 	sim.constants.FPGA_POWER_PLAN = sim.powerPolicy.IDLE_TIMEOUT
 	sim.constants.DRAW_DEVICES = True
 	sim.constants.FPGA_IDLE_SLEEP = 0.075
@@ -43,10 +44,10 @@ def randomJobs(offloadingPolicy=sim.offloadingPolicy.ANYTHING, hw=True):
 	sim.constants.DEFAULT_TASK_GRAPH = [sim.tasks.EASY]
 	sim.constants.ROUND_ROBIN_TIMEOUT = 1e1
 
-	exp = simulation(hardwareAccelerated=hw)
+	sim.simulation.current = simulation(hardwareAccelerated=hw)
 	print("start simulation")
 	# exp.simulate() #UntilTime(1)
-	exp.simulateTime(5)
+	sim.simulation.current.simulateTime(5)
 
 # creates dictionary with (avg, std) for each x for each graph
 # takes results as input, 

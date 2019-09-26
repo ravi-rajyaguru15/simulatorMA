@@ -21,24 +21,20 @@ import tensorflow as tf
 import tensorflow.keras as keras
 import tensorflow.keras.backend
 
+sharedAgent = None
+possibleActions = None # TODO: offloading to self
+sharedClock = None
 
 class offloadingDecision:
 	options = None
 	owner = None
 	target = None
 	simulation = None
-	learningAgent = None
-
+	privateAgent = None
 
 	def __init__(self, device, systemState):
 		self.owner = device
 		self.systemState = systemState
-
-		offloadingDecision.possibleActions = [action("Offload", i) for i in range(sim.constants.NUM_DEVICES)] + [BATCH, LOCAL]
-		print('actions', offloadingDecision.possibleActions)
-		offloadingDecision.numActionsPerDevice = len(offloadingDecision.possibleActions)
-
-
 
 	@staticmethod
 	def selectElasticNodes(devices):
@@ -75,20 +71,19 @@ class offloadingDecision:
 				self.learningAgent = agent(self.systemState)
 			else:
 				# create shared agent if required
-				if offloadingDecision.learningAgent is None:
-					offloadingDecision.learningAgent = agent(self.systemState)
-				self.learningAgent = offloadingDecision.learningAgent
+				assert sharedAgent is not None
+				self.learningAgent = sharedAgent
 
 		# print(sim.constants.OFFLOADING_POLICY, self.owner, self.options)
 
-	def chooseDestination(self, task, job, currentTime):
+	def chooseDestination(self, task, job):
 		# if specified fixed target, return it
 		if self.target is not None:
-			return offloadingDecision.possibleActions[self.target.index]
+			return self.target # possibleActions[self.target.index]
 		# check if shared target exists
 		elif offloadingDecision.target is not None:
 			print ("shared target")
-			return offloadingDecision.possibleActions[offloadingDecision.target.index]
+			return offloadingDecision.target # possibleActions[offloadingDecision.target.index]
 		elif self.options is None:
 			raise Exception("options are None!")
 		elif len(self.options) == 0:
@@ -116,7 +111,7 @@ class offloadingDecision:
 				print("deciding how to offload new job")
 				print("owner:", self.owner)
 				self.systemState.updateDevice(self.owner)
-				self.systemState.updateJob(job, currentTime)
+				self.systemState.updateJob(job)
 				self.systemState.updateTask(task)
 				sim.debug.out("systemstate: {}".format(self.systemState))
 				# print("systemstate: {}".format(self.systemState))
@@ -127,40 +122,43 @@ class offloadingDecision:
 				choice = action.findAction(random.choice(self.options).index)
 
 			sim.debug.out("Job assigned: {} -> {}".format(self.owner, choice))
+			choice.updateDevice(self.learningAgent.devices)
 			return choice
 		
 
-	previousUpdateTime = None
-	currentTargetIndex = -1
-	@staticmethod
-	def updateOffloadingTarget(currentTime):
-		newTarget = False
-		# decide if 
-		if offloadingDecision.previousUpdateTime is None:
-			sim.debug.out("first round robin")
-			# start at the beginning
+previousUpdateTime = None
+currentTargetIndex = -1
+# @staticmethod
+def updateOffloadingTarget():
+	assert sharedClock is not None
+
+	newTarget = False
+	# decide if 
+	if offloadingDecision.previousUpdateTime is None:
+		sim.debug.out("first round robin")
+		# start at the beginning
+		offloadingDecision.currentTargetIndex = 0
+		newTarget = True
+	elif sharedClock >= (offloadingDecision.previousUpdateTime + sim.constants.ROUND_ROBIN_TIMEOUT):
+		# print ("next round robin")
+		offloadingDecision.currentTargetIndex += 1
+		if offloadingDecision.currentTargetIndex >= len(offloadingDecision.options):
+			# start from beginning again
 			offloadingDecision.currentTargetIndex = 0
-			newTarget = True
-		elif currentTime >= (offloadingDecision.previousUpdateTime + sim.constants.ROUND_ROBIN_TIMEOUT):
-			# print ("next round robin")
-			offloadingDecision.currentTargetIndex += 1
-			if offloadingDecision.currentTargetIndex >= len(offloadingDecision.options):
-				# start from beginning again
-				offloadingDecision.currentTargetIndex = 0
-			newTarget = True
+		newTarget = True
 
-		# new target has been chosen:
-		if newTarget:
-			# indicate to old target to process batch immediately
-			if offloadingDecision.target is not None:
-				sim.debug.out("offloading target", offloadingDecision.target.offloadingDecision)
-				# time.sleep(1)
-				offloadingDecision.target.addSubtask(sim.subtask.batchContinue(node=offloadingDecision.target))
+	# new target has been chosen:
+	if newTarget:
+		# indicate to old target to process batch immediately
+		if offloadingDecision.target is not None:
+			sim.debug.out("offloading target", offloadingDecision.target.offloadingDecision)
+			# time.sleep(1)
+			offloadingDecision.target.addSubtask(sim.subtask.batchContinue(node=offloadingDecision.target))
 
-			offloadingDecision.previousUpdateTime = currentTime
-			offloadingDecision.target = offloadingDecision.options[offloadingDecision.currentTargetIndex]
+		offloadingDecision.previousUpdateTime = currentTime
+		offloadingDecision.target = offloadingDecision.options[offloadingDecision.currentTargetIndex]
 
-			sim.debug.out("Round robin update: {}".format(offloadingDecision.target), 'r')
+		sim.debug.out("Round robin update: {}".format(offloadingDecision.target), 'r')
 
 
 
@@ -184,6 +182,10 @@ class action:
 
 	def __repr__(self): return self.name
 
+	# update device based on latest picked device index
+	def updateDevice(self, devices):
+		self.targetDevice = devices[self.targetDeviceIndex]
+
 	# @staticmethod
 	# def findAction(targetIndex):
 	# 	# find target device for offloading that matches this index
@@ -195,21 +197,6 @@ BATCH = action("Batch") # TODO: wait does nothing
 LOCAL = action("Local")
 # OFFLOAD = action("Offload")
 
-# TODO: offloading to self
-possibleActions = None
-
-
-
-# class decision:
-# 	targetDevice = None
-# 	targetAction = None
-
-# 	def __init__(self, device, action):
-# 		self.targetDevice = device
-# 		self.targetAction = action
-
-# 	def __repr__(self): 
-# 		return "{} - {}".format(self.targetDevice, self.targetAction)
 
 class agent:
 	systemState = None
@@ -225,7 +212,10 @@ class agent:
 	latestMAE = None
 	latestMeanQ = None
 	gamma = None
+	history = None
 
+	device = None
+	devices = None
 
 	@property
 	def metrics_names(self):
@@ -236,23 +226,18 @@ class agent:
 		model_metrics = [name.replace(dummy_output_name + '_', '') for name in model_metrics]
 
 		names = model_metrics + self.policy.metrics_names[:]
-		# if self.processor is not None:
-		# 	names += self.processor.metrics_names[:]
+
 		return names
 
 	def __init__(self, systemState):
 		self.systemState = systemState
-		self.numActions = len(offloadingDecision.possibleActions)
+
 		self.gamma = sim.constants.GAMMA
 
 		sim.debug.out(sim.constants.OFFLOADING_POLICY)
 		self.policy = rl.policy.EpsGreedyQPolicy(eps=sim.constants.EPS)
 		# self.dqn = rl.agents.DQNAgent(model=self.model, policy=rl.policy.LinearAnnealedPolicy(, attr='eps', value_max=sim.constants.EPS_MAX, value_min=sim.constants.EPS_MIN, value_test=.05, nb_steps=sim.constants.EPS_STEP_COUNT), enable_double_dqn=False, gamma=.99, batch_size=1, nb_actions=self.numActions)
 		self.optimizer = keras.optimizers.Adam(lr=sim.constants.LEARNING_RATE)
-		# self.dqn.compile(self.optimizer, metrics=['mae'])
-		# self.dqn.training = True
-
-		self.createModel()
 
 		self.history = dict()
 		self.history["loss"] = []
@@ -260,7 +245,25 @@ class agent:
 		self.history["q"] = []
 		self.history["action"] = []
 
+	def setDevices(self, devices):
+		self.devices = devices
+		# create actions
+		global possibleActions
+		assert self.devices is not None
+		possibleActions = [action("Offload", i) for i in range(len(self.devices))] + [BATCH, LOCAL]
+		print('actions', possibleActions)
+		offloadingDecision.numActionsPerDevice = len(possibleActions)
+		
+		self.numActions = len(possibleActions)
+
+		# needs numActions
+		self.createModel()
+
+
+
+
 	def createModel(self):
+		assert self.devices is not None
 		# create basic model
 		self.model = keras.models.Sequential()
 		self.model.add(keras.layers.Flatten(input_shape=(1,) + (self.systemState.stateCount,)))
@@ -327,11 +330,13 @@ class agent:
 		actionIndex = self.policy.select_action(q_values=qValues)
 		self.latestAction = actionIndex
 
-		choice = offloadingDecision.possibleActions[actionIndex]
+		assert sim.offloadingDecision.possibleActions is not None
+		choice = sim.offloadingDecision.possibleActions[actionIndex]
 		sim.debug.out("choice: {}".format(choice), 'r')
 		# must set local choices index
 		if choice.local:
 			choice.targetDeviceIndex = self.systemState.selfDeviceIndex
+		choice.updateDevice(self.devices)
 		# return agent.decodeIndex(actionIndex, options)
 		return choice
 

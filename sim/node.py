@@ -42,16 +42,17 @@ class node:
 	batchFull = None
 
 	# busy = None
-
+	currentTime = None
 	# drawing
 	rectangle = None
 	location = None
 
-	def __init__(self, simulation, platform, index, components, alwaysHardwareAccelerate=None):
+	def __init__(self, clock, platform, index, components, alwaysHardwareAccelerate=None):
 		self.platform = platform
 
 		self.decision = sim.offloadingDecision.offloadingDecision(self, sim.systemState.current)
-		self.simulation = simulation
+		# self.simulation = simulation
+		self.currentTime = clock
 		self.jobQueue = list()
 		sim.debug.out ("jobqueue" + str(self.jobQueue))
 		self.taskQueue = deque()
@@ -116,20 +117,20 @@ class node:
 	# def prependTask(self, subtask):
 	# 	self.jobQueue = [subtask] + self.jobQueue
 
-	def maybeAddNewJob(self, currentTime):
+	def maybeAddNewJob(self):
 		# possibly create new job
 		if sim.constants.uni.evaluate(sim.constants.JOB_LIKELIHOOD): # 0.5
 			sim.debug.out ("\t\t** {} new job ** ".format(self))
-			self.createNewJob(currentTime)
+			self.createNewJob()
 
-	def createNewJob(self, currentTime, hardwareAccelerated=None, taskGraph=None):
+	def createNewJob(self, hardwareAccelerated=None, taskGraph=None):
 		# if not set to hardwareAccelerate, use default
 		if hardwareAccelerated is None:
 			hardwareAccelerated = self.alwaysHardwareAccelerate
 			# if still None, unknown behaviour
 		assert(hardwareAccelerated is not None)
 
-		self.addJob(job(currentTime, self, sim.constants.SAMPLE_SIZE.gen(), self.decision, hardwareAccelerated=hardwareAccelerated, taskGraph=taskGraph))
+		self.addJob(job(sim.simulation.current.time, self, sim.constants.SAMPLE_SIZE.gen(), self.decision, hardwareAccelerated=hardwareAccelerated, taskGraph=taskGraph))
 		sim.debug.out("added job to queue", 'p')
 
 	def addJob(self, job):
@@ -377,7 +378,7 @@ class node:
 				self.jobQueue.remove(self.currentJob)
 				# see if it's a brand new job
 				if not self.currentJob.started:
-					self.currentJob.start(currentTime)
+					self.currentJob.start()
 				else:
 					sim.debug.out("\tALREADY STARTED")
 
