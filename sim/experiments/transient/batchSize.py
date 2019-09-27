@@ -15,7 +15,7 @@ import warnings
 import profile
 
 sim.constants.NUM_DEVICES = 1
-numJobs = int(1e1)
+numJobs = int(1e2)
 
 def runThread(results, finished, histories):
 	exp = simulation(hardwareAccelerated=True)
@@ -34,11 +34,13 @@ def runThread(results, finished, histories):
 		print("Error in experiment:", exp.time)
 
 	finished.put(True)
-	histories.put(sim.offloadingDecision.learningAgent.history)
+	histories.put(sim.results.learningHistory)
+
+	print("forward", sim.counters.NUM_FORWARD, "backward", sim.counters.NUM_BACKWARD)
 
 def run():
 	print ("starting experiment")
-	sim.debug.enabled = False
+	sim.debug.enabled = True
 	sim.constants.DRAW = False
 	sim.constants.FPGA_POWER_PLAN = sim.powerPolicy.IDLE_TIMEOUT
 	sim.constants.OFFLOADING_POLICY = sim.offloadingPolicy.REINFORCEMENT_LEARNING
@@ -60,8 +62,8 @@ def run():
 	
 	results = sim.experiments.experiment.executeMulti(processes, results, finished, numResults=numJobs*sim.constants.REPEATS)
 	
-	sim.plotting.plotMultiWithErrors("Learning Loss", results=results, ylabel="Loss", xlabel="Job #") # , save=True)
-	sim.plotting.plotAgentHistory(sim.offloadingDecision.offloadingDecision.learningAgent.history)
+	# sim.plotting.plotMultiWithErrors("Learning Loss", results=results, ylabel="Loss", xlabel="Job #") # , save=True)
+	sim.plotting.plotAgentHistory(histories.get())
 
 try:
 	run()

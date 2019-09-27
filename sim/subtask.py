@@ -709,6 +709,8 @@ class rxJob(rxMessage):
 	__name__ = "RX Job"
 	
 	def finishTask(self):
+		usingReinforcementLearning = sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING
+
 		sim.debug.out("adding processing task 1")
 
 		# if offloading, this is before processing
@@ -719,11 +721,21 @@ class rxJob(rxMessage):
 		newOwner = self.job.processingNode		
 		# self.job.creator.waiting = True
 
+		if usingReinforcementLearning:
+			sim.debug.out("training before reevaluating")
+			print("backward before update")
+			sim.systemState.current.updateDevice(self.job.owner) # still old owner
+			sim.systemState.current.updateJob(self.job)
+			sim.systemState.current.updateTask(self.job.currentTask)
+			sim.debug.out("systemstate: {}".format(sim.systemState.current))
+
+			self.job.decision.learningAgent.backward(self.job.reward(), self.job.finished)
+
 		self.job.moveTo(newOwner)
 
 
 		# if using rl, reevalute decision
-		if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
+		if usingReinforcementLearning:
 			sim.debug.out("updating decision upon reception")
 			print()
 			print("updating decision upon reception")
@@ -732,6 +744,9 @@ class rxJob(rxMessage):
 			sim.systemState.current.updateJob(self.job)
 			sim.systemState.current.updateTask(self.job.currentTask)
 			sim.debug.out("systemstate: {}".format(sim.systemState.current))
+
+
+
 			# print("systemstate: {}".format(sim.systemState.current))
 			choice = self.job.owner.decision.learningAgent.forward()
 			print("choice: {}".format(choice))

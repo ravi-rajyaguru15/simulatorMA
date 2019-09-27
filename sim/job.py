@@ -6,6 +6,7 @@ import sim.debug
 # from sim.result import result
 import sim.results
 import sim.subtask
+import sim.history
 
 # from node import node
 
@@ -43,6 +44,8 @@ class job:
 	batchSize = None
 	incrementCompletedJobs = None
 
+	history = None
+
 	def __init__(self, currentTime, origin, samples, offloadingDecision, hardwareAccelerated, taskGraph=None):
 		self.creator = origin
 		# self.simulation = origin.simulation
@@ -75,12 +78,21 @@ class job:
 		# initialise message size to raw data
 		self.datasize = self.rawMessageSize()
 		
+		# private history to be used by rl
+		self.history = sim.history.history()
+
 		# initiate task by setting processing node
 		self.applyDecision(offloadingDecision.chooseDestination(self.currentTask, self))
+
+
 		
 	def applyDecision(self, decision):
 		# initiate task by setting processing node
 		self.decision = decision
+
+		# add to history
+		assert self.history is not None
+		self.history.add("action", self.decision.index)
 		
 		# selectedDevice = self.simulation.devices[self.decision.targetDeviceIndex]
 		sim.debug.out("selected {}".format(self.decision.targetDevice))
@@ -114,6 +126,11 @@ class job:
 
 		return jobReward + deadlineReward + expectedLifetimeReward
 
+	def addToHistory(self, reward, q, loss):
+		self.history.add("reward", reward)
+		self.history.add("q", q)
+		self.history.add("loss", loss)
+
 	def start(self):
 		self.started = True
 		self.startTime = self.currentTime.current
@@ -145,9 +162,17 @@ class job:
 			sim.systemState.current.updateTask(self.currentTask)
 			sim.systemState.current.updateDevice(self.owner)
 			agent = self.owner.decision.learningAgent
+			reward = self.reward()
 			agent.backward(self.reward(), self.finished)
 
+			self.addToHistory(reward, agent.latestMeanQ, agent.latestLoss)
+
 		self.incrementCompletedJobs()
+
+		# save this job's history to communal history
+		if sim.results.learningHistory is None:
+			sim.results.learningHistory = sim.history.history()
+		sim.results.learningHistory.combine(self.history)
 
 		# print("finished job", self.simulation.completedJobs)
 		# add results to overall results

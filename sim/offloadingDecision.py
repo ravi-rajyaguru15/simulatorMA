@@ -1,21 +1,12 @@
 import sim.constants
 import sim.debug
 import sim.offloadingPolicy
-# import sim.elasticNode
+import sim.counters
 
-# import matplotlib.pyplot as pp
-# import matplotlib as mpl
-# import matplotlib.image
-# import warnings
-# import random
-# import time
 import numpy as np
-# import sys
-# if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
 import rl
 import rl.util
 import rl.policy
-# import rl.core.agent
 import tensorflow as tf
 
 import tensorflow.keras as keras
@@ -166,10 +157,12 @@ def updateOffloadingTarget():
 
 def mean_q(correctQ, predictedQ):
 	return tf.keras.backend.mean(tf.keras.backend.max(predictedQ, axis=-1))
+
 class action:
 	name = None
 	targetDeviceIndex = None
 	local = False
+	index = None
 
 	def __init__(self,name, targetIndex=None):
 		if targetIndex is None:
@@ -216,6 +209,7 @@ class agent:
 
 	device = None
 	devices = None
+	actionIndex = None
 
 	@property
 	def metrics_names(self):
@@ -239,11 +233,7 @@ class agent:
 		# self.dqn = rl.agents.DQNAgent(model=self.model, policy=rl.policy.LinearAnnealedPolicy(, attr='eps', value_max=sim.constants.EPS_MAX, value_min=sim.constants.EPS_MIN, value_test=.05, nb_steps=sim.constants.EPS_STEP_COUNT), enable_double_dqn=False, gamma=.99, batch_size=1, nb_actions=self.numActions)
 		self.optimizer = keras.optimizers.Adam(lr=sim.constants.LEARNING_RATE)
 
-		self.history = dict()
-		self.history["loss"] = []
-		self.history["reward"] = []
-		self.history["q"] = []
-		self.history["action"] = []
+		# self.history = sim.history.history()
 
 	def setDevices(self, devices):
 		self.devices = devices
@@ -251,6 +241,8 @@ class agent:
 		global possibleActions
 		assert self.devices is not None
 		possibleActions = [action("Offload", i) for i in range(len(self.devices))] + [BATCH, LOCAL]
+		for i in range(len(possibleActions)):
+			possibleActions[i].index = i 
 		print('actions', possibleActions)
 		offloadingDecision.numActionsPerDevice = len(possibleActions)
 		
@@ -323,12 +315,15 @@ class agent:
 
 	# predict best action using Q values
 	def forward(self):
+		sim.counters.NUM_FORWARD += 1
+
 		self.beforeState = np.array(sim.systemState.current.currentState)
 		sim.debug.out("beforestate {}".format(sim.systemState.current.currentState))
 		qValues = self.model.predict(self.beforeState.reshape((1, 1, self.systemState.stateCount)))[0]
 		sim.debug.out('q {}'.format(qValues))
 		actionIndex = self.policy.select_action(q_values=qValues)
 		self.latestAction = actionIndex
+		# self.history["action"].append(float(self.latestAction))
 
 		assert sim.offloadingDecision.possibleActions is not None
 		choice = sim.offloadingDecision.possibleActions[actionIndex]
@@ -342,6 +337,8 @@ class agent:
 
 	# update based on resulting system state and reward
 	def backward(self, reward, finished):
+		sim.counters.NUM_BACKWARD += 1
+
 		metrics = [np.nan for _ in self.metrics_names]
 
 		# Compute the q_values given state1, and extract the maximum for each sample in the batch.
@@ -383,22 +380,32 @@ class agent:
 		# print(metrics, self.metrics_names)
 
 		# new metrics
-		self.loss = metrics[0]
+		self.latestLoss = metrics[0]
 		self.latestReward = R
 		self.latestMAE = metrics[1]
 		self.latestMeanQ = metrics[2]
 
-		# metrics history
-		self.history["loss"].append(self.loss)
-		self.history["reward"].append(self.latestReward)
-		self.history["q"].append(self.latestMeanQ)
+		# # metrics history
+		# self.history.add("loss", self.loss)
+		# self.history["reward"].append(self.latestReward)
+		# self.history["q"].append(self.latestMeanQ)
 
 		# print('reward', reward)
 
-		sim.debug.out("loss: {} reward: {}".format(self.loss, self.latestReward), 'r')
-		print("loss: {} reward: {}".format(self.loss, self.latestReward), 'r')
+		sim.debug.out("loss: {} reward: {}".format(self.latestLoss, self.latestReward), 'r')
+		print("loss: {} reward: {}".format(self.latestLoss, self.latestReward), 'r')
 
 		# agent.step += 1
 		# agent.update_target_model_hard()
 
 		# return metrics
+
+	# @staticmethod
+	# def findAction(targetIndex):
+	# 	# find target device for offloading that matches this index
+	# 	targets = [device for action in possibleActions if action.targetDeviceIndex == targetIndex]
+	# 	assert len(targets) == 1
+	# 	return targets[0]
+
+def actionFromIndex(index):
+	return sim.offloadingDecision.possibleActions[index]
