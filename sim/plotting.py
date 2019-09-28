@@ -31,6 +31,7 @@ def plotWithErrors(x, y=None, errors=None, results=None):
 
 def plotAgentHistory(history):
 	print("plotting agent")
+	assert history is not None
 	filename = "/output/{}_{}".format("agentHistory", datetime.datetime.now()).replace(":", ".")
 	pickle.dump(history, open("{}.pickle".format(filename), "wb"))
 

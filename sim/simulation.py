@@ -67,7 +67,7 @@ class simulation:
 		# self.ed = [] # endDevice(None, self, self.results, i, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(numEndDevices)]
 		# self.ed = endDevice()
 		# self.ed2 = endDevice()
-		self.devices = [elasticNode(self, sim.constants.DEFAULT_ELASTIC_NODE, self.results, i, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(sim.constants.NUM_DEVICES)]
+		self.devices = [elasticNode(self, sim.constants.DEFAULT_ELASTIC_NODE, self.results, i, episodeFinished=self.isEpisodeFinished, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(sim.constants.NUM_DEVICES)]
 		if useSharedAgent:
 			sim.offloadingDecision.sharedAgent.setDevices(self.devices)
 		
@@ -117,6 +117,23 @@ class simulation:
 		while self.completedJobs == numJobs:
 			self.simulateTick()
 
+	# reset energy levels of all devices and run entire simulation
+	def simulateEpisode(self):
+		sim.offloadingDecision.sharedAgent.reset()
+
+		# reset energy
+		for dev in self.devices:
+			dev.reset()
+
+		self.time.reset()
+		self.finished = False
+		
+		while not self.finished:
+			self.simulateTick()
+
+	def isEpisodeFinished(self):
+		return self.finished
+
 	def getCompletedJobs(self): return self.completedJobs
 	def incrementCompletedJobs(self): self.completedJobs += 1
 
@@ -130,6 +147,8 @@ class simulation:
 		plotFrames = sim.constants.PLOT_TD / sim.constants.TD
 		sim.debug.out (plotFrames)
 		frames = 0
+
+		if self.finished: return
 
 		while self.time < endTime and not self.finished:
 			# try:
@@ -167,7 +186,6 @@ class simulation:
 	def simulateTick(self):
 		# try:
 		if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
-
 			sim.systemState.current.updateSystem(self)
 		# create new jobs
 		for device in self.devices:
@@ -200,11 +218,14 @@ class simulation:
 					dev.currentJob.devicesEnergyCost[dev] = 0
 				
 				dev.currentJob.devicesEnergyCost[dev] += energy
+
 		if sim.constants.DRAW_GRAPH_EXPECTED_LIFETIME:
 			# note energy levels for plotting
 			self.timestamps.append(self.time)
 			self.lifetimes.append(self.devicesLifetimes())
 			self.energylevels.append(self.devicesEnergyLevels())
+
+		self.finished = self.systemLifetime() <= 0
 			
 
 		# check if task queue is too long

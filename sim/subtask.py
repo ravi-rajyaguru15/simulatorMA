@@ -615,7 +615,7 @@ class txJob(txMessage):
 			sim.systemState.current.updateJob(self.job)
 			sim.systemState.current.updateTask(self.job.currentTask)
 			sim.systemState.current.updateDevice(self.owner)
-			agent = self.owner.decision.learningAgent
+			agent = self.owner.decision.privateAgent
 			agent.backward(self.job.reward(), self.finished)			
 
 		txMessage.finishTask(self)
@@ -729,7 +729,7 @@ class rxJob(rxMessage):
 			sim.systemState.current.updateTask(self.job.currentTask)
 			sim.debug.out("systemstate: {}".format(sim.systemState.current))
 
-			self.job.decision.learningAgent.backward(self.job.reward(), self.job.finished)
+			self.job.creator.decision.privateAgent.backward(self.job.reward(), self.job.finished)
 
 		self.job.moveTo(newOwner)
 
@@ -748,7 +748,7 @@ class rxJob(rxMessage):
 
 
 			# print("systemstate: {}".format(sim.systemState.current))
-			choice = self.job.owner.decision.learningAgent.forward()
+			choice = self.job.owner.decision.privateAgent.forward()
 			print("choice: {}".format(choice))
 			
 			self.job.applyDecision(choice)

@@ -4,6 +4,9 @@ class clock:
 	current = None
 	
 	def __init__(self):
+		self.reset()
+	
+	def reset(self):
 		self.current = 0
 
 	def __add__(self, target):

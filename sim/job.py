@@ -13,6 +13,7 @@ import sim.history
 class job:
 	# static results queue
 	jobResultsQueue = None
+	episodeFinished = None
 
 	datasize = None
 	samples = None
@@ -46,7 +47,7 @@ class job:
 
 	history = None
 
-	def __init__(self, currentTime, origin, samples, offloadingDecision, hardwareAccelerated, taskGraph=None):
+	def __init__(self, currentTime, origin, samples, offloadingDecision, hardwareAccelerated, episodeFinished, taskGraph=None):
 		self.creator = origin
 		# self.simulation = origin.simulation
 
@@ -84,7 +85,8 @@ class job:
 		# initiate task by setting processing node
 		self.applyDecision(offloadingDecision.chooseDestination(self.currentTask, self))
 
-
+		# define episode finished function for training
+		self.episodeFinished = episodeFinished
 		
 	def applyDecision(self, decision):
 		# initiate task by setting processing node
@@ -161,9 +163,9 @@ class job:
 			sim.systemState.current.updateJob(self)
 			sim.systemState.current.updateTask(self.currentTask)
 			sim.systemState.current.updateDevice(self.owner)
-			agent = self.owner.decision.learningAgent
+			agent = self.owner.decision.privateAgent
 			reward = self.reward()
-			agent.backward(self.reward(), self.finished)
+			agent.backward(self.reward(), self.episodeFinished())
 
 			self.addToHistory(reward, agent.latestMeanQ, agent.latestLoss)
 
@@ -177,7 +179,8 @@ class job:
 		# print("finished job", self.simulation.completedJobs)
 		# add results to overall results
 		# job.jobResultsQueue.put(self.totalLatency, self.totalEnergyCost))
-		print ("pushing", self.batchSize)
+		# print ("pushing", self.batchSize)
+		# job.jobResultsQueue.put((self.currentTime - self.startTime,))
 		job.jobResultsQueue.put((self.batchSize,))
 		
 

@@ -32,7 +32,7 @@ EASY = task(
 	complexity=8e3,
 	rawSize=5,
 	processedSize=1,
-	deadline=sim.variable.Gaussian(1, 0.1)
+	deadline=sim.variable.Gaussian(.5, 0.1)
 	)
 
 HARD = task(

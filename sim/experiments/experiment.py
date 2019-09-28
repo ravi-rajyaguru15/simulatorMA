@@ -83,7 +83,7 @@ def assembleResults(resultsQueue, outputQueue, numResults=None):
 	print()
 	print("normalise:", normaliseDict)
 	print("find max")
-	print("graphs", graphs)
+	# print("graphs", graphs)
 	maxDict = dict()
 	for name in graphs:
 		if not normaliseDict[name]: continue

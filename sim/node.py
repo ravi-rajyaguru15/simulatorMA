@@ -46,40 +46,44 @@ class node:
 	# drawing
 	rectangle = None
 	location = None
+	episodeFinished = None
 
-	def __init__(self, clock, platform, index, components, alwaysHardwareAccelerate=None):
+	def __init__(self, clock, platform, index, components, episodeFinished, alwaysHardwareAccelerate=None):
 		self.platform = platform
 
 		self.decision = sim.offloadingDecision.offloadingDecision(self, sim.systemState.current)
 		# self.simulation = simulation
 		self.currentTime = clock
-		self.jobQueue = list()
-		sim.debug.out ("jobqueue" + str(self.jobQueue))
-		self.taskQueue = deque()
 
 		# self.resultsQueue = queue
 		self.index = index
 		# self.nodeType = nodeType
 
-		self.energyLevel = node.convertEnergy(platform.BATTERY_SIZE, platform.BATTERY_VOLTAGE)
-		self.averagePower = 0
-		self.powerCount = 0
-		self.totalEnergyCost = 0
-		self.totalSleepTime = 0
+		self.reset()
 
 		self.drawLocation = (0,0)
 
 		self.setComponents(components)
-
-		# self.waitingForResult = False'
-		self.jobActive = False
-		self.numJobs = 0
+		self.episodeFinished = episodeFinished
 		self.alwaysHardwareAccelerate = alwaysHardwareAccelerate
 
-		self.batch = dict()
-		# self.batchProcessing = False # indicates if batch has been full (should process batch)
+	def reset(self):
 
-		# self.processors = list()
+		self.jobQueue = list()
+		self.taskQueue = deque()
+		sim.debug.out ("jobqueue" + str(self.jobQueue))
+		
+		self.resetEnergyLevel()
+		self.averagePower = 0
+		self.powerCount = 0
+		self.totalEnergyCost = 0
+		self.totalSleepTime = 0
+		self.jobActive = False
+		self.numJobs = 0
+		self.batch = dict()
+
+	def resetEnergyLevel(self):
+		self.energyLevel = node.convertEnergy(self.platform.BATTERY_SIZE, self.platform.BATTERY_VOLTAGE)
 
 	def setComponents(self, components):
 		if components is None:
@@ -130,7 +134,7 @@ class node:
 			# if still None, unknown behaviour
 		assert(hardwareAccelerated is not None)
 
-		self.addJob(job(sim.simulation.current.time, self, sim.constants.SAMPLE_SIZE.gen(), self.decision, hardwareAccelerated=hardwareAccelerated, taskGraph=taskGraph))
+		self.addJob(job(sim.simulation.current.time, self, sim.constants.SAMPLE_SIZE.gen(), self.decision, hardwareAccelerated=hardwareAccelerated, episodeFinished=self.episodeFinished, taskGraph=taskGraph))
 		sim.debug.out("added job to queue", 'p')
 
 	def addJob(self, job):

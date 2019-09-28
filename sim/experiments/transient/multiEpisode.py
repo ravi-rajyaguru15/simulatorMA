@@ -15,19 +15,17 @@ import warnings
 import profile
 
 sim.constants.NUM_DEVICES = 1
-numJobs = int(1e2)
 
-def runThread(results, finished, histories):
+def runThread(numEpisodes, results, finished, histories):
 	exp = simulation(hardwareAccelerated=True)
 	sim.simulation.current = exp
 
 	try:
-		for i in range(numJobs):
-			exp.simulateUntilJobDone()
-			batch = sim.job.job.jobResultsQueue.get()
-			batch = batch[0]
-			print("batch:", batch)
-			results.put(["Batch Size", exp.completedJobs, batch])
+		for e in range(numEpisodes):
+			exp.simulateEpisode()
+			results.put(["Duration", e, exp.time.current])
+			results.put(["Episode reward", e, sim.offloadingDecision.sharedAgent.episodeReward])
+			results.put(["Overall reward", e, sim.offloadingDecision.sharedAgent.totalReward])
 	except:
 		traceback.print_exc(file=sys.stdout)
 		sys.exit(0)
@@ -45,6 +43,7 @@ def run():
 	sim.constants.FPGA_POWER_PLAN = sim.powerPolicy.IDLE_TIMEOUT
 	sim.constants.OFFLOADING_POLICY = sim.offloadingPolicy.REINFORCEMENT_LEARNING
 	# sim.constants.TOTAL_TIME = 1e3
+	sim.constants.DEFAULT_ELASTIC_NODE.BATTERY_SIZE = 1e-1
 
 	processes = list()
 	sim.constants.MINIMUM_BATCH = 1e5
@@ -57,12 +56,13 @@ def run():
 
 	# for jobLikelihood in np.arange(1e-3, 1e-2, 1e-3):
 	# 	for roundRobin in np.arange(1e0, 1e1, 2.5):
+	numEpisodes = 100
 	for _ in range(sim.constants.REPEATS):
-		processes.append(multiprocessing.Process(target=runThread, args=(results, finished, histories)))
+		processes.append(multiprocessing.Process(target=runThread, args=(numEpisodes, results, finished, histories)))
 	
-	results = sim.experiments.experiment.executeMulti(processes, results, finished, numResults=numJobs*sim.constants.REPEATS)
+	results = sim.experiments.experiment.executeMulti(processes, results, finished, numResults=numEpisodes*sim.constants.REPEATS*3)
 	
-	sim.plotting.plotMultiWithErrors("BatchSize", results=results, ylabel="Loss", xlabel="Job #") # , save=True)
+	sim.plotting.plotMultiWithErrors("Episode duration", results=results, ylabel="Loss", xlabel="Job #") # , save=True)
 	sim.plotting.plotAgentHistory(histories.get())
 
 try:

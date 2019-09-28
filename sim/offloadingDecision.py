@@ -4,6 +4,7 @@ import sim.offloadingPolicy
 import sim.counters
 
 import numpy as np
+import random
 import rl
 import rl.util
 import rl.policy
@@ -59,11 +60,11 @@ class offloadingDecision:
 		if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
 			# create either private or shared agent
 			if not sim.constants.CENTRALISED_LEARNING:
-				self.learningAgent = agent(self.systemState)
+				self.privateAgent = agent(self.systemState)
 			else:
 				# create shared agent if required
 				assert sharedAgent is not None
-				self.learningAgent = sharedAgent
+				self.privateAgent = sharedAgent
 
 		# print(sim.constants.OFFLOADING_POLICY, self.owner, self.options)
 
@@ -106,14 +107,18 @@ class offloadingDecision:
 				self.systemState.updateTask(task)
 				sim.debug.out("systemstate: {}".format(self.systemState))
 				# print("systemstate: {}".format(self.systemState))
-				choice = self.learningAgent.forward()
+				choice = self.privateAgent.forward()
 				sim.debug.out("choice: {}".format(choice))
 				print("choice: {}".format(choice))
 			else:
-				choice = action.findAction(random.choice(self.options).index)
+				choice = action("Random", targetIndex=random.choice(self.options).index)
+				# choice = np.random.choice(self.options) #  action.findAction(random.choice(self.options).index)
 
 			sim.debug.out("Job assigned: {} -> {}".format(self.owner, choice))
-			choice.updateDevice(self.learningAgent.devices)
+			if self.privateAgent is not None:
+				choice.updateDevice(self.privateAgent.devices)
+			else:
+				choice.updateDevice(self.options)
 			return choice
 		
 
@@ -211,6 +216,9 @@ class agent:
 	devices = None
 	actionIndex = None
 
+	totalReward = None
+	episodeReward = None
+
 	@property
 	def metrics_names(self):
 		# Throw away individual losses and replace output name since this is hidden from the user.
@@ -232,6 +240,12 @@ class agent:
 		self.policy = rl.policy.EpsGreedyQPolicy(eps=sim.constants.EPS)
 		# self.dqn = rl.agents.DQNAgent(model=self.model, policy=rl.policy.LinearAnnealedPolicy(, attr='eps', value_max=sim.constants.EPS_MAX, value_min=sim.constants.EPS_MIN, value_test=.05, nb_steps=sim.constants.EPS_STEP_COUNT), enable_double_dqn=False, gamma=.99, batch_size=1, nb_actions=self.numActions)
 		self.optimizer = keras.optimizers.Adam(lr=sim.constants.LEARNING_RATE)
+
+		self.totalReward = 0
+		self.reset()
+
+	def reset(self):
+		self.episodeReward = 0
 
 		# self.history = sim.history.history()
 
@@ -337,6 +351,9 @@ class agent:
 
 	# update based on resulting system state and reward
 	def backward(self, reward, finished):
+		self.totalReward += reward
+		self.episodeReward += reward
+
 		sim.counters.NUM_BACKWARD += 1
 
 		metrics = [np.nan for _ in self.metrics_names]
@@ -402,10 +419,13 @@ class agent:
 
 	# @staticmethod
 	# def findAction(targetIndex):
-	# 	# find target device for offloading that matches this index
-	# 	targets = [device for action in possibleActions if action.targetDeviceIndex == targetIndex]
-	# 	assert len(targets) == 1
-	# 	return targets[0]
+
 
 def actionFromIndex(index):
 	return sim.offloadingDecision.possibleActions[index]
+
+# def actionFromTarget(targetIndex):
+# 	# find target device for offloading that matches this index
+# 	targets = [device for action in possibleActions if action.targetDeviceIndex == targetIndex]
+# 	assert len(targets) == 1
+# 	return targets[0]
