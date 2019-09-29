@@ -44,7 +44,7 @@ testq:
 	$(PYTHON) sim/tictactoe.py
 
 .PHONY: *
-test: transient/batchSize # transient/multiEpisode # transient/expectedLife
+test: profiling # transient/batchSize # transient/multiEpisode # transient/expectedLife
 	@echo $$DISPLAY
 	@echo "running test"
 	# python sim.py

@@ -149,26 +149,6 @@ def executeMulti(processes, results, finished, numResults=None):
 
 	return outputData.get()
 
-def profileTarget():
-	sim.debug.enabled = False
-	sim.constants.OFFLOADING_POLICY = sim.offloadingPolicy.REINFORCEMENT_LEARNING
-	sim.constants.JOB_LIKELIHOOD = 1e-3 # 2e-3
-	sim.constants.SAMPLE_RAW_SIZE = sim.variable.Constant(40)
-	sim.constants.SAMPLE_SIZE = sim.variable.Constant(10)
-	sim.constants.PLOT_TD = 10
-	sim.constants.FPGA_POWER_PLAN = sim.powerPolicy.IDLE_TIMEOUT
-	sim.constants.DRAW_DEVICES = False
-	sim.constants.FPGA_IDLE_SLEEP = 0.75
-	sim.constants.MINIMUM_BATCH = 5
-	sim.constants.DEFAULT_TASK_GRAPH = [sim.tasks.EASY]
-	sim.constants.ROUND_ROBIN_TIMEOUT = 1e1
-	sim.constants.MEASUREMENT_NOISE = True
-
-	exp = simulation(hardwareAccelerated=True)
-	exp.simulateTime(10)
-
-def testPerformance():
-	profile.run('profileTarget()', sort='cumtime')
 
 if __name__ == '__main__':
 	# for i in range(1, 100, 10):
