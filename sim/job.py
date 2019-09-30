@@ -47,7 +47,7 @@ class job:
 
 	history = None
 
-	def __init__(self, currentTime, origin, samples, offloadingDecision, hardwareAccelerated, episodeFinished, taskGraph=None):
+	def __init__(self, origin, samples, hardwareAccelerated, taskGraph=None):
 		self.creator = origin
 		# self.simulation = origin.simulation
 
@@ -56,7 +56,7 @@ class job:
 		self.incrementCompletedJobs = simulation.incrementCompletedJobs
 		self.systemLifetime = simulation.systemLifetime
 		self.startExpectedLifetime = self.systemLifetime()
-		self.currentTime = currentTime
+		self.currentTime = simulation.time
 		self.createdTime = self.currentTime.current
 
 		self.samples = samples
@@ -83,10 +83,10 @@ class job:
 		self.history = sim.history.history()
 
 		# initiate task by setting processing node
-		self.applyDecision(offloadingDecision.chooseDestination(self.currentTask, self))
+		self.applyDecision(origin.decision.chooseDestination(self.currentTask, self))
 
 		# define episode finished function for training
-		self.episodeFinished = episodeFinished
+		self.episodeFinished = simulation.isEpisodeFinished
 		
 	def applyDecision(self, decision):
 		# initiate task by setting processing node
@@ -160,9 +160,7 @@ class job:
 		self.owner.removeJob(self)
 
 		if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
-			sim.systemState.current.updateJob(self)
-			sim.systemState.current.updateTask(self.currentTask)
-			sim.systemState.current.updateDevice(self.owner)
+			sim.systemState.current.update(self.currentTask, self, self.owner)
 			agent = self.owner.decision.privateAgent
 			reward = self.reward()
 			agent.backward(self.reward(), self.episodeFinished())

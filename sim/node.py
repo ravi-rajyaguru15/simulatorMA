@@ -109,6 +109,10 @@ class node:
 	def setOffloadingDecisions(self, devices):
 		self.decision.setOptions(devices)
 
+	def getCurrentConfiguration(self):
+		# default behaviour is to not have a configuration
+		return 0
+
 	def hasFpga(self):
 		return np.any([isinstance(component, fpga) for component in self.processors])
 
@@ -134,7 +138,7 @@ class node:
 			# if still None, unknown behaviour
 		assert(hardwareAccelerated is not None)
 
-		self.addJob(job(sim.simulation.current.time, self, sim.constants.SAMPLE_SIZE.gen(), self.decision, hardwareAccelerated=hardwareAccelerated, episodeFinished=self.episodeFinished, taskGraph=taskGraph))
+		self.addJob(job(self, sim.constants.SAMPLE_SIZE.gen(), hardwareAccelerated=hardwareAccelerated, taskGraph=taskGraph))
 		sim.debug.out("added job to queue", 'p')
 
 	def addJob(self, job):

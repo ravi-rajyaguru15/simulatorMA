@@ -102,9 +102,7 @@ class offloadingDecision:
 				print()
 				print("deciding how to offload new job")
 				print("owner:", self.owner)
-				self.systemState.updateDevice(self.owner)
-				self.systemState.updateJob(job)
-				self.systemState.updateTask(task)
+				self.systemState.update(task, job, self.owner)
 				sim.debug.out("systemstate: {}".format(self.systemState))
 				# print("systemstate: {}".format(self.systemState))
 				choice = self.privateAgent.forward()
@@ -344,7 +342,7 @@ class agent:
 		sim.debug.out("choice: {}".format(choice), 'r')
 		# must set local choices index
 		if choice.local:
-			choice.targetDeviceIndex = self.systemState.selfDeviceIndex
+			choice.targetDeviceIndex = int(self.systemState.getField('selfDeviceIndex')[0])
 		choice.updateDevice(self.devices)
 		# return agent.decodeIndex(actionIndex, options)
 		return choice

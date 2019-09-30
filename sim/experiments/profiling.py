@@ -27,7 +27,7 @@ def profileTarget():
 	sim.constants.DEFAULT_TASK_GRAPH = [sim.tasks.EASY]
 	sim.constants.ROUND_ROBIN_TIMEOUT = 1e1
 	sim.constants.MEASUREMENT_NOISE = True
-	sim.constants.DEFAULT_ELASTIC_NODE.BATTERY_SIZE = 10
+	sim.constants.DEFAULT_ELASTIC_NODE.BATTERY_SIZE = 1
 
 	exp = simulation(hardwareAccelerated=True)
 	sim.simulation.current = exp

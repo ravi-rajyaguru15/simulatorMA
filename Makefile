@@ -43,6 +43,12 @@ sim:
 testq:
 	$(PYTHON) sim/tictactoe.py
 
+testActions:
+	$(PYTHON) sim/experiments/visual/testActions.py
+
+profiler:
+	$(PYTHON) sim/experiments/profiling.py
+
 .PHONY: *
 test: profiling # transient/batchSize # transient/multiEpisode # transient/expectedLife
 	@echo $$DISPLAY

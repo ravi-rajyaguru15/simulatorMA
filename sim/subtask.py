@@ -612,9 +612,7 @@ class txJob(txMessage):
 	def finishTask(self):
 		# if using rl, update model
 		if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
-			sim.systemState.current.updateJob(self.job)
-			sim.systemState.current.updateTask(self.job.currentTask)
-			sim.systemState.current.updateDevice(self.owner)
+			sim.systemState.current.update(self.job.currentTask, self.job, self.owner)
 			agent = self.owner.decision.privateAgent
 			agent.backward(self.job.reward(), self.finished)			
 
@@ -724,9 +722,7 @@ class rxJob(rxMessage):
 		if usingReinforcementLearning:
 			sim.debug.out("training before reevaluating")
 			print("backward before update")
-			sim.systemState.current.updateDevice(self.job.owner) # still old owner
-			sim.systemState.current.updateJob(self.job)
-			sim.systemState.current.updateTask(self.job.currentTask)
+			sim.systemState.current.update(self.job.currentTask, self.job, self.job.owner) # still old owner
 			sim.debug.out("systemstate: {}".format(sim.systemState.current))
 
 			self.job.creator.decision.privateAgent.backward(self.job.reward(), self.job.finished)
@@ -740,9 +736,7 @@ class rxJob(rxMessage):
 			print()
 			print("updating decision upon reception")
 			print("owner:", self.job.owner)
-			sim.systemState.current.updateDevice(self.job.owner)
-			sim.systemState.current.updateJob(self.job)
-			sim.systemState.current.updateTask(self.job.currentTask)
+			sim.systemState.current.update(self.job.currentTask, self.job, self.job.owner)
 			sim.debug.out("systemstate: {}".format(sim.systemState.current))
 
 

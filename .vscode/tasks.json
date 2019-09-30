@@ -18,12 +18,38 @@
                 "kind": "test",
                 "isDefault": true
             }
+		},
+		{
+            "label": "test actions",
+            "type": "shell",
+            "command": "make testActions",
+            "options": {
+                "env": {
+                    "DISPLAY": "localhost:10.0",
+                    // "DISPLAY": "/private/tmp/com.apple.launchd.fGtfISqkKz/org.macosforge.xquartz:0"
+                    "PYTHONPATH": "${cwd}"
+                }
+            },
+            "group": "test"
+        },
+		{
+            "label": "profiler",
+            "type": "shell",
+            "command": "make profiler",
+            "options": {
+                "env": {
+                    "DISPLAY": "localhost:10.0",
+                    // "DISPLAY": "/private/tmp/com.apple.launchd.fGtfISqkKz/org.macosforge.xquartz:0"
+                    "PYTHONPATH": "${cwd}"
+                }
+            },
+            "group": "test"
         }
         ,
         {
             "label": "redeploy",
             "type": "shell",
-            "command": "kubectl patch deployment simulator -p \"{\"spec\": {\"template\": {\"metadata\": { \"labels\": {  \"redeploy\": \"$(date +%s)\"}}}}}"        }"
-
+            "command": "kubectl patch deployment simulator -p \"{\"spec\": {\"template\": {\"metadata\": { \"labels\": {  \"redeploy\": \"$(date +%s)\"}}}}}\"        }"
+		}
     ]
 }

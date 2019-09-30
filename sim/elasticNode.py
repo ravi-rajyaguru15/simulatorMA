@@ -24,7 +24,15 @@ class elasticNode(node):
 
 		self.setComponents([self.mcu, self.fpga, self.mrf])
 
-
+	def getCurrentConfiguration(self):
+		if self.hasFpga():
+			config = self.fpga.currentConfig
+			if config is not None:
+				return config.identifier
+			else:
+				return 0
+		else:
+			return 0
 
 	
 	# def processingEnergy(self, duration):

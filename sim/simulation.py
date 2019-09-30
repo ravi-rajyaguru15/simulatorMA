@@ -31,6 +31,8 @@ class simulation:
 	jobResults = None
 	time = None
 	devices = None
+	devicesExpectedLifetimeFunctions = None
+	devicesExpectedLifetimes = None
 	numDevices = None
 	delays = None
 	currentDelays = None
@@ -57,7 +59,7 @@ class simulation:
 		sim.offloadingDecision.sharedClock = self.time
 		
 		# requires simulation to be populated
-		sim.systemState.current = sim.systemState.systemState()
+		sim.systemState.current = sim.systemState.systemState(self)
 		useSharedAgent = sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING and sim.constants.CENTRALISED_LEARNING
 			
 		if useSharedAgent:
@@ -70,7 +72,9 @@ class simulation:
 		self.devices = [elasticNode(self, sim.constants.DEFAULT_ELASTIC_NODE, self.results, i, episodeFinished=self.isEpisodeFinished, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(sim.constants.NUM_DEVICES)]
 		if useSharedAgent:
 			sim.offloadingDecision.sharedAgent.setDevices(self.devices)
-		
+		# assemble expected lifetime for faster computation later
+		self.devicesExpectedLifetimeFunctions = [dev.expectedLifetime for dev in self.devices]
+		self.devicesExpectedLifetimes = np.zeros((len(self.devices),))
 		# # self.en = elasticNode()
 		# self.gw = [] #gateway()
 		# self.srv = [] # [server() for i in range(numServers)]
@@ -186,7 +190,7 @@ class simulation:
 	def simulateTick(self):
 		# try:
 		if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
-			sim.systemState.current.updateSystem(self)
+			sim.systemState.current.updateSystem()
 		# create new jobs
 		for device in self.devices:
 			# mcu is required for taking samples
@@ -285,11 +289,17 @@ class simulation:
 	def currentDevicesEnergy(self):
 		return [dev.energy() for dev in self.devices]
 
-	def systemLifetime(self):
-		return np.min(self.devicesLifetimes())
-		
+	def systemLifetime(self, devicesExpectedLifetimes=None):
+		if devicesExpectedLifetimes is None:
+			devicesExpectedLifetimes = self.devicesLifetimes()
+
+		return np.min(devicesExpectedLifetimes)
+	
 	def devicesLifetimes(self):
-		return [dev.expectedLifetime() for dev in self.devices]
+		for i in range(sim.constants.NUM_DEVICES):
+			self.devicesExpectedLifetimes[i] = self.devicesExpectedLifetimeFunctions[i]()
+		return self.devicesExpectedLifetimes
+			# return [dev.expectedLifetime() for dev in self.devices]
 
 	def devicesEnergyLevels(self):
 		return [dev.energyLevel for dev in self.devices]
