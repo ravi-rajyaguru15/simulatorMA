@@ -57,7 +57,7 @@ def assembleResults(resultsQueue, outputQueue, numResults=None):
 		numResults = resultsQueue.qsize()
 	print ("assembling results", numResults)
 	graphs = dict()
-	print("")
+	# print("")
 	normaliseDict = dict()
 	for i in range(numResults):
 		result = resultsQueue.get()
@@ -77,6 +77,8 @@ def assembleResults(resultsQueue, outputQueue, numResults=None):
 			
 		if sample not in graphs[graphName].keys():
 			graphs[graphName][sample] = list()
+			# print ("creating list", graphName, sample)
+
 		graphs[graphName][sample].append(datapoint)
 
 	# normalise if required
@@ -84,6 +86,13 @@ def assembleResults(resultsQueue, outputQueue, numResults=None):
 	print("normalise:", normaliseDict)
 	print("find max")
 	# print("graphs", graphs)
+	# for key in graphs:
+	# 	print()
+	# 	print(key)
+	# 	print(graphs[key])
+
+
+	print()
 	maxDict = dict()
 	for name in graphs:
 		if not normaliseDict[name]: continue
@@ -91,7 +100,7 @@ def assembleResults(resultsQueue, outputQueue, numResults=None):
 		graphDict = graphs[name]
 		maxDict[name] = 0
 		for sample in graphDict:
-			print(sample, graphDict[sample])
+			# print(sample, graphDict[sample])
 			maxDict[name] = np.max([maxDict[name], np.max(np.abs(graphDict[sample]))])
 			# graphDict[sample] = np.array(graphDict[sample]) / 
 	
@@ -109,7 +118,10 @@ def assembleResults(resultsQueue, outputQueue, numResults=None):
 		# turn each list into a (value, error) tuple
 		outputGraphs[key] = dict()
 		for x, ylist in graph.items():
+			# print()
+			# print(ylist)
 			outputGraphs[key][x] = (np.average(ylist), np.std(ylist))
+			# print(outputGraphs[key][x])
 	print ("processed")
 	outputQueue.put(outputGraphs)
 	print ("after")

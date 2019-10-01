@@ -43,7 +43,8 @@ def run():
 	sim.constants.FPGA_POWER_PLAN = sim.powerPolicy.IDLE_TIMEOUT
 	sim.constants.OFFLOADING_POLICY = sim.offloadingPolicy.REINFORCEMENT_LEARNING
 	# sim.constants.TOTAL_TIME = 1e3
-	sim.constants.DEFAULT_ELASTIC_NODE.BATTERY_SIZE = 1e-1
+	sim.constants.DEFAULT_ELASTIC_NODE.BATTERY_SIZE = 1e-2
+
 
 	processes = list()
 	sim.constants.MINIMUM_BATCH = 1e5

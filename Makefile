@@ -46,11 +46,12 @@ testq:
 testActions:
 	$(PYTHON) sim/experiments/visual/testActions.py
 
+
 profiler:
 	$(PYTHON) sim/experiments/profiling.py
 
 .PHONY: *
-test: profiling # transient/batchSize # transient/multiEpisode # transient/expectedLife
+test: transient/expectedLife # transient/multiEpisode # transient/batchSize # 
 	@echo $$DISPLAY
 	@echo "running test"
 	# python sim.py

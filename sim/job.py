@@ -83,7 +83,7 @@ class job:
 		self.history = sim.history.history()
 
 		# initiate task by setting processing node
-		self.applyDecision(origin.decision.chooseDestination(self.currentTask, self))
+		self.applyDecision(origin.decision.chooseDestination(self.currentTask, self, origin))
 
 		# define episode finished function for training
 		self.episodeFinished = simulation.isEpisodeFinished

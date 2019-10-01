@@ -29,7 +29,7 @@ class subtask:
 
 	job = None
 	addsLatency = None
-	# __name__ = "Unnamed Subtask"
+	__name__ = "Unnamed Subtask"
 	
 
 	def __init__(self, job, duration, owner=None, addsLatency=True): #, energyCost): # , device): # , origin, destination):
@@ -67,6 +67,7 @@ class subtask:
 						sim.debug.out("TX DEADLOCK!\n\n\n")
 						# time.sleep(1.5)
 						sim.debug.out ("removing task {} from {}".format(self.correspondingRx, self.destination))
+						# TODO: move this to private functions
 						# resolve deadlock by making destination prioritise reception
 						# move current task to queue to be done later
 						try:
@@ -123,16 +124,16 @@ class subtask:
 
 				sim.debug.out("try again...")
 
-				
-		# print ("current task " + str(self.owner.currentSubtask))
 		# progress task if it's been started
 		if self.started:
+			# calculate progress in this tick
+			remaining = self.duration - self.progress
+			self.owner.currentTd = remaining if remaining < sim.constants.TD else sim.constants.TD
+
 			self.progress += sim.constants.TD
 
 			# is it done?
 			self.finished = self.progress >= self.duration
-
-			# print (self, self.finished, self.progress, self.duration)
 
 			# add any new tasks 
 			if self.finished:
@@ -143,10 +144,9 @@ class subtask:
 				if self.addsLatency:
 					self.job.totalLatency += self.progress
 				
-				# # remove from owner
-				# sim.debug.out("removing from tick")
-				# self.owner.removeTask(self) removing when starting at least 
 				self.owner.nextTask()
+		else:
+			self.owner.currentTd = sim.constants.TD
 
 	def __str__(self):
 		return self.__repr__()
@@ -571,7 +571,6 @@ class txMessage(subtask):
 	# start new job
 	def beginTask(self):
 		self.source.mrf.tx()
-		# self.destination.mrf.rx()
 		# TODO: check these in the experiments
 		self.source.mcu.idle()
 		# self.destination.mcu.idle()
@@ -596,18 +595,8 @@ class txJob(txMessage):
 	def __init__(self, job, source, destination):
 		# add receive task to destination
 		sim.debug.out("adding TX job")
-		# destination.switchTask((self.job, self.duration, self, owner=self.destination))
-
-		txMessage.__init__(self, job, source, destination, jobToAdd=rxJob)
-
-	# def beginTask(self):
-	# 	if self.destination.currentSubtask is not None:
-	# 		print("job {} {}".format(self.destination, self.destination.currentSubtask))
-	# 		raise Exception("Cannot start RX task in {} from {}".format(self.source,self.destination))
 		
-	# 	# self.destination.switchTask(rxJob(self.job, self.duration))
-
-	# 	txMessage.beginTask(self)
+		txMessage.__init__(self, job, source, destination, jobToAdd=rxJob)
 
 	def finishTask(self):
 		# if using rl, update model
@@ -630,15 +619,10 @@ class txResult(txMessage):
 		txMessage.__init__(self, job, source, destination, jobToAdd=rxResult)
 
 	def finishTask(self):
-		# this is result being returned
-		# self.job.processingNode.jobActive = False
-
-
 		# see if there's a next job to continue
 		self.job.processingNode.addSubtask(batchContinue(self.job), appendLeft=True)
 
 		# move result of job back to the creator
-		# self.job.moveTo(self.job.creator)
 		txMessage.finishTask(self)
 
 class rxMessage(subtask):
@@ -742,7 +726,7 @@ class rxJob(rxMessage):
 
 
 			# print("systemstate: {}".format(sim.systemState.current))
-			choice = self.job.owner.decision.privateAgent.forward()
+			choice = self.job.owner.decision.privateAgent.forward(self.job.owner)
 			print("choice: {}".format(choice))
 			
 			self.job.applyDecision(choice)

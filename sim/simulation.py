@@ -197,6 +197,9 @@ class simulation:
 			if not device.hasJob():
 				device.maybeAddNewJob()
 
+			# force updating td
+			device.currentTd = None
+
 		# update the destination of the offloading if it is shared
 		if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.ROUND_ROBIN:
 			sim.offloadingDecision.updateOffloadingTarget()
@@ -314,16 +317,16 @@ class simulation:
 		return [self.optionsNames[option] for option in self.selectedOptions]
 	
 
-if __name__ == '__main__':
-	print ("running sim")
+# if __name__ == '__main__':
+# 	print ("running sim")
 
-	# for i in range(1, 100, 10):
-	# 	print i, simulation.simulateAll(i, "latency")
+# 	# for i in range(1, 100, 10):
+# 	# 	print i, simulation.simulateAll(i, "latency")
 
-	# simulation.singleDelayedJobLocal(False)
-	# simulation.singleDelayedJobLocal(True)
-	# simulation.singleDelayedJobPeer(False)
-	# simulation.singleDelayedJobPeer(True)
-	# simulation.randomPeerJobs(True)
-	simulation.randomPeerJobs(False)
-	# simulation.singleBatchLocal(False)
+# 	# simulation.singleDelayedJobLocal(False)
+# 	# simulation.singleDelayedJobLocal(True)
+# 	# simulation.singleDelayedJobPeer(False)
+# 	# simulation.singleDelayedJobPeer(True)
+# 	# simulation.randomPeerJobs(True)
+# 	simulation.randomPeerJobs(False)
+# 	# simulation.singleBatchLocal(False)

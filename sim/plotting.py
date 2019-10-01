@@ -86,7 +86,7 @@ def plotAgentHistory(history):
 	if sim.constants.DRAW_GRAPH:
 		pp.show()
 
-def plotMultiWithErrors(name, results=None, ylim=None, ylabel=None, xlabel=None): # , show=False, save=False):
+def plotMultiWithErrors(name, results=None, ylim=None, ylabel=None, xlabel=None, separate=False): # , show=False, save=False):
 	print ("plotting!")
 	filename = "/output/{}_{}".format(name, datetime.datetime.now()).replace(":", ".")
 	pickle.dump((name, results, ylim, ylabel, xlabel), open("{}.pickle".format(filename), "wb"))
@@ -95,6 +95,9 @@ def plotMultiWithErrors(name, results=None, ylim=None, ylabel=None, xlabel=None)
 	orderedResults = collections.OrderedDict(sorted(results.items()))
 	legends = list()
 	for key, graph in orderedResults.items(): #, colour in zip(results, colours):
+		if separate:
+			pp.figure()
+			
 		legends.append(key)
 		x, y = list(), list()
 		errors = list()

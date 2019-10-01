@@ -11,7 +11,6 @@ import sys
 import traceback
 import warnings
 
-numDevices = 1
 jump = 1
 totalTime = 1e2
 def runThread(alpha, results, finished):
@@ -19,12 +18,16 @@ def runThread(alpha, results, finished):
 	sim.constants.EXPECTED_LIFETIME_ALPHA = alpha
 	exp = simulation(hardwareAccelerated=True)
 	sim.simulation.current = exp
+	counter = 0
 	for i in range(int(totalTime/jump)):
 		exp.simulateTime(jump)
-		results.put(["Alpha = {:.4f}".format(alpha), i * jump, exp.devicesLifetimes()])
-		print("\ntime", exp.time, "lifetime", exp.systemLifetime())
-		print("life ", [dev.expectedLifetime() for dev in exp.devices])
-		print("power", [dev.averagePower for dev in exp.devices])
+		counter += 1
+		print("counter", counter)
+		results.put(["Lifetime Alpha = {:.4f}".format(alpha), i * jump, exp.devicesLifetimes()])
+		results.put(["Power Alpha = {:.4f}".format(alpha), i * jump, [dev.averagePower for dev in exp.devices]])
+		# print("\ntime", exp.time, "lifetime", exp.systemLifetime())
+		# print("life ", [dev.expectedLifetime() for dev in exp.devices])
+		# print("power", [dev.averagePower for dev in exp.devices])
 	
 	finished.put(True)
 
@@ -38,7 +41,8 @@ def run():
 	sim.constants.OFFLOADING_POLICY = sim.offloadingPolicy.REINFORCEMENT_LEARNING
 	sim.constants.JOB_LIKELIHOOD = 1e-2
 	sim.constants.MINIMUM_BATCH = 10
-	sim.constants.DEFAULT_ELASTIC_NODE.BATTERY_SIZE = 1
+	sim.constants.DEFAULT_ELASTIC_NODE.BATTERY_SIZE = 1e2
+	sim.constants.NUM_DEVICES = 2
 
 	processes = list()
 	
@@ -47,15 +51,15 @@ def run():
 	finished = multiprocessing.Queue()
 	sim.constants.REPEATS = 1
 
-	# for alpha in np.logspace(-4, -3, num=2, endpoint=True):
 	alpha = 1e-4
+	# for alpha in np.logspace(-4, -3, num=2, endpoint=True):
 	if True:
 		for _ in range(sim.constants.REPEATS):
 			processes.append(multiprocessing.Process(target=runThread, args=(alpha, results, finished)))
 	
-	results = sim.experiments.experiment.executeMulti(processes, results, finished, numResults=int(totalTime/jump * len(processes)))
+	results = sim.experiments.experiment.executeMulti(processes, results, finished, numResults=2*int(totalTime/jump * len(processes)))
 	print ('plot time')
-	sim.plotting.plotMultiWithErrors("expectedLife", results=results) # , save=True)
+	sim.plotting.plotMultiWithErrors("expectedLife", results=results, separate=True) # , save=True)
 
 try:
 	run()

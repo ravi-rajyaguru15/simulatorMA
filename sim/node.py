@@ -19,9 +19,7 @@ class node:
 	numJobs = None
 	currentSubtask = None
 	simulation = None
-	# resultsQueue = None
 	index = None
-	# nodeType = None
 
 	energyLevel = None
 	totalEnergyCost = None
@@ -33,7 +31,6 @@ class node:
 	platform = None
 	components = None
 	processors = None
-	# waitingForResult = None
 	jobActive = None
 	alwaysHardwareAccelerate = None
 
@@ -41,8 +38,9 @@ class node:
 	currentBatch = None
 	batchFull = None
 
-	# busy = None
 	currentTime = None
+	currentTd = None # amount of current TD that this node is busy
+
 	# drawing
 	rectangle = None
 	location = None
@@ -241,7 +239,8 @@ class node:
 
 
 	# calculate the energy at the current activity of all the components
-	def energy(self, duration=sim.constants.TD):
+	def energy(self): # , duration=sim.constants.TD):
+		assert self.currentTd is not None
 		# totalPower = 0
 		# for component in self.components:
 			# totalPower += component.power()
@@ -255,7 +254,7 @@ class node:
 			sim.debug.out("massive power usage!")
 			# sim.debug.enabled = True
 		self.updateAveragePower(totalPower)
-		incrementalEnergy = totalPower * duration
+		incrementalEnergy = totalPower * self.currentTd
 		self.totalEnergyCost += incrementalEnergy
 		# TODO: assuming battery powered
 		# print (incrementalEnergy)
@@ -284,6 +283,9 @@ class node:
 		# do process and check if done
 		if self.currentSubtask is not None:
 			self.currentSubtask.tick()
+		else:
+			# just idle, entire td is used
+			self.currentTd = sim.constants.TD
 
 		# check for idle sleep trigger
 		for component in self.components:

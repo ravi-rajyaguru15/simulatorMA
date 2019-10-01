@@ -68,7 +68,7 @@ class offloadingDecision:
 
 		# print(sim.constants.OFFLOADING_POLICY, self.owner, self.options)
 
-	def chooseDestination(self, task, job):
+	def chooseDestination(self, task, job, device):
 		# if specified fixed target, return it
 		if self.target is not None:
 			return self.target # possibleActions[self.target.index]
@@ -102,10 +102,10 @@ class offloadingDecision:
 				print()
 				print("deciding how to offload new job")
 				print("owner:", self.owner)
-				self.systemState.update(task, job, self.owner)
+				self.systemState.update(task, job, device)
 				sim.debug.out("systemstate: {}".format(self.systemState))
 				# print("systemstate: {}".format(self.systemState))
-				choice = self.privateAgent.forward()
+				choice = self.privateAgent.forward(device)
 				sim.debug.out("choice: {}".format(choice))
 				print("choice: {}".format(choice))
 			else:
@@ -163,6 +163,7 @@ def mean_q(correctQ, predictedQ):
 
 class action:
 	name = None
+	targetDevice = None
 	targetDeviceIndex = None
 	local = False
 	index = None
@@ -180,7 +181,21 @@ class action:
 
 	# update device based on latest picked device index
 	def updateDevice(self, devices):
-		self.targetDevice = devices[self.targetDeviceIndex]
+		assert self.targetDeviceIndex is not None
+		# find device based on its index
+		for device in devices:
+			if device.index == self.targetDeviceIndex:
+				self.targetDevice = device
+				break
+		
+		if self.targetDevice is None:
+			print("updateDevice failed!", self, devices, self.targetDeviceIndex)
+
+		assert self.targetDevice is not None
+		# self.targetDevice = devices[self.targetDeviceIndex]
+
+	def setTargetDevice(self, device):
+		self.targetDevice = device
 
 	# @staticmethod
 	# def findAction(targetIndex):
@@ -326,7 +341,7 @@ class agent:
 	# 	return result
 
 	# predict best action using Q values
-	def forward(self):
+	def forward(self, device):
 		sim.counters.NUM_FORWARD += 1
 
 		self.beforeState = np.array(sim.systemState.current.currentState)
@@ -342,8 +357,12 @@ class agent:
 		sim.debug.out("choice: {}".format(choice), 'r')
 		# must set local choices index
 		if choice.local:
-			choice.targetDeviceIndex = int(self.systemState.getField('selfDeviceIndex')[0])
-		choice.updateDevice(self.devices)
+			choice.targetDeviceIndex = device.index # int(self.systemState.getField('selfDeviceIndex')[0])
+			print("local", choice.targetDeviceIndex)
+			choice.setTargetDevice(device)
+		else:
+			# only for offloading
+			choice.updateDevice(self.devices)
 		# return agent.decodeIndex(actionIndex, options)
 		return choice
 
