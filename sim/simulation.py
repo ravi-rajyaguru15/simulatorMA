@@ -70,8 +70,11 @@ class simulation:
 		# self.ed = endDevice()
 		# self.ed2 = endDevice()
 		self.devices = [elasticNode(self, sim.constants.DEFAULT_ELASTIC_NODE, self.results, i, episodeFinished=self.isEpisodeFinished, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(sim.constants.NUM_DEVICES)]
+		sim.offloadingDecision.devices = self.devices
 		if useSharedAgent:
-			sim.offloadingDecision.sharedAgent.setDevices(self.devices)
+			sim.offloadingDecision.sharedAgent.setDevices()
+		else:
+			for device in self.devices: device.decision.privateAgent.setDevices()
 		# assemble expected lifetime for faster computation later
 		self.devicesExpectedLifetimeFunctions = [dev.expectedLifetime for dev in self.devices]
 		self.devicesExpectedLifetimes = np.zeros((len(self.devices),))

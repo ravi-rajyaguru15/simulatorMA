@@ -720,18 +720,19 @@ class rxJob(rxMessage):
 			print()
 			print("updating decision upon reception")
 			print("owner:", self.job.owner)
-			sim.systemState.current.update(self.job.currentTask, self.job, self.job.owner)
-			sim.debug.out("systemstate: {}".format(sim.systemState.current))
+			# sim.systemState.current.update(self.job.currentTask, self.job, self.job.owner)
+			# sim.debug.out("systemstate: {}".format(sim.systemState.current))
 
 
 
-			# print("systemstate: {}".format(sim.systemState.current))
-			choice = self.job.owner.decision.privateAgent.forward(self.job.owner)
-			print("choice: {}".format(choice))
+			# # print("systemstate: {}".format(sim.systemState.current))
+			# choice = self.job.owner.decision.privateAgent.forward(self.job.owner)
+			# print("choice: {}".format(choice))
 			
-			self.job.applyDecision(choice)
-			self.job.activate()
+			# self.job.setDecisionTarget(choice)
+			# self.job.activate()
 
+			self.job.owner.decision.rechooseDestination(self.job.currentTask, self.job, self.job.owner)
 
 		# otherwise, just add it to the local batch
 		else:

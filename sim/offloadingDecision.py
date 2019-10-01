@@ -15,6 +15,7 @@ import tensorflow.keras.backend
 
 sharedAgent = None
 possibleActions = None # TODO: offloading to self
+devices = None
 sharedClock = None
 
 class offloadingDecision:
@@ -113,12 +114,25 @@ class offloadingDecision:
 				# choice = np.random.choice(self.options) #  action.findAction(random.choice(self.options).index)
 
 			sim.debug.out("Job assigned: {} -> {}".format(self.owner, choice))
-			if self.privateAgent is not None:
-				choice.updateDevice(self.privateAgent.devices)
-			else:
-				choice.updateDevice(self.options)
+			# if self.privateAgent is not None:
+			# 	choice.updateDevice() # self.privateAgent.devices)
+			# else:
+			# 	choice.updateDevice() # self.options)
 			return choice
 		
+	def rechooseDestination(self, task, job, device):
+		assert sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING
+		
+		self.systemState.update(task, job, device)
+		sim.debug.out("systemstate: {}".format(sim.systemState.current))
+
+		choice = self.privateAgent.forward(device)
+		print("choice: {}".format(choice))
+			
+		job.setDecisionTarget(choice)
+		job.activate()
+
+		return choice
 
 previousUpdateTime = None
 currentTargetIndex = -1
@@ -180,7 +194,7 @@ class action:
 	def __repr__(self): return self.name
 
 	# update device based on latest picked device index
-	def updateDevice(self, devices):
+	def updateDevice(self):
 		assert self.targetDeviceIndex is not None
 		# find device based on its index
 		for device in devices:
@@ -257,17 +271,20 @@ class agent:
 		self.totalReward = 0
 		self.reset()
 
+		# self.setDevices()
+
 	def reset(self):
 		self.episodeReward = 0
 
 		# self.history = sim.history.history()
 
-	def setDevices(self, devices):
-		self.devices = devices
+	def setDevices(self):
+		# self.devices = devices
 		# create actions
 		global possibleActions
-		assert self.devices is not None
-		possibleActions = [action("Offload", i) for i in range(len(self.devices))] + [BATCH, LOCAL]
+		global devices
+		assert devices is not None
+		possibleActions = [action("Offload", i) for i in range(len(devices))] + [BATCH, LOCAL]
 		for i in range(len(possibleActions)):
 			possibleActions[i].index = i 
 		print('actions', possibleActions)
@@ -282,7 +299,6 @@ class agent:
 
 
 	def createModel(self):
-		assert self.devices is not None
 		# create basic model
 		self.model = keras.models.Sequential()
 		self.model.add(keras.layers.Flatten(input_shape=(1,) + (self.systemState.stateCount,)))
@@ -342,6 +358,8 @@ class agent:
 
 	# predict best action using Q values
 	def forward(self, device):
+		print("forward")
+
 		sim.counters.NUM_FORWARD += 1
 
 		self.beforeState = np.array(sim.systemState.current.currentState)
@@ -355,6 +373,7 @@ class agent:
 		assert sim.offloadingDecision.possibleActions is not None
 		choice = sim.offloadingDecision.possibleActions[actionIndex]
 		sim.debug.out("choice: {}".format(choice), 'r')
+		print('choice', choice)
 		# must set local choices index
 		if choice.local:
 			choice.targetDeviceIndex = device.index # int(self.systemState.getField('selfDeviceIndex')[0])
@@ -362,12 +381,14 @@ class agent:
 			choice.setTargetDevice(device)
 		else:
 			# only for offloading
-			choice.updateDevice(self.devices)
+			choice.updateDevice()  # self.devices)
 		# return agent.decodeIndex(actionIndex, options)
 		return choice
 
 	# update based on resulting system state and reward
 	def backward(self, reward, finished):
+		print("backward")
+
 		self.totalReward += reward
 		self.episodeReward += reward
 

@@ -83,23 +83,26 @@ class job:
 		self.history = sim.history.history()
 
 		# initiate task by setting processing node
-		self.applyDecision(origin.decision.chooseDestination(self.currentTask, self, origin))
+		self.setDecisionTarget(origin.decision.chooseDestination(self.currentTask, self, origin))
 
 		# define episode finished function for training
 		self.episodeFinished = simulation.isEpisodeFinished
 		
-	def applyDecision(self, decision):
+	def setDecisionTarget(self, decision):
 		# initiate task by setting processing node
-		self.decision = decision
+		# decision.updateDevice()
 
+		# self.decision = decision
+		assert decision.targetDevice is not None
+		assert decision.targetDevice.index == decision.targetDeviceIndex
 		# add to history
 		assert self.history is not None
-		self.history.add("action", self.decision.index)
+		self.history.add("action", decision.index)
 		
 		# selectedDevice = self.simulation.devices[self.decision.targetDeviceIndex]
-		sim.debug.out("selected {}".format(self.decision.targetDevice))
-		self.setprocessingNode(self.decision.targetDevice)
-		sim.results.addChosenDestination(self.decision.targetDevice)
+		sim.debug.out("selected {}".format(decision.targetDevice))
+		self.setprocessingNode(decision.targetDevice)
+		sim.results.addChosenDestination(decision.targetDevice)
 		
 
 	def deadlineMet(self):

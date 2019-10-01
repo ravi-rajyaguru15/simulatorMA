@@ -51,7 +51,7 @@ profiler:
 	$(PYTHON) sim/experiments/profiling.py
 
 .PHONY: *
-test: transient/expectedLife # transient/multiEpisode # transient/batchSize # 
+test: transient/multiEpisode # transient/expectedLife # transient/batchSize # 
 	@echo $$DISPLAY
 	@echo "running test"
 	# python sim.py
