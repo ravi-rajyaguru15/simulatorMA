@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="BlazeImportSettings">
+    <option name="buildSystem" value="Bazel" />
+    <option name="locationHash" value="simulator-b7911b71" />
+    <option name="projectDataDirectory" value="C:\Users\alwynster\git\simulator\.clwb" />
+    <option name="projectName" value="simulator" />
+    <option name="projectViewFile" value="C:\Users\alwynster\git\simulator\.clwb\.bazelproject" />
+    <option name="workspaceRoot" value="C:\Users\alwynster\git\simulator" />
+  </component>
+  <component name="BlazeSyncStatusState">
+    <option name="lastSyncFailed" value="true" />
+  </component>
+  <component name="CMakeRunConfigurationManager" shouldGenerate="true" shouldDeleteObsolete="true">
+    <generated />
+  </component>
+  <component name="CMakeSettings">
+    <configurations>
+      <configuration PROFILE_NAME="Debug" CONFIG_NAME="Debug" />
+    </configurations>
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="f20cc682-b177-44f4-99f5-db5f0fc7f3d5" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/.bazelproject" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.blaze/modules/.project-data-dir.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.blaze/modules/.workspace.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../.gitlab-ci.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../.vscode/tags" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../BUILD" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../WORKSPACE" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../claim.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../package-lock.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/clock.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/component.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/constants.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/counters.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/dqn.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/endDevice.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/entrypoint.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/experiments/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/experiments/batchSize.py.bk" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/experiments/complexity.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/experiments/delays.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/experiments/experiment.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/experiments/fpgaSleepTime.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/experiments/jobRate.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/experiments/jobSize.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/experiments/offloadingPolicies.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/experiments/powerPlan.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/experiments/profiling.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/experiments/roundRobin.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/experiments/sleepTime.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/experiments/timeStability.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/experiments/transient/averagePower.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/experiments/transient/batchSize.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/experiments/transient/durations.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/experiments/transient/expectedLife.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/experiments/transient/multiEpisode.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/experiments/transient/taskBacklog.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/experiments/transient/testRepeats.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/experiments/transient/testRepeatsSeparate.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/experiments/transient/trainingLoss.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/experiments/visual/deadlock.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/experiments/visual/differentBatchesLocal.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/experiments/visual/doubleDelayedJobLocal" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/experiments/visual/randomPeerJobs.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/experiments/visual/singleBatchLocal.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/experiments/visual/singleBatchRemote.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/experiments/visual/singleDelayedJobLocal.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/experiments/visual/singleDelayedJobPeer.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/experiments/visual/testActions.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/fpga.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/gateway.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/history.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/job.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/k8s.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/mcu.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/memory.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/mrf.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/node.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/offloadingDecision.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/offloadingPolicy.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/platforms/elasticNodev4.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/platforms/platform.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/plotting.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/powerPolicy.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/processor.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/qLearningTest.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/requirements.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/result.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/results.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/simulation.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/subtask.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/systemState.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/task.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/tasks.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/tictactoe.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/time.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/variable.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../sim/visualiser.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../trainable_model.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../volume.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/../.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.vscode/.ropeproject/objectdb" beforeDir="false" afterPath="$PROJECT_DIR$/../.vscode/.ropeproject/objectdb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.vscode/tasks.json" beforeDir="false" afterPath="$PROJECT_DIR$/../.vscode/tasks.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/../Dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Dockerfile.gpu" beforeDir="false" afterPath="$PROJECT_DIR$/../Dockerfile.gpu" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/../Makefile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/component.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/constants.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/currentConstants.py" beforeDir="false" afterPath="$PROJECT_DIR$/../sim/currentConstants.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/debug.py" beforeDir="false" afterPath="$PROJECT_DIR$/../sim/debug.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/elasticNode.py" beforeDir="false" afterPath="$PROJECT_DIR$/../sim/elasticNode.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/endDevice.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/experiment.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/fpga.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/gateway.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/job.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/mcu.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/mrf.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/node.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/offloadingDecision.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/plotting.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/powerState.py" beforeDir="false" afterPath="$PROJECT_DIR$/../sim/powerState.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/processor.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/result.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/server.py" beforeDir="false" afterPath="$PROJECT_DIR$/../sim/server.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/sim.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/subtask.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/task.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/tasks.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/training.py" beforeDir="false" afterPath="$PROJECT_DIR$/../sim/training.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/variable.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/visualiser.py" beforeDir="false" afterPath="$PROJECT_DIR$/../src/visualiser.py" afterDir="false" />
+    </list>
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ClangdSettings">
+    <option name="formatViaClangd" value="false" />
+  </component>
+  <component name="FileEditorManager">
+    <leaf>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../.clwb.bk/.bazelproject">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="221">
+              <caret line="13" column="34" selection-end-line="18" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/.bazelproject">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="51">
+              <caret line="3" column="3" selection-start-line="3" selection-start-column="3" selection-end-line="3" selection-end-column="3" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../BUILD">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="170">
+              <caret line="10" column="4" selection-start-line="10" selection-start-column="4" selection-end-line="10" selection-end-column="4" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="IdeDocumentHistory">
+    <option name="CHANGED_PATHS">
+      <list>
+        <option value="$PROJECT_DIR$/.bazelproject" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectFrameBounds" extendedState="6">
+    <option name="x" value="-113" />
+    <option name="y" value="54" />
+    <option name="width" value="2560" />
+    <option name="height" value="1440" />
+  </component>
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectView">
+    <navigator proportions="" version="1">
+      <foldersAlwaysOnTop value="true" />
+    </navigator>
+    <panes>
+      <pane id="Scope" />
+      <pane id="ProjectPane">
+        <subPane>
+          <expand>
+            <path>
+              <item name="simulator" type="b2602c69:ProjectViewProjectNode" />
+              <item name="simulator" type="34d14456:WorkspaceRootNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
+    </panes>
+  </component>
+  <component name="PropertiesComponent">
+    <property name="WebServerToolWindowFactoryState" value="true" />
+    <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
+    <property name="nodejs_npm_path_reset_for_default_project" value="true" />
+    <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\alwynster\git\simulator\.clwb" />
+    </key>
+  </component>
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="f20cc682-b177-44f4-99f5-db5f0fc7f3d5" name="Default Changelist" comment="" />
+      <created>1570031187909</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1570031187909</updated>
+      <workItem from="1570031189143" duration="354000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TimeTrackingManager">
+    <option name="totallyTimeSpent" value="354000" />
+  </component>
+  <component name="ToolWindowManager">
+    <frame x="-8" y="-8" width="2576" height="1416" extended-state="6" />
+    <editor active="true" />
+    <layout>
+      <window_info id="Favorites" side_tool="true" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.24841018" />
+      <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
+      <window_info anchor="bottom" id="Database Changes" />
+      <window_info anchor="bottom" id="Version Control" />
+      <window_info anchor="bottom" id="Blaze Console" sideWeight="0.5007949" side_tool="true" visible="true" weight="0.32969603" />
+      <window_info anchor="bottom" id="Terminal" sideWeight="0.49960256" weight="0.32969603" />
+      <window_info anchor="bottom" id="Event Log" side_tool="true" />
+      <window_info active="true" anchor="bottom" id="Blaze Problems" sideWeight="0.49920508" visible="true" weight="0.32969603" />
+      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Find" order="1" />
+      <window_info anchor="bottom" id="Run" order="2" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="bottom" id="TODO" order="6" />
+      <window_info anchor="right" id="Remote Host" />
+      <window_info anchor="right" id="Database" />
+      <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
+      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+    </layout>
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+  <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/../.clwb.bk/.bazelproject">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="221">
+          <caret line="13" column="34" selection-end-line="18" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../BUILD">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="170">
+          <caret line="10" column="4" selection-start-line="10" selection-start-column="4" selection-end-line="10" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/.bazelproject">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="51">
+          <caret line="3" column="3" selection-start-line="3" selection-start-column="3" selection-end-line="3" selection-end-column="3" />
+        </state>
+      </provider>
+    </entry>
+  </component>
+</project>

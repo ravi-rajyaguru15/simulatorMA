@@ -1,4 +1,5 @@
-.clwb/*
+#.clwb/*
+.clwb.bk/*
 !/.clwb/.bazelproject
 bazel-*
 *.prof
