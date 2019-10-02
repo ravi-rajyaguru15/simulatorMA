@@ -10,7 +10,120 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="caa1d90f-b372-413b-90cb-98837aaa6ca8" name="Default Changelist" comment="" />
+    <list default="true" id="caa1d90f-b372-413b-90cb-98837aaa6ca8" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/.clwb/.bazelproject" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.gitlab-ci.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.vscode/tags" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BUILD" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/WORKSPACE" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/claim.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/clock.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/component.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/constants.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/counters.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/dqn.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/endDevice.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/entrypoint.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/experiments/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/experiments/batchSize.py.bk" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/experiments/complexity.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/experiments/delays.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/experiments/experiment.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/experiments/fpgaSleepTime.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/experiments/jobRate.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/experiments/jobSize.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/experiments/offloadingPolicies.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/experiments/powerPlan.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/experiments/profiling.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/experiments/roundRobin.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/experiments/sleepTime.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/experiments/timeStability.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/experiments/transient/averagePower.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/experiments/transient/batchSize.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/experiments/transient/durations.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/experiments/transient/expectedLife.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/experiments/transient/multiEpisode.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/experiments/transient/taskBacklog.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/experiments/transient/testRepeats.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/experiments/transient/testRepeatsSeparate.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/experiments/transient/trainingLoss.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/experiments/visual/deadlock.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/experiments/visual/differentBatchesLocal.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/experiments/visual/doubleDelayedJobLocal" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/experiments/visual/randomPeerJobs.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/experiments/visual/singleBatchLocal.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/experiments/visual/singleBatchRemote.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/experiments/visual/singleDelayedJobLocal.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/experiments/visual/singleDelayedJobPeer.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/experiments/visual/testActions.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/fpga.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/gateway.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/history.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/job.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/k8s.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/mcu.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/memory.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/mrf.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/node.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/offloadingDecision.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/offloadingPolicy.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/platforms/elasticNodev4.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/platforms/platform.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/plotting.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/powerPolicy.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/processor.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/qLearningTest.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/requirements.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/result.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/results.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/simulation.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/subtask.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/systemState.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/task.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/tasks.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/tictactoe.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/time.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/variable.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sim/visualiser.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/trainable_model.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/volume.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.vscode/.ropeproject/objectdb" beforeDir="false" afterPath="$PROJECT_DIR$/.vscode/.ropeproject/objectdb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.vscode/tasks.json" beforeDir="false" afterPath="$PROJECT_DIR$/.vscode/tasks.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Dockerfile.gpu" beforeDir="false" afterPath="$PROJECT_DIR$/Dockerfile.gpu" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/Makefile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/component.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/constants.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/currentConstants.py" beforeDir="false" afterPath="$PROJECT_DIR$/sim/currentConstants.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/debug.py" beforeDir="false" afterPath="$PROJECT_DIR$/sim/debug.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/elasticNode.py" beforeDir="false" afterPath="$PROJECT_DIR$/sim/elasticNode.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/endDevice.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/experiment.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/fpga.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/gateway.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/job.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/mcu.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/mrf.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/node.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/offloadingDecision.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/plotting.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/powerState.py" beforeDir="false" afterPath="$PROJECT_DIR$/sim/powerState.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/processor.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/result.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/server.py" beforeDir="false" afterPath="$PROJECT_DIR$/sim/server.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/sim.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/subtask.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/task.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/tasks.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/training.py" beforeDir="false" afterPath="$PROJECT_DIR$/sim/training.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/variable.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/visualiser.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/visualiser.py" afterDir="false" />
+    </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -22,26 +135,13 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/Dockerfile">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="210">
-              <caret line="14" column="60" selection-start-line="14" selection-start-column="60" selection-end-line="14" selection-end-column="60" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Makefile">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="150">
-              <caret line="10" column="19" selection-start-line="10" selection-start-column="19" selection-end-line="10" selection-end-column="19" />
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Dockerfile.gpu">
+          <provider selected="true" editor-type-id="text-editor" />
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/.clwb/.bazelproject">
           <provider selected="true" editor-type-id="text-editor" />
         </entry>
       </file>
@@ -59,11 +159,11 @@
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="6" fullScreen="true">
-    <option name="x" value="75" />
-    <option name="y" value="83" />
-    <option name="width" value="1752" />
-    <option name="height" value="966" />
+  <component name="ProjectFrameBounds" extendedState="6">
+    <option name="x" value="-113" />
+    <option name="y" value="54" />
+    <option name="width" value="2560" />
+    <option name="height" value="1440" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
@@ -77,6 +177,17 @@
               <item name="simulator" type="b2602c69:ProjectViewProjectNode" />
               <item name="simulator" type="462c0819:PsiDirectoryNode" />
             </path>
+            <path>
+              <item name="simulator" type="b2602c69:ProjectViewProjectNode" />
+              <item name="simulator" type="462c0819:PsiDirectoryNode" />
+              <item name=".clwb" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="simulator" type="b2602c69:ProjectViewProjectNode" />
+              <item name="simulator" type="462c0819:PsiDirectoryNode" />
+              <item name=".clwb" type="462c0819:PsiDirectoryNode" />
+              <item name=".idea" type="462c0819:PsiDirectoryNode" />
+            </path>
           </expand>
           <select />
         </subPane>
@@ -85,6 +196,7 @@
     </panes>
   </component>
   <component name="PropertiesComponent">
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="true" />
     <property name="WebServerToolWindowPanel.toolwindow.highlight.mappings" value="true" />
     <property name="WebServerToolWindowPanel.toolwindow.highlight.symlinks" value="true" />
@@ -108,7 +220,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Docker.docker gpu">
+  <component name="RunManager">
     <configuration name="docker gpu" type="docker-deploy" factoryName="dockerfile" server-name="Docker">
       <deployment type="dockerfile">
         <settings>
@@ -137,10 +249,6 @@
       </deployment>
       <method v="2" />
     </configuration>
-    <list>
-      <item itemvalue="Docker.docker test" />
-      <item itemvalue="Docker.docker gpu" />
-    </list>
   </component>
   <component name="SshConsoleOptionsProvider">
     <option name="myEncoding" value="UTF-8" />
@@ -160,17 +268,19 @@
       <workItem from="1563457204415" duration="53000" />
       <workItem from="1563457271629" duration="2616000" />
       <workItem from="1563541248420" duration="163000" />
+      <workItem from="1570030903497" duration="58000" />
+      <workItem from="1570031107342" duration="21000" />
+      <workItem from="1570031160370" duration="11000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="2832000" />
+    <option name="totallyTimeSpent" value="2928000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="0" width="1920" height="1200" extended-state="6" />
-    <editor active="true" />
+    <frame x="-8" y="-8" width="2576" height="1416" extended-state="6" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.2550586" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.25317964" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -182,7 +292,7 @@
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Database Changes" order="7" />
       <window_info anchor="bottom" id="Version Control" order="8" />
-      <window_info active="true" anchor="bottom" id="Terminal" order="9" visible="true" weight="0.32920355" />
+      <window_info active="true" anchor="bottom" id="Terminal" order="9" visible="true" weight="0.34372565" />
       <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
       <window_info anchor="bottom" id="Docker" order="11" weight="0.32920355" />
       <window_info anchor="bottom" id="File Transfer" order="12" weight="0.32920355" />
@@ -190,7 +300,7 @@
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
       <window_info anchor="right" id="Database" order="3" />
-      <window_info anchor="right" id="Remote Host" order="4" visible="true" weight="0.32960597" />
+      <window_info anchor="right" id="Remote Host" order="4" visible="true" weight="0.31558028" />
     </layout>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -199,19 +309,25 @@
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/Dockerfile">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="210">
-          <caret line="14" column="60" selection-start-line="14" selection-start-column="60" selection-end-line="14" selection-end-column="60" />
+        <state relative-caret-position="323">
+          <caret line="19" column="31" selection-start-line="19" selection-start-column="31" selection-end-line="19" selection-end-column="31" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/Makefile">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="150">
-          <caret line="10" column="19" selection-start-line="10" selection-start-column="19" selection-end-line="10" selection-end-column="19" />
+        <state relative-caret-position="791">
+          <caret line="56" column="19" selection-start-line="56" selection-start-column="19" selection-end-line="56" selection-end-column="19" />
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/.clwb/.idea/workspace.xml">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
     <entry file="file://$PROJECT_DIR$/Dockerfile.gpu">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/.clwb/.bazelproject">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
   </component>

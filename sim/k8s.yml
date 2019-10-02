@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  generateName: simulator
+spec:
+  ttlSecondsAfterFinished: 604800 # 7 days 
+  template:
+    spec:
+      volumes:
+        - name: share
+          persistentVolumeClaim:
+              claimName: share-claim
+      containers:
+      - name: simulator
+        image: git.uni-due.de:6666/embedded-systems/elastic-node/simulator:latest
+        imagePullPolicy: Always
+        resources:
+          limits:
+            memory: "64Gi"
+            cpu: "15"
+        volumeMounts:
+          - name:  share
+            mountPath:  /output
+      restartPolicy: Never
+        # ports:
+        # - containerPort: <Port>
+      imagePullSecrets:
+        - name: regcred

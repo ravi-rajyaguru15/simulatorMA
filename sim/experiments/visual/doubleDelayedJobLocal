@@ -1,0 +1,18 @@
+
+def doubleDelayedJobLocal(accelerated=True):
+	sim.constants.OFFLOADING_POLICY = sim.offloadingPolicy.LOCAL_ONLY
+	sim.constants.FPGA_POWER_PLAN = sim.powerPolicy.IDLE_TIMEOUT
+	sim.constants.MINIMUM_BATCH = 2
+	sim.constants.JOB_LIKELIHOOD = 0
+	sim.constants.PLOT_TD = sim.constants.TD * 2
+	
+	exp = simulation(0, 2, 0)
+
+	exp.simulateTime(.01)
+	exp.devices[0].createNewJob(exp.time, hardwareAccelerated=accelerated)
+	exp.simulateTime(.01)
+	exp.devices[0].createNewJob(exp.time, hardwareAccelerated=accelerated)
+	exp.simulateUntilTime(.3)
+	exp.devices[0].createNewJob(exp.time, hardwareAccelerated=accelerated)
+	exp.simulateUntilTime(0.6)
+	

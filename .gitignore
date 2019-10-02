@@ -1,3 +1,12 @@
+.clwb/*
+!/.clwb/.bazelproject
+bazel-*
+*.prof
+node_modules/
+package_lock.json
+*.png
+*.yaml
+.vscode/launch.json
 .ipynb_checkpoints/
 images/*.png
 *.pyc
