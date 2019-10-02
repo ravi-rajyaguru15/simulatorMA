@@ -87,7 +87,7 @@ class systemState:
 		self.__updateJob(job)
 		self.__updateDevice(device)
 
-		sim.debug.learnOut(self.dictRepresentation)
+		# sim.debug.learnOut(self.dictRepresentation)
 
 	# 	traceback.print_stack()
 
@@ -123,7 +123,7 @@ class systemState:
 		self.setField('taskIdentifier', task.identifier)
 		self.setField('taskSize', task.rawSize)
 	
-		sim.debug.out(self.dictRepresentation)
+		# sim.debug.out(self.dictRepresentation)
 
 		# self.update()
 
@@ -133,7 +133,7 @@ class systemState:
 		remaining = job.deadlineTime - self.currentTime.current
 		self.setField('deadlineRemaining', remaining if remaining >= 0 else 0)
 
-		sim.debug.out(self.dictRepresentation)
+		# sim.debug.out(self.dictRepresentation)
 		# self.update()
 
 	def __updateDevice(self, device):
@@ -156,7 +156,7 @@ class systemState:
 		
 		self.setField('selfDeviceIndex', device.getCurrentConfiguration())
 
-		sim.debug.out(self.dictRepresentation)
+		# sim.debug.out(self.dictRepresentation)
 
 		# self.update()
 		# sys.exit(0)

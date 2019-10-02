@@ -106,10 +106,9 @@ class offloadingDecision:
 				sim.debug.learnOut("deciding how to offload new job")
 				sim.debug.learnOut("owner: {}".format(self.owner), 'r')
 				self.systemState.update(task, job, device)
-				sim.debug.out("systemstate: {}".format(self.systemState))
+				# sim.debug.out("systemstate: {}".format(self.systemState))
 				# print("systemstate: {}".format(self.systemState))
 				choice = self.privateAgent.forward(device)
-				sim.debug.out("choice: {}".format(choice))
 				sim.debug.learnOut("choice: {}".format(choice))
 			else:
 				choice = action("Random", targetIndex=random.choice(self.options).index)
@@ -126,10 +125,10 @@ class offloadingDecision:
 		assert sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING
 		
 		self.systemState.update(task, job, device)
-		sim.debug.out("systemstate: {}".format(sim.systemState.current))
+		# sim.debug.out("systemstate: {}".format(sim.systemState.current))
 
 		choice = self.privateAgent.forward(device)
-		print("choice: {}".format(choice))
+		# print("choice: {}".format(choice))
 			
 		job.setDecisionTarget(choice)
 		job.activate()
@@ -196,29 +195,29 @@ class action:
 	def __repr__(self): return self.name
 
 	# update device based on latest picked device index
-	def updateDevice(self):
-		assert self.targetDeviceIndex is not None
-		# find device based on its index
-		for device in devices:
-			if device.index == self.targetDeviceIndex:
-				self.targetDevice = device
-				break
-		
-		if self.targetDevice is None:
-			print("updateDevice failed!", self, devices, self.targetDeviceIndex)
+	def updateDevice(self, owner):
+		if self.local:
+			self.targetDeviceIndex = owner.index
+			self.targetDevice = owner
+		else:
+			assert self.targetDeviceIndex is not None
+			assert devices is not None
 
-		assert self.targetDevice is not None
+			self.targetDevice = None
+			# find device based on its index
+			for device in devices:
+				if device.index == self.targetDeviceIndex:
+					self.targetDevice = device
+					break
+
+			if self.targetDevice is None:
+				print("updateDevice failed!", self, devices, self.targetDeviceIndex)
+
+			assert self.targetDevice is not None
 		# self.targetDevice = devices[self.targetDeviceIndex]
 
-	def setTargetDevice(self, device):
-		self.targetDevice = device
-
-	# @staticmethod
-	# def findAction(targetIndex):
-	# 	# find target device for offloading that matches this index
-	# 	targets = [device for action in possibleActions if action.targetDeviceIndex == targetIndex]
-	# 	assert len(targets) == 1
-	# 	return targets[0]
+	# def setTargetDevice(self, device):
+	# 	self.targetDevice = device
 
 BATCH = action("Batch") # TODO: wait does nothing
 LOCAL = action("Local")
@@ -366,7 +365,7 @@ class agent:
 		sim.counters.NUM_FORWARD += 1
 
 		self.beforeState = np.array(sim.systemState.current.currentState)
-		sim.debug.out("beforestate {}".format(sim.systemState.current.currentState))
+		# sim.debug.out("beforestate {}".format(sim.systemState.current.currentState))
 		qValues = self.model.predict(self.beforeState.reshape((1, 1, self.systemState.stateCount)))[0]
 		sim.debug.out('q {}'.format(qValues))
 		actionIndex = self.policy.select_action(q_values=qValues)
@@ -375,17 +374,17 @@ class agent:
 
 		assert sim.offloadingDecision.possibleActions is not None
 		choice = sim.offloadingDecision.possibleActions[actionIndex]
-		sim.debug.out("choice: {}".format(choice), 'r')
-		print('choice', choice)
-		# must set local choices index
-		if choice.local:
-			choice.targetDeviceIndex = device.index # int(self.systemState.getField('selfDeviceIndex')[0])
-			print("local", choice.targetDeviceIndex)
-			choice.setTargetDevice(device)
-		else:
-			# only for offloading
-			choice.updateDevice()  # self.devices)
-		# return agent.decodeIndex(actionIndex, options)
+		sim.debug.learnOut("choice: {}".format(choice), 'r')
+
+		choice.updateDevice(device)
+		# # must set local choices index
+		# if choice.local:
+		# 	choice.targetDeviceIndex = device.index # int(self.systemState.getField('selfDeviceIndex')[0])
+		# 	print("local", choice.targetDeviceIndex)
+		# 	choice.setTargetDevice(device)
+		# else:
+		# 	# only for offloading
+		# 	choice.updateDevice()  # self.devices)
 		return choice
 
 	# update based on resulting system state and reward

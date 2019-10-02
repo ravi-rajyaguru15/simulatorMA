@@ -1,6 +1,8 @@
 import sim.offloadingDecision
+import sim.subtask
 import sim.constants
-from sim.job import job
+# from sim.job import job
+import sim.job
 from sim.fpga import fpga
 import sim.processor
 import sim.debug
@@ -136,12 +138,22 @@ class node:
 			# if still None, unknown behaviour
 		assert(hardwareAccelerated is not None)
 
-		self.addJob(job(self, sim.constants.SAMPLE_SIZE.gen(), hardwareAccelerated=hardwareAccelerated, taskGraph=taskGraph))
+		self.addJob(sim.job.job(self, sim.constants.SAMPLE_SIZE.gen(), hardwareAccelerated=hardwareAccelerated, taskGraph=taskGraph))
 		sim.debug.out("added job to queue", 'p')
 
 	def addJob(self, job):
 		self.numJobs += 1
 		self.jobQueue.append(job)
+
+	# set active batch and activate this job
+	def setActiveJob(self, job):
+		# grab first task
+		sim.debug.out("activating job")
+		self.currentJob = job
+		self.setCurrentBatch(job)
+
+		# start first job in queue
+		self.addSubtask(sim.subtask.newJob(job), appendLeft=True)
 
 	# appends one job to the end of the task queue (used for queueing future tasks)
 	def addSubtask(self, task, appendLeft=False):
@@ -154,12 +166,6 @@ class node:
 		# if nothing else happening, start task
 		self.nextTask()
 
-	# # add follow-up task when one task is finished, used for state progression
-	# def addSubtask(self, task):
-	# 	task.owner = self
-	# 	sim.debug.out("switching from {} to {}".format(self.currentTask, task))
-
-	# 	self.currentTask = task
 
 	def removeTask(self, task):
 		sim.debug.out("REMOVE TASK {0}".format(task))
@@ -402,45 +408,7 @@ class node:
 			self.jobQueue.remove(job)
 		# set as not current job
 		if self.currentJob is job:
+			print("set job to NONE")
 			self.currentJob = None
 
-		# sim.debug.out ('{} {}'.format(self.jobQueue, job))
 		sim.debug.out (self.currentJob)
-	# def offloadElasticNode(this, samples):
-	# 	this.ed.message = message(samples=samples)
-
-	# 	# offload to elastic node
-	# 	res = this.ed.sendTo(this.en)
-	# 	res += this.en.process(accelerated=True)
-	# 	res += this.en.sendTo(this.ed)
-	# 	# sim.debug.out 'offload elastic node:\t', res
-
-	# 	return res
-
-
-
-	# def offloadPeer(this, samples):
-	# 	# offload to neighbour
-	# 	this.ed.message = message(samples=samples)
-	# 	res = this.ed.sendTo(this.ed2)
-	# 	# sim.debug.out res
-	# 	res += this.ed2.process()
-	# 	# sim.debug.out res
-	# 	res += this.ed2.sendTo(this.ed)
-	# 	# sim.debug.out res
-	# 	# sim.debug.out 'offload p2p:\t\t\t', res
-
-	# 	return res
-
-	# def offloadServer(this, samples):
-
-	# 	# offload to server
-	# 	this.ed.message = message(samples=samples)
-	# 	res = this.ed.sendTo(this.gw)
-	# 	res += this.gw.sendTo(this.srv)
-	# 	res += this.srv.process()
-	# 	res += this.srv.sendTo(this.gw)
-	# 	res += this.gw.sendTo(this.ed)
-	# 	# sim.debug.out 'offload server:\t\t\t', res
-
-	# 	return res

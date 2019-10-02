@@ -18,6 +18,7 @@ class subtask:
 	delay = None
 	progress = None
 	owner = None
+	id = 0
 
 	started = None
 	finished = None
@@ -50,6 +51,9 @@ class subtask:
 		self.delay = 0
 		self.started = False
 		self.finished = False
+
+		subtask.id += 1
+		self.id = subtask.id
 
 	def tick(self):
 		# only proceed if already started 
@@ -163,12 +167,12 @@ class subtask:
 		return False
 
 	def finishTask(self):
-		sim.debug.out("finishing subtask!", 'b')
+		sim.debug.out("finishing subtask! {}".format(self), 'b')
 
 		self.owner.currentSubtask = None
 
-		sim.debug.out("current task: {} {}".format(self.owner, self.owner.currentSubtask))
-	
+		# sim.debug.out("current task: {} {}".format(self.owner, self.owner.currentSubtask))
+
 	def beginTask(self):
 		# all versions of begin must set started
 		self.start()
@@ -293,31 +297,13 @@ class batching(subtask):
 
 			# see if batch is full enough to start now, or
 			# if decided to start locally
-			# print(self.job.processingNode.batchLength(self.job.currentTask), sim.constants.MINIMUM_BATCH, self.job.decision, sim.offloadingDecision.LOCAL)
-			if self.job.processingNode.batchLength(self.job.currentTask) >= sim.constants.MINIMUM_BATCH or (self.job.decision == sim.offloadingDecision.LOCAL):
-				self.job.processingNode.setCurrentBatch(self.job)
-
-				# grab first task
-				sim.debug.out("activating job")
-				self.job.processingNode.currentJob = None
-				self.job = self.job.processingNode.nextJobFromBatch()
-				
-				# start first job in queue
-				self.job.processingNode.addSubtask(newJob(self.job), appendLeft=True)
+			if self.job.processingNode.batchLength(self.job.currentTask) >= sim.constants.MINIMUM_BATCH:
+				self.job.processingNode.setActiveJob(self.job.processingNode.nextJobFromBatch())
 			# go to sleep until next task
 			else:
 				self.job.processingNode.mcu.sleep()
-				# remove job from current owner
-				# self.job.processingNode.removeJob(self.job)
 
 		subtask.finishTask(self)
-
-
-	# 	self.job.processingNode.fpga.idle()
-	# 	self.job.processingNode.fpga.reconfigure(self.job.currentTask)
-
-	# 	# move onto processing steps
-	# 	self.job.processingNode.switchTask(mcuFpgaOffload(self.job))
 
 class newJob(subtask):
 	__name__ = "New Job"
@@ -716,9 +702,8 @@ class rxJob(rxMessage):
 
 		# if using rl, reevalute decision
 		if usingReinforcementLearning:
-			sim.debug.out("updating decision upon reception")
 			print()
-			print("updating decision upon reception")
+			sim.debug.learnOut("updating decision upon reception")
 			print("owner:", self.job.owner)
 			# sim.systemState.current.update(self.job.currentTask, self.job, self.job.owner)
 			# sim.debug.out("systemstate: {}".format(sim.systemState.current))

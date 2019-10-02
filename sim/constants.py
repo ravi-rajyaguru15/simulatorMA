@@ -8,10 +8,6 @@ import sim.platforms.elasticNodev4
 
 # node types
 DEFAULT_ELASTIC_NODE = sim.platforms.elasticNodev4
-# ELASTIC_NODE_V4 = 0
-# ELASTIC_NODE = 0
-# END_DEVICE = 1
-# SERVER = 2
 
 # size in bytes
 SAMPLE_SIZE = Uniform(5, 10, integer=True)
@@ -39,9 +35,9 @@ EPS_MAX = 1.
 EPS_STEP_COUNT = 1000
 
 # energy management
-FPGA_POWER_PLAN = sim.powerPolicy.IMMEDIATELY_OFF
+FPGA_POWER_PLAN = sim.powerPolicy.IDLE_TIMEOUT
 MCU_POWER_PLAN = sim.powerPolicy.IMMEDIATELY_OFF
-FPGA_IDLE_SLEEP = 0.1
+FPGA_IDLE_SLEEP = 0.5
 MCU_IDLE_SLEEP = .05
 
 # batching policy

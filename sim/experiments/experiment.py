@@ -46,8 +46,8 @@ def randomJobs(offloadingPolicy=sim.offloadingPolicy.ANYTHING, hw=True):
 
 	sim.simulation.current = simulation(hardwareAccelerated=hw)
 	print("start simulation")
-	# exp.simulate() #UntilTime(1)
-	sim.simulation.current.simulateTime(5)
+	sim.simulation.current.simulate() #UntilTime(1)
+	# sim.simulation.current.simulateTime(5)
 
 # creates dictionary with (avg, std) for each x for each graph
 # takes results as input, 

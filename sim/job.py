@@ -7,6 +7,9 @@ import sim.debug
 import sim.results
 import sim.subtask
 import sim.history
+import sim.systemState
+import sim.offloadingDecision
+import sim.offloadingPolicy
 
 # from node import node
 
@@ -17,23 +20,24 @@ class job:
 
 	datasize = None
 	samples = None
-	
+
 	started = None
 	createdTime = None
 	startTime = None
 	deadlineTime = None
 	startExpectedLifetime = None
-	
+
 	totalEnergyCost = None
 	totalLatency = None
 	devicesEnergyCost = None # track how much each device spends on this job
-	
+
 	owner = None
 	# simulation = None
 	creator = None
 	processingNode = None
 	processor = None
-	decision = None
+	# decision = None
+	immediate = None
 
 	hardwareAccelerated = None
 
@@ -64,7 +68,7 @@ class job:
 		self.totalEnergyCost = 0
 		self.totalLatency = 0
 		self.devicesEnergyCost = dict()
-		
+
 		# self.finished = False
 		self.started = False
 		self.processed = False
@@ -78,7 +82,7 @@ class job:
 		self.deadlineTime = self.createdTime + self.currentTask.deadline.gen()
 		# initialise message size to raw data
 		self.datasize = self.rawMessageSize()
-		
+
 		# private history to be used by rl
 		self.history = sim.history.history()
 
@@ -87,10 +91,11 @@ class job:
 
 		# define episode finished function for training
 		self.episodeFinished = simulation.isEpisodeFinished
-		
+
 	def setDecisionTarget(self, decision):
 		# initiate task by setting processing node
 		# decision.updateDevice()
+		self.immediate = decision == sim.offloadingDecision.LOCAL
 
 		# self.decision = decision
 		assert decision.targetDevice is not None
@@ -98,12 +103,12 @@ class job:
 		# add to history
 		assert self.history is not None
 		self.history.add("action", decision.index)
-		
+
 		# selectedDevice = self.simulation.devices[self.decision.targetDeviceIndex]
 		sim.debug.out("selected {}".format(decision.targetDevice))
 		self.setprocessingNode(decision.targetDevice)
 		sim.results.addChosenDestination(decision.targetDevice)
-		
+
 
 	def deadlineMet(self):
 		return self.deadlineTime > self.currentTime
@@ -139,24 +144,30 @@ class job:
 	def start(self):
 		self.started = True
 		self.startTime = self.currentTime.current
-		
-		# to start with, owner is the node who created it 
+
+		# to start with, owner is the node who created it
 		self.owner = self.creator
 
 		self.activate()
-		
+
 
 	def activate(self):
+		assert self.immediate is not None
+		print("activating", self, 'owner', self.owner, 'on', self.processingNode)
 
 		# populate subtasks based on types of devices
 		if not self.offloaded():
-			self.processingNode.addSubtask(sim.subtask.batching(self))
+			print("already at correct place")
+			if self.immediate:
+				self.processingNode.addSubtask(sim.subtask.newJob(self))
+			else:
+				self.processingNode.addSubtask(sim.subtask.batching(self))
 		# otherwise we have to send task
 		else:
 			# elif self.destination.nodeType == sim.constants.ELASTIC_NODE:
 			sim.debug.out("offloading to other device")
 			self.owner.addSubtask(sim.subtask.createMessage(self))
-		
+
 
 	def finish(self):
 		self.finished = True
@@ -183,7 +194,7 @@ class job:
 		# print ("pushing", self.batchSize)
 		# job.jobResultsQueue.put((self.currentTime - self.startTime,))
 		job.jobResultsQueue.put((self.batchSize,))
-		
+
 
 	def offloaded(self):
 		# in the beginning owner is creator, later may be offloaded again
@@ -193,7 +204,7 @@ class job:
 		# remove job from current
 		currentOwner = self.owner
 		sim.debug.out("current owner {}".format(currentOwner))
-		currentOwner.removeJob(self) 
+		currentOwner.removeJob(self)
 
 		sim.debug.out("moving from {} to {}".format(currentOwner, destinationNode))
 
