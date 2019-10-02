@@ -100,15 +100,15 @@ class offloadingDecision:
 					# print('largest:', largestBatches)
 					choice = action.findAction(self.options[largestBatches].index)
 			elif sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
-				print()
-				print("deciding how to offload new job")
-				print("owner:", self.owner)
+				sim.debug.learnOut()
+				sim.debug.learnOut("deciding how to offload new job")
+				sim.debug.learnOut("owner: {}".format(self.owner), 'r')
 				self.systemState.update(task, job, device)
 				sim.debug.out("systemstate: {}".format(self.systemState))
 				# print("systemstate: {}".format(self.systemState))
 				choice = self.privateAgent.forward(device)
 				sim.debug.out("choice: {}".format(choice))
-				print("choice: {}".format(choice))
+				sim.debug.learnOut("choice: {}".format(choice))
 			else:
 				choice = action("Random", targetIndex=random.choice(self.options).index)
 				# choice = np.random.choice(self.options) #  action.findAction(random.choice(self.options).index)
@@ -358,7 +358,8 @@ class agent:
 
 	# predict best action using Q values
 	def forward(self, device):
-		print("forward")
+		sim.debug.learnOut("forward")
+		assert self.model is not None
 
 		sim.counters.NUM_FORWARD += 1
 
@@ -387,7 +388,9 @@ class agent:
 
 	# update based on resulting system state and reward
 	def backward(self, reward, finished):
-		print("backward")
+		assert self.trainable_model is not None
+
+		sim.debug.learnOut("backward")
 
 		self.totalReward += reward
 		self.episodeReward += reward
@@ -447,8 +450,7 @@ class agent:
 
 		# print('reward', reward)
 
-		sim.debug.out("loss: {} reward: {}".format(self.latestLoss, self.latestReward), 'r')
-		print("loss: {} reward: {}".format(self.latestLoss, self.latestReward), 'r')
+		sim.debug.learnOut("loss: {} reward: {}".format(self.latestLoss, self.latestReward), 'r')
 
 		# agent.step += 1
 		# agent.update_target_model_hard()

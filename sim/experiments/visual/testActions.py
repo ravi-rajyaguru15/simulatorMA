@@ -1,7 +1,11 @@
 import sim.constants
 import sim.offloadingPolicy
+import sim.debug
 from sim.simulation import simulation
 import time
+
+sim.debug.enabled = False
+sim.debug.learnEnabled = True
 
 sim.constants.JOB_LIKELIHOOD = 0
 sim.constants.OFFLOADING_POLICY = sim.offloadingPolicy.REINFORCEMENT_LEARNING
@@ -14,7 +18,7 @@ sim.simulation.current = exp
 
 exp.simulateTime(sim.constants.PLOT_TD * 1)
 dev = exp.devices[0]
-time.sleep(1)
+# time.sleep(1)
 
 # fix decision to local
 # sim.systemState.current.__updateDevice(dev)
@@ -27,7 +31,7 @@ first.setprocessingNode(selectedDevice)
 dev.addJob(first)
 exp.simulateUntilJobDone()
 print ("local done")
-time.sleep(1)
+# time.sleep(1)
 
 # fix decision to wait
 second = sim.job.job(dev, 5, hardwareAccelerated=True)
@@ -38,7 +42,7 @@ second.setprocessingNode(selectedDevice)
 dev.addJob(second)
 exp.simulateTime(sim.constants.PLOT_TD * 10)
 print ("wait done")
-time.sleep(1)
+# time.sleep(1)
 # batch 1 
 
 # offload from 1 to 0
@@ -52,7 +56,7 @@ third.setprocessingNode(selectedDevice)
 dev2.addJob(third)
 exp.simulateTime(sim.constants.PLOT_TD * 10)
 print ("offload 1 0")
-time.sleep(1)
+# time.sleep(1)
 # batch 2 
 
 # offload from 0 to 0
@@ -70,7 +74,7 @@ sim.debug.enabled = False
 exp.simulateUntilJobDone()
 exp.simulateUntilJobDone()
 exp.simulateUntilJobDone()
-time.sleep(1)
+# time.sleep(1)
 
 print("job done")
 exp.simulateTime(sim.constants.PLOT_TD * 100)

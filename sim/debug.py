@@ -1,12 +1,21 @@
 default = 37
 enabled = True
+learnEnabled = True
+
 
 # print to console in a fancy colour
 # options are k r g y b p c w
-def out(string, colour=None):
-    if not enabled:
-        return
-    
+def out(string, colour=None, enable=None):
+    if enabled:
+        _push(string, colour)
+
+
+def learnOut(string="", colour=None):
+    if learnEnabled:
+        _push(string, colour)
+
+
+def _push(string, colour):
     if colour is None:
         print(string)
 
@@ -32,5 +41,5 @@ def out(string, colour=None):
         else:
             raise Exception("Colour {0} not recognised".format(colour))
 
-
         print("\033[{0}m{1}\033[{2}m".format(code, string, default))
+

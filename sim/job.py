@@ -127,7 +127,7 @@ class job:
 		deadlineReward = 0 if self.deadlineMet() else -0.5
 		expectedLifetimeReward = -.5 if (self.startExpectedLifetime > self.systemLifetime()) else 0
 
-		print('reward:', jobReward, deadlineReward, expectedLifetimeReward)
+		sim.debug.learnOut('reward: {} {} {}'.format(jobReward, deadlineReward, expectedLifetimeReward), 'b')
 
 		return jobReward + deadlineReward + expectedLifetimeReward
 
