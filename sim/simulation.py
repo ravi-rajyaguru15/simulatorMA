@@ -39,6 +39,8 @@ class simulation:
 	taskQueueLength = None
 	# visualise = None
 	visualisor = None
+	frames = None
+	plotFrames = None
 	finished = False
 	hardwareAccelerated = None
 	timestamps = list()
@@ -87,8 +89,10 @@ class simulation:
 
 		self.hardwareAccelerated = hardwareAccelerated
 		self.visualiser = visualiser(self)
-
-
+		self.frames = 0
+		self.plotFrames = sim.constants.PLOT_TD / sim.constants.TD
+		sim.debug.out (self.plotFrames)
+			
 		# set all device options correctly
 		# needs simulation and system state to be populated
 		for device in self.devices: 
@@ -104,19 +108,8 @@ class simulation:
 		return np.all([not device.hasJob() for device in self.devices])
 	
 	def simulate(self):
-		frames = 0
-		plotFrames = sim.constants.PLOT_TD / sim.constants.TD
-
 		while not self.finished:
-			frames += 1
 			self.simulateTick()
-			
-			# if sim.constants.DRAW_DEVICES:
-			if frames % plotFrames == 0:
-				self.visualiser.update()
-		
-			# pass
-				# def simulateUntilDone()
 	
 	# if multiple jobs finish in the same line, 
 	def simulateUntilJobDone(self):
@@ -151,21 +144,13 @@ class simulation:
 	def simulateTime(self, duration):
 		# progress = 0
 		endTime = self.time + duration
-		plotFrames = sim.constants.PLOT_TD / sim.constants.TD
-		sim.debug.out (plotFrames)
-		frames = 0
-
+		
 		if self.finished: return
 
 		while self.time < endTime and not self.finished:
 			# try:
 			if True:
 				self.simulateTick()
-				frames += 1
-
-				# if sim.constants.DRAW_DEVICES:
-				if frames % plotFrames == 0:
-					self.visualiser.update()
 		
 		# results
 		try:
@@ -273,6 +258,11 @@ class simulation:
 			
 				if np.sum(self.currentDelays) > 0:
 					sim.debug.out("delays {}".format(self.currentDelays))
+
+		self.frames += 1
+		# if sim.constants.DRAW_DEVICES:
+		if self.frames % self.plotFrames == 0:
+			self.visualiser.update()
 
 		# progress += sim.constants.TD
 		self.time.increment()

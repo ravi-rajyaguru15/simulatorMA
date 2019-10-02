@@ -328,7 +328,7 @@ class visualiser:
 				pp.gca().add_patch(img)
 		except RuntimeError:
 			print ("Drawing failed")
-			self.sim.finished = True
+			sim.simulation.current.finished = True
 
 	# @staticmethod
 	def moveWindow(self):

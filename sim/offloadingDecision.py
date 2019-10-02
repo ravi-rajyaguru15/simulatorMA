@@ -3,6 +3,7 @@ import sim.debug
 import sim.offloadingPolicy
 import sim.counters
 
+import traceback
 import numpy as np
 import random
 import rl
@@ -24,6 +25,7 @@ class offloadingDecision:
 	target = None
 	simulation = None
 	privateAgent = None
+
 
 	def __init__(self, device, systemState):
 		self.owner = device
@@ -387,8 +389,9 @@ class agent:
 
 	# update based on resulting system state and reward
 	def backward(self, reward, finished):
-		print("backward")
-
+		print("backward", reward, finished)
+		traceback.print_stack()
+	
 		self.totalReward += reward
 		self.episodeReward += reward
 

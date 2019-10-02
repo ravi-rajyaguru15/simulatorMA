@@ -78,7 +78,7 @@ class systemState:
 		expectedLifetimes = self.devicesLifetimesFunction()
 		self.setField('expectedLife', expectedLifetimes)
 		self.setField('systemExpectedLife', self.systemExpectedLifeFunction(expectedLifetimes))
-		sim.debug.out(self.dictRepresentation)
+		# sim.debug.out(self.dictRepresentation)
 		# self.update()
 
 	# the order is important, therefore the other functions are private

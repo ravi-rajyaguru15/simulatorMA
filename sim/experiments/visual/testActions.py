@@ -8,6 +8,7 @@ sim.constants.OFFLOADING_POLICY = sim.offloadingPolicy.REINFORCEMENT_LEARNING
 sim.constants.NUM_DEVICES = 2
 sim.constants.DRAW_DEVICES = True
 sim.constants.MINIMUM_BATCH = 3
+sim.constants.PLOT_TD = sim.constants.TD * 10
 
 exp = simulation(True)
 sim.simulation.current = exp
@@ -21,24 +22,26 @@ time.sleep(1)
 first = sim.job.job(dev, 5, hardwareAccelerated=True)
 decision = sim.offloadingDecision.possibleActions[3]
 if decision.local: decision.targetDeviceIndex = int(sim.systemState.current.getField('selfDeviceIndex')[0])
+print("target index", decision.targetDeviceIndex)
 selectedDevice = exp.devices[decision.targetDeviceIndex]
 first.decision = decision	
 first.setprocessingNode(selectedDevice)
 dev.addJob(first)
 exp.simulateUntilJobDone()
 print ("local done")
-time.sleep(1)
+# time.sleep(1)
 
 # fix decision to wait
 second = sim.job.job(dev, 5, hardwareAccelerated=True)
 decision = sim.offloadingDecision.possibleActions[2]
 if decision.local: decision.targetDeviceIndex = int(sim.systemState.current.getField('selfDeviceIndex')[0])
+print("target index", decision.targetDeviceIndex)
 second.decision = decision	
 second.setprocessingNode(selectedDevice)
 dev.addJob(second)
-exp.simulateTime(sim.constants.PLOT_TD * 10)
+exp.simulateTime(sim.constants.PLOT_TD * 100)
 print ("wait done")
-time.sleep(1)
+# time.sleep(1)
 # batch 1 
 
 # offload from 1 to 0
@@ -46,13 +49,14 @@ dev2 = exp.devices[1]
 third = sim.job.job(dev2, 5, hardwareAccelerated=True)
 decision = sim.offloadingDecision.possibleActions[0]
 if decision.local: decision.targetDeviceIndex = int(sim.systemState.current.getField('selfDeviceIndex')[0])
+print("target index", decision.targetDeviceIndex)
 selectedDevice = exp.devices[decision.targetDeviceIndex]
 third.decision = decision	
 third.setprocessingNode(selectedDevice)
 dev2.addJob(third)
-exp.simulateTime(sim.constants.PLOT_TD * 10)
+exp.simulateTime(sim.constants.PLOT_TD * 100)
 print ("offload 1 0")
-time.sleep(1)
+# time.sleep(1)
 # batch 2 
 
 # offload from 0 to 0
@@ -60,6 +64,7 @@ fourth = sim.job.job(dev, 5, hardwareAccelerated=True)
 decision = sim.offloadingDecision.possibleActions[0]
 print ('decision', decision)
 if decision.local: decision.targetDeviceIndex = int(sim.systemState.current.getField('selfDeviceIndex')[0])
+print("target index", decision.targetDeviceIndex)
 selectedDevice = exp.devices[decision.targetDeviceIndex]
 fourth.decision = decision
 fourth.setprocessingNode(selectedDevice)
@@ -67,10 +72,14 @@ dev.addJob(fourth)
 # batch 3 
 print ("offload 0 0")
 sim.debug.enabled = False
-exp.simulateUntilJobDone()
-exp.simulateUntilJobDone()
-exp.simulateUntilJobDone()
-time.sleep(1)
+
+while exp.completedJobs < 4:
+	exp.simulateTick()
+
+# exp.simulateUntilJobDone()
+# exp.simulateUntilJobDone()
+# exp.simulateUntilJobDone()
+# time.sleep(1)
 
 print("job done")
 exp.simulateTime(sim.constants.PLOT_TD * 100)
