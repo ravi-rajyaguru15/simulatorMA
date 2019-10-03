@@ -10,7 +10,7 @@ import sim.history
 import sim.systemState
 import sim.offloadingDecision
 import sim.offloadingPolicy
-
+import traceback
 # from node import node
 
 class job:
@@ -22,6 +22,7 @@ class job:
 	samples = None
 
 	started = None
+	active = None
 	createdTime = None
 	startTime = None
 	deadlineTime = None
@@ -38,6 +39,7 @@ class job:
 	processor = None
 	# decision = None
 	immediate = None
+	id = 0
 
 	hardwareAccelerated = None
 
@@ -52,6 +54,9 @@ class job:
 	history = None
 
 	def __init__(self, origin, samples, hardwareAccelerated, taskGraph=None):
+		job.id += 1
+		self.id = job.id
+
 		self.creator = origin
 		# self.simulation = origin.simulation
 
@@ -71,6 +76,7 @@ class job:
 
 		# self.finished = False
 		self.started = False
+		self.active = False
 		self.processed = False
 		self.finished = False
 		if taskGraph is None:
@@ -92,10 +98,14 @@ class job:
 		# define episode finished function for training
 		self.episodeFinished = simulation.isEpisodeFinished
 
+	def __repr__(self):
+		return "Job #{}".format(self.id)
+
 	def setDecisionTarget(self, decision):
 		# initiate task by setting processing node
 		# decision.updateDevice()
 		self.immediate = decision == sim.offloadingDecision.LOCAL
+		sim.debug.out("set immediate to {}".format(self.immediate))
 
 		# self.decision = decision
 		assert decision.targetDevice is not None
@@ -133,6 +143,8 @@ class job:
 		expectedLifetimeReward = -.5 if (self.startExpectedLifetime > self.systemLifetime()) else 0
 
 		sim.debug.learnOut('reward: {} {} {}'.format(jobReward, deadlineReward, expectedLifetimeReward), 'b')
+		traceback.print_stack()
+		print('\n\n')
 
 		return jobReward + deadlineReward + expectedLifetimeReward
 
@@ -155,6 +167,8 @@ class job:
 		assert self.immediate is not None
 		print("activating", self, 'owner', self.owner, 'on', self.processingNode)
 
+		self.active = True
+
 		# populate subtasks based on types of devices
 		if not self.offloaded():
 			print("already at correct place")
@@ -175,9 +189,10 @@ class job:
 
 		if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
 			sim.systemState.current.update(self.currentTask, self, self.owner)
+			sim.debug.learnOut("training when finishing job")
 			agent = self.owner.decision.privateAgent
 			reward = self.reward()
-			agent.backward(self.reward(), self.episodeFinished())
+			agent.backward(reward, self.episodeFinished())
 
 			self.addToHistory(reward, agent.latestMeanQ, agent.latestLoss)
 

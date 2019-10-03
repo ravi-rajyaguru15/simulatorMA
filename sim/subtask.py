@@ -207,8 +207,8 @@ class createMessage(subtask):
 
 	# must send message now 
 	def finishTask(self):
-		self.job.creator.mcu.idle()
-		self.job.creator.addSubtask(txJob(self.job, self.job.creator, self.job.processingNode), appendLeft=True)
+		self.owner.mcu.idle()
+		self.owner.addSubtask(txJob(self.job, self.job.owner, self.job.processingNode), appendLeft=True)
 
 		subtask.finishTask(self)
 
@@ -236,6 +236,7 @@ class batchContinue(subtask):
 
 		subtask.__init__(self, job, duration)
 
+		raise Exception("need to reevaluate before continuing")
 	# def beginTask(self):
 	# 	subtask.beginTask(self)
 		
@@ -580,16 +581,22 @@ class txJob(txMessage):
 	
 	def __init__(self, job, source, destination):
 		# add receive task to destination
-		sim.debug.out("adding TX job")
-		
+		sim.debug.out("adding TX job from {} to {}".format(source, destination))
 		txMessage.__init__(self, job, source, destination, jobToAdd=rxJob)
+
+	def beginTask(self):
+
+		subtask.beginTask(self)
 
 	def finishTask(self):
 		# if using rl, update model
+		# must update when starting,
 		if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
+			sim.debug.learnOut("training after offloading job")
 			sim.systemState.current.update(self.job.currentTask, self.job, self.owner)
 			agent = self.owner.decision.privateAgent
-			agent.backward(self.job.reward(), self.finished)			
+			agent.backward(self.job.reward(), self.finished)
+
 
 		txMessage.finishTask(self)
 
@@ -690,10 +697,10 @@ class rxJob(rxMessage):
 		# self.job.creator.waiting = True
 
 		if usingReinforcementLearning:
-			sim.debug.out("training before reevaluating")
+			sim.debug.learnOut("training before reevaluating")
 			print("backward before update")
-			sim.systemState.current.update(self.job.currentTask, self.job, self.job.owner) # still old owner
-			sim.debug.out("systemstate: {}".format(sim.systemState.current))
+			sim.systemState.current.update(self.job.currentTask, self.job, self.owner) # still old owner
+			# sim.debug.out("systemstate: {}".format(sim.systemState.current))
 
 			self.job.creator.decision.privateAgent.backward(self.job.reward(), self.job.finished)
 

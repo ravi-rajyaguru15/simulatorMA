@@ -280,7 +280,13 @@ class node:
 		asleepBefore = self.asleep()
 
 		# see if there's a job available
-		self.nextJob(currentTime)
+		if self.currentJob is None:
+			self.nextJob(currentTime)
+		# restarting existing job
+		elif self.currentJob.started and not self.currentJob.active:
+			sim.debug.out("restarting existing job", 'r')
+			self.currentJob.activate()
+
 
 		# check if there's something to be done now
 		if self.currentSubtask is None:
@@ -401,7 +407,7 @@ class node:
 
 
 	def removeJob(self, job):
-		sim.debug.out("REMOVE JOB")
+		sim.debug.out("REMOVE JOB FROM {}".format(self))
 		# sim.debug.out ('{} {}'.format(self.jobQueue, job))
 		# try to remove from queue (not there if from batch)
 		if job in self.jobQueue:

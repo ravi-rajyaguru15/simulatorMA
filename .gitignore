@@ -14,3 +14,4 @@ images/*.png
 .vscode/sftp.json
 .vscode/settings.json
 .DS_Store
+/venv/

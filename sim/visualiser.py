@@ -1,4 +1,5 @@
 import matplotlib as mpl
+import traceback
 # mpl.use("QT4Agg")
 import os
 oldBackend = mpl.get_backend()
@@ -328,6 +329,7 @@ class visualiser:
 				pp.gca().add_patch(img)
 		except RuntimeError:
 			print ("Drawing failed")
+			traceback.print_exc()
 			sim.simulation.current.finished = True
 
 	# @staticmethod

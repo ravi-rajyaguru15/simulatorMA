@@ -1,18 +1,17 @@
+import random
+import traceback
+
+import numpy as np
+import rl
+import rl.policy
+import rl.util
+import tensorflow as tf
+import tensorflow.keras as keras
+
 import sim.constants
+import sim.counters
 import sim.debug
 import sim.offloadingPolicy
-import sim.counters
-
-import traceback
-import numpy as np
-import random
-import rl
-import rl.util
-import rl.policy
-import tensorflow as tf
-
-import tensorflow.keras as keras
-import tensorflow.keras.backend
 
 sharedAgent = None
 possibleActions = None # TODO: offloading to self
@@ -131,7 +130,8 @@ class offloadingDecision:
 		# print("choice: {}".format(choice))
 			
 		job.setDecisionTarget(choice)
-		job.activate()
+		job.active = False
+		# job.activate()
 
 		return choice
 
@@ -164,7 +164,7 @@ def updateOffloadingTarget():
 			# time.sleep(1)
 			offloadingDecision.target.addSubtask(sim.subtask.batchContinue(node=offloadingDecision.target))
 
-		offloadingDecision.previousUpdateTime = currentTime
+		offloadingDecision.previousUpdateTime = sharedClock.current
 		offloadingDecision.target = offloadingDecision.options[offloadingDecision.currentTargetIndex]
 
 		sim.debug.out("Round robin update: {}".format(offloadingDecision.target), 'r')
@@ -359,7 +359,7 @@ class agent:
 
 	# predict best action using Q values
 	def forward(self, device):
-		sim.debug.learnOut("forward")
+		sim.debug.learnOut("forward", 'w')
 		assert self.model is not None
 
 		sim.counters.NUM_FORWARD += 1
@@ -391,8 +391,10 @@ class agent:
 	def backward(self, reward, finished):
 		assert self.trainable_model is not None
 
-		sim.debug.learnOut("backward {} {}".format(reward, finished))
+		sim.debug.learnOut("backward {} {}".format(reward, finished), 'w')
+		sim.debug.learnOut("\n")
 		traceback.print_stack()
+		sim.debug.learnOut("\n")
 
 		self.totalReward += reward
 		self.episodeReward += reward
