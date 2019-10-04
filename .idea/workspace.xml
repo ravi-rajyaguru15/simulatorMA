@@ -11,6 +11,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="caa1d90f-b372-413b-90cb-98837aaa6ca8" name="Default Changelist" comment="">
+<<<<<<< HEAD
       <change afterPath="$PROJECT_DIR$/.clwb/.bazelproject" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/.gitlab-ci.yml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/.vscode/tags" afterDir="false" />
@@ -123,6 +124,21 @@
       <change beforePath="$PROJECT_DIR$/src/training.py" beforeDir="false" afterPath="$PROJECT_DIR$/sim/training.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/variable.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/visualiser.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/visualiser.py" afterDir="false" />
+=======
+      <change beforePath="$PROJECT_DIR$/.clwb/.bazelproject" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.clwb/.blaze/modules/.project-data-dir.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.clwb/.blaze/modules/.workspace.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sim/counters.py" beforeDir="false" afterPath="$PROJECT_DIR$/sim/counters.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sim/experiments/transient/multiEpisode.py" beforeDir="false" afterPath="$PROJECT_DIR$/sim/experiments/transient/multiEpisode.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sim/experiments/visual/testActions.py" beforeDir="false" afterPath="$PROJECT_DIR$/sim/experiments/visual/testActions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sim/job.py" beforeDir="false" afterPath="$PROJECT_DIR$/sim/job.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sim/node.py" beforeDir="false" afterPath="$PROJECT_DIR$/sim/node.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sim/offloadingDecision.py" beforeDir="false" afterPath="$PROJECT_DIR$/sim/offloadingDecision.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sim/simulation.py" beforeDir="false" afterPath="$PROJECT_DIR$/sim/simulation.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sim/subtask.py" beforeDir="false" afterPath="$PROJECT_DIR$/sim/subtask.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sim/systemState.py" beforeDir="false" afterPath="$PROJECT_DIR$/sim/systemState.py" afterDir="false" />
+>>>>>>> removingproject
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -133,6 +149,7 @@
   <component name="ClangdSettings">
     <option name="formatViaClangd" value="false" />
   </component>
+<<<<<<< HEAD
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
       <file pinned="false" current-in-tab="false">
@@ -147,6 +164,8 @@
       </file>
     </leaf>
   </component>
+=======
+>>>>>>> removingproject
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
@@ -159,6 +178,7 @@
       </list>
     </option>
   </component>
+<<<<<<< HEAD
   <component name="ProjectFrameBounds" extendedState="6">
     <option name="x" value="-113" />
     <option name="y" value="54" />
@@ -194,7 +214,15 @@
       </pane>
       <pane id="Scope" />
     </panes>
+=======
+  <component name="ProjectFrameBounds">
+    <option name="x" value="87" />
+    <option name="y" value="85" />
+    <option name="width" value="2229" />
+    <option name="height" value="1227" />
+>>>>>>> removingproject
   </component>
+  <component name="ProjectId" id="1RhIODnlJnbpAoFVxsyYenl7yLs" />
   <component name="PropertiesComponent">
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="true" />
@@ -203,7 +231,7 @@
     <property name="WebServerToolWindowPanel.toolwindow.show.date" value="false" />
     <property name="WebServerToolWindowPanel.toolwindow.show.permissions" value="false" />
     <property name="WebServerToolWindowPanel.toolwindow.show.size" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/.clwb" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
     <property name="settings.editor.selected.configurable" value="preferences.remoteExternalTools" />
@@ -275,6 +303,7 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
+<<<<<<< HEAD
     <option name="totallyTimeSpent" value="2928000" />
   </component>
   <component name="ToolWindowManager">
@@ -302,10 +331,14 @@
       <window_info anchor="right" id="Database" order="3" />
       <window_info anchor="right" id="Remote Host" order="4" visible="true" weight="0.31558028" />
     </layout>
+=======
+    <option name="totallyTimeSpent" value="3465000" />
+>>>>>>> removingproject
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
   </component>
+<<<<<<< HEAD
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/Dockerfile">
       <provider selected="true" editor-type-id="text-editor">
@@ -330,5 +363,19 @@
     <entry file="file://$PROJECT_DIR$/.clwb/.bazelproject">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
+=======
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="COLUMN_ORDER" />
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+>>>>>>> removingproject
   </component>
 </project>

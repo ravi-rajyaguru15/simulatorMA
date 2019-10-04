@@ -1,4 +1,5 @@
 import sim.constants
+import sim.debug
 
 import numpy as np
 import traceback
@@ -83,32 +84,12 @@ class systemState:
 
 	# the order is important, therefore the other functions are private
 	def update(self, task, job, device):
+		sim.debug.learnOut("updating systemState with {} {} {}".format(task, job, device), 'c')
 		self.__updateTask(task)
 		self.__updateJob(job)
 		self.__updateDevice(device)
 
 		# sim.debug.learnOut(self.dictRepresentation)
-
-	# 	traceback.print_stack()
-
-	# 	elements = [self.taskIdentifier, self.taskSize, self.selfDeviceIndex, self.selfExpectedLife, self.systemExpectedLife, self.expectedLife, self.deadlineRemaining, self.selfBatch, self.batchLengths]
-	# 	# ensure everything is a list 
-	# 	elements = [element if isinstance(element, list) else [element] for element in elements]
-	# 	# flatten into single list
-	# 	self.currentState = [lst for element in elements for lst in element]
-		
-	# 	if len(self.currentState) != self.stateCount:
-	# 		print(self.currentState)
-	# 		print(elements)
-
-	# 	print('state', self.currentState)
-	# 	print('dict', self.dictRepresentation)
-
-	# 	assert len(self.currentState) == self.stateCount
-
-
-	# def onehot(self, index):
-	# 	return np.array([1.0 if i == index else 0.0 for i in range(systemState.stateCount)])
 
 	# update the system state based on which task is to be done
 	def __updateTask(self, task):

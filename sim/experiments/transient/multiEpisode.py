@@ -6,6 +6,7 @@ import sim.plotting
 import sim.experiments.experiment
 import sim.offloadingDecision
 import sim.job
+import sim.counters
 
 import numpy as np
 import multiprocessing
