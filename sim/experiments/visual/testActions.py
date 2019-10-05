@@ -4,16 +4,19 @@ import sim.systemState
 import sim.offloadingDecision
 import sim.job
 import sim.counters
+import sim.powerPolicy
 import sim.debug
 from sim.simulation import simulation
 import sys
 
 if __name__ == '__main__':
-	sim.debug.enabled = False
+	sim.debug.enabled = True
 	sim.debug.learnEnabled = True
 
 	sim.constants.JOB_LIKELIHOOD = 0
 	sim.constants.OFFLOADING_POLICY = sim.offloadingPolicy.REINFORCEMENT_LEARNING
+	sim.constants.FPGA_POWER_PLAN = sim.powerPolicy.IDLE_TIMEOUT
+	sim.constants.FPGA_IDLE_SLEEP = 0.1
 	sim.constants.NUM_DEVICES = 2
 	sim.constants.DRAW_DEVICES = False
 	sim.constants.MINIMUM_BATCH = 1e10
@@ -27,6 +30,7 @@ if __name__ == '__main__':
 	# time.sleep(1)
 
 	# fix decision to local
+	print("job: first")
 	first = sim.job.job(dev, 5, hardwareAccelerated=True)
 	decision = sim.offloadingDecision.possibleActions[3]
 	decision.updateDevice(dev)
@@ -39,7 +43,10 @@ if __name__ == '__main__':
 	print("forward", sim.counters.NUM_FORWARD, "backward", sim.counters.NUM_BACKWARD)
 	print("local done")
 
+	exp.simulateTime(0.1)
+
 	# fix decision to wait
+	print("job: second")
 	second = sim.job.job(dev, 5, hardwareAccelerated=True)
 	decision = sim.offloadingDecision.possibleActions[2]
 	decision.updateDevice(dev)
@@ -55,6 +62,7 @@ if __name__ == '__main__':
 
 	# offload from 1 to 0 then wait
 	print('\n\n\n\n\n')
+	print("job: third")
 	sim.debug.out("THIRD", 'g')
 	dev2 = exp.devices[1]
 	third = sim.job.job(dev2, 5, hardwareAccelerated=True)
@@ -72,15 +80,16 @@ if __name__ == '__main__':
 	decision = sim.offloadingDecision.possibleActions[2]
 	decision.updateDevice(dev)
 	third.setDecisionTarget(decision)
+	# batch 2
 
 	# time.sleep(1)
-	# batch 2
 	print("\n\nshould activate now...")
 	exp.simulateTick()
 	assert third.immediate == False
 
 	# offload from 0 to 1 to 0 then wait
 	print("\n\n\n\n\n")
+	print("job: fourth")
 	sim.debug.out("FOURTH", 'g')
 	fourth = sim.job.job(dev, 5, hardwareAccelerated=True)
 	decision = sim.offloadingDecision.possibleActions[1]
@@ -108,19 +117,22 @@ if __name__ == '__main__':
 		sys.exit(0)
 	print('dev has job again')
 	print("forward", sim.counters.NUM_FORWARD, "backward", sim.counters.NUM_BACKWARD)
+	sim.debug.enabled = True
+	print("**")
 	decision = sim.offloadingDecision.possibleActions[2]
 	decision.updateDevice(dev)
 	fourth.setDecisionTarget(decision)
 	# time.sleep(1)
-	# batch 2
+	# batch 3
 	assert fourth.immediate == False
 	print("\n\nshould activate now...")
 	exp.simulateTick()
+	exp.simulateTime(0.1)
 
-	sim.debug.enabled = True
 
 
 	# offload from 0 to 0
+	print("job: fifth")
 	fifth = sim.job.job(dev, 5, hardwareAccelerated=True)
 	decision = sim.offloadingDecision.possibleActions[0]
 	decision.updateDevice(dev)

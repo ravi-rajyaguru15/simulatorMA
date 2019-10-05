@@ -196,7 +196,8 @@ class simulation:
 
 		# update all the devices
 		for dev in self.devices:
-			sim.debug.out('\ntick device [{}] [{}] [{}]'.format(dev, dev.currentJob, dev.currentSubtask))
+			if not (dev.currentJob is None and dev.currentSubtask is None):
+				sim.debug.out('\ntick device [{}] [{}] [{}]'.format(dev, dev.currentJob, dev.currentSubtask))
 			dev.updateTime(self.time)
 			queueLengths.append(len(dev.jobQueue))
 

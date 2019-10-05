@@ -236,7 +236,7 @@ class batchContinue(subtask):
 
 		subtask.__init__(self, job, duration)
 
-		raise Exception("need to reevaluate before continuing")
+		# TODO: "need to reevaluate before continuing")
 	# def beginTask(self):
 	# 	subtask.beginTask(self)
 		
@@ -287,6 +287,7 @@ class batching(subtask):
 	def finishTask(self):
 		# special case: hardware acceleration already there
 		if self.job.hardwareAccelerated and self.job.processingNode.fpga.isConfigured(self.job.currentTask):
+			sim.debug.out("special case batching: hw already available")
 			self.job.processingNode.addSubtask(newJob(self.job), appendLeft=True)
 		else:			
 			# add current job to node's batch
