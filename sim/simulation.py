@@ -62,8 +62,9 @@ class simulation:
 		
 		# requires simulation to be populated
 		sim.systemState.current = sim.systemState.systemState(self)
-		useSharedAgent = sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING and sim.constants.CENTRALISED_LEARNING
-			
+		useSharedAgent = (sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING) and (sim.constants.CENTRALISED_LEARNING)
+
+		print(useSharedAgent, sim.constants.OFFLOADING_POLICY, sim.constants.CENTRALISED_LEARNING)
 		if useSharedAgent:
 			# create shared learning agent
 			sim.offloadingDecision.sharedAgent = sim.offloadingDecision.agent(sim.systemState.current)
@@ -273,7 +274,7 @@ class simulation:
 		return [len(dev.batch[task]) if task in dev.batch else 0 for dev in self.devices]
 
 	def batchLengths(self):
-		return [[len(batch) for key, batch in dev.batch.items()] for dev in self.devices]
+		return [dev.batchLengths() for dev in self.devices]
 	
 	def maxBatchLengths(self):
 		return [np.max(lengths) if len(lengths) > 0 else 0 for lengths in self.batchLengths()]

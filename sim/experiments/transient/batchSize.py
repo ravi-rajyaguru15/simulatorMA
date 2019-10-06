@@ -15,9 +15,16 @@ import warnings
 import profile
 
 sim.constants.NUM_DEVICES = 1
-numJobs = int(1e2)
+numJobs = int(1e1)
+
 
 def runThread(results, finished, histories):
+	print("creating simulation", sim.constants.OFFLOADING_POLICY)
+	sim.debug.enabled = False
+	sim.constants.DRAW = False
+	sim.constants.FPGA_POWER_PLAN = sim.powerPolicy.IDLE_TIMEOUT
+	sim.constants.OFFLOADING_POLICY = sim.offloadingPolicy.REINFORCEMENT_LEARNING
+
 	exp = simulation(hardwareAccelerated=True)
 	sim.simulation.current = exp
 
@@ -38,12 +45,10 @@ def runThread(results, finished, histories):
 
 	print("forward", sim.counters.NUM_FORWARD, "backward", sim.counters.NUM_BACKWARD)
 
+
 def run():
 	print ("starting experiment")
-	sim.debug.enabled = False
-	sim.constants.DRAW = False
-	sim.constants.FPGA_POWER_PLAN = sim.powerPolicy.IDLE_TIMEOUT
-	sim.constants.OFFLOADING_POLICY = sim.offloadingPolicy.REINFORCEMENT_LEARNING
+
 	# sim.constants.TOTAL_TIME = 1e3
 
 	processes = list()
@@ -65,9 +70,11 @@ def run():
 	sim.plotting.plotMultiWithErrors("BatchSize", results=results, ylabel="Loss", xlabel="Job #") # , save=True)
 	sim.plotting.plotAgentHistory(histories.get())
 
-try:
-	run()
-except:
-	traceback.print_exc(file=sys.stdout)
 
-	print ("ERROR")
+if __name__ == "__main__":
+	try:
+		run()
+	except:
+		traceback.print_exc(file=sys.stdout)
+
+		print ("ERROR")

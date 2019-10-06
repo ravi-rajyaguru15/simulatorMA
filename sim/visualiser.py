@@ -3,7 +3,9 @@ import traceback
 # mpl.use("QT4Agg")
 import os
 oldBackend = mpl.get_backend()
-print ("existing", oldBackend)
+print("existing", oldBackend)
+
+
 import sys
 if sys.platform != 'darwin':
 	try:
@@ -11,7 +13,7 @@ if sys.platform != 'darwin':
 		# mpl.use("Qt4Agg")
 	except ImportError:
 		mpl.use(oldBackend)
-		print ("Cannot import MPL backend")
+		print("Cannot import MPL backend")
 import matplotlib.pyplot as pp
 import pylab
 import math
@@ -45,6 +47,7 @@ class visualiser:
 	devices = None
 	devicesNames = None
 	totalDevicesEnergyFunction = None
+	completedJobs = None
 
 	def __init__(self, simulation):
 		# self.sim = simulator
@@ -302,8 +305,7 @@ class visualiser:
 		# pp.ylim(np.min([ylimits[0], 0]), np.max([ylimits[1], 1]))
 		pp.xlim(xlimits)
 		pp.ylim(ylimits)
-		
-		
+
 	def draw(self, node):
 		try:
 			image = list()

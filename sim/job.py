@@ -32,6 +32,10 @@ class job:
 	totalLatency = None
 	devicesEnergyCost = None # track how much each device spends on this job
 
+	# history for learning
+	beforeState = None
+	latestAction = None
+
 	owner = None
 	# simulation = None
 	creator = None
@@ -112,12 +116,14 @@ class job:
 		assert decision.targetDevice.index == decision.targetDeviceIndex
 		# add to history
 		assert self.history is not None
-		self.history.add("action", decision.index)
 
 		# selectedDevice = self.simulation.devices[self.decision.targetDeviceIndex]
 		sim.debug.out("selected {}".format(decision.targetDevice))
 		self.setprocessingNode(decision.targetDevice)
 		sim.results.addChosenDestination(decision.targetDevice)
+
+		# when assigning a new target we can assume the job is inactive
+		self.active = False
 
 
 	def deadlineMet(self):
@@ -126,12 +132,12 @@ class job:
 	def setprocessingNode(self, processingNode):
 		self.processingNode = processingNode
 
-		sim.debug.out("setprocessingnode")
+		# sim.debug.out("setprocessingnode")
 
 		self.setProcessor(processingNode)
 
 	def setProcessor(self, processingNode):
-		sim.debug.out("\tprocessor " + str(self.hardwareAccelerated))
+		# sim.debug.out("\tprocessor " + str(self.hardwareAccelerated))
 		if self.hardwareAccelerated:
 			self.processor = processingNode.fpga
 		else:
@@ -143,7 +149,7 @@ class job:
 		expectedLifetimeReward = -.5 if (self.startExpectedLifetime > self.systemLifetime()) else 0
 
 		sim.debug.learnOut('reward: {} {} {}'.format(jobReward, deadlineReward, expectedLifetimeReward), 'b')
-		traceback.print_stack()
+		# traceback.print_stack()
 		print('\n\n')
 
 		return jobReward + deadlineReward + expectedLifetimeReward
@@ -182,19 +188,16 @@ class job:
 			sim.debug.out("offloading to other device")
 			self.owner.addSubtask(sim.subtask.createMessage(self))
 
-
 	def finish(self):
 		self.finished = True
 		self.owner.removeJob(self)
 
 		if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
-			sim.systemState.current.update(self.currentTask, self, self.owner)
 			sim.debug.learnOut("training when finishing job")
-			agent = self.owner.decision.privateAgent
-			reward = self.reward()
-			agent.backward(reward, self.episodeFinished())
+			self.owner.decision.train(self.currentTask, self, self.owner)
 
-			self.addToHistory(reward, agent.latestMeanQ, agent.latestLoss)
+			# agent = self.owner.decision.privateAgent
+			# self.addToHistory(agent.latestReward, agent.latestMeanQ, agent.latestLoss)
 
 		self.incrementCompletedJobs()
 
@@ -209,7 +212,6 @@ class job:
 		# print ("pushing", self.batchSize)
 		# job.jobResultsQueue.put((self.currentTime - self.startTime,))
 		job.jobResultsQueue.put((self.batchSize,))
-
 
 	def offloaded(self):
 		# in the beginning owner is creator, later may be offloaded again

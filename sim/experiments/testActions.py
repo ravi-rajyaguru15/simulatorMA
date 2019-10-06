@@ -2,6 +2,7 @@ import sim.constants
 import sim.offloadingPolicy
 import sim.systemState
 import sim.offloadingDecision
+import sim.experiments.experiment
 import sim.job
 import sim.counters
 import sim.powerPolicy
@@ -27,65 +28,20 @@ if __name__ == '__main__':
 
 	exp.simulateTime(sim.constants.PLOT_TD * 1)
 	dev = exp.devices[0]
-	# time.sleep(1)
+	dev2 = exp.devices[1]
 
 	# fix decision to local
 	print("job: first")
-	first = sim.job.job(dev, 5, hardwareAccelerated=True)
-	decision = sim.offloadingDecision.possibleActions[3]
-	decision.updateDevice(dev)
-	print("override first")
-	print("target index", decision.targetDeviceIndex)
-	print("target device", decision.targetDevice)
-	first.setDecisionTarget(decision)
-	dev.addJob(first)
-	exp.simulateUntilJobDone()
-	print("forward", sim.counters.NUM_FORWARD, "backward", sim.counters.NUM_BACKWARD)
-	print("local done")
+	sim.experiments.experiment.doLocalJob(exp, dev)
 
 	exp.simulateTime(0.1)
 
-	# fix decision to wait
 	print("job: second")
-	second = sim.job.job(dev, 5, hardwareAccelerated=True)
-	decision = sim.offloadingDecision.possibleActions[2]
-	decision.updateDevice(dev)
-	print("target index", decision.targetDeviceIndex)
-	second.setDecisionTarget(decision)
-	dev.addJob(second)
-	exp.simulateTime(sim.constants.PLOT_TD * 100)
-	print("wait done")
-	print("forward", sim.counters.NUM_FORWARD, "backward", sim.counters.NUM_BACKWARD)
-	# time.sleep(1)
-	# batch 1
-
+	sim.experiments.experiment.doWaitJob(exp, dev)
 
 	# offload from 1 to 0 then wait
 	print('\n\n\n\n\n')
-	print("job: third")
-	sim.debug.out("THIRD", 'g')
-	dev2 = exp.devices[1]
-	third = sim.job.job(dev2, 5, hardwareAccelerated=True)
-	decision = sim.offloadingDecision.possibleActions[0]
-	decision.updateDevice(dev)
-	print("target index", decision.targetDeviceIndex)
-	third.setDecisionTarget(decision)
-	dev2.addJob(third)
-	print("offload 1 0")
-	while dev.currentJob is None:
-		exp.simulateTick()
-		print('\n\n-\n')
-	print("dev has job again")
-	print("forward", sim.counters.NUM_FORWARD, "backward", sim.counters.NUM_BACKWARD)
-	decision = sim.offloadingDecision.possibleActions[2]
-	decision.updateDevice(dev)
-	third.setDecisionTarget(decision)
-	# batch 2
-
-	# time.sleep(1)
-	print("\n\nshould activate now...")
-	exp.simulateTick()
-	assert third.immediate == False
+	sim.experiments.experiment.doOffloadJob(exp, dev2, dev)
 
 	# offload from 0 to 1 to 0 then wait
 	print("\n\n\n\n\n")

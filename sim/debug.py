@@ -1,6 +1,6 @@
 default = 37
-enabled = True
-learnEnabled = True
+enabled = False
+learnEnabled = False
 
 
 # print to console in a fancy colour

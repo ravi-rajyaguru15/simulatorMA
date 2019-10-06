@@ -9,14 +9,17 @@ import tensorflow as tf
 import tensorflow.keras as keras
 
 import sim.constants
+import sim.simulation
+import sim.systemState
 import sim.counters
 import sim.debug
 import sim.offloadingPolicy
 
 sharedAgent = None
-possibleActions = None # TODO: offloading to self
+possibleActions = None  # TODO: offloading to self
 devices = None
 sharedClock = None
+
 
 class offloadingDecision:
 	options = None
@@ -24,7 +27,6 @@ class offloadingDecision:
 	target = None
 	simulation = None
 	privateAgent = None
-
 
 	def __init__(self, device, systemState):
 		self.owner = device
@@ -40,21 +42,24 @@ class offloadingDecision:
 			self.target = self.owner
 		elif sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.RANDOM_PEER_ONLY:
 			# only offload to something with fpga when needed
-			elasticNodes = offloadingDecision.selectElasticNodes(allDevices)  # select elastic nodes from alldevices list]
+			elasticNodes = offloadingDecision.selectElasticNodes(
+				allDevices)  # select elastic nodes from alldevices list]
 			if self.owner in elasticNodes:
 				elasticNodes.remove(self.owner)
 			self.options = elasticNodes
 		elif sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.SPECIFIC_PEER_ONLY:
 			self.target = allDevices[sim.constants.OFFLOADING_PEER]
 		elif sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.ANYTHING \
-			or sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.ANNOUNCED \
-			or sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
-			self.options = offloadingDecision.selectElasticNodes(allDevices)  # select elastic nodes from alldevices list]
-			# self.target = self.owner
+				or sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.ANNOUNCED \
+				or sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
+			self.options = offloadingDecision.selectElasticNodes(
+				allDevices)  # select elastic nodes from alldevices list]
+		# self.target = self.owner
 		elif sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.ROUND_ROBIN:
 			# assign static targets (will happen multiple times but that's fine)
-			offloadingDecision.options = offloadingDecision.selectElasticNodes(allDevices)  # select elastic nodes from alldevices list]
-	
+			offloadingDecision.options = offloadingDecision.selectElasticNodes(
+				allDevices)  # select elastic nodes from alldevices list]
+
 		else:
 			raise Exception("Unknown offloading policy")
 
@@ -68,16 +73,16 @@ class offloadingDecision:
 				assert sharedAgent is not None
 				self.privateAgent = sharedAgent
 
-		# print(sim.constants.OFFLOADING_POLICY, self.owner, self.options)
+	# print(sim.constants.OFFLOADING_POLICY, self.owner, self.options)
 
 	def chooseDestination(self, task, job, device):
 		# if specified fixed target, return it
 		if self.target is not None:
-			return self.target # possibleActions[self.target.index]
+			return self.target  # possibleActions[self.target.index]
 		# check if shared target exists
 		elif offloadingDecision.target is not None:
-			print ("shared target")
-			return offloadingDecision.target # possibleActions[offloadingDecision.target.index]
+			print("shared target")
+			return offloadingDecision.target  # possibleActions[offloadingDecision.target.index]
 		elif self.options is None:
 			raise Exception("options are None!")
 		elif len(self.options) == 0:
@@ -101,17 +106,13 @@ class offloadingDecision:
 					# print('largest:', largestBatches)
 					choice = action.findAction(self.options[largestBatches].index)
 			elif sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
-				sim.debug.learnOut()
 				sim.debug.learnOut("deciding how to offload new job")
 				sim.debug.learnOut("owner: {}".format(self.owner), 'r')
-				self.systemState.update(task, job, device)
-				# sim.debug.out("systemstate: {}".format(self.systemState))
-				# print("systemstate: {}".format(self.systemState))
-				choice = self.privateAgent.forward(device)
-				sim.debug.learnOut("choice: {}".format(choice))
+				choice = self.firstDecideDestination(task, job, device)
+			# sim.debug.learnOut("choice: {}".format(choice))
 			else:
 				choice = action("Random", targetIndex=random.choice(self.options).index)
-				# choice = np.random.choice(self.options) #  action.findAction(random.choice(self.options).index)
+			# choice = np.random.choice(self.options) #  action.findAction(random.choice(self.options).index)
 
 			sim.debug.out("Job assigned: {} -> {}".format(self.owner, choice))
 			# if self.privateAgent is not None:
@@ -119,24 +120,43 @@ class offloadingDecision:
 			# else:
 			# 	choice.updateDevice() # self.options)
 			return choice
-		
-	def rechooseDestination(self, task, job, device):
-		assert sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING
-		
-		self.systemState.update(task, job, device)
-		# sim.debug.out("systemstate: {}".format(sim.systemState.current))
 
-		choice = self.privateAgent.forward(device)
-		# print("choice: {}".format(choice))
-			
+	def rechooseDestination(self, task, job, device):
+		# self.updateState(task, job, device)
+		# self.privateAgent.backward(job.reward(), sim.simulation.current.finished)
+		self.train(task, job, device)
+		# choice = self.decideDestination(task, job, device)
+		choice = self.privateAgent.forward(job, device)
+
 		job.setDecisionTarget(choice)
-		job.active = False
 		# job.activate()
 
 		return choice
 
+	def redecideDestination(self, task, job, device):
+		assert sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING
+		self.train(task, job, device)
+		return self.privateAgent.forward(job, device)
+
+	def firstDecideDestination(self, task, job, device):
+		self.updateState(task, job, device)
+		return self.privateAgent.forward(job, device)
+
+	def updateState(self, task, job, device):
+		# update state
+		self.systemState.update(task, job, device)
+
+	def train(self, task, job, device):
+		self.updateState(task, job, device)
+		self.privateAgent.backward(job)
+
+
+# print("choice: {}".format(choice))
+
 previousUpdateTime = None
 currentTargetIndex = -1
+
+
 # @staticmethod
 def updateOffloadingTarget():
 	assert sharedClock is not None
@@ -170,20 +190,19 @@ def updateOffloadingTarget():
 		sim.debug.out("Round robin update: {}".format(offloadingDecision.target), 'r')
 
 
-
-
-
 def mean_q(correctQ, predictedQ):
 	return tf.keras.backend.mean(tf.keras.backend.max(predictedQ, axis=-1))
+
 
 class action:
 	name = None
 	targetDevice = None
 	targetDeviceIndex = None
 	local = False
-	index = None
+	# index = None
+	immediate = None
 
-	def __init__(self,name, targetIndex=None):
+	def __init__(self, name, targetIndex=None, immediate=False):
 		if targetIndex is None:
 			self.name = name
 			self.local = True
@@ -191,12 +210,17 @@ class action:
 			self.name = "{} {}".format(name, targetIndex)
 			self.targetDeviceIndex = targetIndex
 			self.local = False
+		self.immediate = immediate
 
-	def __repr__(self): return self.name
+	def __repr__(self):
+		return self.name
+
+	def offloadingToTarget(self, targetIndex=None): return False
 
 	# update device based on latest picked device index
-	def updateDevice(self, owner):
+	def updateDevice(self, owner=None):
 		if self.local:
+			assert owner is not None
 			self.targetDeviceIndex = owner.index
 			self.targetDevice = owner
 		else:
@@ -214,13 +238,33 @@ class action:
 				print("updateDevice failed!", self, devices, self.targetDeviceIndex)
 
 			assert self.targetDevice is not None
-		# self.targetDevice = devices[self.targetDeviceIndex]
+	# self.targetDevice = devices[self.targetDeviceIndex]
 
-	# def setTargetDevice(self, device):
-	# 	self.targetDevice = device
+# def setTargetDevice(self, device):
+# 	self.targetDevice = device
 
-BATCH = action("Batch") # TODO: wait does nothing
-LOCAL = action("Local")
+
+class offloading(action):
+	def __init__(self, destinationIndex):
+		super().__init__("Offload", targetIndex=destinationIndex)
+
+	def offloadingToTarget(self, index):
+		return self.targetDeviceIndex == index
+
+
+class localAction(action):
+	def __init__(self, immediate):
+		if immediate:
+			name = "Local"
+		else:
+			name = "Batch"
+		super().__init__(name, immediate=immediate)
+
+
+BATCH = localAction(False)  # TODO: wait does nothing
+LOCAL = localAction(True)
+
+
 # OFFLOAD = action("Offload")
 
 
@@ -232,9 +276,11 @@ class agent:
 	policy = None
 	optimizer = None
 	loss = None
-	beforeState = None
-	latestAction = None
+	# beforeState = None
+	# latestAction = None
+	latestLoss = None
 	latestReward = None
+	latestR = None
 	latestMAE = None
 	latestMeanQ = None
 	gamma = None
@@ -272,12 +318,12 @@ class agent:
 		self.totalReward = 0
 		self.reset()
 
-		# self.setDevices()
+	# self.setDevices()
 
 	def reset(self):
 		self.episodeReward = 0
 
-		# self.history = sim.history.history()
+	# self.history = sim.history.history()
 
 	def setDevices(self):
 		# self.devices = devices
@@ -285,19 +331,16 @@ class agent:
 		global possibleActions
 		global devices
 		assert devices is not None
-		possibleActions = [action("Offload", i) for i in range(len(devices))] + [BATCH, LOCAL]
+		possibleActions = [offloading(i) for i in range(len(devices))] + [BATCH, LOCAL]
 		for i in range(len(possibleActions)):
-			possibleActions[i].index = i 
+			possibleActions[i].index = i
 		print('actions', possibleActions)
 		offloadingDecision.numActionsPerDevice = len(possibleActions)
-		
+
 		self.numActions = len(possibleActions)
 
 		# needs numActions
 		self.createModel()
-
-
-
 
 	def createModel(self):
 		# create basic model
@@ -311,12 +354,11 @@ class agent:
 
 		self.model.add(keras.layers.Dense(self.numActions))
 		self.model.add(keras.layers.Activation('linear'))
-		if sim.debug.enabled:
-			self.model.summary()
-
+		# if sim.debug.enabled:
+		# 	self.model.summary()
 
 		self.createTrainableModel()
-	
+
 	def createTrainableModel(self):
 		# COPIED FROM KERAS-RL LIBRARY
 		metrics = ['mae']
@@ -335,7 +377,8 @@ class agent:
 		predictedQ = self.model.output
 		correctQ = keras.layers.Input(name='correctQ', shape=(self.numActions,))
 		mask = keras.layers.Input(name='mask', shape=(self.numActions,))
-		lossOut = keras.layers.Lambda(clipped_masked_error, output_shape=(1,), name='loss')([correctQ, predictedQ, mask])
+		lossOut = keras.layers.Lambda(clipped_masked_error, output_shape=(1,), name='loss')(
+			[correctQ, predictedQ, mask])
 		# this copies the existing model
 		ins = [self.model.input] if type(self.model.input) is not list else self.model.input
 		self.trainable_model = keras.models.Model(inputs=ins + [correctQ, mask], outputs=[lossOut, predictedQ])
@@ -343,7 +386,8 @@ class agent:
 		combined_metrics = {self.trainable_model.output_names[1]: metrics}
 		losses = [
 			lambda correctQ, predictedQ: predictedQ,  # loss is computed in Lambda layer
-			lambda correctQ, predictedQ: tf.keras.backend.zeros_like(predictedQ),  # we only include this for the metrics
+			lambda correctQ, predictedQ: tf.keras.backend.zeros_like(predictedQ),
+			# we only include this for the metrics
 		]
 		self.trainable_model.compile(optimizer=self.optimizer, loss=losses, metrics=combined_metrics)
 
@@ -358,18 +402,20 @@ class agent:
 	# 	return result
 
 	# predict best action using Q values
-	def forward(self, device):
-		sim.debug.learnOut("forward", 'w')
+	def forward(self, job, device):
+		sim.debug.learnOut("forward", 'y')
 		assert self.model is not None
 
 		sim.counters.NUM_FORWARD += 1
 
-		self.beforeState = np.array(sim.systemState.current.currentState)
+		job.beforeState = np.array(sim.systemState.current.currentState)
 		# sim.debug.out("beforestate {}".format(sim.systemState.current.currentState))
-		qValues = self.model.predict(self.beforeState.reshape((1, 1, self.systemState.stateCount)))[0]
-		sim.debug.out('q {}'.format(qValues))
+		qValues = self.model.predict(job.beforeState.reshape((1, 1, self.systemState.stateCount)))[0]
+		# sim.debug.learnOut('q {}'.format(qValues))
 		actionIndex = self.policy.select_action(q_values=qValues)
-		self.latestAction = actionIndex
+		job.latestAction = actionIndex
+		job.history.add("action", actionIndex)
+		sim.debug.learnOut("chose action {}".format(actionIndex))
 		# self.history["action"].append(float(self.latestAction))
 
 		assert sim.offloadingDecision.possibleActions is not None
@@ -377,24 +423,19 @@ class agent:
 		sim.debug.learnOut("choice: {}".format(choice), 'r')
 
 		choice.updateDevice(device)
-		# # must set local choices index
-		# if choice.local:
-		# 	choice.targetDeviceIndex = device.index # int(self.systemState.getField('selfDeviceIndex')[0])
-		# 	print("local", choice.targetDeviceIndex)
-		# 	choice.setTargetDevice(device)
-		# else:
-		# 	# only for offloading
-		# 	choice.updateDevice()  # self.devices)
 		return choice
 
 	# update based on resulting system state and reward
-	def backward(self, reward, finished):
+	def backward(self, job):
 		assert self.trainable_model is not None
 
-		sim.debug.learnOut("backward {} {}".format(reward, finished), 'w')
+		reward = job.reward()
+		finished = job.episodeFinished()
+
+		sim.debug.learnOut("backward {} {}".format(reward, finished), 'y')
 		sim.debug.learnOut("\n")
-		traceback.print_stack()
-		sim.debug.learnOut("\n")
+		# traceback.print_stack()
+		# sim.debug.learnOut("\n")
 
 		self.totalReward += reward
 		self.episodeReward += reward
@@ -406,9 +447,10 @@ class agent:
 		# Compute the q_values given state1, and extract the maximum for each sample in the batch.
 		# We perform this prediction on the target_model instead of the model for reasons
 		# outlined in Mnih (2015). In short: it makes the algorithm more stable.
-		target_q_values = self.model.predict_on_batch(np.array([np.array([np.array(sim.systemState.current.currentState)])])) # TODO: target_model
+		target_q_values = self.model.predict_on_batch(
+			np.array([np.array([np.array(sim.systemState.current.currentState)])]))  # TODO: target_model
 		q_batch = np.max(target_q_values, axis=1).flatten()
-		
+
 		targets = np.zeros((1, self.numActions))
 		dummy_targets = np.zeros((1,))
 		masks = np.zeros((1, self.numActions))
@@ -417,21 +459,20 @@ class agent:
 		# but only for the affected output units (as given by action_batch).
 		discounted_reward_batch = self.gamma * q_batch
 		# Set discounted reward to zero for all states that were terminal.
-		discounted_reward_batch *= [0. if finished else 1.] 
+		discounted_reward_batch *= [0. if finished else 1.]
 		# assert discounted_reward_batch.shape == reward_batch.shape
 		R = reward + discounted_reward_batch
-		targets[0, self.latestAction] = R  # update action with estimated accumulated reward
+		targets[0, job.latestAction] = R  # update action with estimated accumulated reward
 		dummy_targets[0] = R
-		masks[0, self.latestAction] = 1.  # enable loss for this specific action
+		masks[0, job.latestAction] = 1.  # enable loss for this specific action
 
 		targets = np.array(targets).astype('float32')
 		masks = np.array(masks).astype('float32')
 
-
 		# Finally, perform a single update on the entire batch. We use a dummy target since
 		# the actual loss is computed in a Lambda layer that needs more complex input. However,
 		# it is still useful to know the actual target to compute metrics properly.
-		x = [np.array([[self.beforeState]])] + [targets, masks]
+		x = [np.array([[job.beforeState]])] + [targets, masks]
 		y = [dummy_targets, targets]
 
 		self.trainable_model._make_train_function()
@@ -443,9 +484,16 @@ class agent:
 
 		# new metrics
 		self.latestLoss = metrics[0]
-		self.latestReward = R
+		self.latestReward = reward
+		self.latestR = R
 		self.latestMAE = metrics[1]
 		self.latestMeanQ = metrics[2]
+
+		# sim.debug.learnOut\
+		print("state diff: {}".format(sim.systemState.current.currentState - job.beforeState), 'p')
+
+		# save to history
+		job.addToHistory(self.latestReward, self.latestMeanQ, self.latestLoss)
 
 		# # metrics history
 		# self.history.add("loss", self.loss)
@@ -454,15 +502,15 @@ class agent:
 
 		# print('reward', reward)
 
-		sim.debug.learnOut("loss: {} reward: {}".format(self.latestLoss, self.latestReward), 'r')
+		sim.debug.learnOut("loss: {} reward: {} R: {}".format(self.latestLoss, self.latestReward, self.latestR), 'r')
 
-		# agent.step += 1
-		# agent.update_target_model_hard()
+	# agent.step += 1
+	# agent.update_target_model_hard()
 
-		# return metrics
+	# return metrics
 
-	# @staticmethod
-	# def findAction(targetIndex):
+# @staticmethod
+# def findAction(targetIndex):
 
 
 def actionFromIndex(index):

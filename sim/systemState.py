@@ -84,7 +84,7 @@ class systemState:
 
 	# the order is important, therefore the other functions are private
 	def update(self, task, job, device):
-		sim.debug.learnOut("updating systemState with {} {} {}".format(task, job, device), 'c')
+		sim.debug.learnOut("updating systemState with [{}] [{}] [{}]".format(task, job, device), 'c')
 		self.__updateTask(task)
 		self.__updateJob(job)
 		self.__updateDevice(device)

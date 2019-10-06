@@ -71,7 +71,7 @@ class node:
 
 		self.jobQueue = list()
 		self.taskQueue = deque()
-		sim.debug.out ("jobqueue" + str(self.jobQueue))
+		sim.debug.out("jobqueue" + str(self.jobQueue))
 		
 		self.resetEnergyLevel()
 		self.averagePower = 0
@@ -243,6 +243,37 @@ class node:
 		# if it gets here, nothing is awake
 		return True
 
+	def batchLengths(self):
+		return [len(batch) for key, batch in self.batch.items()]
+
+	# reconsider each job in batch, maybe start it
+	def reconsiderBatch(self):
+		sim.debug.learnOut("deciding whether to continue batch or not", 'b')
+		# sim.debug.out("Batch before: {0}/{1}".format(self.batchLength(self.currentJob.currentTask), sim.constants.MINIMUM_BATCH), 'c')
+		sim.debug.out("Batch lengths before: {}".format(self.batchLengths()), 'c')
+		for batchName in self.batch:
+			currentBatch = self.batch[batchName]
+			for job in currentBatch:
+				print("\nconsidering job from batch", job)
+				newChoice = self.decision.redecideDestination(job.currentTask, job, self)
+				# print("updated", newChoice)
+				# check if just batching
+				if newChoice == sim.offloadingDecision.BATCH or newChoice.offloadingToTarget(self.index):  # (isinstance(newChoice, sim.offloadingDecision.offloading) and newChoice.targetDeviceIndex == self.owner.index):
+					sim.debug.learnOut("just batching again: {}".format(newChoice), 'p')
+				else:
+					# update destination
+					sim.debug.learnOut("changing decision to {}".format(newChoice), 'p')
+					job.setDecisionTarget(newChoice)
+
+					# remove it from the batch
+					self.removeJobFromBatch(job)
+					job.activate()
+					self.currentJob = job
+					return True
+
+		sim.debug.out("Batch lengths after: {}".format(self.batchLengths()), 'c')
+		return False
+		# sim.debug.out("Batch after: {0}/{1}".format(self.currentJob.processingNode.batchLength(self.job.currentTask), sim.constants.MINIMUM_BATCH), 'c')
 
 	# calculate the energy at the current activity of all the components
 	def energy(self): # , duration=sim.constants.TD):
@@ -350,6 +381,9 @@ class node:
 		# return batch length for a specific task
 		if task in self.batch:
 			return len(self.batch[task])
+		else:
+			sim.debug.out("batch {} does not exist".format(task))
+			return 0
 
 	def nextJobFromBatch(self):
 		if self.currentJob is None:
@@ -366,7 +400,7 @@ class node:
 						# TODO: must keep going until all batches are empty
 						sim.debug.out("starting batch {}".format(self.currentBatch))
 
-				sim.debug.out ("grabbed job from batch")
+				sim.debug.out("grabbed job from batch")
 				# if self.currentBatch not in self.batch.keys():
 				# 	print ("Batch does not exist in node", self.batch, self.currentBatch)
 				self.currentJob = self.batch[self.currentBatch][0]
@@ -383,11 +417,24 @@ class node:
 
 	def removeJobFromBatch(self, job):
 		sim.debug.out("batch before remove {}".format(self.batch))
-		if job in self.batch[self.currentBatch]:
-			self.batch[self.currentBatch].remove(job)
-
+		found = False
+		# check if current batch exists
+		if self.currentBatch is not None:
+			if job in self.batch[self.currentBatch]:
+				self.batch[self.currentBatch].remove(job)
+				found = True
+			else:
+				raise Exception("Could not find job to remove from batch")
+		# no batch exists
 		else:
-			raise Exception("Could not find job to remove from batch")
+			# find job in all batches
+			for key in self.batch:
+				if job in self.batch[key]:
+					self.batch[key].remove(job)
+					found = True
+					break
+
+		assert found is True
 		sim.debug.out("batch after remove {}".format(self.batch))
 
 

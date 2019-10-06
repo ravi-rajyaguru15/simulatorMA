@@ -161,6 +161,55 @@ def executeMulti(processes, results, finished, numResults=None):
 
 	return outputData.get()
 
+def doLocalJob(experiment, device):
+	sim.debug.out("LOCAL JOB", 'g')
+	localJob = sim.job.job(device, 5, hardwareAccelerated=True)
+	decision = sim.offloadingDecision.possibleActions[-1]
+	print("decision is", decision)
+	decision.updateDevice(device)
+	localJob.setDecisionTarget(decision)
+	device.addJob(localJob)
+	experiment.simulateUntilJobDone()
+	print("local done")
+
+def doWaitJob(experiment, device):
+	# fix decision to wait
+	sim.debug.out("\nWAIT JOB", 'g')
+	waitJob = sim.job.job(device, 5, hardwareAccelerated=True)
+	decision = sim.offloadingDecision.possibleActions[-2]
+	decision.updateDevice(device)
+	print("target index", decision.targetDeviceIndex)
+	waitJob.setDecisionTarget(decision)
+	device.addJob(waitJob)
+	experiment.simulateTime(sim.constants.PLOT_TD * 100)
+	print("wait done")
+	print("forward", sim.counters.NUM_FORWARD, "backward", sim.counters.NUM_BACKWARD)
+
+def doOffloadJob(experiment, source, destination):
+	sim.debug.out("OFFLOAD JOB", 'g')
+	offloadJob = sim.job.job(source, 5, hardwareAccelerated=True)
+	decision = sim.offloadingDecision.possibleActions[destination.index]
+	decision.updateDevice()
+	print("target index", decision.targetDeviceIndex)
+	offloadJob.setDecisionTarget(decision)
+	destination.addJob(offloadJob)
+	print("offload 1 0")
+	while destination.currentJob is None:
+		experiment.simulateTick()
+		print('\n\n-\n')
+	print("dev has job again")
+	print("forward", sim.counters.NUM_FORWARD, "backward", sim.counters.NUM_BACKWARD)
+	decision = sim.offloadingDecision.possibleActions[-2]
+	decision.updateDevice(destination)
+	offloadJob.setDecisionTarget(decision)
+	# batch 2
+
+	# time.sleep(1)
+	print("\n\nshould activate now...")
+	experiment.simulateTick()
+	assert offloadJob.immediate is False
+# time.sleep(1)
+# batch 1
 
 if __name__ == '__main__':
 	# for i in range(1, 100, 10):
