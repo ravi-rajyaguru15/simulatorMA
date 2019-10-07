@@ -8,8 +8,13 @@
       <sourceFolder url="file://$MODULE_DIR$/sim/experiments/visual" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/sim/platforms" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/.venv" />
+      <excludeFolder url="file://$MODULE_DIR$/bazel-bin" />
+      <excludeFolder url="file://$MODULE_DIR$/bazel-genfiles" />
+      <excludeFolder url="file://$MODULE_DIR$/bazel-out" />
+      <excludeFolder url="file://$MODULE_DIR$/bazel-simulator" />
+      <excludeFolder url="file://$MODULE_DIR$/bazel-testlogs" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.6 (simulator)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.7 (simulator)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="TestRunnerService">
