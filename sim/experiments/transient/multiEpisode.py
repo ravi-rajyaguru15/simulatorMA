@@ -7,13 +7,11 @@ import sim.experiments.experiment
 import sim.offloadingDecision
 import sim.job
 import sim.counters
+import sim.results
 
-import numpy as np
 import multiprocessing
 import sys
 import traceback
-import warnings
-import profile
 
 sim.constants.NUM_DEVICES = 1
 
@@ -29,11 +27,12 @@ def runThread(numEpisodes, results, finished, histories):
 			results.put(["Overall reward", e, sim.offloadingDecision.sharedAgent.totalReward])
 	except:
 		traceback.print_exc(file=sys.stdout)
-		sys.exit(0)
 		print("Error in experiment:", exp.time)
+		sys.exit(0)
 
 	finished.put(True)
 	histories.put(sim.results.learningHistory)
+	print("\nsaving history", sim.results.learningHistory, '\nr')
 
 	print("forward", sim.counters.NUM_FORWARD, "backward", sim.counters.NUM_BACKWARD)
 
@@ -64,12 +63,13 @@ def run():
 	
 	results = sim.experiments.experiment.executeMulti(processes, results, finished, numResults=numEpisodes*sim.constants.REPEATS*3)
 	
-	sim.plotting.plotMultiWithErrors("Episode duration", results=results, ylabel="Loss", xlabel="Job #") # , save=True)
+	sim.plotting.plotMultiWithErrors("Episode duration", results=results, ylabel="Reward", xlabel="Episode #") # , save=True)
 	sim.plotting.plotAgentHistory(histories.get())
 
-try:
-	run()
-except:
-	traceback.print_exc(file=sys.stdout)
+if __name__ == "__main__":
+	try:
+		run()
+	except:
+		traceback.print_exc(file=sys.stdout)
 
-	print ("ERROR")
+		print("ERROR")
