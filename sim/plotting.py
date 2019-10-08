@@ -87,7 +87,7 @@ def plotAgentHistory(history):
 		pp.show()
 
 def plotMultiWithErrors(name, results=None, ylim=None, ylabel=None, xlabel=None, separate=False): # , show=False, save=False):
-	print ("plotting!")
+	# print("plotting!")
 	filename = "/output/{}_{}".format(name, datetime.datetime.now()).replace(":", ".")
 	pickle.dump((name, results, ylim, ylabel, xlabel), open("{}.pickle".format(filename), "wb"))
 	

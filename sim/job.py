@@ -125,9 +125,11 @@ class job:
 		# when assigning a new target we can assume the job is inactive
 		self.active = False
 
+	def deadlineRemaining(self):
+		return self.deadlineTime - self.currentTime.current
 
 	def deadlineMet(self):
-		return self.deadlineTime > self.currentTime
+		return self.deadlineRemaining() > 0
 
 	def setprocessingNode(self, processingNode):
 		self.processingNode = processingNode
@@ -147,12 +149,12 @@ class job:
 		jobReward = 1 if self.finished else 0
 		deadlineReward = 0 if self.deadlineMet() else -0.5
 		expectedLifetimeReward = -.5 if (self.startExpectedLifetime > self.systemLifetime()) else 0
+		simulationDoneReward = -100 if self.episodeFinished() else 0
 
-		sim.debug.learnOut('reward: {} {} {}'.format(jobReward, deadlineReward, expectedLifetimeReward), 'b')
+		sim.debug.learnOut('reward: job {} deadline {} expectedLife {} simulationDone {}'.format(jobReward, deadlineReward, expectedLifetimeReward, simulationDoneReward), 'b')
 		# traceback.print_stack()
-		print('\n\n')
 
-		return jobReward + deadlineReward + expectedLifetimeReward
+		return jobReward + deadlineReward + expectedLifetimeReward + simulationDoneReward
 
 	def addToHistory(self, reward, q, loss):
 		self.history.add("reward", reward)
@@ -171,13 +173,13 @@ class job:
 
 	def activate(self):
 		assert self.immediate is not None
-		print("activating", self, 'owner', self.owner, 'on', self.processingNode)
+		sim.debug.out("activating {} owner {} on {}".format(self, self.owner, self.processingNode))
 
 		self.active = True
 
 		# populate subtasks based on types of devices
 		if not self.offloaded():
-			print("already at correct place")
+			sim.debug.out("already at correct place")
 			if self.immediate:
 				self.processingNode.addSubtask(sim.subtask.newJob(self))
 			else:
@@ -202,8 +204,6 @@ class job:
 		self.incrementCompletedJobs()
 
 		# save this job's history to communal history
-		if sim.results.learningHistory is None:
-			sim.results.learningHistory = sim.history.history()
 		sim.results.learningHistory.combine(self.history)
 
 		# print("finished job", self.simulation.completedJobs)

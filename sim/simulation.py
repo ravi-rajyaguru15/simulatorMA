@@ -21,6 +21,8 @@ import sys
 import numpy as np
 import warnings
 import datetime
+import sim.history
+import sim.results
 
 queueLengths = list()
 current = None
@@ -63,6 +65,8 @@ class simulation:
 		# requires simulation to be populated
 		sim.systemState.current = sim.systemState.systemState(self)
 		useSharedAgent = (sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING) and (sim.constants.CENTRALISED_LEARNING)
+
+		sim.results.learningHistory = sim.history.history()
 
 		print(useSharedAgent, sim.constants.OFFLOADING_POLICY, sim.constants.CENTRALISED_LEARNING)
 		if useSharedAgent:

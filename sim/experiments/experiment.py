@@ -7,22 +7,15 @@ import sim.simulation
 import sim.constants
 import sim.variable
 import sim.offloadingPolicy
+import sim.offloadingDecision
 import sim.debug
 import sim.plotting
 import sim.tasks
 
 import multiprocessing
 import multiprocessing.pool
-import collections 
 import numpy as np
-import matplotlib.pyplot as pp
-import time
-import warnings
 import sys
-
-# import cProfile, pstats, io
-import profile
-# from pstats import SortKey
 
 
 def randomJobs(offloadingPolicy=sim.offloadingPolicy.ANYTHING, hw=True):
@@ -82,17 +75,16 @@ def assembleResults(resultsQueue, outputQueue, numResults=None):
 		graphs[graphName][sample].append(datapoint)
 
 	# normalise if required
-	print()
-	print("normalise:", normaliseDict)
-	print("find max")
+	# print()
+	sim.debug.out("normalise:", normaliseDict)
+	# print("find max")
 	# print("graphs", graphs)
 	# for key in graphs:
 	# 	print()
 	# 	print(key)
 	# 	print(graphs[key])
 
-
-	print()
+	# print()
 	maxDict = dict()
 	for name in graphs:
 		if not normaliseDict[name]: continue
@@ -104,14 +96,13 @@ def assembleResults(resultsQueue, outputQueue, numResults=None):
 			maxDict[name] = np.max([maxDict[name], np.max(np.abs(graphDict[sample]))])
 			# graphDict[sample] = np.array(graphDict[sample]) / 
 	
-	print('max', maxDict)
+	# print('max', maxDict)
 	for name in maxDict:
 		maximum = maxDict[name]
 		for sample in graphs[name]:
 			graphs[name][sample] /= maximum
 
-	
-	print("done with experiment")
+	# print("done with experiment")
 	# calculate means and averages
 	outputGraphs = dict()
 	for key, graph in graphs.items():
@@ -122,9 +113,9 @@ def assembleResults(resultsQueue, outputQueue, numResults=None):
 			# print(ylist)
 			outputGraphs[key][x] = (np.average(ylist), np.std(ylist))
 			# print(outputGraphs[key][x])
-	print ("processed")
+	# print ("processed")
 	outputQueue.put(outputGraphs)
-	print ("after")
+	# print ("after")
 	
 	# return outputGraphs
 
@@ -157,7 +148,6 @@ def executeMulti(processes, results, finished, numResults=None):
 
 	print("waiting for assemble...")
 	# assemble.join()
-	print ("outputdata")
 
 	return outputData.get()
 

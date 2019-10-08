@@ -248,13 +248,13 @@ class node:
 
 	# reconsider each job in batch, maybe start it
 	def reconsiderBatch(self):
-		sim.debug.learnOut("deciding whether to continue batch or not", 'b')
+		sim.debug.learnOut("deciding whether to continue batch ({}) or not".format(self.batchLengths()), 'b')
 		# sim.debug.out("Batch before: {0}/{1}".format(self.batchLength(self.currentJob.currentTask), sim.constants.MINIMUM_BATCH), 'c')
 		sim.debug.out("Batch lengths before: {}".format(self.batchLengths()), 'c')
 		for batchName in self.batch:
 			currentBatch = self.batch[batchName]
 			for job in currentBatch:
-				print("\nconsidering job from batch", job)
+				sim.debug.learnOut("considering job from batch".format(job))
 				newChoice = self.decision.redecideDestination(job.currentTask, job, self)
 				# print("updated", newChoice)
 				# check if just batching
@@ -461,7 +461,7 @@ class node:
 			self.jobQueue.remove(job)
 		# set as not current job
 		if self.currentJob is job:
-			print("set job to NONE")
+			# print("set job to NONE")
 			self.currentJob = None
 
-		sim.debug.out (self.currentJob)
+		sim.debug.out("result: {}".format(self.currentJob))

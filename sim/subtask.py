@@ -708,7 +708,7 @@ class rxJob(rxMessage):
 
 		if usingReinforcementLearning:
 			sim.debug.learnOut("training before reevaluating")
-			print("backward before update")
+			sim.debug.learnOut("backward before update")
 			# TODO: this the correct device?
 			self.owner.decision.train(self.job.currentTask, self.job, self.owner)
 			# sim.systemState.current.update(self.job.currentTask, self.job, self.owner) # still old owner

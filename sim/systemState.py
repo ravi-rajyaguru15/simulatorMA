@@ -7,9 +7,12 @@ import sys
 
 # used as shared variable
 current = None
+singles = ['taskIdentifier', 'taskSize', 'selfDeviceIndex', 'selfExpectedLife', 'systemExpectedLife',
+		   'deadlineRemaining', 'selfBatch']
+multiples = ['expectedLife', 'batchLengths']
 
 class systemState:
-	simulation = None
+	# simulation = None
 	currentTask = None
 	currentState = None
 	
@@ -36,28 +39,45 @@ class systemState:
 	taskBatchLengthsFunction = None
 
 
+
 	def __init__(self, simulation):
 	# 	self.simulation = simulation
 	# 	print("statecount", self.stateCount)
 		self.stateCount = sim.constants.NUM_DEVICES * 2 + 7
 		self.batchLengths = np.array([0] * sim.constants.NUM_DEVICES)
 		self.currentState = np.zeros((self.stateCount,))
-		singles = ['taskIdentifier', 'taskSize', 'selfDeviceIndex', 'selfExpectedLife', 'systemExpectedLife', 'deadlineRemaining', 'selfBatch']
-		multiples = ['expectedLife', 'batchLengths']
 
 		assert self.stateCount == len(singles) + len(multiples) * sim.constants.NUM_DEVICES
 
-		# link array elements to dictionary for easier access
-		self.dictRepresentation = dict()
-		for i in range(len(singles)):
-			self.dictRepresentation[singles[i]] = self.currentState[i:i+1]
-		for i in range(len(multiples)):
-			self.dictRepresentation[multiples[i]] = self.currentState[(len(singles) + i * sim.constants.NUM_DEVICES):(len(singles) + (i + 1) * sim.constants.NUM_DEVICES)]
-		
-		# print('i', i)
-		self.dictRepresentation['batchLengths']
+		self.dictRepresentation = systemState.createDictionaryRepresentation(self.currentState)
 
 		self.setSimulation(simulation)
+
+	@staticmethod
+	def createDictionaryRepresentation(stateArray):
+		# link array elements to dictionary for easier access
+		dictRepresentation = dict()
+		for i in range(len(singles)):
+			dictRepresentation[singles[i]] = stateArray[i:i+1]
+		for i in range(len(multiples)):
+			dictRepresentation[multiples[i]] = stateArray[(len(singles) + i * sim.constants.NUM_DEVICES):(len(singles) + (i + 1) * sim.constants.NUM_DEVICES)]
+
+		return dictRepresentation
+		# print('i', i)
+		# self.dictRepresentation['batchLengths']
+
+
+	@classmethod
+	def fromSystemState(cls, originalState, simulation):
+		second = cls(simulation)
+
+		second.currentState = np.array(originalState.currentState)
+		second.dictRepresentation = systemState.createDictionaryRepresentation(second.currentState)
+		return second
+
+	def __sub__(self, otherState):
+		difference = self.currentState - otherState.currentState
+		return systemState.createDictionaryRepresentation(difference)
 
 	def setSimulation(self, simulation):
 		self.devicesLifetimesFunction = simulation.devicesLifetimes

@@ -32,7 +32,7 @@ def runThread(numEpisodes, results, finished, histories):
 
 	finished.put(True)
 	histories.put(sim.results.learningHistory)
-	print("\nsaving history", sim.results.learningHistory, '\nr')
+	# print("\nsaving history", sim.results.learningHistory, '\nr')
 
 	print("forward", sim.counters.NUM_FORWARD, "backward", sim.counters.NUM_BACKWARD)
 
@@ -57,7 +57,7 @@ def run():
 
 	# for jobLikelihood in np.arange(1e-3, 1e-2, 1e-3):
 	# 	for roundRobin in np.arange(1e0, 1e1, 2.5):
-	numEpisodes = 10
+	numEpisodes = int(1e6)
 	for _ in range(sim.constants.REPEATS):
 		processes.append(multiprocessing.Process(target=runThread, args=(numEpisodes, results, finished, histories)))
 	

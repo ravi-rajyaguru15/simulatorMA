@@ -14,6 +14,7 @@ import sim.systemState
 import sim.counters
 import sim.debug
 import sim.offloadingPolicy
+import copy
 
 sharedAgent = None
 possibleActions = None  # TODO: offloading to self
@@ -135,6 +136,7 @@ class offloadingDecision:
 
 	def redecideDestination(self, task, job, device):
 		assert sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING
+		print("redeciding")
 		self.train(task, job, device)
 		return self.privateAgent.forward(job, device)
 
@@ -147,6 +149,7 @@ class offloadingDecision:
 		self.systemState.update(task, job, device)
 
 	def train(self, task, job, device):
+		sim.debug.learnOut("Training: [{}] [{}] [{}]".format(task, job, device), 'y')
 		self.updateState(task, job, device)
 		self.privateAgent.backward(job)
 
@@ -408,19 +411,19 @@ class agent:
 
 		sim.counters.NUM_FORWARD += 1
 
-		job.beforeState = np.array(sim.systemState.current.currentState)
-		# sim.debug.out("beforestate {}".format(sim.systemState.current.currentState))
-		qValues = self.model.predict(job.beforeState.reshape((1, 1, self.systemState.stateCount)))[0]
+		job.beforeState = sim.systemState.systemState.fromSystemState(sim.systemState.current, sim.simulation.current)
+		sim.debug.out("beforestate {}".format(job.beforeState))
+		qValues = self.model.predict(job.beforeState.currentState.reshape((1, 1, self.systemState.stateCount)))[0]
 		# sim.debug.learnOut('q {}'.format(qValues))
 		actionIndex = self.policy.select_action(q_values=qValues)
 		job.latestAction = actionIndex
 		job.history.add("action", actionIndex)
-		sim.debug.learnOut("chose action {}".format(actionIndex))
+		# sim.debug.learnOut("chose action {}".format(actionIndex))
 		# self.history["action"].append(float(self.latestAction))
 
 		assert sim.offloadingDecision.possibleActions is not None
 		choice = sim.offloadingDecision.possibleActions[actionIndex]
-		sim.debug.learnOut("choice: {}".format(choice), 'r')
+		sim.debug.learnOut("choice: {} ({})".format(choice, actionIndex), 'r')
 
 		choice.updateDevice(device)
 		return choice
@@ -472,7 +475,7 @@ class agent:
 		# Finally, perform a single update on the entire batch. We use a dummy target since
 		# the actual loss is computed in a Lambda layer that needs more complex input. However,
 		# it is still useful to know the actual target to compute metrics properly.
-		x = [np.array([[job.beforeState]])] + [targets, masks]
+		x = [np.array([[job.beforeState.currentState]])] + [targets, masks]
 		y = [dummy_targets, targets]
 
 		self.trainable_model._make_train_function()
@@ -490,7 +493,10 @@ class agent:
 		self.latestMeanQ = metrics[2]
 
 		# sim.debug.learnOut\
-		print("state diff: {}".format(sim.systemState.current.currentState - job.beforeState), 'p')
+		diff = sim.systemState.current - job.beforeState
+		np.set_printoptions(precision=3)
+		print("{:<7}: {}, deadline: {:9.5f}, action: {:<9}, expectedLife (before: {:9.5f} - after: {:9.5f}) = {:10.5f}, reward: {}".format(str(job), int(job.finished), job.deadlineRemaining(), str(possibleActions[job.latestAction]), job.beforeState.	getField("selfExpectedLife")[0], sim.systemState.current.getField("selfExpectedLife")[0], diff["selfExpectedLife"][0], reward))
+		# print("state diff: {}".format(diff).replace("array", ""), 'p')
 
 		# save to history
 		job.addToHistory(self.latestReward, self.latestMeanQ, self.latestLoss)
