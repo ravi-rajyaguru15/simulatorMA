@@ -494,7 +494,7 @@ class txMessage(subtask):
 	# __name__ = "TX Message"
 
 	def __repr__(self):
-		return "{} (waiting for {})".format(self.__name__, self.destination) if not self.started else subtask.__repr__(self)
+		return "{} [{}] (waiting for {})".format(self.__name__, self.job, self.destination) if not self.started else subtask.__repr__(self)
 
 	def __init__(self, job, source, destination, jobToAdd):
 		sim.debug.out("created txMessage")
@@ -593,6 +593,7 @@ class txJob(txMessage):
 
 	def __init__(self, job, source, destination):
 		# add receive task to destination
+		assert source is not destinationgit
 		sim.debug.out("adding TX job from {} to {}".format(source, destination))
 		txMessage.__init__(self, job, source, destination, jobToAdd=rxJob)
 
@@ -721,7 +722,7 @@ class rxJob(rxMessage):
 		if usingReinforcementLearning:
 			# print()
 			sim.debug.learnOut("updating decision upon reception")
-			sim.debug.learnOut("owner:", self.job.owner)
+			sim.debug.learnOut("owner: {}".format(self.job.owner))
 			# sim.systemState.current.update(self.job.currentTask, self.job, self.job.owner)
 			# sim.debug.out("systemstate: {}".format(sim.systemState.current))
 

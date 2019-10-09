@@ -5,6 +5,7 @@ import sim.offloadingDecision
 import sim.experiments.experiment
 import sim.job
 import sim.counters
+import sim.variable
 import sim.powerPolicy
 import sim.debug
 from sim.simulation import simulation
@@ -22,6 +23,7 @@ if __name__ == '__main__':
 	sim.constants.DRAW_DEVICES = False
 	sim.constants.MINIMUM_BATCH = 1e10
 	sim.constants.PLOT_TD = sim.constants.TD * 10
+	sim.constants.DEFAULT_ELASTIC_NODE.RECONFIGURATION_TIME = sim.variable.Constant(0.003)
 
 	exp = simulation(True)
 	sim.simulation.current = exp
