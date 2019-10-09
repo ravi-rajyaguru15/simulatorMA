@@ -719,9 +719,9 @@ class rxJob(rxMessage):
 
 		# if using rl, reevalute decision
 		if usingReinforcementLearning:
-			print()
+			# print()
 			sim.debug.learnOut("updating decision upon reception")
-			print("owner:", self.job.owner)
+			sim.debug.learnOut("owner:", self.job.owner)
 			# sim.systemState.current.update(self.job.currentTask, self.job, self.job.owner)
 			# sim.debug.out("systemstate: {}".format(sim.systemState.current))
 

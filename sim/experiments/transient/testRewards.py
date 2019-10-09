@@ -62,7 +62,7 @@ def run():
 
     # for jobLikelihood in np.arange(1e-3, 1e-2, 1e-3):
     # 	for roundRobin in np.arange(1e0, 1e1, 2.5):
-    numEpisodes = int(1e0)
+    numEpisodes = int(1e2)
     for _ in range(sim.constants.REPEATS):
         processes.append(multiprocessing.Process(target=runThread, args=(numEpisodes, results, finished, histories)))
 

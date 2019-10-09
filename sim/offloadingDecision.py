@@ -136,7 +136,7 @@ class offloadingDecision:
 
 	def redecideDestination(self, task, job, device):
 		assert sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING
-		print("redeciding")
+		# print("redeciding")
 		self.train(task, job, device)
 		return self.privateAgent.forward(job, device)
 
@@ -495,7 +495,7 @@ class agent:
 		# sim.debug.learnOut\
 		diff = sim.systemState.current - job.beforeState
 		np.set_printoptions(precision=3)
-		print("{:<7}: {}, deadline: {:9.5f}, action: {:<9}, expectedLife (before: {:9.5f} - after: {:9.5f}) = {:10.5f}, reward: {}".format(str(job), int(job.finished), job.deadlineRemaining(), str(possibleActions[job.latestAction]), job.beforeState.	getField("selfExpectedLife")[0], sim.systemState.current.getField("selfExpectedLife")[0], diff["selfExpectedLife"][0], reward))
+		# print("{:<7}: {}, deadline: {:9.5f}, action: {:<9}, expectedLife (before: {:9.5f} - after: {:9.5f}) = {:10.5f}, reward: {}".format(str(job), int(job.finished), job.deadlineRemaining(), str(possibleActions[job.latestAction]), job.beforeState.	getField("selfExpectedLife")[0], sim.systemState.current.getField("selfExpectedLife")[0], diff["selfExpectedLife"][0], reward))
 		# print("state diff: {}".format(diff).replace("array", ""), 'p')
 
 		# save to history

@@ -13,18 +13,19 @@ import warnings
 
 jump = 1
 totalTime = 1e2
-def runThread(alpha, results, finished):
+def runThread(likelihood, alpha, results, finished):
 	# sim.constants.SAMPLE_SIZE = sim.variable.Constant(samples)
 	sim.constants.EXPECTED_LIFETIME_ALPHA = alpha
+	sim.constants.JOB_LIKELIHOOD = likelihood
 	exp = simulation(hardwareAccelerated=True)
 	sim.simulation.current = exp
 	counter = 0
 	for i in range(int(totalTime/jump)):
 		exp.simulateTime(jump)
 		counter += 1
-		print("counter", counter)
-		results.put(["Lifetime Alpha = {:.4f}".format(alpha), i * jump, exp.devicesLifetimes()])
-		results.put(["Power Alpha = {:.4f}".format(alpha), i * jump, [dev.averagePower for dev in exp.devices]])
+		# print("counter", counter)
+		results.put(["Lifetime Alpha = {:.4f} Likelihood = {:.4f}".format(alpha, likelihood), i * jump, exp.devicesLifetimes()])
+		results.put(["Power Alpha = {:.4f} Likelihood = {:.4f}".format(alpha, likelihood), i * jump, [dev.averagePower for dev in exp.devices]])
 		# print("\ntime", exp.time, "lifetime", exp.systemLifetime())
 		# print("life ", [dev.expectedLifetime() for dev in exp.devices])
 		# print("power", [dev.averagePower for dev in exp.devices])
@@ -39,7 +40,6 @@ def run():
 	sim.constants.SAMPLE_PROCESSED_SIZE = sim.variable.Constant(4, integer=True)
 	sim.constants.FPGA_POWER_PLAN = sim.powerPolicy.IDLE_TIMEOUT
 	sim.constants.OFFLOADING_POLICY = sim.offloadingPolicy.REINFORCEMENT_LEARNING
-	sim.constants.JOB_LIKELIHOOD = 1e-2
 	sim.constants.MINIMUM_BATCH = 10
 	sim.constants.DEFAULT_ELASTIC_NODE.BATTERY_SIZE = 1e2
 	sim.constants.NUM_DEVICES = 2
@@ -53,17 +53,20 @@ def run():
 
 	alpha = 1e-4
 	# for alpha in np.logspace(-4, -3, num=2, endpoint=True):
-	if True:
+	# if True:
+	print ("likelihood", np.linspace(1e-3, 9e-3, num=5, endpoint=True))
+	for likelihood in np.linspace(1e-3, 9e-3, num=5, endpoint=True):
 		for _ in range(sim.constants.REPEATS):
-			processes.append(multiprocessing.Process(target=runThread, args=(alpha, results, finished)))
+			processes.append(multiprocessing.Process(target=runThread, args=(likelihood, alpha, results, finished)))
 	
 	results = sim.experiments.experiment.executeMulti(processes, results, finished, numResults=2*int(totalTime/jump * len(processes)))
-	print ('plot time')
-	sim.plotting.plotMultiWithErrors("expectedLife", results=results, separate=True) # , save=True)
+	print('plot time')
+	sim.plotting.plotMultiWithErrors("expectedLife", results=results, separate=False) # , save=True)
 
-try:
-	run()
-except:
-	traceback.print_exc(file=sys.stdout)
+if __name__ == "__main__":
+	try:
+		run()
+	except:
+		traceback.print_exc(file=sys.stdout)
 
-	print ("ERROR")
+		print ("ERROR")
