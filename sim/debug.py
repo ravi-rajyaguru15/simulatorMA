@@ -1,7 +1,7 @@
 default = 37
 enabled = False
 learnEnabled = False
-
+infoEnabled = False
 
 # print to console in a fancy colour
 # options are k r g y b p c w
@@ -9,6 +9,10 @@ def out(string, colour=None, enable=None):
     if enabled:
         _push(string, colour)
 
+
+def infoOut(string="", colour=None):
+    if infoEnabled:
+        _push(string, colour)
 
 def learnOut(string="", colour=None):
     if learnEnabled:

@@ -45,6 +45,8 @@ def run():
     print("starting experiment")
     sim.debug.enabled = False
     sim.debug.learnEnabled = False
+    sim.debug.infoEnabled = True
+
     sim.constants.DRAW = False
     sim.constants.FPGA_POWER_PLAN = sim.powerPolicy.IDLE_TIMEOUT
     sim.constants.OFFLOADING_POLICY = sim.offloadingPolicy.REINFORCEMENT_LEARNING
@@ -62,15 +64,14 @@ def run():
 
     # for jobLikelihood in np.arange(1e-3, 1e-2, 1e-3):
     # 	for roundRobin in np.arange(1e0, 1e1, 2.5):
-    numEpisodes = int(1e2)
+    numEpisodes = int(2e0)
     for _ in range(sim.constants.REPEATS):
         processes.append(multiprocessing.Process(target=runThread, args=(numEpisodes, results, finished, histories)))
 
     results = sim.experiments.experiment.executeMulti(processes, results, finished,
                                                       numResults=numEpisodes * sim.constants.REPEATS * 3)
 
-    sim.plotting.plotMultiWithErrors("Episode duration", results=results, ylabel="Reward",
-                                     xlabel="Episode #")  # , save=True)
+    # sim.plotting.plotMultiWithErrors("Episode duration", results=results, ylabel="Reward", xlabel="Episode #")  # , save=True)
     # sim.plotting.plotAgentHistory(histories.get())
 
 

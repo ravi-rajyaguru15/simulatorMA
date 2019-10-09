@@ -74,7 +74,7 @@ class node:
 		sim.debug.out("jobqueue" + str(self.jobQueue))
 		
 		self.resetEnergyLevel()
-		self.averagePower = 0
+		self.averagePower = 0.05
 		self.powerCount = 0
 		self.totalEnergyCost = 0
 		self.totalSleepTime = 0

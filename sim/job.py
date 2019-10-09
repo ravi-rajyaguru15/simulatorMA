@@ -148,7 +148,7 @@ class job:
 	def reward(self):
 		jobReward = 1 if self.finished else 0
 		deadlineReward = 0 if self.deadlineMet() else -0.5
-		expectedLifetimeReward = -.5 if (self.startExpectedLifetime > self.systemLifetime()) else 0
+		expectedLifetimeReward = -.5 if (self.startExpectedLifetime - self.systemLifetime()) > (self.currentTime - self.createdTime) else 0 # reward if not reducing lifetime more than actual duration
 		simulationDoneReward = -100 if self.episodeFinished() else 0
 
 		sim.debug.learnOut('reward: job {} deadline {} expectedLife {} simulationDone {}'.format(jobReward, deadlineReward, expectedLifetimeReward, simulationDoneReward), 'b')
