@@ -334,7 +334,7 @@ class visualiser:
 				pp.gca().add_patch(img)
 		except RuntimeError:
 			print ("Drawing failed")
-			traceback.print_exc()
+			# traceback.print_exc()
 			sim.simulation.current.finished = True
 
 	# @staticmethod

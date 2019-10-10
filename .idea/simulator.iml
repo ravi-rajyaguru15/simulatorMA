@@ -14,7 +14,7 @@
       <excludeFolder url="file://$MODULE_DIR$/bazel-simulator" />
       <excludeFolder url="file://$MODULE_DIR$/bazel-testlogs" />
     </content>
-    <orderEntry type="jdk" jdkName="Remote Python 3.6.8 (sftp://alwynster@192.168.202.217:22/home/alwynster/.venv/bin/python3)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="3.6 @ Ubuntu" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="TestRunnerService">

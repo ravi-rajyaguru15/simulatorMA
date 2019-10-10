@@ -76,6 +76,7 @@ class simulation:
 		# self.ed = [] # endDevice(None, self, self.results, i, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(numEndDevices)]
 		# self.ed = endDevice()
 		# self.ed2 = endDevice()
+		print("default", sim.constants.DEFAULT_ELASTIC_NODE, sim.constants.DEFAULT_ELASTIC_NODE.RECONFIGURATION_TIME, sim.constants.DEFAULT_ELASTIC_NODE.RECONFIGURATION_TIME.gen())
 		self.devices = [elasticNode(self, sim.constants.DEFAULT_ELASTIC_NODE, self.results, i, episodeFinished=self.isEpisodeFinished, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(sim.constants.NUM_DEVICES)]
 		sim.offloadingDecision.devices = self.devices
 		if useSharedAgent:

@@ -22,12 +22,12 @@ import sys
 def randomJobs(offloadingPolicy=sim.offloadingPolicy.ANYTHING, hw=True):
 	sim.constants.NUM_DEVICES = 1
 	print("random jobs")
-	sim.debug.enabled = False
+	sim.debug.enabled = True
 	sim.constants.OFFLOADING_POLICY = offloadingPolicy
 	sim.constants.JOB_LIKELIHOOD = 9e-3 # 2e-3
 	sim.constants.SAMPLE_RAW_SIZE = sim.variable.Constant(40)
 	sim.constants.SAMPLE_SIZE = sim.variable.Constant(10)
-	sim.constants.PLOT_TD = sim.constants.TD * 1
+	sim.constants.PLOT_TD = sim.constants.TD * 1e2
 	sim.constants.FPGA_POWER_PLAN = sim.powerPolicy.IDLE_TIMEOUT
 	sim.constants.DRAW_DEVICES = True
 	sim.constants.FPGA_IDLE_SLEEP = 0.075

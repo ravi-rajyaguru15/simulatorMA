@@ -234,7 +234,6 @@ class batchContinue(subtask):
 
 		subtask.__init__(self, job, duration)
 
-		# TODO: "need to reevaluate before continuing")
 	# def beginTask(self):
 	# 	subtask.beginTask(self)
 
@@ -282,8 +281,7 @@ class batching(subtask):
 		subtask.__init__(self, job, duration)
 
 	def beginTask(self):
-		self.job.processingNode.mcu.active()
-
+		self.owner.mcu.active()
 
 		subtask.beginTask(self)
 
@@ -296,7 +294,8 @@ class batching(subtask):
 		if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
 
 			# decide which of the jobs in the batch should be started now
-			self.owner.reconsiderBatch()
+			if not self.owner.reconsiderBatch():
+				self.owner.mcu.sleep()
 
 		else:
 			# special case: hardware acceleration already there
@@ -348,7 +347,7 @@ class reconfigureFPGA(subtask):
 	__name__ = "Reconfigure FPGA"
 
 	def __init__(self, job): #  device, samples, processor=None):
-		duration = job.processingNode.platform.RECONFIGURATION_TIME.gen()
+		duration = job.processingNode.platform.reconfigurationTime(job.currentTask)
 		# energyCost = job.processingNode.reconfigurationEnergy(duration)
 
 		subtask.__init__(self, job, duration)

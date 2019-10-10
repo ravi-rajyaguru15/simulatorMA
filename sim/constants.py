@@ -4,10 +4,10 @@ import sim.powerPolicy
 import sim.offloadingPolicy
 from enum import Enum
 import multiprocessing
-import sim.platforms.elasticNodev4
+import sim.platforms.platform
 
 # node types
-DEFAULT_ELASTIC_NODE = sim.platforms.elasticNodev4
+DEFAULT_ELASTIC_NODE = sim.platforms.platform.elasticNodev4
 
 # size in bytes
 SAMPLE_SIZE = Uniform(5, 10, integer=True)

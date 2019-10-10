@@ -12,7 +12,7 @@ from sim.simulation import simulation
 import sys
 
 if __name__ == '__main__':
-	sim.debug.enabled = True
+	sim.debug.enabled = False
 	sim.debug.learnEnabled = True
 
 	sim.constants.JOB_LIKELIHOOD = 0
@@ -76,7 +76,7 @@ if __name__ == '__main__':
 		sys.exit(0)
 	print('dev has job again')
 	print("forward", sim.counters.NUM_FORWARD, "backward", sim.counters.NUM_BACKWARD)
-	sim.debug.enabled = True
+	sim.debug.enabled = False
 	print("**")
 	decision = sim.offloadingDecision.possibleActions[2]
 	decision.updateDevice(dev)

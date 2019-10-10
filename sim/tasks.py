@@ -8,8 +8,9 @@ class task:
 	processedSize = None
 	identifier = 0
 	deadline = None
+	configSize = None
 
-	def __init__(self, name, colour, complexity, rawSize, processedSize, deadline):
+	def __init__(self, name, colour, complexity, rawSize, processedSize, deadline, configSize):
 		self.name = name
 		self.colour = colour
 		self.complexity = complexity
@@ -19,6 +20,7 @@ class task:
 
 		task.identifier += 1
 		self.identifier = task.identifier
+		self.configSize = configSize
 
 	def __repr__(self):
 		return self.name
@@ -32,7 +34,8 @@ EASY = task(
 	complexity=8e3,
 	rawSize=5,
 	processedSize=1,
-	deadline=sim.variable.Gaussian(5, 0.1)
+	deadline=sim.variable.Gaussian(5, 0.1),
+	configSize=.01
 	)
 
 HARD = task(
@@ -41,6 +44,7 @@ HARD = task(
 	complexity=10e6,
 	rawSize=1e3,
 	processedSize=10,
-	deadline=sim.variable.Gaussian(5, 0.5)
+	deadline=sim.variable.Gaussian(5, 0.5),
+	configSize=1.0
 	)
 
