@@ -1,20 +1,23 @@
-import matplotlib as mpl
+import os
+# print("DISPLAY:",os.environ["DISPLAY"])
+# import matplotlib as mpl
+# mpl.use("Qt5Agg")
 import traceback
 # mpl.use("QT4Agg")
-import os
-oldBackend = mpl.get_backend()
-print("existing", oldBackend)
-
+# oldBackend = mpl.get_backend()
+# print("existing", oldBackend)
 
 import sys
-if sys.platform != 'darwin':
-	try:
-		mpl.use("TkAgg")
-		# mpl.use("Qt4Agg")
-	except ImportError:
-		mpl.use(oldBackend)
-		print("Cannot import MPL backend")
+# if sys.platform != 'darwin':
+# 	try:
+# 		mpl.use("TkAgg")
+# 		# mpl.use("Qt5Agg")
+# 	except ImportError as i:
+# 		mpl.use(oldBackend)
+# 		print(i)
+# 		print("Cannot import MPL backend")
 import matplotlib.pyplot as pp
+# pp.switch_backend("tkagg")
 import pylab
 import math
 import time

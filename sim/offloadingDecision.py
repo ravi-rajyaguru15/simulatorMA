@@ -495,7 +495,7 @@ class agent:
 		# sim.debug.learnOut\
 		diff = sim.systemState.current - job.beforeState
 		np.set_printoptions(precision=3)
-		sim.debug.infoOut("{:<7}: {}, deadline: {:9.5f} ({:10.5f}), action: {:<9}, expectedLife (before: {:9.5f} - after: {:9.5f}) = {:10.5f}, reward: {}".format(str(job), int(job.finished), job.deadlineRemaining(), (job.currentTime - job.createdTime), str(possibleActions[job.latestAction]), job.beforeState.	getField("selfExpectedLife")[0], sim.systemState.current.getField("selfExpectedLife")[0], diff["selfExpectedLife"][0], reward))
+		sim.debug.infoOut("{}, created: {:6.3f} {:<7}: {}, deadline: {:9.5f} ({:10.5f}), action: {:<9}, expectedLife (before: {:9.5f} - after: {:9.5f}) = {:10.5f}, reward: {}".format(job.currentTime, job.createdTime, str(job), int(job.finished), job.deadlineRemaining(), (job.currentTime - job.createdTime), str(possibleActions[job.latestAction]), job.beforeState.	getField("selfExpectedLife")[0], sim.systemState.current.getField("selfExpectedLife")[0], diff["selfExpectedLife"][0], reward))
 		# print("state diff: {}".format(diff).replace("array", ""), 'p')
 
 		# save to history

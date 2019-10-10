@@ -24,7 +24,12 @@ def runThread(numEpisodes, results, finished, histories):
 
     try:
         for e in range(numEpisodes):
-            exp.simulateEpisode()
+            sim.debug.infoEnabled = False
+            exp.reset()
+            exp.simulateTime(10)
+            sim.debug.infoEnabled = True
+            while not exp.finished:
+                exp.simulateTick()
             results.put(["Duration", e, exp.time.current])
             results.put(["Episode reward", e, sim.offloadingDecision.sharedAgent.episodeReward])
             results.put(["Overall reward", e, sim.offloadingDecision.sharedAgent.totalReward])
@@ -49,9 +54,10 @@ def run():
 
     sim.constants.DRAW = False
     sim.constants.FPGA_POWER_PLAN = sim.powerPolicy.IDLE_TIMEOUT
+    sim.constants.FPGA_IDLE_SLEEP = 0.05
     sim.constants.OFFLOADING_POLICY = sim.offloadingPolicy.REINFORCEMENT_LEARNING
     # sim.constants.TOTAL_TIME = 1e3
-    sim.constants.DEFAULT_ELASTIC_NODE.BATTERY_SIZE = 5e-2
+    sim.constants.DEFAULT_ELASTIC_NODE.BATTERY_SIZE = 1e-1
 
     processes = list()
     sim.constants.MINIMUM_BATCH = 1e5
@@ -64,7 +70,7 @@ def run():
 
     # for jobLikelihood in np.arange(1e-3, 1e-2, 1e-3):
     # 	for roundRobin in np.arange(1e0, 1e1, 2.5):
-    numEpisodes = int(2e0)
+    numEpisodes = int(1e0)
     for _ in range(sim.constants.REPEATS):
         processes.append(multiprocessing.Process(target=runThread, args=(numEpisodes, results, finished, histories)))
 

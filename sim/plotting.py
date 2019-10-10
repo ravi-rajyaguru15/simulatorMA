@@ -11,7 +11,8 @@ import time
 import os
 # print (os.environ["DISPLAY"])
 if "DISPLAY" not in os.environ:
-	os.environ["DISPLAY"] = "localhost:10.0"
+	# os.environ["DISPLAY"] = "localhost:10.0"
+	os.environ["DISPLAY"] = "/private/tmp/com.apple.launchd.HheW1tn9qY/org.macosforge.xquartz:0"
 	print("set display to", os.environ["DISPLAY"])
 else:
     print ("Existing DISPLAY={}".format(os.environ["DISPLAY"]))

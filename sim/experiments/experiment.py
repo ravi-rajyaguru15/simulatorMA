@@ -182,12 +182,12 @@ def doOffloadJob(experiment, source, destination):
 	decision.updateDevice()
 	print("target index", decision.targetDeviceIndex)
 	offloadJob.setDecisionTarget(decision)
-	destination.addJob(offloadJob)
+	source.addJob(offloadJob)
 	print("offload 1 0")
-	while destination.currentJob is None:
+	while destination.currentJob is not offloadJob:
 		experiment.simulateTick()
 		print('\n\n-\n')
-	print("dev has job again")
+	print("destination has job again")
 	print("forward", sim.counters.NUM_FORWARD, "backward", sim.counters.NUM_BACKWARD)
 	decision = sim.offloadingDecision.possibleActions[-2]
 	decision.updateDevice(destination)
@@ -197,7 +197,13 @@ def doOffloadJob(experiment, source, destination):
 	# time.sleep(1)
 	print("\n\nshould activate now...")
 	experiment.simulateTick()
-	assert offloadJob.immediate is False
+
+	while destination.currentJob is not None or source.currentJob is not None:
+		experiment.simulateTick()
+		print('\n\n-\n')
+
+	# assert offloadJob.immediate is False
+	assert destination.currentJob is None
 # time.sleep(1)
 # batch 1
 

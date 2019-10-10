@@ -57,11 +57,11 @@ def run():
 	sim.constants.REPEATS = 1
 
 	alpha = 1e-4
-	# for alpha in np.logspace(-4, -3, num=2, endpoint=True):
+	for alpha in np.logspace(-4, -3, num=3, endpoint=True):
 	# if True:
-	for likelihood in np.linspace(1e-3, 9e-3, num=1, endpoint=True):
-		for _ in range(sim.constants.REPEATS):
-			processes.append(multiprocessing.Process(target=runThread, args=(likelihood, alpha, results, finished)))
+		for likelihood in np.linspace(1e-3, 9e-3, num=1, endpoint=True):
+			for _ in range(sim.constants.REPEATS):
+				processes.append(multiprocessing.Process(target=runThread, args=(likelihood, alpha, results, finished)))
 	
 	results = sim.experiments.experiment.executeMulti(processes, results, finished, numResults=2*int(totalTime/jump * len(processes)))
 	print('plot time')

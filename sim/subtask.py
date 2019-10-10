@@ -593,8 +593,8 @@ class txJob(txMessage):
 
 	def __init__(self, job, source, destination):
 		# add receive task to destination
-		assert source is not destinationgit
 		sim.debug.out("adding TX job from {} to {}".format(source, destination))
+		assert source is not destination
 		txMessage.__init__(self, job, source, destination, jobToAdd=rxJob)
 
 	def beginTask(self):

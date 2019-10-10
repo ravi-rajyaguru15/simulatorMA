@@ -43,6 +43,7 @@ if __name__ == '__main__':
 
 	# offload from 1 to 0 then wait
 	print('\n\n\n\n\n')
+	print("job: third")
 	sim.experiments.experiment.doOffloadJob(exp, dev2, dev)
 
 	# offload from 0 to 1 to 0 then wait
@@ -85,9 +86,6 @@ if __name__ == '__main__':
 	assert fourth.immediate == False
 	print("\n\nshould activate now...")
 	exp.simulateTick()
-	exp.simulateTime(0.1)
-
-
 
 	# offload from 0 to 0
 	print("job: fifth")
@@ -120,17 +118,3 @@ if __name__ == '__main__':
 	exp.simulateUntilJobDone()
 	print("forward", sim.counters.NUM_FORWARD, "backward", sim.counters.NUM_BACKWARD)
 	print("local done")
-
-	sys.exit(0)
-	while exp.completedJobs < 4:
-		exp.simulateTick()
-
-
-	# exp.simulateUntilJobDone()
-	# exp.simulateUntilJobDone()
-	# exp.simulateUntilJobDone()
-	# time.sleep(1)
-
-	print("job done")
-	exp.simulateTime(sim.constants.PLOT_TD * 10)
-

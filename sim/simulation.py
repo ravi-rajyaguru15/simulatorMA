@@ -124,6 +124,11 @@ class simulation:
 
 	# reset energy levels of all devices and run entire simulation
 	def simulateEpisode(self):
+		self.reset()
+		while not self.finished:
+			self.simulateTick()
+
+	def reset(self):
 		sim.offloadingDecision.sharedAgent.reset()
 
 		# reset energy
@@ -132,9 +137,6 @@ class simulation:
 
 		self.time.reset()
 		self.finished = False
-		
-		while not self.finished:
-			self.simulateTick()
 
 	def isEpisodeFinished(self):
 		return self.finished
