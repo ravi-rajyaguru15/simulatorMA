@@ -167,7 +167,7 @@ def doLocalJob(experiment, device):
 	print("decision is", decision)
 	decision.updateDevice(device)
 	localJob.setDecisionTarget(decision)
-	device.addJob(localJob)
+	experiment.addJob(device, localJob)
 	experiment.simulateUntilJobDone()
 	print("local done")
 
@@ -180,7 +180,7 @@ def doWaitJob(experiment, device):
 	decision.updateDevice(device)
 	print("target index", decision.targetDeviceIndex)
 	waitJob.setDecisionTarget(decision)
-	device.addJob(waitJob)
+	experiment.addJob(device, waitJob)
 	experiment.simulateTime(sim.constants.PLOT_TD * 100)
 	print("wait done")
 	print("forward", sim.counters.NUM_FORWARD, "backward", sim.counters.NUM_BACKWARD)
@@ -193,7 +193,7 @@ def doOffloadJob(experiment, source, destination):
 	decision.updateDevice()
 	print("target index", decision.targetDeviceIndex)
 	offloadJob.setDecisionTarget(decision)
-	source.addJob(offloadJob)
+	experiment.addJob(source, offloadJob)
 	print("offload 1 0")
 	while destination.currentJob is not offloadJob:
 		experiment.simulateTick()
@@ -221,6 +221,7 @@ def doOffloadJob(experiment, source, destination):
 # batch 1
 
 if __name__ == '__main__':
+	pass
 	# for i in range(1, 100, 10):
 	# 	print i, exp.simulateAll(i, "latency")
 
@@ -242,7 +243,7 @@ if __name__ == '__main__':
 	# randomPeerJobs(False)
 	# testActions()
 
-	randomJobs(offloadingPolicy=sim.offloadingPolicy.REINFORCEMENT_LEARNING, hw=True)
+	# randomJobs(offloadingPolicy=sim.offloadingPolicy.REINFORCEMENT_LEARNING, hw=True)
 # testPerformance()
 # profileTarget()
 

@@ -8,7 +8,7 @@ import sim.counters
 import sim.variable
 import sim.powerPolicy
 import sim.debug
-from sim.simulation import simulation
+from sim.simulations.TdSimulation import TdSimulation as simulation
 import sys
 
 if __name__ == '__main__':
@@ -55,7 +55,7 @@ if __name__ == '__main__':
 	decision.updateDevice(dev)
 	print("target index", decision.targetDeviceIndex)
 	fourth.setDecisionTarget(decision)
-	dev.addJob(fourth)
+	exp.addJob(dev, fourth)
 	print("offload 0 1 0")
 	while dev2.currentJob is None:
 		exp.simulateTick()
@@ -93,7 +93,7 @@ if __name__ == '__main__':
 	decision = sim.offloadingDecision.possibleActions[0]
 	decision.updateDevice(dev)
 	fifth.setDecisionTarget(decision)
-	dev.addJob(fifth)
+	exp.addJob(dev, fifth)
 	# batch 3
 	print("offload 0 0")
 	print("forward", sim.counters.NUM_FORWARD, "backward", sim.counters.NUM_BACKWARD)
@@ -114,7 +114,7 @@ if __name__ == '__main__':
 	print("target index", decision.targetDeviceIndex)
 	print("target device", decision.targetDevice)
 	sixth.setDecisionTarget(decision)
-	dev.addJob(sixth)
+	exp.addJob(dev, sixth)
 	exp.simulateUntilJobDone()
 	print("forward", sim.counters.NUM_FORWARD, "backward", sim.counters.NUM_BACKWARD)
 	print("local done")
