@@ -15,16 +15,24 @@ class elasticNode(node):
 	mrf = None
 	fpga = None
 
-	def __init__(self, sim, platform, queue, index, alwaysHardwareAccelerate):
-		node.__init__(self, sim, platform, index, components = None, alwaysHardwareAccelerate=alwaysHardwareAccelerate)
+	def __init__(self, sim, platform, queue, index, episodeFinished, alwaysHardwareAccelerate):
+		node.__init__(self, sim, platform, index, components = None, episodeFinished=episodeFinished, alwaysHardwareAccelerate=alwaysHardwareAccelerate)
 		
 		self.mcu = mcu(self)
 		self.mrf = mrf(self)
 		self.fpga = fpga(self)
 
-		self.components = [self.mcu, self.fpga, self.mrf]
+		self.setComponents([self.mcu, self.fpga, self.mrf])
 
-
+	def getCurrentConfiguration(self):
+		if self.hasFpga():
+			config = self.fpga.currentConfig
+			if config is not None:
+				return config.identifier
+			else:
+				return 0
+		else:
+			return 0
 
 	
 	# def processingEnergy(self, duration):

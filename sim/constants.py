@@ -4,14 +4,10 @@ import sim.powerPolicy
 import sim.offloadingPolicy
 from enum import Enum
 import multiprocessing
-import sim.platforms.elasticNodev4
+import sim.platforms.platform
 
 # node types
-DEFAULT_ELASTIC_NODE = sim.platforms.elasticNodev4
-# ELASTIC_NODE_V4 = 0
-# ELASTIC_NODE = 0
-# END_DEVICE = 1
-# SERVER = 2
+DEFAULT_ELASTIC_NODE = sim.platforms.platform.elasticNodev4
 
 # size in bytes
 SAMPLE_SIZE = Uniform(5, 10, integer=True)
@@ -32,16 +28,16 @@ ROUND_ROBIN_TIMEOUT = 2
 # learning
 CENTRALISED_LEARNING = True
 LEARNING_RATE = 0.001
-GAMMA = 0.1
+GAMMA = 1e-3
 EPS = 0.1
 EPS_MIN = 0.1
 EPS_MAX = 1.
 EPS_STEP_COUNT = 1000
 
 # energy management
-FPGA_POWER_PLAN = sim.powerPolicy.IMMEDIATELY_OFF # TODO: entirely unimplemented, sleep current and timer for sleep
-MCU_POWER_PLAN = sim.powerPolicy.IMMEDIATELY_OFF # TODO: entirely unimplemented, sleep current and timer for sleep
-FPGA_IDLE_SLEEP = 0.1
+FPGA_POWER_PLAN = sim.powerPolicy.IDLE_TIMEOUT
+MCU_POWER_PLAN = sim.powerPolicy.IMMEDIATELY_OFF
+FPGA_IDLE_SLEEP = 0.5
 MCU_IDLE_SLEEP = .05
 
 # batching policy
@@ -66,8 +62,9 @@ SAVE_GRAPH = False
 # 	return random.uniform(range[0], range[1])
 
 # experiments
+NUM_DEVICES = 2
 REPEATS = 4
 THREAD_COUNT = multiprocessing.cpu_count()
 MAX_DELAY = 0.1
 EXPECTED_LIFETIME_ALPHA = 0.1
-MEASUREMENT_NOISE = False
+MEASUREMENT_NOISE = True

@@ -1,16 +1,23 @@
-import matplotlib as mpl
-# mpl.use("QT4Agg")
 import os
-oldBackend = mpl.get_backend()
-print ("existing", oldBackend)
-if os.name != 'nt':
-	try:
-		mpl.use("TkAgg")
-		# mpl.use("Qt4Agg")
-	except ImportError:
-		mpl.use(oldBackend)
-		print ("Cannot import MPL backend")
+# print("DISPLAY:",os.environ["DISPLAY"])
+# import matplotlib as mpl
+# mpl.use("Qt5Agg")
+import traceback
+# mpl.use("QT4Agg")
+# oldBackend = mpl.get_backend()
+# print("existing", oldBackend)
+
+import sys
+# if sys.platform != 'darwin':
+# 	try:
+# 		mpl.use("TkAgg")
+# 		# mpl.use("Qt5Agg")
+# 	except ImportError as i:
+# 		mpl.use(oldBackend)
+# 		print(i)
+# 		print("Cannot import MPL backend")
 import matplotlib.pyplot as pp
+# pp.switch_backend("tkagg")
 import pylab
 import math
 import time
@@ -34,14 +41,20 @@ SUBTASKS_DURATIONS_FIGURE = 4
 DEVICES_LIFETIME_FIGURE = 5
 
 class visualiser:
-	sim = None
+	# sim = None
 	grid = list()
 	ax = None
 	x,y,width,height = [None] * 4
 	canResize = False
+	clock = None
+	devices = None
+	devicesNames = None
+	totalDevicesEnergyFunction = None
+	completedJobs = None
 
-	def __init__(self, simulator):
-		self.sim = simulator
+	def __init__(self, simulation):
+		# self.sim = simulator
+		self.setSimulation(simulation)
 
 		if sim.constants.DRAW_DEVICES:
 			print ("Creating 1")
@@ -52,13 +65,13 @@ class visualiser:
 		if sim.constants.DRAW_GRAPH_TOTAL_ENERGY:
 			print ("Creating 2")
 			pp.figure(DEVICES_ENERGY_FIGURE)
-			pp.xlim(0, len(self.sim.devices))
+			pp.xlim(0, len(self.devices))
 
 		if sim.constants.DRAW_GRAPH_CURRENT_POWER:
 			print ("Creating 3")
 			
 			pp.figure(DEVICES_POWER_FIGURE)
-			pp.xlim(0, len(self.sim.devices))
+			pp.xlim(0, len(self.devices))
 		# fig, self.ax = pp.subplots()
 		
 		if sim.constants.DRAW_GRAPH_EXPECTED_LIFETIME:
@@ -80,11 +93,11 @@ class visualiser:
 				print("Cannot modify QT window")
 
 
-			grid, _, _ = visualiser.gridLayout(self.sim.devices)
+			grid, _, _ = visualiser.gridLayout(self.devices)
 			deviceSize = width, height = DEVICE_SIZE
 			
 			# create images for each node
-			for dev, location in zip(self.sim.devices, grid):
+			for dev, location in zip(self.devices, grid):
 				# dev.location = location
 
 				# node drawing
@@ -97,6 +110,13 @@ class visualiser:
 					# unit = dev.components[i]
 					# location = subgrid[i]
 					visualiser.createRectangle(unit, (location[0], location[1]), size)
+
+	def setSimulation(self, simulation):
+		self.clock = simulation.time
+		self.devices = simulation.devices
+		self.devicesNames = simulation.devicesNames()
+		self.totalDevicesEnergyFunction = simulation.totalDevicesEnergy
+		self.completedJobs = simulation.getCompletedJobs
 
 	@staticmethod
 	# tight refers to whether there are gaps inbetween 
@@ -189,11 +209,11 @@ class visualiser:
 	
 	# 	targetDevice.title = pp.Text(x=location[0], y=location[1], horizontalalignment='center')
 	def drawTotalDeviceEnergy(self):
-		labels = self.sim.devicesNames()
-		energyList = self.sim.totalDevicesEnergy()
+		
+		energyList = self.totalDevicesEnergyFunction() # self.sim.totalDevicesEnergy()
 		
 		pp.figure(DEVICES_ENERGY_FIGURE)
-		pp.bar(np.array(range(len(self.sim.devices))) + 0.5, energyList, tick_label=labels, color=['b'] * len(self.sim.devices))
+		pp.bar(np.array(range(len(self.devices))) + 0.5, energyList, tick_label=self.devicesNames, color=['b'] * len(self.sim.devices))
 		
 	def drawSubtaskDuration(self):
 		subtasks = [
@@ -270,17 +290,17 @@ class visualiser:
 		pp.figure(DEVICES_FIGURE)
 		pp.cla()
 		if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.ROUND_ROBIN:
-			roundRobinText = ", {}".format(sim.offloadingDecision.offloadingDecision.target)
+			roundRobinText = ", {}".format(sim.offloadingDecision.currentSubtask.target)
 		else:
 			roundRobinText = ""
-		pp.title("Time = {:.3f}, TotalSleep = {:.3f}, AveragePower {:.3f}{}".format(self.sim.time, np.average([dev.totalSleepTime for dev in self.sim.devices]), np.average(self.sim.totalDevicesEnergy()) / self.sim.time, roundRobinText))
+		pp.title("Time = {}, TotalSleep = {:.3f}, TotalJobs {:d}, AveragePower {:.3f}{}".format(self.clock, np.average([dev.totalSleepTime for dev in self.devices]), self.completedJobs(), np.average(self.totalDevicesEnergyFunction()) / self.clock.current, roundRobinText))
 		# for dev, location in zip(self.sim.devices, self.grid):
-		for dev in self.sim.devices:
+		for dev in self.devices:
 			self.draw(dev)
 		
 		# limits
-		xlimits = (-DEVICE_SIZE[0] - BORDER * 4 + np.min([dev.location[0] for dev in self.sim.devices]), DEVICE_SIZE[0] + BORDER * 4 + np.max([dev.location[0] for dev in self.sim.devices]))
-		ylimits = (-DEVICE_SIZE[1] - BORDER * 4 + np.min([dev.location[1] for dev in self.sim.devices]), DEVICE_SIZE[1] + BORDER * 4 + np.max([dev.location[1] for dev in self.sim.devices]))
+		xlimits = (-DEVICE_SIZE[0] - BORDER * 4 + np.min([dev.location[0] for dev in self.devices]), DEVICE_SIZE[0] + BORDER * 4 + np.max([dev.location[0] for dev in self.devices]))
+		ylimits = (-DEVICE_SIZE[1] - BORDER * 4 + np.min([dev.location[1] for dev in self.devices]), DEVICE_SIZE[1] + BORDER * 4 + np.max([dev.location[1] for dev in self.devices]))
 
 		# print(np.min([xlimits[0], 0]))
 		# print(np.max([xlimits[1], 1]))
@@ -288,8 +308,7 @@ class visualiser:
 		# pp.ylim(np.min([ylimits[0], 0]), np.max([ylimits[1], 1]))
 		pp.xlim(xlimits)
 		pp.ylim(ylimits)
-		
-		
+
 	def draw(self, node):
 		try:
 			image = list()
@@ -302,7 +321,7 @@ class visualiser:
 			top = node.location[1] + node.rectangle.get_height()/2
 			pp.gca().text(x=node.location[0], y=top + TEXT_SPACING * 3, s="{} ({})".format(node, node.maxBatchLength()[0]), verticalalignment='center', horizontalalignment='center')
 			pp.gca().text(x=node.location[0], y=top + TEXT_SPACING * 2, s=node.currentBatch, verticalalignment='center', horizontalalignment='center')
-			pp.gca().text(x=node.location[0], y=top + TEXT_SPACING * 1, s=node.currentTask, verticalalignment='center', horizontalalignment='center')
+			pp.gca().text(x=node.location[0], y=top + TEXT_SPACING * 1, s=node.currentSubtask, verticalalignment='center', horizontalalignment='center')
 
 			# draw all processors and wireless
 			for component in node.components:
@@ -315,7 +334,8 @@ class visualiser:
 				pp.gca().add_patch(img)
 		except RuntimeError:
 			print ("Drawing failed")
-			self.sim.finished = True
+			# traceback.print_exc()
+			sim.simulation.current.finished = True
 
 	# @staticmethod
 	def moveWindow(self):

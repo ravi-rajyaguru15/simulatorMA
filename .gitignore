@@ -1,3 +1,11 @@
+.idea/
+#.clwb/*
+.clwb.bk/*
+!/.clwb/.bazelproject
+bazel-*
+*.prof
+node_modules/
+package_lock.json
 *.png
 *.yaml
 .vscode/launch.json
@@ -8,3 +16,5 @@ images/*.png
 .vscode/sftp.json
 .vscode/settings.json
 .DS_Store
+/venv/
+/.venv/

@@ -5,10 +5,11 @@ metadata:
   labels:
     type: local
 spec:
-  storageClassName: manual
-  capacity:
-    storage: 2Gi
+  storageClassName: slow
+  resources:
+    requests:
+      storage: 2Gi
   accessModes:
     - ReadWriteOnce
   hostPath:
-    path: "/mnt/sciebo/graphs/"
+    path: "/mnt/share/Experiments/simulator"

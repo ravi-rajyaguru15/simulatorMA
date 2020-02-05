@@ -21,8 +21,12 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 # import rl.memory
 import rl
 import rl.util
-import keras
-import keras.utils
+# import keras
+# import keras.utils
+import tensorflow as tf
+print("GPU Available: ", tf.test.is_gpu_available())
+import tensorflow.keras as keras
+print(tf.__version__)
 
 # %matplotlib inline
 import sim.dqn as dqn
@@ -169,9 +173,9 @@ numStates = len(env.observation_space)
 numActions = len(env.action_space)
 
 # Next, we build a very simple model.
-model = keras.models.Sequential()
+model = tf.keras.models.Sequential()
 print (env.observation_space.shape)
-model.add(keras.layers.Flatten(input_shape=(1,) + env.observation_space.shape))
+model.add(tf.keras.layers.Flatten(input_shape=(1,) + env.observation_space.shape))
 print('input shape', (1,) + env.observation_space.shape)
 # model.add(keras.layers.Dense(4))
 # model.add(keras.layers.Activation('relu'))
@@ -179,9 +183,9 @@ print('input shape', (1,) + env.observation_space.shape)
 # model.add(keras.layers.Activation('relu'))
 # model.add(Dense(16))
 # model.add(Activation('relu'))
-model.add(keras.layers.Dense(numActions))
-model.add(keras.layers.Activation('linear'))
-model.summary()
+model.add(tf.keras.layers.Dense(numActions))
+model.add(tf.keras.layers.Activation('linear'))
+# model.summary()
 
 # plt.figure(6, figsize=(10,10))
 # keras.utils.plot_model(model, to_file='model.png', show_shapes=True, expand_nested=True, dpi=300)
@@ -200,14 +204,14 @@ policy = rl.policy.EpsGreedyQPolicy(eps=.1)
 
 gamma=.99
 # agent = dqn.DQNAgent(model, enable_double_dqn=False, nb_actions=numActions, gamma=.99, memory=memory, policy=policy, nb_steps_warmup=2, train_interval=1, batch_size=1)
-optimizer = keras.optimizers.Adam(lr=.001)
+optimizer = tf.keras.optimizers.Adam(lr=.001)
 # agent.compile(, metrics=['mae'])
 metrics = ['mae']
 def clipped_masked_error(args):
 	y_true, y_pred, mask = args
 	loss = rl.util.huber_loss(y_true, y_pred, np.inf)# self.delta_clip)
 	loss *= mask  # apply element-wise mask
-	return keras.backend.sum(loss, axis=-1)
+	return tf.keras.backend.sum(loss, axis=-1)
 
 # Create trainable model. The problem is that we need to mask the output since we only
 # ever want to update the Q values for a certain action. The way we achieve this is by
@@ -228,8 +232,8 @@ losses = [
 trainable_model.compile(optimizer=optimizer, loss=losses, metrics=combined_metrics)
 # self.trainable_model = trainable_model
 # agent.training = True
-print(trainable_model.metrics_names)
-print(trainable_model.summary())
+# print(trainable_model.metrics_names)
+# print(trainable_model.summary())
 # plt.figure(5, figsize=(25,25))
 # keras.utils.plot_model(trainable_model, to_file='trainable_model.png', show_shapes=True, expand_nested=True, dpi=300)
 # plt.imshow(mpl.image.imread('trainable_model.png'))

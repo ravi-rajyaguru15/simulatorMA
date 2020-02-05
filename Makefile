@@ -1,3 +1,5 @@
+PYTHON=python3.6
+
 drone:
 	DRONE_REPO_NAME=simulator DRONE_COMMIT_SHA=1 drone exec --trusted --include small_test
 
@@ -26,23 +28,30 @@ docker-gpu:
 	docker run --runtime=nvidia test 
 
 local:
-	python3 src/training.py /cpu:0 100 1 10000 100 128
+	$(PYTHON) src/training.py /cpu:0 100 1 10000 100 128
 	
 requirements:
 	pip3 install -r requirements.txt
 
 .DEFAULT:
-	python3 sim/experiments/$@.py
+	$(PYTHON) sim/experiments/$@.py
 
 sim:
 	@echo "sim"
-	python3 sim/simulation.py
+	$(PYTHON) sim/simulation.py
 
 testq:
-	python3 sim/tictactoe.py
+	$(PYTHON) sim/tictactoe.py
+
+testActions:
+	$(PYTHON) sim/experiments/visual/testActions.py
+
+
+profiler:
+	$(PYTHON) sim/experiments/profiling.py
 
 .PHONY: *
-test: experiment
+test: transient/multiEpisode # transient/expectedLife # transient/batchSize # 
 	@echo $$DISPLAY
 	@echo "running test"
 	# python sim.py

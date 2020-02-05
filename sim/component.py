@@ -60,16 +60,21 @@ class component:
 	# power level right now
 	def power(self):
 		if self.state == sim.powerState.IDLE:
-			return np.sum([power.gen() for power in self.idlePower])
+			powerList = self.idlePower
 		elif self.state == sim.powerState.ACTIVE:
-			return np.sum([power.gen() for power in self.activePower])
+			powerList = self.activePower
 		elif self.state == sim.powerState.SLEEP:
-			return np.sum([power.gen() for power in self.sleepPower])
+			powerList = self.sleepPower
 		else:
 			raise Exception("Unknown power state: " + str(self.state))
 
-	# # Power power level of this component
-	# def power(self):
-	# 	# print (self)
-	# 	# print(self.voltage, self.current())
-	# 	return np.dot([voltage.gen() for voltage in self.voltage], [current.gen() for current in self.current()])
+		# compute total power for all lines
+		return component._total(powerList)
+
+	# helper function for totalling a generated list
+	@staticmethod
+	def _total(lst):
+		total = 0
+		for element in lst:
+			total+= element.gen()
+		return total

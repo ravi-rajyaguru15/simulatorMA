@@ -6,6 +6,8 @@ from sim.gateway import gateway
 from sim.server import server
 from sim.visualiser import visualiser 
 from sim.job import job
+from sim.clock import clock
+import sim.systemState
 import sim.offloadingDecision
 import sim.offloadingPolicy
 import sim.debug
@@ -19,8 +21,11 @@ import sys
 import numpy as np
 import warnings
 import datetime
+import sim.history
+import sim.results
 
 queueLengths = list()
+current = None
 
 class simulation:
 	ed, ed2, en, gw, srv, selectedOptions = None, None, None, None, None, None
@@ -28,11 +33,16 @@ class simulation:
 	jobResults = None
 	time = None
 	devices = None
+	devicesExpectedLifetimeFunctions = None
+	devicesExpectedLifetimes = None
+	numDevices = None
 	delays = None
 	currentDelays = None
 	taskQueueLength = None
 	# visualise = None
 	visualisor = None
+	frames = None
+	plotFrames = None
 	finished = False
 	hardwareAccelerated = None
 	timestamps = list()
@@ -41,43 +51,61 @@ class simulation:
 	systemState = None
 	completedJobs = None
 
-	def __init__(self, numEndDevices, numElasticNodes, numServers, hardwareAccelerated=None):
-		sim.debug.out(numEndDevices + numElasticNodes)
+	def __init__(self, hardwareAccelerated=None): # numEndDevices, numElasticNodes, numServers,
+		# sim.debug.out(numEndDevices + numElasticNodes)
 		self.results = multiprocessing.Manager().Queue()
-		self.jobResults = multiprocessing.Manager().Queue()
-		job.jobResultsQueue = self.jobResults
+		# self.jobResults = multiprocessing.Manager().Queue()
+		job.jobResultsQueue = multiprocessing.Manager().Queue()
 		self.delays = list()
-		self.systemState = sim.offloadingDecision.systemState(self)
 		self.completedJobs = 0
 
-		self.time = 0
+		self.time = clock()
+		sim.offloadingDecision.sharedClock = self.time
 		
-		if numEndDevices > 0:
-			print ("End devices not supported")
-			sys.exit(0)
-		self.ed = [] # endDevice(None, self, self.results, i, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(numEndDevices)]
+		# requires simulation to be populated
+		sim.systemState.current = sim.systemState.systemState(self)
+		useSharedAgent = (sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING) and (sim.constants.CENTRALISED_LEARNING)
+
+		sim.results.learningHistory = sim.history.history()
+
+		print(useSharedAgent, sim.constants.OFFLOADING_POLICY, sim.constants.CENTRALISED_LEARNING)
+		if useSharedAgent:
+			# create shared learning agent
+			sim.offloadingDecision.sharedAgent = sim.offloadingDecision.agent(sim.systemState.current)
+		
+		# self.ed = [] # endDevice(None, self, self.results, i, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(numEndDevices)]
 		# self.ed = endDevice()
 		# self.ed2 = endDevice()
-		self.en = [elasticNode(self, sim.constants.DEFAULT_ELASTIC_NODE, self.results, i + numEndDevices, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(numElasticNodes)]
-		
-		
-		# self.en = elasticNode()
-		self.gw = [] #gateway()
-		self.srv = [] # [server() for i in range(numServers)]
+		print("default", sim.constants.DEFAULT_ELASTIC_NODE, sim.constants.DEFAULT_ELASTIC_NODE.RECONFIGURATION_TIME, sim.constants.DEFAULT_ELASTIC_NODE.RECONFIGURATION_TIME.gen())
+		self.devices = [elasticNode(self, sim.constants.DEFAULT_ELASTIC_NODE, self.results, i, episodeFinished=self.isEpisodeFinished, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(sim.constants.NUM_DEVICES)]
+		sim.offloadingDecision.devices = self.devices
+		if useSharedAgent:
+			sim.offloadingDecision.sharedAgent.setDevices()
+		else:
+			for device in self.devices: device.decision.privateAgent.setDevices()
+		# assemble expected lifetime for faster computation later
+		self.devicesExpectedLifetimeFunctions = [dev.expectedLifetime for dev in self.devices]
+		self.devicesExpectedLifetimes = np.zeros((len(self.devices),))
+		# # self.en = elasticNode()
+		# self.gw = [] #gateway()
+		# self.srv = [] # [server() for i in range(numServers)]
 
-		self.devices = self.ed + self.en + self.srv
+		# self.devices = self.ed + self.en + self.srv
 		self.taskQueueLength = [0] * len(self.devices)
 
+		self.hardwareAccelerated = hardwareAccelerated
+		self.visualiser = visualiser(self)
+		self.frames = 0
+		self.plotFrames = sim.constants.PLOT_TD / sim.constants.TD
+		sim.debug.out (self.plotFrames)
+			
 		# set all device options correctly
+		# needs simulation and system state to be populated
 		for device in self.devices: 
 			# choose options based on policy
 			device.setOffloadingDecisions(self.devices)
 
-		self.hardwareAccelerated = hardwareAccelerated
-		# self.visualise = visualise
-		# if sim.constants.DRAW_DEVICES: 
-		self.visualiser = visualiser(self)
-
+		
 	def stop(self):
 		sim.debug.out("STOP", 'r')
 		self.finished = True
@@ -86,25 +114,36 @@ class simulation:
 		return np.all([not device.hasJob() for device in self.devices])
 	
 	def simulate(self):
-		frames = 0
-		plotFrames = sim.constants.PLOT_TD / sim.constants.TD
-
 		while not self.finished:
-			frames += 1
 			self.simulateTick()
-			
-			# if sim.constants.DRAW_DEVICES:
-			if frames % plotFrames == 0:
-				self.visualiser.update()
-		
-			# pass
-				# def simulateUntilDone()
 	
 	# if multiple jobs finish in the same line, 
 	def simulateUntilJobDone(self):
 		numJobs = self.completedJobs
 		while self.completedJobs == numJobs:
 			self.simulateTick()
+
+	# reset energy levels of all devices and run entire simulation
+	def simulateEpisode(self):
+		self.reset()
+		while not self.finished:
+			self.simulateTick()
+
+	def reset(self):
+		sim.offloadingDecision.sharedAgent.reset()
+
+		# reset energy
+		for dev in self.devices:
+			dev.reset()
+
+		self.time.reset()
+		self.finished = False
+
+	def isEpisodeFinished(self):
+		return self.finished
+
+	def getCompletedJobs(self): return self.completedJobs
+	def incrementCompletedJobs(self): self.completedJobs += 1
 
 	def simulateUntilTime(self, finalTime):
 		assert(finalTime > self.time)
@@ -113,19 +152,13 @@ class simulation:
 	def simulateTime(self, duration):
 		# progress = 0
 		endTime = self.time + duration
-		plotFrames = sim.constants.PLOT_TD / sim.constants.TD
-		sim.debug.out (plotFrames)
-		frames = 0
+		
+		if self.finished: return
 
 		while self.time < endTime and not self.finished:
 			# try:
 			if True:
 				self.simulateTick()
-				frames += 1
-
-				# if sim.constants.DRAW_DEVICES:
-				if frames % plotFrames == 0:
-					self.visualiser.update()
 		
 		# results
 		try:
@@ -153,22 +186,26 @@ class simulation:
 	def simulateTick(self):
 		# try:
 		if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
-			self.systemState.updateSystem()
-
+			sim.systemState.current.updateSystem()
 		# create new jobs
 		for device in self.devices:
 			# mcu is required for taking samples
 			if not device.hasJob():
-				device.maybeAddNewJob(self.time)
+				device.maybeAddNewJob()
+
+			# force updating td
+			device.currentTd = None
 
 		# update the destination of the offloading if it is shared
 		if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.ROUND_ROBIN:
-			sim.offloadingDecision.offloadingDecision.updateTarget(self.time)
+			sim.offloadingDecision.updateOffloadingTarget()
 		
-		tasksBefore = np.array([dev.currentTask for dev in self.devices])
+		tasksBefore = np.array([dev.currentSubtask for dev in self.devices])
 
 		# update all the devices
 		for dev in self.devices:
+			if not (dev.currentJob is None and dev.currentSubtask is None):
+				sim.debug.out('\ntick device [{}] [{}] [{}]'.format(dev, dev.currentJob, dev.currentSubtask))
 			dev.updateTime(self.time)
 			queueLengths.append(len(dev.jobQueue))
 
@@ -186,11 +223,14 @@ class simulation:
 					dev.currentJob.devicesEnergyCost[dev] = 0
 				
 				dev.currentJob.devicesEnergyCost[dev] += energy
+
 		if sim.constants.DRAW_GRAPH_EXPECTED_LIFETIME:
 			# note energy levels for plotting
 			self.timestamps.append(self.time)
 			self.lifetimes.append(self.devicesLifetimes())
 			self.energylevels.append(self.devicesEnergyLevels())
+
+		self.finished = self.systemLifetime() <= 0
 			
 
 		# check if task queue is too long
@@ -205,37 +245,43 @@ class simulation:
 			
 
 
-		self.currentDelays = [dev.currentTask.delay if dev.currentTask is not None else 0 for dev in self.devices ]
+		self.currentDelays = [dev.currentSubtask.delay if dev.currentSubtask is not None else 0 for dev in self.devices ]
 		self.delays.append(self.currentDelays)
 
 		# print all results if interesting
-		tasksAfter = np.array([dev.currentTask for dev in self.devices])
-		if not (np.all(tasksAfter == None) and np.all(tasksBefore == None)):
-			sim.debug.out('tick {:.4f}'.format(self.time), 'b')
-		# 	sim.debug.out("nothing...")
-		# else:
-			sim.debug.out("tasks before {0}".format(tasksBefore), 'r')
-			sim.debug.out("have jobs:\t{0}".format([dev.hasJob() for dev in self.devices]), 'b')
-			sim.debug.out("jobQueues:\t{0}".format([len(dev.jobQueue) for dev in self.devices]), 'g')
-			sim.debug.out("batchLengths:\t{0}".format(self.batchLengths()), 'c')
-			sim.debug.out("currentBatch:\t{0}".format([dev.currentBatch for dev in self.devices]))
-			sim.debug.out("currentConfig:\t{0}".format([dev.fpga.currentConfig for dev in self.devices if isinstance(dev, elasticNode)]))
-			sim.debug.out("taskQueues:\t{0}".format([len(dev.taskQueue) for dev in self.devices]), 'dg')
-			sim.debug.out("taskQueues:\t{0}".format([[task for task in dev.taskQueue] for dev in self.devices]), 'dg')
-			sim.debug.out("states: {0}".format([[comp.state for comp in dev.components] for dev in self.devices]))
-			sim.debug.out("tasks after {0}".format(tasksAfter), 'r')
-		
-			if np.sum(self.currentDelays) > 0:
-				sim.debug.out("delays {}".format(self.currentDelays))
+		tasksAfter = np.array([dev.currentSubtask for dev in self.devices])
+		if sim.debug.enabled:
+			if not (np.all(tasksAfter == None) and np.all(tasksBefore == None)):
+				sim.debug.out('tick {}'.format(self.time), 'b')
+			# 	sim.debug.out("nothing...")
+			# else:
+				sim.debug.out("tasks before {0}".format(tasksBefore), 'r')
+				sim.debug.out("have jobs:\t{0}".format([dev.hasJob() for dev in self.devices]), 'b')
+				sim.debug.out("jobQueues:\t{0}".format([len(dev.jobQueue) for dev in self.devices]), 'g')
+				sim.debug.out("batchLengths:\t{0}".format(self.batchLengths()), 'c')
+				sim.debug.out("currentBatch:\t{0}".format([dev.currentBatch for dev in self.devices]))
+				sim.debug.out("currentConfig:\t{0}".format([dev.fpga.currentConfig for dev in self.devices if isinstance(dev, elasticNode)]))
+				sim.debug.out("taskQueues:\t{0}".format([len(dev.taskQueue) for dev in self.devices]), 'dg')
+				sim.debug.out("taskQueues:\t{0}".format([[task for task in dev.taskQueue] for dev in self.devices]), 'dg')
+				sim.debug.out("states: {0}".format([[comp.state for comp in dev.components] for dev in self.devices]))
+				sim.debug.out("tasks after {0}".format(tasksAfter), 'r')
+			
+				if np.sum(self.currentDelays) > 0:
+					sim.debug.out("delays {}".format(self.currentDelays))
+
+		self.frames += 1
+		# if sim.constants.DRAW_DEVICES:
+		if self.frames % self.plotFrames == 0:
+			self.visualiser.update()
 
 		# progress += sim.constants.TD
-		self.time += sim.constants.TD
+		self.time.increment()
 
 	def taskBatchLengths(self, task):
 		return [len(dev.batch[task]) if task in dev.batch else 0 for dev in self.devices]
 
 	def batchLengths(self):
-		return [[len(batch) for key, batch in dev.batch.items()] for dev in self.devices]
+		return [dev.batchLengths() for dev in self.devices]
 	
 	def maxBatchLengths(self):
 		return [np.max(lengths) if len(lengths) > 0 else 0 for lengths in self.batchLengths()]
@@ -249,8 +295,17 @@ class simulation:
 	def currentDevicesEnergy(self):
 		return [dev.energy() for dev in self.devices]
 
+	def systemLifetime(self, devicesExpectedLifetimes=None):
+		if devicesExpectedLifetimes is None:
+			devicesExpectedLifetimes = self.devicesLifetimes()
+
+		return np.min(devicesExpectedLifetimes)
+	
 	def devicesLifetimes(self):
-		return [dev.expectedLifetime() for dev in self.devices]
+		for i in range(sim.constants.NUM_DEVICES):
+			self.devicesExpectedLifetimes[i] = self.devicesExpectedLifetimeFunctions[i]()
+		return self.devicesExpectedLifetimes
+			# return [dev.expectedLifetime() for dev in self.devices]
 
 	def devicesEnergyLevels(self):
 		return [dev.energyLevel for dev in self.devices]
@@ -265,16 +320,16 @@ class simulation:
 		return [self.optionsNames[option] for option in self.selectedOptions]
 	
 
-if __name__ == '__main__':
-	print ("running sim")
+# if __name__ == '__main__':
+# 	print ("running sim")
 
-	# for i in range(1, 100, 10):
-	# 	print i, simulation.simulateAll(i, "latency")
+# 	# for i in range(1, 100, 10):
+# 	# 	print i, simulation.simulateAll(i, "latency")
 
-	# simulation.singleDelayedJobLocal(False)
-	# simulation.singleDelayedJobLocal(True)
-	# simulation.singleDelayedJobPeer(False)
-	# simulation.singleDelayedJobPeer(True)
-	# simulation.randomPeerJobs(True)
-	simulation.randomPeerJobs(False)
-	# simulation.singleBatchLocal(False)
+# 	# simulation.singleDelayedJobLocal(False)
+# 	# simulation.singleDelayedJobLocal(True)
+# 	# simulation.singleDelayedJobPeer(False)
+# 	# simulation.singleDelayedJobPeer(True)
+# 	# simulation.randomPeerJobs(True)
+# 	simulation.randomPeerJobs(False)
+# 	# simulation.singleBatchLocal(False)
