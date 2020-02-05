@@ -5,10 +5,9 @@ metadata:
   labels:
     type: local
 spec:
-  storageClassName: slow
-  resources:
-    requests:
-      storage: 2Gi
+  storageClassName: manual
+  capacity:
+    storage: 2Gi
   accessModes:
     - ReadWriteOnce
   hostPath:
