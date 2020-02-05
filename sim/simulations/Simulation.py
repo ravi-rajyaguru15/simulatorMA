@@ -77,7 +77,8 @@ class BasicSimulation:
 		if useSharedAgent:
 			sim.offloadingDecision.sharedAgent.setDevices()
 		else:
-			for device in self.devices: device.decision.privateAgent.setDevices()
+			if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
+				for device in self.devices: device.decision.privateAgent.setDevices()
 		# assemble expected lifetime for faster computation later
 		self.devicesExpectedLifetimeFunctions = [dev.expectedLifetime for dev in self.devices]
 		self.devicesExpectedLifetimes = np.zeros((len(self.devices),))
@@ -223,8 +224,24 @@ class BasicSimulation:
 
 	def selectedNameOptions(self):
 		return [self.optionsNames[option] for option in self.selectedOptions]
-	
 
+	# create job and add to device
+	def createNewJob(self, device, hardwareAccelerated=None, taskGraph=None):
+		# if not set to hardwareAccelerate, use default
+		if hardwareAccelerated is None:
+			hardwareAccelerated = self.hardwareAccelerated
+		# if still None, unknown behaviour
+		assert (hardwareAccelerated is not None)
+
+		print('creating job on', device)
+		self.addJob(device, job(device, sim.constants.SAMPLE_SIZE.gen(), hardwareAccelerated=hardwareAccelerated,
+								taskGraph=taskGraph))
+		sim.debug.out("added job to device queue", 'p')
+
+	# add job to device queue
+	def addJob(self, device, job):
+		device.numJobs += 1
+		device.jobQueue.append(job)
 # if __name__ == '__main__':
 # 	print ("running sim")
 

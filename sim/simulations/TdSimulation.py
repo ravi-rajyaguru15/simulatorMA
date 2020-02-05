@@ -3,9 +3,15 @@ from sim import constants, debug, offloadingPolicy, offloadingDecision, systemSt
 from sim.elasticNode import elasticNode
 import numpy as np
 from sim.job import job
+from sim.subtask import subtask
 
 
 class TdSimulation(BasicSimulation):
+	def __init__(self, hardwareAccelerated=True):
+		BasicSimulation.__init__(self, hardwareAccelerated=hardwareAccelerated)
+		# specify subtask behaviour
+		subtask.update = subtask.tick
+
 	def simulateTick(self):
 		# try:
 		if constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING:
@@ -29,7 +35,7 @@ class TdSimulation(BasicSimulation):
 		for dev in self.devices:
 			if not (dev.currentJob is None and dev.currentSubtask is None):
 				debug.out('\ntick device [{}] [{}] [{}]'.format(dev, dev.currentJob, dev.currentSubtask))
-			dev.updateTime(self.time)
+			dev.updateTime()
 			queueLengths.append(len(dev.jobQueue))
 
 		# capture energy values
@@ -103,19 +109,3 @@ class TdSimulation(BasicSimulation):
 		if constants.uni.evaluate(constants.JOB_LIKELIHOOD):  # 0.5
 			debug.out("\t\t** {} new job ** ".format(self))
 			self.createNewJob(device)
-
-	# create job and add to device
-	def createNewJob(self, device, hardwareAccelerated=None, taskGraph=None):
-		# if not set to hardwareAccelerate, use default
-		if hardwareAccelerated is None:
-			hardwareAccelerated = self.hardwareAccelerated
-			# if still None, unknown behaviour
-		assert(hardwareAccelerated is not None)
-
-		self.addJob(device, job(device, constants.SAMPLE_SIZE.gen(), hardwareAccelerated=hardwareAccelerated, taskGraph=taskGraph))
-		debug.out("added job to device queue", 'p')
-
-	# add job to device queue
-	def addJob(self, device, job):
-		device.numJobs += 1
-		device.jobQueue.append(job)

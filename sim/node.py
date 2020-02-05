@@ -230,7 +230,7 @@ class node:
 	def batchLengths(self):
 		return [len(batch) for key, batch in self.batch.items()]
 
-	# reconsider each job in batch, maybe start it
+	# reconsider each job in batch, maybe start it. return which device (if any) is affected
 	def reconsiderBatch(self):
 		sim.debug.learnOut("deciding whether to continue batch ({}) or not".format(self.batchLengths()), 'b')
 		# sim.debug.out("Batch before: {0}/{1}".format(self.batchLength(self.currentJob.currentTask), sim.constants.MINIMUM_BATCH), 'c')
@@ -251,12 +251,11 @@ class node:
 
 					# remove it from the batch
 					self.removeJobFromBatch(job)
-					job.activate()
 					self.currentJob = job
-					return True
+					return job.activate()
 
 		sim.debug.out("Batch lengths after: {}".format(self.batchLengths()), 'c')
-		return False
+		return None
 		# sim.debug.out("Batch after: {0}/{1}".format(self.currentJob.processingNode.batchLength(self.job.currentTask), sim.constants.MINIMUM_BATCH), 'c')
 
 	# calculate the energy at the current activity of all the components
@@ -290,27 +289,28 @@ class node:
 		self.averagePower += sim.constants.EXPECTED_LIFETIME_ALPHA * (power - self.averagePower)
 		# sim.debug.out("average power: {}, {}".format(power, self.averagePower))
 
-	def updateTime(self, currentTime):
+	def updateTime(self):
 		# if no jobs available, perhaps generate one
 		asleepBefore = self.asleep()
 
 		# see if there's a job available
 		if self.currentJob is None:
-			self.nextJob(currentTime)
+			self.nextJob()
 		# restarting existing job
 		elif self.currentJob.started and not self.currentJob.active:
 			sim.debug.out("restarting existing job", 'r')
 			self.currentJob.activate()
 
-
 		# check if there's something to be done now
 		if self.currentSubtask is None:
 			self.nextTask()
 
+		print("updating device", self, self.currentSubtask)
 		# do process and check if done
 		if self.currentSubtask is not None:
-			self.currentSubtask.tick()
+			affectedDevices = self.currentSubtask.update() # only used in simple simulations
 		else:
+			affectedDevices = None
 			# just idle, entire td is used
 			self.currentTd = sim.constants.TD
 
@@ -324,6 +324,8 @@ class node:
 
 		if asleepBefore and asleepAfter:
 			self.totalSleepTime += sim.constants.TD
+
+		return affectedDevices
 	
 	def expectedLifetime(self):
 		# estimate total life time based on previous use
@@ -423,17 +425,20 @@ class node:
 
 
 
-	def nextJob(self, currentTime):
+	def nextJob(self):
 		if self.currentJob is None:
 			if len(self.jobQueue) > 0:
-				sim.debug.out ("grabbed job from queue")
+				sim.debug.out("grabbed job from queue")
 				self.currentJob = self.jobQueue[0]
 				self.jobQueue.remove(self.currentJob)
 				# see if it's a brand new job
 				if not self.currentJob.started:
-					self.currentJob.start()
+					return self.currentJob.start()
 				else:
 					sim.debug.out("\tALREADY STARTED")
+
+		# no new jobs started
+		return None
 
 
 

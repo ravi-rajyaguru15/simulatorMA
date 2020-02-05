@@ -27,5 +27,8 @@ class clock:
 	def __repr__(self):
 		return "{:.3f}".format(self.current)
 
+	def set(self, value):
+		self.current = value
+
 	def increment(self):
 		self.current += sim.constants.TD

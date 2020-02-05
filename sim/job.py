@@ -97,7 +97,8 @@ class job:
 		self.history = sim.history.history()
 
 		# initiate task by setting processing node
-		self.setDecisionTarget(jobCreator.decision.chooseDestination(self.currentTask, self, jobCreator))
+		destination = jobCreator.decision.chooseDestination(self.currentTask, self, jobCreator)
+		self.setDecisionTarget(destination)
 
 		# define episode finished function for training
 		self.episodeFinished = simulation.isEpisodeFinished
@@ -168,9 +169,10 @@ class job:
 		# to start with, owner is the node who created it
 		self.owner = self.creator
 
-		self.activate()
+		return self.activate()
 
 
+	# create correct subtask
 	def activate(self):
 		assert self.immediate is not None
 		sim.debug.out("activating {} owner {} on {}".format(self, self.owner, self.processingNode))
@@ -184,11 +186,13 @@ class job:
 				self.processingNode.addSubtask(sim.subtask.newJob(self))
 			else:
 				self.processingNode.addSubtask(sim.subtask.batching(self))
+			return self.processingNode
 		# otherwise we have to send task
 		else:
 			# elif self.destination.nodeType == sim.constants.ELASTIC_NODE:
 			sim.debug.out("offloading to other device")
 			self.owner.addSubtask(sim.subtask.createMessage(self))
+			return self.owner
 
 	def finish(self):
 		self.finished = True

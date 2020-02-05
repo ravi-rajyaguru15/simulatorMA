@@ -5,15 +5,22 @@ from sim import constants, debug, offloadingPolicy, offloadingDecision, systemSt
 from sim.elasticNode import elasticNode
 import numpy as np
 
+from sim.subtask import subtask
+
+
 class SimpleSimulation(BasicSimulation):
 	queue = None
 
 	def __init__(self, hardwareAccelerated=True):
 		BasicSimulation.__init__(self, hardwareAccelerated=hardwareAccelerated)
+		# specify subtask behaviour
+		subtask.update = subtask.perform
+
 		self.queue = PriorityQueue()
 
 		# need to initially check when each device's first task is
-		self.queueNextJob(device for device in self.devices)
+		for dev in self.devices:
+			self.queueNextJob(dev)
 
 
 	def simulateTick(self):
@@ -35,6 +42,11 @@ class SimpleSimulation(BasicSimulation):
 			offloadingDecision.updateOffloadingTarget()
 
 		tasksBefore = np.array([dev.currentSubtask for dev in self.devices])
+
+		# process new queued task here
+		newTime, newTask, arguments = self.queue.get()
+		self.time.set(newTime)
+		self.processQueuedTask(newTask, arguments)
 
 		# # update all the devices
 		# for dev in self.devices:
@@ -81,24 +93,24 @@ class SimpleSimulation(BasicSimulation):
 
 		# print all results if interesting
 		tasksAfter = np.array([dev.currentSubtask for dev in self.devices])
-		if debug.enabled:
-			if not (np.all(tasksAfter == None) and np.all(tasksBefore == None)):
-				debug.out('tick {}'.format(self.time), 'b')
-				# 	debug.out("nothing...")
-				# else:
-				debug.out("tasks before {0}".format(tasksBefore), 'r')
-				debug.out("have jobs:\t{0}".format([dev.hasJob() for dev in self.devices]), 'b')
-				debug.out("jobQueues:\t{0}".format([len(dev.jobQueue) for dev in self.devices]), 'g')
-				debug.out("batchLengths:\t{0}".format(self.batchLengths()), 'c')
-				debug.out("currentBatch:\t{0}".format([dev.currentBatch for dev in self.devices]))
-				debug.out("currentConfig:\t{0}".format([dev.fpga.currentConfig for dev in self.devices if isinstance(dev, elasticNode)]))
-				debug.out("taskQueues:\t{0}".format([len(dev.taskQueue) for dev in self.devices]), 'dg')
-				debug.out("taskQueues:\t{0}".format([[task for task in dev.taskQueue] for dev in self.devices]), 'dg')
-				debug.out("states: {0}".format([[comp.state for comp in dev.components] for dev in self.devices]))
-				debug.out("tasks after {0}".format(tasksAfter), 'r')
-
-				if np.sum(self.currentDelays) > 0:
-					debug.out("delays {}".format(self.currentDelays))
+		# if debug.enabled:
+		# 	if not (np.all(tasksAfter == None) and np.all(tasksBefore == None)):
+		# 		debug.out('tick {}'.format(self.time), 'b')
+		# 		# 	debug.out("nothing...")
+		# 		# else:
+		# 		debug.out("tasks before {0}".format(tasksBefore), 'r')
+		# 		debug.out("have jobs:\t{0}".format([dev.hasJob() for dev in self.devices]), 'b')
+		# 		debug.out("jobQueues:\t{0}".format([len(dev.jobQueue) for dev in self.devices]), 'g')
+		# 		debug.out("batchLengths:\t{0}".format(self.batchLengths()), 'c')
+		# 		debug.out("currentBatch:\t{0}".format([dev.currentBatch for dev in self.devices]))
+		# 		debug.out("currentConfig:\t{0}".format([dev.fpga.currentConfig for dev in self.devices if isinstance(dev, elasticNode)]))
+		# 		debug.out("taskQueues:\t{0}".format([len(dev.taskQueue) for dev in self.devices]), 'dg')
+		# 		debug.out("taskQueues:\t{0}".format([[task for task in dev.taskQueue] for dev in self.devices]), 'dg')
+		# 		debug.out("states: {0}".format([[comp.state for comp in dev.components] for dev in self.devices]))
+		# 		debug.out("tasks after {0}".format(tasksAfter), 'r')
+		#
+		# 		if np.sum(self.currentDelays) > 0:
+		# 			debug.out("delays {}".format(self.currentDelays))
 
 		self.frames += 1
 		# if constants.DRAW_DEVICES:
@@ -106,7 +118,6 @@ class SimpleSimulation(BasicSimulation):
 			self.visualiser.update()
 
 		# progress += constants.TD
-		self.time.increment()
 
 	# add next job to be created for this device to backlog
 	def queueNextJob(self, device):
@@ -114,9 +125,23 @@ class SimpleSimulation(BasicSimulation):
 		nextInterval = constants.JOB_INTERVAL.gen()
 		nextJob = self.time + nextInterval
 
-		print("next job is at", nextJob)
+		print("next job is at", nextJob, device)
 		# add task to queue
-		self.queue.put((nextJob, NEW_JOB))
+		self.queue.put((nextJob, NEW_JOB, (device,)))
+
+	# do next queued task
+	def processQueuedTask(self, task, args):
+		if task == NEW_JOB:
+			print("creating new job")
+			device, = args
+			self.createNewJob(device)
+
+			# immediately start created job
+			affectedDevice = device.nextJob()
+			affectedDevices = affectedDevice.updateTime()
+
+			print("affected:", affectedDevices)
+
 
 class QueueTask:
 	def __repr__(self): return self.__name__

@@ -39,9 +39,9 @@ class offloadingDecision:
 
 	def setOptions(self, allDevices):
 		# set options for all policies that use it, or select constant target
-		if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.LOCAL_ONLY:
-			self.target = self.owner
-		elif sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.RANDOM_PEER_ONLY:
+		# if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.LOCAL_ONLY:
+		# 	self.target = self.owner
+		if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.RANDOM_PEER_ONLY:
 			# only offload to something with fpga when needed
 			elasticNodes = offloadingDecision.selectElasticNodes(
 				allDevices)  # select elastic nodes from alldevices list]
@@ -60,7 +60,8 @@ class offloadingDecision:
 			# assign static targets (will happen multiple times but that's fine)
 			offloadingDecision.options = offloadingDecision.selectElasticNodes(
 				allDevices)  # select elastic nodes from alldevices list]
-
+		elif sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.LOCAL_ONLY:
+			offloadingDecision.options = [self.owner]
 		else:
 			raise Exception("Unknown offloading policy")
 
@@ -79,6 +80,7 @@ class offloadingDecision:
 	def chooseDestination(self, task, job, device):
 		# if specified fixed target, return it
 		if self.target is not None:
+			print("constant target")
 			return self.target  # possibleActions[self.target.index]
 		# check if shared target exists
 		elif offloadingDecision.target is not None:
@@ -111,6 +113,9 @@ class offloadingDecision:
 				sim.debug.learnOut("owner: {}".format(self.owner), 'r')
 				choice = self.firstDecideDestination(task, job, device)
 			# sim.debug.learnOut("choice: {}".format(choice))
+			elif sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.LOCAL_ONLY:
+				choice = sim.offloadingDecision.LOCAL
+				choice.updateDevice(self.owner)
 			else:
 				choice = action("Random", targetIndex=random.choice(self.options).index)
 			# choice = np.random.choice(self.options) #  action.findAction(random.choice(self.options).index)
