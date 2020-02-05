@@ -1,7 +1,8 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  generateName: simulator
+  # generateName: simulator
+  name: simulator-test
 spec:
   ttlSecondsAfterFinished: 604800 # 7 days 
   template:
