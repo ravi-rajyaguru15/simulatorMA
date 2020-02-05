@@ -1,5 +1,5 @@
 # from queue import PriorityQueue
-
+import heapq
 
 from sim.simulations.Simulation import queueLengths, BasicSimulation
 from sim import constants, debug, offloadingPolicy, offloadingDecision, systemState
@@ -7,7 +7,7 @@ from sim.elasticNode import elasticNode
 import numpy as np
 
 class SimpleSimulation(BasicSimulation):
-	queue = None
+	queue = []
 
 	def __init__(self, hardwareAccelerated=True):
 		BasicSimulation.__init__(self, hardwareAccelerated=hardwareAccelerated)
@@ -15,7 +15,7 @@ class SimpleSimulation(BasicSimulation):
 		# need to initially check when each device's first task is
 		self.queueNextJob(device for device in self.devices)
 
-		self.queue = PriorityQueue()
+		# self.queue = PriorityQueue()
 
 	def simulateTick(self):
 		# try:
@@ -116,4 +116,10 @@ class SimpleSimulation(BasicSimulation):
 
 		print("next job is at", nextJob)
 		# add task to queue
-		self.queue.
+		heapq.heappush(self.queue, (nextJob, NEW_JOB))
+
+class QueueTask:
+	def __init__(self):
+		pass
+
+NEW_JOB = QueueTask()

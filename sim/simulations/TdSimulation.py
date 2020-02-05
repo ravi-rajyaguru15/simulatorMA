@@ -99,8 +99,8 @@ class TdSimulation(BasicSimulation):
 
 	def maybeAddNewJob(self, device):
 		# possibly create new job
-		if constants.JOB_LIKELIHOOD.evaluate():
-		# if constants.uni.evaluate(constants.JOB_LIKELIHOOD):  # 0.5
+		# if constants.JOB_LIKELIHOOD.evaluate():
+		if constants.uni.evaluate(constants.JOB_LIKELIHOOD):  # 0.5
 			debug.out("\t\t** {} new job ** ".format(self))
 			self.createNewJob(device)
 
