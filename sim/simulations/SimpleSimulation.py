@@ -22,7 +22,6 @@ class SimpleSimulation(BasicSimulation):
 		for dev in self.devices:
 			self.queueNextJob(dev)
 
-
 	def simulateTick(self):
 		# try:
 		if constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING:
@@ -44,9 +43,13 @@ class SimpleSimulation(BasicSimulation):
 		tasksBefore = np.array([dev.currentSubtask for dev in self.devices])
 
 		# process new queued task here
-		newTime, newTask, arguments = self.queue.get()
+		# newTime, arguments = self.queue.get()
+		nextTask = self.queue.get()
+		newTime = nextTask.priority
+		arguments = nextTask.item
+		print("new time", newTime, arguments)
 		self.time.set(newTime)
-		self.processQueuedTask(newTask, arguments)
+		self.processQueuedTask(arguments)
 
 		# # update all the devices
 		# for dev in self.devices:
@@ -121,26 +124,49 @@ class SimpleSimulation(BasicSimulation):
 
 	# add next job to be created for this device to backlog
 	def queueNextJob(self, device):
+		assert device is not None
+
 		# next job in:
 		nextInterval = constants.JOB_INTERVAL.gen()
 		nextJob = self.time + nextInterval
 
 		print("next job is at", nextJob, device)
 		# add task to queue
-		self.queue.put((nextJob, NEW_JOB, (device,)))
+		self.queue.put(PrioritizedItem(nextJob, (NEW_JOB, device)))
+		device.futureJob = True
 
 	# do next queued task
-	def processQueuedTask(self, task, args):
+	def processQueuedTask(self, args):
+		task = args[0]
 		if task == NEW_JOB:
 			print("creating new job")
-			device, = args
+			device = args[1]
 			self.createNewJob(device)
+			device.futureJob = False
 
 			# immediately start created job
 			affectedDevice = device.nextJob()
-			affectedDevices = affectedDevice.updateTime()
+			print("pre affected", affectedDevice)
+			# start created subtask
+			self.processDeviceSubtask(affectedDevice)
+		elif task == CONTINUE_JOB:
+			print("continue existing job")
+			device = args[1]
+			self.processDeviceSubtask(device)
 
-			print("affected:", affectedDevices)
+	def processDeviceSubtask(self, device):
+		affectedDevices, duration = device.updateTime()
+
+		# create follow up task in queue
+		for affectedDevice in affectedDevices:
+			if affectedDevice is not None:
+				print("queued continue", affectedDevice)
+				print(self.time + duration, CONTINUE_JOB, affectedDevice)
+				self.queue.put(PrioritizedItem(self.time + duration, (CONTINUE_JOB, affectedDevice)))
+			else:
+				print("queuing next", device)
+				self.queueNextJob(device)
+		print("affected:", affectedDevices)
 
 
 class QueueTask:
@@ -151,3 +177,12 @@ class QueueTask:
 		self.__name__ = name
 
 NEW_JOB = QueueTask("New Job")
+CONTINUE_JOB = QueueTask("Continue job")
+
+from dataclasses import dataclass, field
+from typing import Any
+
+@dataclass(order=True)
+class PrioritizedItem:
+	priority: float
+	item: Any=field(compare=False)

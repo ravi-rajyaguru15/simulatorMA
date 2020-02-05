@@ -234,7 +234,7 @@ class job:
 			destinationNode.currentJob = self
 		else:
 			sim.debug.out("ADDING JOB BECAUSE ALREADY HAS ONE")
-			destinationNode.addJob(self)
+			sim.simulations.current.addJob(destinationNode, self)
 
 		# add job to new owner
 		# destinationNode.jobQueue.append(self)

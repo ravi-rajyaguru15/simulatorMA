@@ -59,7 +59,7 @@ class subtask:
 	def perform(self):
 		self.beginTask()
 		sim.debug.out("begin {} {} {}".format(self, self.started, self.duration))
-		print("performing", self, self.__class__)
+		print("performing", self, self.__name__)
 		self.progress = self.duration
 
 		# is it done?
@@ -74,7 +74,7 @@ class subtask:
 		#
 		# self.owner.nextTask()
 
-		return affectedDevices
+		return affectedDevices, self.duration
 
 	# incrementally perform a piece of this subtask
 	def tick(self):
@@ -233,7 +233,7 @@ class createMessage(subtask):
 		self.owner.mcu.idle()
 		self.owner.addSubtask(txJob(self.job, self.job.owner, self.job.processingNode), appendLeft=True)
 
-		subtask.finishTask(self, [self.owner])
+		return subtask.finishTask(self, [self.owner])
 
 # class idle(subtask):
 # 	__name__ = "Idle"
@@ -282,7 +282,7 @@ class batchContinue(subtask):
 			newjob = self.job is not None
 
 			# is there a new job?
-			if newjob:
+			if not newjob:
 				# no more jobs available
 				self.processingNode.mcu.sleep()
 				# # maybe sleep FPGA
@@ -362,8 +362,6 @@ class newJob(subtask):
 		subtask.beginTask(self)
 
 	def finishTask(self):
-		print("finishing new job subtask")
-
 		# start first job in queue
 		if self.job.hardwareAccelerated:
 			if self.job.processingNode.fpga.isConfigured(self.job.currentTask):
@@ -639,7 +637,7 @@ class txJob(txMessage):
 			self.owner.decision.train(self.job.currentTask, self.job, self.owner)
 
 
-		txMessage.finishTask(self)
+		return txMessage.finishTask(self)
 
 
 class txResult(txMessage):
@@ -657,7 +655,7 @@ class txResult(txMessage):
 		self.job.processingNode.addSubtask(batchContinue(self.job), appendLeft=True)
 
 		# move result of job back to the creator
-		txMessage.finishTask(self)
+		return txMessage.finishTask(self)
 
 class rxMessage(subtask):
 	correspondingTx = None

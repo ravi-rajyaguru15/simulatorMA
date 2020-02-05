@@ -118,6 +118,7 @@ class offloadingDecision:
 				choice.updateDevice(self.owner)
 			else:
 				choice = action("Random", targetIndex=random.choice(self.options).index)
+				choice.updateDevice(self.owner)
 			# choice = np.random.choice(self.options) #  action.findAction(random.choice(self.options).index)
 
 			sim.debug.out("Job assigned: {} -> {}".format(self.owner, choice))

@@ -20,6 +20,7 @@ class node:
 	jobQueue = None
 	taskQueue = None
 	currentJob = None
+	futureJob = False
 	numJobs = None
 	currentSubtask = None
 	simulation = None
@@ -295,6 +296,7 @@ class node:
 
 		# see if there's a job available
 		if self.currentJob is None:
+			print(self, "next job")
 			self.nextJob()
 		# restarting existing job
 		elif self.currentJob.started and not self.currentJob.active:
@@ -305,12 +307,13 @@ class node:
 		if self.currentSubtask is None:
 			self.nextTask()
 
-		print("updating device", self, self.currentSubtask)
+		affectedDevices = None
+		duration = None
+		# print("updating device", self, self.currentSubtask)
 		# do process and check if done
 		if self.currentSubtask is not None:
-			affectedDevices = self.currentSubtask.update() # only used in simple simulations
+			affectedDevices, duration = self.currentSubtask.update() # only used in simple simulations
 		else:
-			affectedDevices = None
 			# just idle, entire td is used
 			self.currentTd = sim.constants.TD
 
@@ -325,7 +328,7 @@ class node:
 		if asleepBefore and asleepAfter:
 			self.totalSleepTime += sim.constants.TD
 
-		return affectedDevices
+		return affectedDevices, duration
 	
 	def expectedLifetime(self):
 		# estimate total life time based on previous use
