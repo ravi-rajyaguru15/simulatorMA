@@ -26,7 +26,7 @@ def runThread(results, finished, histories):
 	sim.constants.OFFLOADING_POLICY = sim.offloadingPolicy.REINFORCEMENT_LEARNING
 
 	exp = simulation(hardwareAccelerated=True)
-	sim.simulation.current = exp
+	sim.simulations.current = exp
 
 	try:
 		for i in range(numJobs):

@@ -18,7 +18,7 @@ def runThread(likelihood, alpha, results, finished):
 	sim.constants.EXPECTED_LIFETIME_ALPHA = alpha
 	sim.constants.JOB_LIKELIHOOD = likelihood
 	exp = simulation(hardwareAccelerated=True)
-	sim.simulation.current = exp
+	sim.simulations.current = exp
 	# exp.simulateTime(30)
 
 	counter = 0

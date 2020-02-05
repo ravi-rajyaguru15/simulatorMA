@@ -57,15 +57,15 @@ class job:
 
 	history = None
 
-	def __init__(self, origin, samples, hardwareAccelerated, taskGraph=None):
+	def __init__(self, jobCreator, samples, hardwareAccelerated, taskGraph=None):
 		job.id += 1
 		self.id = job.id
 
-		self.creator = origin
+		self.creator = jobCreator
 		# self.simulation = origin.simulation
 
-		assert sim.simulation.current is not None
-		simulation = sim.simulation.current
+		assert sim.simulations.current is not None
+		simulation = sim.simulations.current
 		self.incrementCompletedJobs = simulation.incrementCompletedJobs
 		self.systemLifetime = simulation.systemLifetime
 		self.startExpectedLifetime = self.systemLifetime()
@@ -97,7 +97,7 @@ class job:
 		self.history = sim.history.history()
 
 		# initiate task by setting processing node
-		self.setDecisionTarget(origin.decision.chooseDestination(self.currentTask, self, origin))
+		self.setDecisionTarget(jobCreator.decision.chooseDestination(self.currentTask, self, jobCreator))
 
 		# define episode finished function for training
 		self.episodeFinished = simulation.isEpisodeFinished

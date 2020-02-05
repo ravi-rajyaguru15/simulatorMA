@@ -335,7 +335,7 @@ class visualiser:
 		except RuntimeError:
 			print ("Drawing failed")
 			# traceback.print_exc()
-			sim.simulation.current.finished = True
+			sim.simulations.current.finished = True
 
 	# @staticmethod
 	def moveWindow(self):

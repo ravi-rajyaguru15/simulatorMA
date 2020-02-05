@@ -17,7 +17,7 @@ sim.constants.NUM_DEVICES = 1
 
 def runThread(numEpisodes, results, finished, histories):
 	exp = simulation(hardwareAccelerated=True)
-	sim.simulation.current = exp
+	sim.simulations.current = exp
 
 	try:
 		for e in range(numEpisodes):

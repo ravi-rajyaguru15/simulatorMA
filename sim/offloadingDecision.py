@@ -9,7 +9,7 @@ import tensorflow as tf
 import tensorflow.keras as keras
 
 import sim.constants
-import sim.simulation
+import sim.simulations
 import sim.systemState
 import sim.counters
 import sim.debug
@@ -124,7 +124,7 @@ class offloadingDecision:
 
 	def rechooseDestination(self, task, job, device):
 		# self.updateState(task, job, device)
-		# self.privateAgent.backward(job.reward(), sim.simulation.current.finished)
+		# self.privateAgent.backward(job.reward(), sim.simulations.current.finished)
 		self.train(task, job, device)
 		# choice = self.decideDestination(task, job, device)
 		choice = self.privateAgent.forward(job, device)
@@ -411,7 +411,7 @@ class agent:
 
 		sim.counters.NUM_FORWARD += 1
 
-		job.beforeState = sim.systemState.systemState.fromSystemState(sim.systemState.current, sim.simulation.current)
+		job.beforeState = sim.systemState.systemState.fromSystemState(sim.systemState.current, sim.simulations.current)
 		sim.debug.out("beforestate {}".format(job.beforeState))
 		qValues = self.model.predict(job.beforeState.currentState.reshape((1, 1, self.systemState.stateCount)))[0]
 		# sim.debug.learnOut('q {}'.format(qValues))

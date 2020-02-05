@@ -1,9 +1,10 @@
 # from sim import simulation
 import sys
-print (sys.path)
+
+print(sys.path)
 sys.path.insert(0, ".")
-from sim.simulation import simulation
-import sim.simulation
+# from sim.simulations.SimpleSimulation import SimpleSimulation as Simulation
+from sim.simulations.TdSimulation import TdSimulation as Simulation
 import sim.constants
 import sim.variable
 import sim.offloadingPolicy
@@ -17,6 +18,7 @@ import multiprocessing.pool
 import numpy as np
 import sys
 
+
 # TODO: initial sleep mcu!
 # TODO: sleep mcu during reconfiguration!
 def randomJobs(offloadingPolicy=sim.offloadingPolicy.ANYTHING, hw=True):
@@ -24,7 +26,7 @@ def randomJobs(offloadingPolicy=sim.offloadingPolicy.ANYTHING, hw=True):
 	print("random jobs")
 	sim.debug.enabled = True
 	sim.constants.OFFLOADING_POLICY = offloadingPolicy
-	sim.constants.JOB_LIKELIHOOD = 9e-3 # 2e-3
+	sim.constants.JOB_LIKELIHOOD = 9e-3  # 2e-3
 	sim.constants.SAMPLE_RAW_SIZE = sim.variable.Constant(40)
 	sim.constants.SAMPLE_SIZE = sim.variable.Constant(10)
 	sim.constants.PLOT_TD = sim.constants.TD * 1e2
@@ -38,10 +40,13 @@ def randomJobs(offloadingPolicy=sim.offloadingPolicy.ANYTHING, hw=True):
 	sim.constants.DEFAULT_TASK_GRAPH = [sim.tasks.EASY]
 	sim.constants.ROUND_ROBIN_TIMEOUT = 1e1
 
-	sim.simulation.current = simulation(hardwareAccelerated=hw)
+	sim.simulations.current = Simulation(hardwareAccelerated=hw)
 	print("start simulation")
-	sim.simulation.current.simulate() #UntilTime(1)
-	# sim.simulation.current.simulateTime(5)
+	sim.simulations.current.simulate()  # UntilTime(1)
+
+
+# sim.simulations.current.simulateTime(5)
+
 
 # creates dictionary with (avg, std) for each x for each graph
 # takes results as input, 
@@ -49,14 +54,14 @@ def assembleResults(resultsQueue, outputQueue, numResults=None):
 	# process results into dict
 	if numResults is None:
 		numResults = resultsQueue.qsize()
-	print ("assembling results", numResults)
+	print("assembling results", numResults)
 	graphs = dict()
 	# print("")
 	normaliseDict = dict()
 	for i in range(numResults):
 		result = resultsQueue.get()
 
-		sys.stdout.write("\rProgress: {:.2f}%".format((i+1) / numResults * 100.0))
+		sys.stdout.write("\rProgress: {:.2f}%".format((i + 1) / numResults * 100.0))
 		sys.stdout.flush()
 
 		if len(result) == 4:
@@ -68,10 +73,10 @@ def assembleResults(resultsQueue, outputQueue, numResults=None):
 		if graphName not in graphs.keys():
 			graphs[graphName] = dict()
 			normaliseDict[graphName] = normalise
-			
+
 		if sample not in graphs[graphName].keys():
 			graphs[graphName][sample] = list()
-			# print ("creating list", graphName, sample)
+		# print ("creating list", graphName, sample)
 
 		graphs[graphName][sample].append(datapoint)
 
@@ -95,8 +100,8 @@ def assembleResults(resultsQueue, outputQueue, numResults=None):
 		for sample in graphDict:
 			# print(sample, graphDict[sample])
 			maxDict[name] = np.max([maxDict[name], np.max(np.abs(graphDict[sample]))])
-			# graphDict[sample] = np.array(graphDict[sample]) / 
-	
+		# graphDict[sample] = np.array(graphDict[sample]) /
+
 	# print('max', maxDict)
 	for name in maxDict:
 		maximum = maxDict[name]
@@ -113,12 +118,14 @@ def assembleResults(resultsQueue, outputQueue, numResults=None):
 			# print()
 			# print(ylist)
 			outputGraphs[key][x] = (np.average(ylist), np.std(ylist))
-			# print(outputGraphs[key][x])
+		# print(outputGraphs[key][x])
 	# print ("processed")
 	outputQueue.put(outputGraphs)
-	# print ("after")
-	
-	# return outputGraphs
+
+
+# print ("after")
+
+# return outputGraphs
 
 def executeMulti(processes, results, finished, numResults=None):
 	if numResults is None:
@@ -138,9 +145,9 @@ def executeMulti(processes, results, finished, numResults=None):
 			processes[startedThreads].start()
 			startedThreads += 1
 			currentThreads += 1
-			# print('started', startedThreads)
-			# print('current', currentThreads)
-		
+		# print('started', startedThreads)
+		# print('current', currentThreads)
+
 		# wait for at least one to finish
 		finished.get()
 		# processes[finishedThreads].join() #  is not None:	# print ('one down...')
@@ -152,6 +159,7 @@ def executeMulti(processes, results, finished, numResults=None):
 
 	return outputData.get()
 
+
 def doLocalJob(experiment, device):
 	sim.debug.out("LOCAL JOB", 'g')
 	localJob = sim.job.job(device, 5, hardwareAccelerated=True)
@@ -162,6 +170,7 @@ def doLocalJob(experiment, device):
 	device.addJob(localJob)
 	experiment.simulateUntilJobDone()
 	print("local done")
+
 
 def doWaitJob(experiment, device):
 	# fix decision to wait
@@ -175,6 +184,7 @@ def doWaitJob(experiment, device):
 	experiment.simulateTime(sim.constants.PLOT_TD * 100)
 	print("wait done")
 	print("forward", sim.counters.NUM_FORWARD, "backward", sim.counters.NUM_BACKWARD)
+
 
 def doOffloadJob(experiment, source, destination):
 	sim.debug.out("OFFLOAD JOB", 'g')
@@ -205,6 +215,8 @@ def doOffloadJob(experiment, source, destination):
 
 	# assert offloadJob.immediate is False
 	assert destination.currentJob is None
+
+
 # time.sleep(1)
 # batch 1
 
@@ -229,12 +241,12 @@ if __name__ == '__main__':
 	# randomLocalJobs(False)
 	# randomPeerJobs(False)
 	# testActions()
-	
+
 	randomJobs(offloadingPolicy=sim.offloadingPolicy.REINFORCEMENT_LEARNING, hw=True)
-	# testPerformance()
-	# profileTarget()
-	
-	# totalEnergyJobSize()
-	# testRepeatsSeparate()
-	# totalEnergyJobSize()
-	# totalEnergyBatchSize()
+# testPerformance()
+# profileTarget()
+
+# totalEnergyJobSize()
+# testRepeatsSeparate()
+# totalEnergyJobSize()
+# totalEnergyBatchSize()

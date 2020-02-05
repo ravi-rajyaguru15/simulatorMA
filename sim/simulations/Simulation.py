@@ -1,33 +1,28 @@
-from sim.endDevice import endDevice
-from sim.elasticNode import elasticNode
-# from message import message
-from sim.result import result
-from sim.gateway import gateway
-from sim.server import server
-from sim.visualiser import visualiser 
-from sim.job import job
-from sim.clock import clock
-import sim.systemState
-import sim.offloadingDecision
-import sim.offloadingPolicy
-import sim.debug
+import multiprocessing
+
+import numpy as np
 
 import sim.constants
-import sim.variable
-import sim.tasks
-
-import multiprocessing
-import sys
-import numpy as np
-import warnings
-import datetime
+import sim.debug
 import sim.history
+import sim.offloadingDecision
+import sim.offloadingPolicy
 import sim.results
+import sim.systemState
+import sim.tasks
+import sim.variable
+from sim.clock import clock
+from sim.elasticNode import elasticNode
+from sim.endDevice import endDevice
+from sim.job import job
+# from message import message
+from sim.visualiser import visualiser
 
 queueLengths = list()
 current = None
 
-class simulation:
+
+class BasicSimulation:
 	ed, ed2, en, gw, srv, selectedOptions = None, None, None, None, None, None
 	results = None
 	jobResults = None
@@ -123,6 +118,9 @@ class simulation:
 		while self.completedJobs == numJobs:
 			self.simulateTick()
 
+	def simulateTick(self):
+		raise NotImplementedError("Implemented in subclass")
+
 	# reset energy levels of all devices and run entire simulation
 	def simulateEpisode(self):
 		self.reset()
@@ -173,7 +171,7 @@ class simulation:
 				latencies.append(res.latency)
 				energies.append(res.energy)
 			
-			queueLengths = np.array(queueLengths)
+			queueLengths = np.array(sim.simulations.Simulation.queueLengths)
 			sim.debug.out("averages:")
 			# sim.debug.out ("latency:\t", 	np.average(np.array(latencies)))
 			# sim.debug.out ("energy:\t\t", 	np.average(np.array(energies)))
@@ -183,99 +181,6 @@ class simulation:
 			sim.debug.out ("no results available")		
 
 
-	def simulateTick(self):
-		# try:
-		if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
-			sim.systemState.current.updateSystem()
-		# create new jobs
-		for device in self.devices:
-			# mcu is required for taking samples
-			if not device.hasJob():
-				device.maybeAddNewJob()
-
-			# force updating td
-			device.currentTd = None
-
-		# update the destination of the offloading if it is shared
-		if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.ROUND_ROBIN:
-			sim.offloadingDecision.updateOffloadingTarget()
-		
-		tasksBefore = np.array([dev.currentSubtask for dev in self.devices])
-
-		# update all the devices
-		for dev in self.devices:
-			if not (dev.currentJob is None and dev.currentSubtask is None):
-				sim.debug.out('\ntick device [{}] [{}] [{}]'.format(dev, dev.currentJob, dev.currentSubtask))
-			dev.updateTime(self.time)
-			queueLengths.append(len(dev.jobQueue))
-
-		# capture energy values
-		for dev in self.devices:
-			energy = dev.energy()
-
-			# # add energy to device counter
-			# dev.totalEnergyCost += energy
-			# add energy to job 
-			if dev.currentJob is not None:
-				dev.currentJob.totalEnergyCost += energy
-				# see if device is in job history
-				if dev not in dev.currentJob.devicesEnergyCost.keys():
-					dev.currentJob.devicesEnergyCost[dev] = 0
-				
-				dev.currentJob.devicesEnergyCost[dev] += energy
-
-		if sim.constants.DRAW_GRAPH_EXPECTED_LIFETIME:
-			# note energy levels for plotting
-			self.timestamps.append(self.time)
-			self.lifetimes.append(self.devicesLifetimes())
-			self.energylevels.append(self.devicesEnergyLevels())
-
-		self.finished = self.systemLifetime() <= 0
-			
-
-		# check if task queue is too long
-		self.taskQueueLength = [len(dev.taskQueue) for dev in self.devices]
-		# for i in range(len(self.devices)):
-		# 	if self.taskQueueLength[i] > sim.constants.MAXIMUM_TASK_QUEUE:
-		# 		# check distribution of job assignments
-		# 		unique, counts = np.unique(np.array(sim.results.chosenDestinations[:-1]), return_counts=True)
-		# 		print(dict(zip(unique, counts)))
-
-		# 		warnings.warn("TaskQueue for {} too long! {} Likelihood: {}".format(self.devices[i], len(self.devices[i].taskQueue), sim.constants.JOB_LIKELIHOOD))
-			
-
-
-		self.currentDelays = [dev.currentSubtask.delay if dev.currentSubtask is not None else 0 for dev in self.devices ]
-		self.delays.append(self.currentDelays)
-
-		# print all results if interesting
-		tasksAfter = np.array([dev.currentSubtask for dev in self.devices])
-		if sim.debug.enabled:
-			if not (np.all(tasksAfter == None) and np.all(tasksBefore == None)):
-				sim.debug.out('tick {}'.format(self.time), 'b')
-			# 	sim.debug.out("nothing...")
-			# else:
-				sim.debug.out("tasks before {0}".format(tasksBefore), 'r')
-				sim.debug.out("have jobs:\t{0}".format([dev.hasJob() for dev in self.devices]), 'b')
-				sim.debug.out("jobQueues:\t{0}".format([len(dev.jobQueue) for dev in self.devices]), 'g')
-				sim.debug.out("batchLengths:\t{0}".format(self.batchLengths()), 'c')
-				sim.debug.out("currentBatch:\t{0}".format([dev.currentBatch for dev in self.devices]))
-				sim.debug.out("currentConfig:\t{0}".format([dev.fpga.currentConfig for dev in self.devices if isinstance(dev, elasticNode)]))
-				sim.debug.out("taskQueues:\t{0}".format([len(dev.taskQueue) for dev in self.devices]), 'dg')
-				sim.debug.out("taskQueues:\t{0}".format([[task for task in dev.taskQueue] for dev in self.devices]), 'dg')
-				sim.debug.out("states: {0}".format([[comp.state for comp in dev.components] for dev in self.devices]))
-				sim.debug.out("tasks after {0}".format(tasksAfter), 'r')
-			
-				if np.sum(self.currentDelays) > 0:
-					sim.debug.out("delays {}".format(self.currentDelays))
-
-		self.frames += 1
-		# if sim.constants.DRAW_DEVICES:
-		if self.frames % self.plotFrames == 0:
-			self.visualiser.update()
-
-		# progress += sim.constants.TD
-		self.time.increment()
 
 	def taskBatchLengths(self, task):
 		return [len(dev.batch[task]) if task in dev.batch else 0 for dev in self.devices]

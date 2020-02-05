@@ -21,7 +21,7 @@ if __name__ == '__main__':
 	sim.constants.DEFAULT_ELASTIC_NODE.RECONFIGURATION_TIME = sim.variable.Constant(sim.constants.TD * 2)
 
 	exp = simulation(True)
-	sim.simulation.current = exp
+	sim.simulations.current = exp
 
 	exp.simulateTime(sim.constants.PLOT_TD * 1)
 	dev = exp.devices[0]

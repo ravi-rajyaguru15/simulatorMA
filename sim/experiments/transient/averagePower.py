@@ -18,7 +18,7 @@ def runThread(alpha, results, finished):
 	# sim.constants.SAMPLE_SIZE = sim.variable.Constant(samples)
 	sim.constants.EXPECTED_LIFETIME_ALPHA = alpha
 	exp = simulation(hardwareAccelerated=True)
-	sim.simulation.current = exp
+	sim.simulations.current = exp
 	for i in range(int(totalTime/jump)):
 		exp.simulateTime(jump)
 		results.put(["", i * jump, exp.devicesLifetimes()])

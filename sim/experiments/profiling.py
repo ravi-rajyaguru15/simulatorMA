@@ -30,7 +30,7 @@ def profileTarget():
 	sim.constants.DEFAULT_ELASTIC_NODE.BATTERY_SIZE = 1
 
 	exp = simulation(hardwareAccelerated=True)
-	sim.simulation.current = exp
+	sim.simulations.current = exp
 	exp.simulateEpisode()
 	# exp.simulateTime(10)
 

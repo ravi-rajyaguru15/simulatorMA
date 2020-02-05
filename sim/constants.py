@@ -18,10 +18,11 @@ SIM_TIME = 2e-2
 TD = 1e-3
 PLOT_TD = 1e-3
 uni = Uniform(0.5, 1)
-JOB_LIKELIHOOD = 1e-3
+JOB_LIKELIHOOD = 1e-3 # used in td simulations
+JOB_INTERVAL = Gaussian(1, 1e-3) # used in simple simulations
 
 # offloading
-OFFLOADING_POLICY = sim.offloadingPolicy.LOCAL_ONLY
+OFFLOADING_POLICY = sim.offloadingPolicy.ANYTHING
 OFFLOADING_PEER = 0
 ROUND_ROBIN_TIMEOUT = 2
 

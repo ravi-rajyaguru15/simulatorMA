@@ -11,6 +11,8 @@ import sys
 import time
 import numpy as np
 from collections import deque
+import sim.systemState as systemState
+
 
 class node:
 	# message = None
@@ -51,7 +53,7 @@ class node:
 	def __init__(self, clock, platform, index, components, episodeFinished, alwaysHardwareAccelerate=None):
 		self.platform = platform
 
-		self.decision = sim.offloadingDecision.offloadingDecision(self, sim.systemState.current)
+		self.decision = sim.offloadingDecision.offloadingDecision(self, systemState.current)
 		# self.simulation = simulation
 		self.currentTime = clock
 
@@ -125,25 +127,7 @@ class node:
 	# def prependTask(self, subtask):
 	# 	self.jobQueue = [subtask] + self.jobQueue
 
-	def maybeAddNewJob(self):
-		# possibly create new job
-		if sim.constants.uni.evaluate(sim.constants.JOB_LIKELIHOOD): # 0.5
-			sim.debug.out ("\t\t** {} new job ** ".format(self))
-			self.createNewJob()
 
-	def createNewJob(self, hardwareAccelerated=None, taskGraph=None):
-		# if not set to hardwareAccelerate, use default
-		if hardwareAccelerated is None:
-			hardwareAccelerated = self.alwaysHardwareAccelerate
-			# if still None, unknown behaviour
-		assert(hardwareAccelerated is not None)
-
-		self.addJob(sim.job.job(self, sim.constants.SAMPLE_SIZE.gen(), hardwareAccelerated=hardwareAccelerated, taskGraph=taskGraph))
-		sim.debug.out("added job to queue", 'p')
-
-	def addJob(self, job):
-		self.numJobs += 1
-		self.jobQueue.append(job)
 
 	# set active batch and activate this job
 	def setActiveJob(self, job):
