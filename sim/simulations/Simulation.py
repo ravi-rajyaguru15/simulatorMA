@@ -20,7 +20,7 @@ from sim.visualiser import visualiser
 
 queueLengths = list()
 current = None
-
+finishedJobsList = []
 
 class BasicSimulation:
 	ed, ed2, en, gw, srv, selectedOptions = None, None, None, None, None, None
@@ -71,7 +71,6 @@ class BasicSimulation:
 		# self.ed = [] # endDevice(None, self, self.results, i, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(numEndDevices)]
 		# self.ed = endDevice()
 		# self.ed2 = endDevice()
-		print("default", sim.constants.DEFAULT_ELASTIC_NODE, sim.constants.DEFAULT_ELASTIC_NODE.RECONFIGURATION_TIME, sim.constants.DEFAULT_ELASTIC_NODE.RECONFIGURATION_TIME.gen())
 		self.devices = [elasticNode(self, sim.constants.DEFAULT_ELASTIC_NODE, self.results, i, episodeFinished=self.isEpisodeFinished, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(sim.constants.NUM_DEVICES)]
 		sim.offloadingDecision.devices = self.devices
 		if useSharedAgent:
@@ -142,7 +141,10 @@ class BasicSimulation:
 		return self.finished
 
 	def getCompletedJobs(self): return self.completedJobs
-	def incrementCompletedJobs(self): self.completedJobs += 1
+	def incrementCompletedJobs(self, job):
+		self.completedJobs += 1
+		assert job not in finishedJobsList
+		finishedJobsList.append(job)
 
 	def simulateUntilTime(self, finalTime):
 		assert(finalTime > self.time)
@@ -233,16 +235,15 @@ class BasicSimulation:
 		# if still None, unknown behaviour
 		assert (hardwareAccelerated is not None)
 
-		sim.debug.out('creating job on %s' % device, 'r')
 		newJob = job(device, sim.constants.SAMPLE_SIZE.gen(), hardwareAccelerated=hardwareAccelerated, taskGraph=taskGraph)
 		self.addJob(device, newJob)
-		print("created", newJob)
+		sim.debug.out('creating %s on %s' % (newJob, device), 'r')
 		sim.debug.out("added job to device queue", 'p')
 
 	# add job to device queue
 	def addJob(self, device, job):
 		device.numJobs += 1
-		device.jobQueue.append(job)
+		device.addJobToQueue(job)
 # if __name__ == '__main__':
 # 	print ("running sim")
 

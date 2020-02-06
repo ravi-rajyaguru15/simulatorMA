@@ -36,7 +36,7 @@ class TdSimulation(BasicSimulation):
 			if not (dev.currentJob is None and dev.currentSubtask is None):
 				debug.out('\ntick device [{}] [{}] [{}]'.format(dev, dev.currentJob, dev.currentSubtask))
 			dev.updateTime()
-			queueLengths.append(len(dev.jobQueue))
+			queueLengths.append(dev.getNumJobs())
 
 		# capture energy values
 		for dev in self.devices:
@@ -46,7 +46,7 @@ class TdSimulation(BasicSimulation):
 			# dev.totalEnergyCost += energy
 			# add energy to job
 			if dev.currentJob is not None:
-				dev.currentJob.totalEnergyCost += energy
+				dev.currentJob.addEnergyCost(energy)
 				# see if device is in job history
 				if dev not in dev.currentJob.devicesEnergyCost.keys():
 					dev.currentJob.devicesEnergyCost[dev] = 0
@@ -62,7 +62,7 @@ class TdSimulation(BasicSimulation):
 		self.finished = self.systemLifetime() <= 0
 
 		# check if task queue is too long
-		self.taskQueueLength = [len(dev.taskQueue) for dev in self.devices]
+		self.taskQueueLength = [dev.getNumSubtasks() for dev in self.devices]
 		# for i in range(len(self.devices)):
 		# 	if self.taskQueueLength[i] > constants.MAXIMUM_TASK_QUEUE:
 		# 		# check distribution of job assignments
@@ -83,12 +83,12 @@ class TdSimulation(BasicSimulation):
 				# else:
 				debug.out("tasks before {0}".format(tasksBefore), 'r')
 				debug.out("have jobs:\t{0}".format([dev.hasJob() for dev in self.devices]), 'b')
-				debug.out("jobQueues:\t{0}".format([len(dev.jobQueue) for dev in self.devices]), 'g')
+				debug.out("jobQueues:\t{0}".format([dev.getNumJobs() for dev in self.devices]), 'g')
 				debug.out("batchLengths:\t{0}".format(self.batchLengths()), 'c')
 				debug.out("currentBatch:\t{0}".format([dev.currentBatch for dev in self.devices]))
 				debug.out("currentConfig:\t{0}".format([dev.fpga.currentConfig for dev in self.devices if isinstance(dev, elasticNode)]))
-				debug.out("taskQueues:\t{0}".format([len(dev.taskQueue) for dev in self.devices]), 'dg')
-				debug.out("taskQueues:\t{0}".format([[task for task in dev.taskQueue] for dev in self.devices]), 'dg')
+				debug.out("taskQueues:\t{0}".format([dev.getNumSubtasks() for dev in self.devices]), 'dg')
+				# debug.out("taskQueues:\t{0}".format([[task for task in dev.taskQueue] for dev in self.devices]), 'dg')
 				debug.out("states: {0}".format([[comp.state for comp in dev.components] for dev in self.devices]))
 				debug.out("tasks after {0}".format(tasksAfter), 'r')
 

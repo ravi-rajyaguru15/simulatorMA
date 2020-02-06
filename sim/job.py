@@ -195,6 +195,7 @@ class job:
 			return self.owner
 
 	def finish(self):
+		sim.debug.out("%s %s %s (%f) %s" % ("-" * 100, self, "finished", self.totalEnergyCost, "-" * 100))
 		self.finished = True
 		self.owner.removeJob(self)
 
@@ -205,7 +206,7 @@ class job:
 			# agent = self.owner.decision.privateAgent
 			# self.addToHistory(agent.latestReward, agent.latestMeanQ, agent.latestLoss)
 
-		self.incrementCompletedJobs()
+		self.incrementCompletedJobs(self)
 
 		# save this job's history to communal history
 		sim.results.learningHistory.combine(self.history)
@@ -225,16 +226,18 @@ class job:
 		# remove job from current
 		currentOwner = self.owner
 		sim.debug.out("current owner {}".format(currentOwner))
-		currentOwner.removeJob(self)
+		# currentOwner.removeJob(self)
 
 		sim.debug.out("moving from {} to {}".format(currentOwner, destinationNode))
 
-		# set destination job
-		if destinationNode.currentJob is None:
-			destinationNode.currentJob = self
-		else:
-			sim.debug.out("ADDING JOB BECAUSE ALREADY HAS ONE")
-			sim.simulations.current.addJob(destinationNode, self)
+		# # set destination job
+		# if destinationNode.currentJob is None:
+		# 	destinationNode.currentJob = self
+		# 	print("set current job to", self)
+		# else:
+		# 	sim.debug.out("ADDING JOB BECAUSE ALREADY HAS ONE")
+		# 	print("ADDING JOB BECAUSE ALREADY HAS", destinationNode.currentJob)
+		# 	sim.simulations.current.addJob(destinationNode, self)
 
 		# add job to new owner
 		# destinationNode.jobQueue.append(self)
@@ -247,6 +250,9 @@ class job:
 	# 		output += result(latency=sub.totalDuration, energy=sub.energyCost)
 
 	# 	return output
+
+	def addEnergyCost(self, incrementalPower):
+		self.totalEnergyCost += incrementalPower
 
 	def rawMessageSize(self):
 		return self.samples * self.currentTask.rawSize

@@ -58,14 +58,15 @@ class subtask:
 	# perform task in its entirety
 	def perform(self):
 		self.beginTask()
-		sim.debug.out("begin {} {} {}".format(self, self.started, self.duration))
+		subtaskPower = self.owner.getTotalPower()
+		sim.debug.out("process {} {} {}".format(self, self.started, self.duration))
+		sim.debug.out("power: %s" % subtaskPower, 'g')
 		self.progress = self.duration
 
-		print("process subtask", self)
 		self.finished = True
 
 		affectedDevices = self.__class__.finishTask(self)
-		print("affected by finishing subtask:", affectedDevices)
+		sim.debug.out("affected by finishing subtask: %s" % str(affectedDevices))
 
 		# add delay to job
 		if self.addsLatency:
@@ -73,7 +74,7 @@ class subtask:
 		#
 		# self.owner.nextTask()
 
-		return affectedDevices, self.duration
+		return affectedDevices, self.duration, subtaskPower
 
 	# incrementally perform a piece of this subtask
 	def tick(self):
@@ -83,71 +84,71 @@ class subtask:
 			if self.possible():
 				self.beginTask()
 				sim.debug.out ("begin {} {}".format(self, self.started))
-			else:
-				self.delay += sim.constants.TD
-				# check for deadlock
-				if isinstance(self, txMessage):
-					if self.deadlock():
-						# raise Exception("DEADLOCK", self.job.creator, self.job.processingNode, sim.constants.OFFLOADING_POLICY, sim.constants.JOB_LIKELIHOOD)
-						sim.debug.out("TX DEADLOCK!\n\n\n")
-						# time.sleep(1.5)
-						sim.debug.out ("removing task {} from {}".format(self.correspondingRx, self.destination))
-						# TODO: move this to private functions
-						# resolve deadlock by making destination prioritise reception
-						# move current task to queue to be done later
-						try:
-							self.destination.currentSubtask.delay = 0
-							self.destination.addSubtask(self.destination.currentSubtask) # current task not None so nextTask won't start this task again
-							self.destination.removeTask(self.correspondingRx)
-							self.destination.currentSubtask = self.correspondingRx # must remove task before setting as current
-							# self.destination.currentSubtask.start() # start to ensure it doesn't get removed
-							# forced to be ready now
-							self.beginTask()
-
-						except ValueError:
-							print()
-							print("Cannot resolve deadlock!")
-							print("current", self.destination.currentSubtask)
-							print("duration", self.duration, self.correspondingRx.duration)
-							print("rx", self.correspondingRx, self.correspondingRx.started)
-							print("queue", self.destination.taskQueue)
-							traceback.print_exc()
-							sys.exit(0)
-				elif isinstance(self, rxMessage):
-					if self.deadlock():
-						# raise Exception("DEADLOCK", self.job.creator, self.job.processingNode, sim.constants.OFFLOADING_POLICY, sim.constants.JOB_LIKELIHOOD)
-						sim.debug.out("RX DEADLOCK!\n\n\n")
-						if sim.debug.enabled:
-							time.sleep(1.5)
-						# sim.debug.out ("removing task {} from {}".format(self.correspondingRx, self.destination))
-						# resolve deadlock by making destination prioritise reception
-						# move current task to queue to be done later
-						try:
-							self.source.currentSubtask.delay = 0
-							self.source.addSubtask(self.source.currentSubtask) # current task not None so nextTask won't start this task again
-							self.source.removeTask(self.correspondingTx)
-							self.source.currentSubtask = self.correspondingTx # must remove task before setting as current
-						except ValueError:
-							print()
-							print("Cannot resolve deadlock!")
-							print("current", self.destination.currentSubtask)
-							print("duration", self.duration, self.correspondingTx.duration)
-							print("rx", self.correspondingTx, self.correspondingTx.started)
-							print("queue", self.destination.taskQueue)
-							traceback.print_exc()
-							sys.exit(0)
-
-					# # is it delayed?
-					# elif self.delay >= sim.constants.MAX_DELAY:
-					# 	print("task delayed!\n\n")
-					# 	time.sleep(.1)
-					# 	self.owner.swapTask()
-					# 	# see if it's been swapped
-					# 	if self.owner.currentSubtask != self:
-					# 		self.delay = 0
-
-
-				sim.debug.out("try again...")
+			# else:
+			# 	self.delay += sim.constants.TD
+			# 	# check for deadlock
+			# 	if isinstance(self, txMessage):
+			# 		if self.deadlock():
+			# 			# raise Exception("DEADLOCK", self.job.creator, self.job.processingNode, sim.constants.OFFLOADING_POLICY, sim.constants.JOB_LIKELIHOOD)
+			# 			sim.debug.out("TX DEADLOCK!\n\n\n")
+			# 			# time.sleep(1.5)
+			# 			sim.debug.out ("removing task {} from {}".format(self.correspondingRx, self.destination))
+			# 			# TODO: move this to private functions
+			# 			# resolve deadlock by making destination prioritise reception
+			# 			# move current task to queue to be done later
+			# 			try:
+			# 				self.destination.currentSubtask.delay = 0
+			# 				self.destination.addSubtask(self.destination.currentSubtask) # current task not None so nextTask won't start this task again
+			# 				self.destination.removeTask(self.correspondingRx)
+			# 				self.destination.currentSubtask = self.correspondingRx # must remove task before setting as current
+			# 				# self.destination.currentSubtask.start() # start to ensure it doesn't get removed
+			# 				# forced to be ready now
+			# 				self.beginTask()
+			#
+			# 			except ValueError:
+			# 				print()
+			# 				print("Cannot resolve deadlock!")
+			# 				print("current", self.destination.currentSubtask)
+			# 				print("duration", self.duration, self.correspondingRx.duration)
+			# 				print("rx", self.correspondingRx, self.correspondingRx.started)
+			# 				print("queue", self.destination.taskQueue)
+			# 				traceback.print_exc()
+			# 				sys.exit(0)
+			# 	elif isinstance(self, rxMessage):
+			# 		if self.deadlock():
+			# 			# raise Exception("DEADLOCK", self.job.creator, self.job.processingNode, sim.constants.OFFLOADING_POLICY, sim.constants.JOB_LIKELIHOOD)
+			# 			sim.debug.out("RX DEADLOCK!\n\n\n")
+			# 			if sim.debug.enabled:
+			# 				time.sleep(1.5)
+			# 			# sim.debug.out ("removing task {} from {}".format(self.correspondingRx, self.destination))
+			# 			# resolve deadlock by making destination prioritise reception
+			# 			# move current task to queue to be done later
+			# 			try:
+			# 				self.source.currentSubtask.delay = 0
+			# 				self.source.addSubtask(self.source.currentSubtask) # current task not None so nextTask won't start this task again
+			# 				self.source.removeTask(self.correspondingTx)
+			# 				self.source.currentSubtask = self.correspondingTx # must remove task before setting as current
+			# 			except ValueError:
+			# 				print()
+			# 				print("Cannot resolve deadlock!")
+			# 				print("current", self.destination.currentSubtask)
+			# 				print("duration", self.duration, self.correspondingTx.duration)
+			# 				print("rx", self.correspondingTx, self.correspondingTx.started)
+			# 				print("queue", self.destination.taskQueue)
+			# 				traceback.print_exc()
+			# 				sys.exit(0)
+			#
+			# 		# # is it delayed?
+			# 		# elif self.delay >= sim.constants.MAX_DELAY:
+			# 		# 	print("task delayed!\n\n")
+			# 		# 	time.sleep(.1)
+			# 		# 	self.owner.swapTask()
+			# 		# 	# see if it's been swapped
+			# 		# 	if self.owner.currentSubtask != self:
+			# 		# 		self.delay = 0
+			#
+			#
+			# 	sim.debug.out("try again...")
 
 		# progress task if it's been started
 		if self.started:
@@ -173,6 +174,9 @@ class subtask:
 		else:
 			self.owner.currentTd = sim.constants.TD
 
+		# for compatibility with simple simulations
+		return None, self.duration
+
 	def __str__(self):
 		return self.__repr__()
 
@@ -196,6 +200,7 @@ class subtask:
 		return affectedDevices
 
 	def beginTask(self):
+		self.owner.currentJob = self.job
 		# all versions of begin must set started
 		self.start()
 		# sim.debug.out("started {} {}".format(self, self.job.samples))
@@ -291,7 +296,7 @@ class batchContinue(subtask):
 				# 	processingFpga.sleep()
 				# 	sim.debug.out ("SLEEPING FPGA")
 			else:
-
+				# print("newjob because continuing batch")
 				self.job.processingNode.addSubtask(newJob(self.job), appendLeft=True)
 				affected = self.job.processingNode
 
@@ -316,7 +321,7 @@ class batching(subtask):
 		affected = None
 		# add current job to node's batch
 		self.job.processingNode.addJobToBatch(self.job)
-		# job has been backed up in batch and will be selected in finish
+		# # job has been backed up in batch and will be selected in finish
 		self.job.processingNode.removeJob(self.job)
 
 		if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
@@ -332,8 +337,7 @@ class batching(subtask):
 				sim.debug.out("special case batching: hw already available")
 				self.job.processingNode.setActiveJob(self.job.processingNode.nextJobFromBatch())
 
-				print("special case batching: hw already available")
-				self.job.processingNode.addSubtask(newJob(self.job), appendLeft=True)
+				# self.job.processingNode.addSubtask(newJob(self.job), appendLeft=True)
 				affected = self.job.processingNode
 			else:
 				sim.debug.out("Batch: {0}/{1}".format(self.job.processingNode.batchLength(self.job.currentTask), sim.constants.MINIMUM_BATCH), 'c')
@@ -496,12 +500,12 @@ class processing(subtask):
 	def finishTask(self):
 		self.job.processor.idle()
 
-		sim.debug.out ("creating return message")
+		sim.debug.out("creating return message")
 
 		self.job.processed = True
 		presize = self.job.datasize
 		self.job.datasize = self.job.processedMessageSize()
-		sim.debug.out ("datasize changed from {0} to {1}".format(presize, self.job.datasize))
+		sim.debug.out("datasize changed from {0} to {1}".format(presize, self.job.datasize))
 
 		sim.debug.out("processed hw: {0} offload: {1}".format(self.job.hardwareAccelerated, self.job.offloaded()))
 
@@ -545,8 +549,6 @@ class txMessage(subtask):
 		destination.addSubtask(rx)
 		self.correspondingRx = rx
 		self.waitingForRX = False
-
-		print("->", destination.taskQueue)
 
 		subtask.__init__(self, job, duration)
 
@@ -640,6 +642,9 @@ class txJob(txMessage):
 		if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
 			sim.debug.learnOut("training after offloading job")
 			self.owner.decision.train(self.job.currentTask, self.job, self.owner)
+
+		# removing job from sender
+		self.owner.removeJob(self.job)
 
 
 		return txMessage.finishTask(self)
@@ -751,6 +756,8 @@ class rxJob(rxMessage):
 			# sim.systemState.current.update(self.job.currentTask, self.job, self.owner) # still old owner
 			# self.job.creator.decision.privateAgent.backward(self.job.reward(), self.job.finished)
 
+
+		# TODO: rx job in tdsimulation likely broken because not adding received job to backlog (assuming subtask is created)
 		self.job.moveTo(newOwner)
 
 

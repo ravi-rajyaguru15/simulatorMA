@@ -46,6 +46,9 @@ class component:
 	def isSleeping(self):
 		return self.state == sim.powerState.SLEEP
 
+	def getPowerState(self):
+		return self.state
+
 	def colour(self):
 		if self.state == sim.powerState.IDLE:
 			return self.idleColour

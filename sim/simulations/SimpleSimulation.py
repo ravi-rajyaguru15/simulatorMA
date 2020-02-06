@@ -49,7 +49,7 @@ class SimpleSimulation(BasicSimulation):
 		nextTask = self.queue.get()
 		newTime = nextTask.priority
 		arguments = nextTask.item
-		print("new time", newTime, arguments, [(len(dev.taskQueue), dev.queuedTask) for dev in self.devices])
+		debug.out("new time %f %s %s" % (newTime, arguments, [(dev.getNumSubtasks(), dev.queuedTask) for dev in self.devices]))
 		self.time.set(newTime)
 		self.processQueuedTask(arguments)
 
@@ -64,20 +64,6 @@ class SimpleSimulation(BasicSimulation):
 		# 	dev.updateTime(self.time)
 		# 	queueLengths.append(len(dev.jobQueue))
 
-		# # capture energy values
-		# for dev in self.devices:
-		# 	energy = dev.energy()
-		#
-		# 	# # add energy to device counter
-		# 	# dev.totalEnergyCost += energy
-		# 	# add energy to job
-		# 	if dev.currentJob is not None:
-		# 		dev.currentJob.totalEnergyCost += energy
-		# 		# see if device is in job history
-		# 		if dev not in dev.currentJob.devicesEnergyCost.keys():
-		# 			dev.currentJob.devicesEnergyCost[dev] = 0
-		#
-		# 		dev.currentJob.devicesEnergyCost[dev] += energy
 
 		if constants.DRAW_GRAPH_EXPECTED_LIFETIME:
 			# note energy levels for plotting
@@ -88,7 +74,7 @@ class SimpleSimulation(BasicSimulation):
 		self.finished = self.systemLifetime() <= 0
 
 		# check if task queue is too long
-		self.taskQueueLength = [len(dev.taskQueue) for dev in self.devices]
+		self.taskQueueLength = [dev.getNumSubtasks() for dev in self.devices]
 		# for i in range(len(self.devices)):
 		# 	if self.taskQueueLength[i] > constants.MAXIMUM_TASK_QUEUE:
 		# 		# check distribution of job assignments
@@ -144,8 +130,16 @@ class SimpleSimulation(BasicSimulation):
 	def processQueuedTask(self, args):
 		task = args[0]
 		device = args[1]
-		print("task is", task, device)
+		debug.out("task is %s %s" % (task, device))
 		device.queuedTask = None
+
+		# energy from idle period
+		idlePeriod = self.time - device.previousTimestamp
+		idlePower = device.getTotalPower()
+		debug.out("idle %f %f" % (idlePeriod, idlePower), 'r')
+		device.previousTimestamp = self.time.current
+
+		# perform queued task
 		if task == NEW_JOB:
 			debug.out("creating new job", 'b')
 			device = args[1]
@@ -164,6 +158,22 @@ class SimpleSimulation(BasicSimulation):
 			device = args[1]
 			self.processDeviceSubtask(device)
 
+		# # capture energy values
+		# for dev in self.devices:
+		# 	energy = dev.energy()
+		#
+		# 	# # add energy to device counter
+		# 	# dev.totalEnergyCost += energy
+		# 	# add energy to job
+		# 	if dev.currentJob is not None:
+		# 		dev.currentJob.totalEnergyCost += energy
+		# 		# see if device is in job history
+		# 		if dev not in dev.currentJob.devicesEnergyCost.keys():
+		# 			dev.currentJob.devicesEnergyCost[dev] = 0
+		#
+		# 		dev.currentJob.devicesEnergyCost[dev] += energy
+
+
 		# # only allow one queued task per device
 		# assert self.queue.qsize() <= len(self.devices)
 
@@ -171,7 +181,7 @@ class SimpleSimulation(BasicSimulation):
 		# check if this device has a task lined up already:
 		# if device.queuedTask is None:
 		assert device is not None
-		print("queueing task", time, taskType, device)
+		debug.out("queueing task %f %s %s" % (time, taskType, device))
 		newTask = PrioritizedItem(time, (taskType, device))
 		self.queue.put(newTask)
 		device.queuedTask = newTask
@@ -180,7 +190,11 @@ class SimpleSimulation(BasicSimulation):
 
 	def processDeviceSubtask(self, device):
 		assert device is not None
-		affectedDevices, duration = device.updateTime()
+		currentJob = device.currentJob
+		affectedDevices, duration, devicePower = device.updateTime()
+		device.currentTd = duration
+		incrementalEnergy = device.updateDeviceEnergy(devicePower)
+		currentJob.addEnergyCost(incrementalEnergy)
 
 		try:
 			# create follow up task in queue
@@ -197,6 +211,8 @@ class SimpleSimulation(BasicSimulation):
 			traceback.print_stack()
 			traceback.print_exception(exc_type, exc_value, exc_traceback, limit=2, file=sys.stdout)
 			sys.exit(0)
+
+		return duration
 
 
 class QueueTask:

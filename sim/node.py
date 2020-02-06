@@ -1,3 +1,5 @@
+from queue import PriorityQueue
+
 import sim.offloadingDecision
 import sim.subtask
 import sim.constants
@@ -20,7 +22,8 @@ class node:
 	jobQueue = None
 	taskQueue = None
 	currentJob = None
-	queuedTask = None # used in simple simulation
+	# queuedTask = None # used in simple simulation
+	previousTimestamp = None
 	numJobs = None
 	currentSubtask = None
 	simulation = None
@@ -71,9 +74,9 @@ class node:
 		self.alwaysHardwareAccelerate = alwaysHardwareAccelerate
 
 	def reset(self):
-
-		self.jobQueue = list()
-		self.taskQueue = deque()
+		self.previousTimestamp = 0
+		self.jobQueue = PriorityQueue()
+		self.taskQueue = PriorityQueue()
 		sim.debug.out("jobqueue" + str(self.jobQueue))
 		
 		self.resetEnergyLevel()
@@ -143,58 +146,64 @@ class node:
 	# appends one job to the end of the task queue (used for queueing future tasks)
 	def addSubtask(self, task, appendLeft=False):
 		task.owner = self
-		print("adding subtask", task, self)
-		if appendLeft:
-			self.taskQueue.appendleft(task)
-		else:
-			self.taskQueue.append(task)
+		sim.debug.out("adding subtask %s %s" % (str(task), str(self)))
+		self.taskQueue.put(PrioritizedItem(task.job.id, task))
+		# if appendLeft:
+		# 	self.taskQueue.appendleft(task)
+		# else:
+		# 	self.taskQueue.append(task)
 
 		# if nothing else happening, start task
 		self.nextTask()
 
-	def removeTask(self, task):
-		sim.debug.out("REMOVE TASK {0}".format(task))
-		self.taskQueue.remove(task)
-		sim.debug.out("{} {}".format(self.currentSubtask, task))
-		if self.currentSubtask is task:
-			self.currentSubtask = None
-			sim.debug.out ("next task...")
-			self.nextTask()
+	# used in deadlock resolving
+	# def removeTask(self, task):
+	# 	sim.debug.out("REMOVE TASK {0}".format(task))
+	# 	self.taskQueue.remove(task)
+	# 	sim.debug.out("{} {}".format(self.currentSubtask, task))
+	# 	if self.currentSubtask is task:
+	# 		self.currentSubtask = None
+	# 		sim.debug.out ("next task...")
+	# 		self.nextTask()
 
 	def nextTask(self):
 		# only change task if not performing one at the moment
 		if self.currentSubtask is None:
 			# check if there is another task is available
 			if self.hasSubtask():
-				# do receive tasks first, because other device is waiting
-				for task in self.taskQueue:
-					if isinstance(task, sim.subtask.rxMessage):
-						self.currentSubtask = task
-						self.taskQueue.remove(task)
-						break
-				# if still nothing, do a normal task
-				if self.currentSubtask is None:
-					# if any of the tasks have been started continue that
-					for task in self.taskQueue:
-						if task.started:
-							self.currentSubtask = task
-							self.taskQueue.remove(task)
-							break
-					
-					# lastly, see if tx messages are available
-					if self.currentSubtask is None:
-						# do receive tasks first, because other device is waiting
-						for task in self.taskQueue:
-							if isinstance(task, sim.subtask.txMessage):
-								self.currentSubtask = task
-								self.taskQueue.remove(task)
-								break
+				nextSubTask = self.taskQueue.get()
+				self.currentSubtask = nextSubTask.item
+				sim.debug.out("next subtask %s from %s" % (nextSubTask, nextSubTask.priority))
+				# # do receive tasks first, because other device is waiting
+				# for task in self.taskQueue:
+				# 	if isinstance(task, sim.subtask.rxMessage):
+				# 		self.currentSubtask = task
+				# 		self.taskQueue.remove(task)
+				# 		break
+				# # if still nothing, do a normal task
+				# if self.currentSubtask is None:
+				# 	# if any of the tasks have been started continue that
+				# 	for task in self.taskQueue:
+				# 		if task.started:
+				# 			self.currentSubtask = task
+				# 			self.taskQueue.remove(task)
+				# 			break
+				#
+				# 	# lastly, see if tx messages are available
+				# 	if self.currentSubtask is None:
+				# 		# do receive tasks first, because other device is waiting
+				# 		for task in self.taskQueue:
+				# 			if isinstance(task, sim.subtask.txMessage):
+				# 				self.currentSubtask = task
+				# 				self.taskQueue.remove(task)
+				# 				break
+				#
+				# 		# if nothing else to do, just do the oldest task that isn't a new job
+				# 		if self.currentSubtask is None:
+				# 			self.currentSubtask = self.taskQueue.popleft()
 
-						# if nothing else to do, just do the oldest task that isn't a new job
-						if self.currentSubtask is None:
-							self.currentSubtask = self.taskQueue.popleft()
-
-				if len(self.taskQueue) > 1:
+				# if len(self.taskQueue) > 1:
+				if self.getNumSubtasks() > 1:
 					sim.debug.out("")
 					sim.debug.out("nextTask: {} {}".format(self.currentSubtask, self.taskQueue))
 					sim.debug.out("")
@@ -210,9 +219,16 @@ class node:
 				# sim.debug.out("no next task")
 				self.currentSubtask = None
 
+	def getNumJobs(self):
+		return self.jobQueue.qsize()
+
+	def getNumSubtasks(self):
+		return self.taskQueue.qsize()
+
 	# check if this node has a subtask lined up
 	def hasSubtask(self):
-		return len(self.taskQueue) > 0
+		# return len(self.taskQueue) > 0
+		return self.getNumSubtasks() > 0
 
 
 	# try another task if this one is stuck
@@ -271,14 +287,15 @@ class node:
 		# for component in self.components:
 			# totalPower += component.power()
 		
-		# calculate total power for all components
-		totalPower = 0
-		for component in self.components:
-			totalPower += component.power()
+		totalPower = self.getTotalPower()
 
 		if totalPower >= 1:
 			sim.debug.out("massive power usage!")
 			# sim.debug.enabled = True
+
+		return self.updateDeviceEnergy(totalPower)
+
+	def updateDeviceEnergy(self, totalPower):
 		self.updateAveragePower(totalPower)
 		incrementalEnergy = totalPower * self.currentTd
 		self.totalEnergyCost += incrementalEnergy
@@ -286,6 +303,14 @@ class node:
 		# print (incrementalEnergy)
 		self.energyLevel -= incrementalEnergy
 		return incrementalEnergy
+
+	def getTotalPower(self):
+		# calculate total power for all components
+		totalPower = 0
+		for component in self.components:
+			print("component", component, component.getPowerState())
+			totalPower += component.power()
+		return totalPower
 
 	def updateAveragePower(self, power):
 		self.powerCount += 1
@@ -301,7 +326,7 @@ class node:
 
 		# see if there's a job available
 		if self.currentJob is None:
-			print(self, "next job")
+			# print(self, "next job")
 			self.nextJob()
 		# restarting existing job
 		elif self.currentJob.started and not self.currentJob.active:
@@ -314,11 +339,11 @@ class node:
 
 		affectedDevices = None
 		duration = None
-		print("updating device", self, self.currentSubtask, self.taskQueue)
+		# print("updating device", self, self.currentSubtask, self.getNumSubtasks())
 		# do process and check if done
 		if self.currentSubtask is not None:
-			affectedDevices, duration = self.currentSubtask.update() # only used in simple simulations
-			print(affectedDevices, duration)
+			affectedDevices, duration, devicePower = self.currentSubtask.update() # only used in simple simulations
+			# print(affectedDevices, duration)
 		else:
 			# just idle, entire td is used
 			self.currentTd = sim.constants.TD
@@ -334,7 +359,7 @@ class node:
 		if asleepBefore and asleepAfter:
 			self.totalSleepTime += sim.constants.TD
 
-		return affectedDevices, duration
+		return affectedDevices, duration, devicePower
 	
 	def expectedLifetime(self):
 		# estimate total life time based on previous use
@@ -381,13 +406,13 @@ class node:
 			return 0
 
 	def nextJobFromBatch(self):
-		print("currentjob", self.currentJob)
+		# print("currentjob", self.currentJob)
 		if self.currentJob is None:
 			# print([len(self.batch[batch]) > 0 for batch in self.batch])
 			# if len(self.batch) > 0:
 			# print ("keys", self.batch.keys())
 			maxBatchLength, maxBatchIndex = self.maxBatchLength()
-			print('max batch', maxBatchLength, maxBatchLength)
+			# print('max batch', maxBatchLength, maxBatchLength)
 			if maxBatchLength > 0:
 				# check current batch
 				if self.currentBatch is None:
@@ -405,7 +430,6 @@ class node:
 
 				return self.currentJob
 			else:
-				print('no more jobs in batch')
 				sim.debug.out("No more jobs in batch", 'c')
 				# self.batchProcessing = False
 				self.currentJob = None
@@ -438,17 +462,22 @@ class node:
 		sim.debug.out("batch after remove {}".format(self.batch))
 
 
+	def addJobToQueue(self, job):
+		sim.debug.out("adding %s to queue of %s" % (job, self))
+		self.jobQueue.put((job.id, job))
 
 	def nextJob(self):
 		if self.currentJob is None:
-			if len(self.jobQueue) > 0:
-				sim.debug.out("grabbed job from queue")
-				self.currentJob = self.jobQueue[0]
-				self.jobQueue.remove(self.currentJob)
+			if self.getNumJobs() > 0:
+				index, self.currentJob = self.jobQueue.get()
+				sim.debug.out("grabbed job from queue: %s" % self.currentJob)
+				# self.jobQueue.remove(self.currentJob)
+
 				# see if it's a brand new job
 				if not self.currentJob.started:
 					return self.currentJob.start()
 				else:
+					assert self.getNumSubtasks() > 0
 					sim.debug.out("\tALREADY STARTED")
 
 		# no new jobs started
@@ -460,11 +489,21 @@ class node:
 		sim.debug.out("REMOVE JOB FROM {}".format(self))
 		# sim.debug.out ('{} {}'.format(self.jobQueue, job))
 		# try to remove from queue (not there if from batch)
-		if job in self.jobQueue:
-			self.jobQueue.remove(job)
+		# if job in self.jobQueue:
+		# 	self.jobQueue.remove(job)
 		# set as not current job
 		if self.currentJob is job:
 			# print("set job to NONE")
 			self.currentJob = None
 
 		sim.debug.out("result: {}".format(self.currentJob))
+
+from dataclasses import dataclass, field
+from typing import Any
+
+@dataclass(order=True)
+class PrioritizedItem:
+	priority: int
+	item: Any=field(compare=False)
+
+	def __repr__(self): return "(%.2f - %s)" % (self.priority, self.item)
