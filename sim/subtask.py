@@ -59,10 +59,9 @@ class subtask:
 	def perform(self):
 		self.beginTask()
 		sim.debug.out("begin {} {} {}".format(self, self.started, self.duration))
-		print("performing", self, self.__name__)
 		self.progress = self.duration
 
-		# is it done?
+		print("process subtask", self)
 		self.finished = True
 
 		affectedDevices = self.__class__.finishTask(self)
@@ -179,7 +178,7 @@ class subtask:
 
 
 	def __repr__(self):
-		return "{} ({:.3f})".format(self.__name__, self.duration - self.progress)
+		return "{} [{}] ({:.3f})".format(self.__name__, self.job, self.duration - self.progress)
 
 
 	# default possible function is always available
@@ -233,7 +232,7 @@ class createMessage(subtask):
 		self.owner.mcu.idle()
 		self.owner.addSubtask(txJob(self.job, self.job.owner, self.job.processingNode), appendLeft=True)
 
-		return subtask.finishTask(self, [self.owner])
+		return subtask.finishTask(self, [self.owner, self.job.processingNode])
 
 # class idle(subtask):
 # 	__name__ = "Idle"
@@ -292,6 +291,7 @@ class batchContinue(subtask):
 				# 	processingFpga.sleep()
 				# 	sim.debug.out ("SLEEPING FPGA")
 			else:
+
 				self.job.processingNode.addSubtask(newJob(self.job), appendLeft=True)
 				affected = self.job.processingNode
 
@@ -332,6 +332,7 @@ class batching(subtask):
 				sim.debug.out("special case batching: hw already available")
 				self.job.processingNode.setActiveJob(self.job.processingNode.nextJobFromBatch())
 
+				print("special case batching: hw already available")
 				self.job.processingNode.addSubtask(newJob(self.job), appendLeft=True)
 				affected = self.job.processingNode
 			else:
@@ -341,7 +342,8 @@ class batching(subtask):
 				# if decided to start locally
 				if self.job.processingNode.batchLength(self.job.currentTask) >= sim.constants.MINIMUM_BATCH:
 					self.job.processingNode.setActiveJob(self.job.processingNode.nextJobFromBatch())
-					affected = self.job.processingNode
+					if self.job is not None:
+						affected = self.job.processingNode
 				# go to sleep until next task
 				else:
 					self.job.processingNode.mcu.sleep()
@@ -544,6 +546,8 @@ class txMessage(subtask):
 		self.correspondingRx = rx
 		self.waitingForRX = False
 
+		print("->", destination.taskQueue)
+
 		subtask.__init__(self, job, duration)
 
 	def waiting(self):
@@ -614,7 +618,8 @@ class txMessage(subtask):
 		self.source.mcu.sleep()
 		# self.destination.mrf.sleep()
 
-		return subtask.finishTask(self, [self.source, self.destination])
+		# return subtask.finishTask(self, [self.source, self.destination])
+		return subtask.finishTask(self, [None])
 
 class txJob(txMessage):
 	__name__ = "TX Job"
@@ -721,6 +726,9 @@ class rxMessage(subtask):
 
 class rxJob(rxMessage):
 	__name__ = "RX Job"
+
+	def __repr__(self):
+		return "{} [{}]".format(self.__name__, self.job)
 
 	def finishTask(self):
 		usingReinforcementLearning = sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING

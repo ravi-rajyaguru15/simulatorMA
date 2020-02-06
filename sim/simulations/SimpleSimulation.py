@@ -1,3 +1,5 @@
+import sys
+import traceback
 from queue import PriorityQueue
 
 from sim.simulations.Simulation import queueLengths, BasicSimulation
@@ -47,9 +49,13 @@ class SimpleSimulation(BasicSimulation):
 		nextTask = self.queue.get()
 		newTime = nextTask.priority
 		arguments = nextTask.item
-		print("new time", newTime, arguments)
+		print("new time", newTime, arguments, [(len(dev.taskQueue), dev.queuedTask) for dev in self.devices])
 		self.time.set(newTime)
 		self.processQueuedTask(arguments)
+
+		# # should always have task lined up for each device
+		# assert self.queue.qsize() == len(self.devices)
+		assert self.queue.qsize() > 0
 
 		# # update all the devices
 		# for dev in self.devices:
@@ -130,43 +136,67 @@ class SimpleSimulation(BasicSimulation):
 		nextInterval = constants.JOB_INTERVAL.gen()
 		nextJob = self.time + nextInterval
 
-		print("next job is at", nextJob, device)
+		# print("next job is at", nextJob, device)
 		# add task to queue
-		self.queue.put(PrioritizedItem(nextJob, (NEW_JOB, device)))
-		device.futureJob = True
+		self.queueTask(nextJob, NEW_JOB, device)
 
 	# do next queued task
 	def processQueuedTask(self, args):
 		task = args[0]
+		device = args[1]
+		print("task is", task, device)
+		device.queuedTask = None
 		if task == NEW_JOB:
-			print("creating new job")
+			debug.out("creating new job", 'b')
 			device = args[1]
 			self.createNewJob(device)
-			device.futureJob = False
 
-			# immediately start created job
+			# immediately start created job if not busy
 			affectedDevice = device.nextJob()
-			print("pre affected", affectedDevice)
-			# start created subtask
-			self.processDeviceSubtask(affectedDevice)
+			# no devices affected if already has job
+			if affectedDevice is not None:
+				# start created subtask
+				self.processDeviceSubtask(affectedDevice)
+
+			self.queueNextJob(device)
 		elif task == CONTINUE_JOB:
-			print("continue existing job")
+			debug.out("continue existing job", 'b')
 			device = args[1]
 			self.processDeviceSubtask(device)
 
+		# # only allow one queued task per device
+		# assert self.queue.qsize() <= len(self.devices)
+
+	def queueTask(self, time, taskType, device):
+		# check if this device has a task lined up already:
+		# if device.queuedTask is None:
+		assert device is not None
+		print("queueing task", time, taskType, device)
+		newTask = PrioritizedItem(time, (taskType, device))
+		self.queue.put(newTask)
+		device.queuedTask = newTask
+
+		# eoh m# 	print("device", device, "already has queued item!", self.queue)
+
 	def processDeviceSubtask(self, device):
+		assert device is not None
 		affectedDevices, duration = device.updateTime()
 
-		# create follow up task in queue
-		for affectedDevice in affectedDevices:
-			if affectedDevice is not None:
-				print("queued continue", affectedDevice)
-				print(self.time + duration, CONTINUE_JOB, affectedDevice)
-				self.queue.put(PrioritizedItem(self.time + duration, (CONTINUE_JOB, affectedDevice)))
-			else:
-				print("queuing next", device)
-				self.queueNextJob(device)
-		print("affected:", affectedDevices)
+		try:
+			# create follow up task in queue
+			for affectedDevice in affectedDevices:
+				if affectedDevice is not None:
+					self.queueTask(self.time + duration, CONTINUE_JOB, affectedDevice)
+				# else:
+				# 	self.queueTask(self.time + duration, CONTINUE_JOB, device)
+			# print("affected:", affectedDevices)
+			# if affectedDevices is not None:
+			# 	print([affected.taskQueue for affected in affectedDevices if affected is not None])
+		except:
+			exc_type, exc_value, exc_traceback = sys.exc_info()
+			traceback.print_stack()
+			traceback.print_exception(exc_type, exc_value, exc_traceback, limit=2, file=sys.stdout)
+			sys.exit(0)
 
 
 class QueueTask:
@@ -186,3 +216,5 @@ from typing import Any
 class PrioritizedItem:
 	priority: float
 	item: Any=field(compare=False)
+
+	def __repr__(self): return "(%.2f - %s)" % (self.priority, self.item)

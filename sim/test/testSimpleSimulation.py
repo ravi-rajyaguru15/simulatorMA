@@ -12,7 +12,7 @@ if __name__ == '__main__':
 	constants.DRAW_DEVICES = False
 	simulations.current = Simulation()
 
-	for i in range(100):
+	for i in range(1000):
 		print()
 		print("tick", i)
 		simulations.current.simulateTick()

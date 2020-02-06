@@ -8,7 +8,7 @@ from sim.result import result
 
 class elasticNode(node):
 	def __repr__(self):
-		return "Elastic Node {0}".format(self.index)
+		return "<Elastic Node {0}>".format(self.index)
 
 	# message = None
 	mcu = None

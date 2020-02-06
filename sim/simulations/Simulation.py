@@ -233,9 +233,10 @@ class BasicSimulation:
 		# if still None, unknown behaviour
 		assert (hardwareAccelerated is not None)
 
-		print('creating job on', device)
-		self.addJob(device, job(device, sim.constants.SAMPLE_SIZE.gen(), hardwareAccelerated=hardwareAccelerated,
-								taskGraph=taskGraph))
+		sim.debug.out('creating job on %s' % device, 'r')
+		newJob = job(device, sim.constants.SAMPLE_SIZE.gen(), hardwareAccelerated=hardwareAccelerated, taskGraph=taskGraph)
+		self.addJob(device, newJob)
+		print("created", newJob)
 		sim.debug.out("added job to device queue", 'p')
 
 	# add job to device queue

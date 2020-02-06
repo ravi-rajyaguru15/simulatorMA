@@ -20,7 +20,7 @@ class node:
 	jobQueue = None
 	taskQueue = None
 	currentJob = None
-	futureJob = False
+	queuedTask = None # used in simple simulation
 	numJobs = None
 	currentSubtask = None
 	simulation = None
@@ -104,7 +104,7 @@ class node:
 
 
 	def __repr__(self):
-		return str(type(self)) + " " + str(self.index)
+		return "<" + str(type(self)) + " " + str(self.index) + ">"
 
 	# def setOptions(self, options):
 		# self.setOffloadingDecisions(options)
@@ -143,6 +143,7 @@ class node:
 	# appends one job to the end of the task queue (used for queueing future tasks)
 	def addSubtask(self, task, appendLeft=False):
 		task.owner = self
+		print("adding subtask", task, self)
 		if appendLeft:
 			self.taskQueue.appendleft(task)
 		else:
@@ -150,7 +151,6 @@ class node:
 
 		# if nothing else happening, start task
 		self.nextTask()
-
 
 	def removeTask(self, task):
 		sim.debug.out("REMOVE TASK {0}".format(task))
@@ -165,7 +165,7 @@ class node:
 		# only change task if not performing one at the moment
 		if self.currentSubtask is None:
 			# check if there is another task is available
-			if len(self.taskQueue) > 0:
+			if self.hasSubtask():
 				# do receive tasks first, because other device is waiting
 				for task in self.taskQueue:
 					if isinstance(task, sim.subtask.rxMessage):
@@ -209,6 +209,11 @@ class node:
 			else:
 				# sim.debug.out("no next task")
 				self.currentSubtask = None
+
+	# check if this node has a subtask lined up
+	def hasSubtask(self):
+		return len(self.taskQueue) > 0
+
 
 	# try another task if this one is stuck
 	def swapTask(self):
@@ -309,10 +314,11 @@ class node:
 
 		affectedDevices = None
 		duration = None
-		# print("updating device", self, self.currentSubtask)
+		print("updating device", self, self.currentSubtask, self.taskQueue)
 		# do process and check if done
 		if self.currentSubtask is not None:
 			affectedDevices, duration = self.currentSubtask.update() # only used in simple simulations
+			print(affectedDevices, duration)
 		else:
 			# just idle, entire td is used
 			self.currentTd = sim.constants.TD
@@ -375,11 +381,13 @@ class node:
 			return 0
 
 	def nextJobFromBatch(self):
+		print("currentjob", self.currentJob)
 		if self.currentJob is None:
 			# print([len(self.batch[batch]) > 0 for batch in self.batch])
 			# if len(self.batch) > 0:
 			# print ("keys", self.batch.keys())
 			maxBatchLength, maxBatchIndex = self.maxBatchLength()
+			print('max batch', maxBatchLength, maxBatchLength)
 			if maxBatchLength > 0:
 				# check current batch
 				if self.currentBatch is None:
@@ -397,11 +405,14 @@ class node:
 
 				return self.currentJob
 			else:
+				print('no more jobs in batch')
 				sim.debug.out("No more jobs in batch", 'c')
 				# self.batchProcessing = False
 				self.currentJob = None
 				self.currentBatch = None
-
+		# else:
+		# 	print("already has active job...")
+		# 	return self.currentJob
 		return None
 
 	def removeJobFromBatch(self, job):
