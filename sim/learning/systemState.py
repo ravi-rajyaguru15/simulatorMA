@@ -1,9 +1,7 @@
-import sim.constants
+import sim.simulations.constants
 import sim.debug
 
 import numpy as np
-import traceback
-import sys
 
 # used as shared variable
 current = None
@@ -43,11 +41,11 @@ class systemState:
 	def __init__(self, simulation):
 	# 	self.simulation = simulation
 	# 	print("statecount", self.stateCount)
-		self.stateCount = sim.constants.NUM_DEVICES * 2 + 7
-		self.batchLengths = np.array([0] * sim.constants.NUM_DEVICES)
+		self.stateCount = sim.simulations.constants.NUM_DEVICES * 2 + 7
+		self.batchLengths = np.array([0] * sim.simulations.constants.NUM_DEVICES)
 		self.currentState = np.zeros((self.stateCount,))
 
-		assert self.stateCount == len(singles) + len(multiples) * sim.constants.NUM_DEVICES
+		assert self.stateCount == len(singles) + len(multiples) * sim.simulations.constants.NUM_DEVICES
 
 		self.dictRepresentation = systemState.createDictionaryRepresentation(self.currentState)
 
@@ -60,7 +58,7 @@ class systemState:
 		for i in range(len(singles)):
 			dictRepresentation[singles[i]] = stateArray[i:i+1]
 		for i in range(len(multiples)):
-			dictRepresentation[multiples[i]] = stateArray[(len(singles) + i * sim.constants.NUM_DEVICES):(len(singles) + (i + 1) * sim.constants.NUM_DEVICES)]
+			dictRepresentation[multiples[i]] = stateArray[(len(singles) + i * sim.simulations.constants.NUM_DEVICES):(len(singles) + (i + 1) * sim.simulations.constants.NUM_DEVICES)]
 
 		return dictRepresentation
 		# print('i', i)

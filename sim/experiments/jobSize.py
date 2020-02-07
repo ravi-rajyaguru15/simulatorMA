@@ -1,5 +1,5 @@
-import sim.constants
-import sim.variable
+import sim.simulations.constants
+import sim.simulations.variable
 import sim.debug
 import sim.simulation
 import sim.plotting
@@ -9,7 +9,7 @@ import numpy as np
 import multiprocessing
 
 def totalEnergyJobSizeThread(hw, samples, results, finished):
-	sim.constants.SAMPLE_SIZE = sim.variable.Constant(samples)
+	sim.simulations.constants.SAMPLE_SIZE = sim.simulations.variable.Constant(samples)
 
 	exp = sim.simulations.simulation(0, 1, 0)
 
@@ -25,9 +25,9 @@ def totalEnergyJobSizeThread(hw, samples, results, finished):
 def totalEnergyJobSize():
 	print ("starting experiment")
 	sim.debug.enabled = False
-	sim.constants.OFFLOADING_POLICY = sim.offloadingPolicy.LOCAL_ONLY
-	sim.constants.MINIMUM_BATCH = 1
-	sim.constants.JOB_LIKELIHOOD = 0
+	sim.simulations.constants.OFFLOADING_POLICY = sim.offloadingPolicy.LOCAL_ONLY
+	sim.simulations.constants.MINIMUM_BATCH = 1
+	sim.simulations.constants.JOB_LIKELIHOOD = 0
 	
 	processes = list()
 	hwOptions = [True, False]
@@ -37,7 +37,7 @@ def totalEnergyJobSize():
 
 	for hw in hwOptions:
 		for samples in samplesList:
-			for i in range(sim.constants.REPEATS):				
+			for i in range(sim.simulations.constants.REPEATS):
 				processes.append(multiprocessing.Process(target=totalEnergyJobSizeThread, args=(hw, samples, results, finished)))
 	
 	results = sim.experiments.experiment.executeMulti(processes, results, finished)

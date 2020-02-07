@@ -1,13 +1,10 @@
-import os
 # print("DISPLAY:",os.environ["DISPLAY"])
 # import matplotlib as mpl
 # mpl.use("Qt5Agg")
-import traceback
 # mpl.use("QT4Agg")
 # oldBackend = mpl.get_backend()
 # print("existing", oldBackend)
 
-import sys
 # if sys.platform != 'darwin':
 # 	try:
 # 		mpl.use("TkAgg")
@@ -16,20 +13,21 @@ import sys
 # 		mpl.use(oldBackend)
 # 		print(i)
 # 		print("Cannot import MPL backend")
+import sys
+import traceback
+
 import matplotlib.pyplot as pp
 # pp.switch_backend("tkagg")
 import pylab
 import math
-import time
 import numpy as np
-import datetime
 # import sys
 # sys.exit(0)
-import sim.constants
-import sim.offloadingDecision
-from sim.elasticNode import elasticNode
-from sim.endDevice import endDevice
+import sim.learning.offloadingDecision
 import sim.plotting
+from sim.offloading import offloadingPolicy
+from sim.simulations import constants
+from sim.tasks import subtask
 
 DEVICE_SIZE = [0.2, 0.1]
 TEXT_SPACING = 0.05
@@ -56,28 +54,28 @@ class visualiser:
 		# self.sim = simulator
 		self.setSimulation(simulation)
 
-		if sim.constants.DRAW_DEVICES:
+		if constants.DRAW_DEVICES:
 			print ("Creating 1")
 			pp.figure(DEVICES_FIGURE)
 			# pp.xlim(0, 1)
 			# pp.ylim(0, 1)
 
-		if sim.constants.DRAW_GRAPH_TOTAL_ENERGY:
+		if constants.DRAW_GRAPH_TOTAL_ENERGY:
 			print ("Creating 2")
 			pp.figure(DEVICES_ENERGY_FIGURE)
 			pp.xlim(0, len(self.devices))
 
-		if sim.constants.DRAW_GRAPH_CURRENT_POWER:
+		if constants.DRAW_GRAPH_CURRENT_POWER:
 			print ("Creating 3")
 			
 			pp.figure(DEVICES_POWER_FIGURE)
 			pp.xlim(0, len(self.devices))
 		# fig, self.ax = pp.subplots()
 		
-		if sim.constants.DRAW_GRAPH_EXPECTED_LIFETIME:
+		if constants.DRAW_GRAPH_EXPECTED_LIFETIME:
 			pp.figure(DEVICES_LIFETIME_FIGURE)
 
-		if sim.constants.DRAW_DEVICES:
+		if constants.DRAW_DEVICES:
 			thismanager = pylab.get_current_fig_manager()
 			
 			try:
@@ -175,25 +173,25 @@ class visualiser:
 		# print ("DRAW")
 		# self.ax.cla()
 
-		if sim.constants.DRAW_DEVICES:
+		if constants.DRAW_DEVICES:
 			self.drawNodes()
 			pp.draw()
 			# if sim.constants.SAVE:
 			# 	sim.plotting.saveFig("devices")
 
-		if sim.constants.DRAW_GRAPH_TOTAL_ENERGY:
+		if constants.DRAW_GRAPH_TOTAL_ENERGY:
 			self.drawTotalDeviceEnergy()
 			pp.draw()
 
-		if sim.constants.DRAW_GRAPH_SUBTASK_DURATION:
+		if constants.DRAW_GRAPH_SUBTASK_DURATION:
 			self.drawSubtaskDuration()
 			pp.draw()
 		
-		if sim.constants.DRAW_GRAPH_CURRENT_POWER:
+		if constants.DRAW_GRAPH_CURRENT_POWER:
 			self.drawCurrentDevicePower()
 			pp.draw()
 
-		if sim.constants.DRAW_GRAPH_EXPECTED_LIFETIME:
+		if constants.DRAW_GRAPH_EXPECTED_LIFETIME:
 			self.drawExpectedLifetimes()
 			pp.draw
 		
@@ -217,18 +215,18 @@ class visualiser:
 		
 	def drawSubtaskDuration(self):
 		subtasks = [
-			sim.subtask.batchContinue, 
-			sim.subtask.batching, 
-			sim.subtask.createMessage,
-			sim.subtask.fpgaMcuOffload, 
-			sim.subtask.mcuFpgaOffload,
-			sim.subtask.newJob,
-			sim.subtask.processing, 
-			sim.subtask.reconfigureFPGA,
-			sim.subtask.rxJob,
-			sim.subtask.rxResult,
-			sim.subtask.txJob,
-			sim.subtask.txMessage
+			subtask.batchContinue, 
+			subtask.batching, 
+			subtask.createMessage,
+			subtask.fpgaMcuOffload, 
+			subtask.mcuFpgaOffload,
+			subtask.newJob,
+			subtask.processing, 
+			subtask.reconfigureFPGA,
+			subtask.rxJob,
+			subtask.rxResult,
+			subtask.txJob,
+			subtask.txMessage
 			]
 
 		pp.figure(SUBTASKS_DURATIONS_FIGURE)
@@ -257,7 +255,7 @@ class visualiser:
 	def drawExpectedLifetimes(self):
 		labels = self.sim.devicesNames()
 		
-		LIMIT = int(1e3 / sim.constants.TD)
+		LIMIT = int(1e3 / constants.TD)
 		
 		if LIMIT is not None:
 			# before = datetime.datetime.now()
@@ -289,11 +287,11 @@ class visualiser:
 
 		pp.figure(DEVICES_FIGURE)
 		pp.cla()
-		if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.ROUND_ROBIN:
-			roundRobinText = ", {}".format(sim.offloadingDecision.currentSubtask.target)
+		if constants.OFFLOADING_POLICY == offloadingPolicy.ROUND_ROBIN:
+			roundRobinText = ", {}".format(sim.learning.offloadingDecision.currentSubtask.target)
 		else:
 			roundRobinText = ""
-		pp.title("Time = {}, TotalSleep = {:.3f}, TotalJobs {:d}, AveragePower {:.3f}{}".format(self.clock, np.average([dev.totalSleepTime for dev in self.devices]), self.completedJobs(), np.average(self.totalDevicesEnergyFunction()) / self.clock.current, roundRobinText))
+		pp.title("Time = {}, TotalSleep = {:.3f}, TotalJobs {:d}, AveragePower {:.3f}mW{}".format(self.clock, np.average([dev.totalSleepTime for dev in self.devices]), self.completedJobs(), np.average(self.totalDevicesEnergyFunction()) / self.clock.current * 1000., roundRobinText))
 		# for dev, location in zip(self.sim.devices, self.grid):
 		for dev in self.devices:
 			self.draw(dev)
@@ -336,6 +334,7 @@ class visualiser:
 			print ("Drawing failed")
 			# traceback.print_exc()
 			sim.simulations.current.finished = True
+			sys.exit(1)
 
 	# @staticmethod
 	def moveWindow(self):

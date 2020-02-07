@@ -1,13 +1,11 @@
 # TX RESULT destination swap source
-import time
-import sys
-import traceback
 
-import sim.constants
-import sim.powerPolicy
-import sim.offloadingPolicy
-import sim.offloadingDecision
+import sim.devices.components.powerPolicy
+import sim.learning.offloadingDecision
 import sim.debug
+from sim.offloading import offloadingPolicy
+from sim.simulations import constants
+
 
 class subtask:
 	duration = None
@@ -56,12 +54,16 @@ class subtask:
 		self.id = subtask.id
 
 	# perform task in its entirety
-	def perform(self):
+	def perform(self, visualiser=None):
 		self.beginTask()
 		subtaskPower = self.owner.getTotalPower()
 		sim.debug.out("process {} {} {}".format(self, self.started, self.duration))
 		sim.debug.out("power: %s" % subtaskPower, 'g')
 		self.progress = self.duration
+
+		# update visualiser if passed in
+		if visualiser is not None:
+			visualiser.update()
 
 		self.finished = True
 
@@ -150,13 +152,15 @@ class subtask:
 			#
 			# 	sim.debug.out("try again...")
 
+		totalDevicePower = self.owner.getTotalPower()
+
 		# progress task if it's been started
 		if self.started:
 			# calculate progress in this tick
 			remaining = self.duration - self.progress
-			self.owner.currentTd = remaining if remaining < sim.constants.TD else sim.constants.TD
+			self.owner.currentTd = remaining if remaining < constants.TD else constants.TD
 
-			self.progress += sim.constants.TD
+			self.progress += constants.TD
 
 			# is it done?
 			self.finished = self.progress >= self.duration
@@ -172,10 +176,10 @@ class subtask:
 
 				self.owner.nextTask()
 		else:
-			self.owner.currentTd = sim.constants.TD
+			self.owner.currentTd = constants.TD
 
 		# for compatibility with simple simulations
-		return None, self.duration
+		return None, self.duration, totalDevicePower
 
 	def __str__(self):
 		return self.__repr__()
@@ -200,6 +204,7 @@ class subtask:
 		return affectedDevices
 
 	def beginTask(self):
+		assert not (self.owner.currentJob is not None and self.job is None) # this would erase existing job
 		self.owner.currentJob = self.job
 		# all versions of begin must set started
 		self.start()
@@ -271,7 +276,7 @@ class batchContinue(subtask):
 		# self.job.processingNode.removeJobFromBatch(self.job)
 		affected = None
 
-		if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
+		if constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING:
 			affected = self.owner.reconsiderBatch()
 			if affected is None:
 				self.owner.mcu.sleep()
@@ -324,7 +329,7 @@ class batching(subtask):
 		# # job has been backed up in batch and will be selected in finish
 		self.job.processingNode.removeJob(self.job)
 
-		if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
+		if constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING:
 
 			# decide which of the jobs in the batch should be started now
 			affected = self.owner.reconsiderBatch()
@@ -340,11 +345,11 @@ class batching(subtask):
 				# self.job.processingNode.addSubtask(newJob(self.job), appendLeft=True)
 				affected = self.job.processingNode
 			else:
-				sim.debug.out("Batch: {0}/{1}".format(self.job.processingNode.batchLength(self.job.currentTask), sim.constants.MINIMUM_BATCH), 'c')
+				sim.debug.out("Batch: {0}/{1}".format(self.job.processingNode.batchLength(self.job.currentTask), constants.MINIMUM_BATCH), 'c')
 
 				# see if batch is full enough to start now, or
 				# if decided to start locally
-				if self.job.processingNode.batchLength(self.job.currentTask) >= sim.constants.MINIMUM_BATCH:
+				if self.job.processingNode.batchLength(self.job.currentTask) >= constants.MINIMUM_BATCH:
 					self.job.processingNode.setActiveJob(self.job.processingNode.nextJobFromBatch())
 					if self.job is not None:
 						affected = self.job.processingNode
@@ -460,7 +465,7 @@ class fpgaMcuOffload(xmem):
 			self.job.processingNode.addSubtask(txResult(self.job, self.job.processingNode, self.job.creator), appendLeft=True)
 		else:
 			self.job.finish()
-			self.job.processingNode.addSubtask(batchContinue(self.job), appendLeft=True)
+			self.job.processingNode.addSubtask(batchContinue(node=self.owner), appendLeft=True)
 
 		return xmem.finishTask(self, [self.job.processingNode])
 
@@ -639,7 +644,7 @@ class txJob(txMessage):
 	def finishTask(self):
 		# if using rl, update model
 		# must update when starting,
-		if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
+		if constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING:
 			sim.debug.learnOut("training after offloading job")
 			self.owner.decision.train(self.job.currentTask, self.job, self.owner)
 
@@ -662,7 +667,7 @@ class txResult(txMessage):
 
 	def finishTask(self):
 		# see if there's a next job to continue
-		self.job.processingNode.addSubtask(batchContinue(self.job), appendLeft=True)
+		self.job.processingNode.addSubtask(batchContinue(node=self.owner), appendLeft=True)
 
 		# move result of job back to the creator
 		return txMessage.finishTask(self)
@@ -736,7 +741,7 @@ class rxJob(rxMessage):
 		return "{} [{}]".format(self.__name__, self.job)
 
 	def finishTask(self):
-		usingReinforcementLearning = sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING
+		usingReinforcementLearning = constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING
 
 		sim.debug.out("adding processing task 1")
 

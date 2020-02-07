@@ -1,8 +1,6 @@
 import numpy as np
-import math
-import random 
 
-import sim.constants
+import sim.simulations.constants
 
 CACHE_SIZE = int(1e5)
 class Variable:
@@ -16,7 +14,7 @@ class Variable:
 		self.integer = integer
 
 	def gen(self):
-		if not sim.constants.MEASUREMENT_NOISE:
+		if not sim.simulations.constants.MEASUREMENT_NOISE:
 			if self.integer:
 				return np.round(self.mean)
 			else:

@@ -1,9 +1,11 @@
 from sim.simulations.Simulation import queueLengths, BasicSimulation
-from sim import constants, debug, offloadingPolicy, offloadingDecision, systemState
-from sim.elasticNode import elasticNode
+from sim import debug
+from sim.simulations import constants
+from sim.learning import offloadingDecision, systemState
+from sim.offloading import offloadingPolicy
+from sim.devices.elasticNode import elasticNode
 import numpy as np
-from sim.job import job
-from sim.subtask import subtask
+from sim.tasks.subtask import subtask
 
 
 class TdSimulation(BasicSimulation):

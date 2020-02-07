@@ -1,5 +1,5 @@
-import sim.constants
-import sim.variable
+import sim.simulations.constants
+import sim.simulations.variable
 import sim.debug
 from sim.simulation import simulation
 import sim.plotting
@@ -9,14 +9,13 @@ import numpy as np
 import multiprocessing
 import sys
 import traceback
-import warnings
 
 jump = 1
 totalTime = 1e2
 def runThread(likelihood, alpha, results, finished):
 	# sim.constants.SAMPLE_SIZE = sim.variable.Constant(samples)
-	sim.constants.EXPECTED_LIFETIME_ALPHA = alpha
-	sim.constants.JOB_LIKELIHOOD = likelihood
+	sim.simulations.constants.EXPECTED_LIFETIME_ALPHA = alpha
+	sim.simulations.constants.JOB_LIKELIHOOD = likelihood
 	exp = simulation(hardwareAccelerated=True)
 	sim.simulations.current = exp
 	# exp.simulateTime(30)
@@ -40,27 +39,27 @@ def runThread(likelihood, alpha, results, finished):
 def run():
 	print ("starting experiment")
 	sim.debug.enabled = False
-	sim.constants.SAMPLE_SIZE = sim.variable.Gaussian(10, 2)
-	sim.constants.SAMPLE_RAW_SIZE = sim.variable.Constant(4, integer=True)
-	sim.constants.SAMPLE_PROCESSED_SIZE = sim.variable.Constant(4, integer=True)
-	sim.constants.FPGA_POWER_PLAN = sim.powerPolicy.IDLE_TIMEOUT
-	sim.constants.OFFLOADING_POLICY = sim.offloadingPolicy.REINFORCEMENT_LEARNING
-	sim.constants.MINIMUM_BATCH = 10
-	sim.constants.DEFAULT_ELASTIC_NODE.BATTERY_SIZE = 1e2
-	sim.constants.NUM_DEVICES = 1
+	sim.simulations.constants.SAMPLE_SIZE = sim.simulations.variable.Gaussian(10, 2)
+	sim.simulations.constants.SAMPLE_RAW_SIZE = sim.simulations.variable.Constant(4, integer=True)
+	sim.simulations.constants.SAMPLE_PROCESSED_SIZE = sim.simulations.variable.Constant(4, integer=True)
+	sim.simulations.constants.FPGA_POWER_PLAN = sim.powerPolicy.IDLE_TIMEOUT
+	sim.simulations.constants.OFFLOADING_POLICY = sim.offloadingPolicy.REINFORCEMENT_LEARNING
+	sim.simulations.constants.MINIMUM_BATCH = 10
+	sim.simulations.constants.DEFAULT_ELASTIC_NODE.BATTERY_SIZE = 1e2
+	sim.simulations.constants.NUM_DEVICES = 1
 
 	processes = list()
 	
 	# offloadingOptions = [True, False]
 	results = multiprocessing.Queue()
 	finished = multiprocessing.Queue()
-	sim.constants.REPEATS = 1
+	sim.simulations.constants.REPEATS = 1
 
 	alpha = 1e-4
 	for alpha in np.logspace(-4, -3, num=3, endpoint=True):
 	# if True:
 		for likelihood in np.linspace(1e-3, 9e-3, num=1, endpoint=True):
-			for _ in range(sim.constants.REPEATS):
+			for _ in range(sim.simulations.constants.REPEATS):
 				processes.append(multiprocessing.Process(target=runThread, args=(likelihood, alpha, results, finished)))
 	
 	results = sim.experiments.experiment.executeMulti(processes, results, finished, numResults=2*int(totalTime/jump * len(processes)))

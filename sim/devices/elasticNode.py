@@ -1,10 +1,10 @@
 import sim.debug
-import sim.constants
-from sim.node import node
-from sim.mcu import mcu
-from sim.mrf import mrf
-from sim.fpga import fpga
-from sim.result import result
+import sim.simulations.constants
+from sim.devices.node import node
+from sim.devices.components.mcu import mcu
+from sim.devices.components.mrf import mrf
+from sim.devices.components.fpga import fpga
+
 
 class elasticNode(node):
 	def __repr__(self):
@@ -15,8 +15,8 @@ class elasticNode(node):
 	mrf = None
 	fpga = None
 
-	def __init__(self, sim, platform, queue, index, episodeFinished, alwaysHardwareAccelerate):
-		node.__init__(self, sim, platform, index, components = None, episodeFinished=episodeFinished, alwaysHardwareAccelerate=alwaysHardwareAccelerate)
+	def __init__(self, clock, platform, queue, index, episodeFinished, alwaysHardwareAccelerate):
+		node.__init__(self, clock, platform, index, components = None, episodeFinished=episodeFinished, alwaysHardwareAccelerate=alwaysHardwareAccelerate)
 		
 		self.mcu = mcu(self)
 		self.mrf = mrf(self)

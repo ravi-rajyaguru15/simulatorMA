@@ -1,13 +1,12 @@
-import sim.tasks
-from sim.variable import *
-import sim.powerPolicy
-import sim.offloadingPolicy
-from enum import Enum
+import sim.tasks.tasks
+from sim.simulations.variable import *
+import sim.devices.components.powerPolicy
+import sim.offloading.offloadingPolicy
 import multiprocessing
-import sim.platforms.platform
+import sim.devices.platforms.platform
 
 # node types
-DEFAULT_ELASTIC_NODE = sim.platforms.platform.elasticNodev4
+DEFAULT_ELASTIC_NODE = sim.devices.platforms.platform.elasticNodev4
 
 # size in bytes
 SAMPLE_SIZE = Uniform(5, 10, integer=True)
@@ -16,13 +15,13 @@ SAMPLE_SIZE = Uniform(5, 10, integer=True)
 TOTAL_TIME = 1e1
 SIM_TIME = 2e-2
 TD = 1e-3
-PLOT_TD = 1e-3
+PLOT_SKIP = 1e1
 uni = Uniform(0.5, 1)
 JOB_LIKELIHOOD = 1e-3 # used in td simulations
 JOB_INTERVAL = Gaussian(10, 1e-0) # used in simple simulations
 
 # offloading
-OFFLOADING_POLICY = sim.offloadingPolicy.ANYTHING
+OFFLOADING_POLICY = sim.offloading.offloadingPolicy.ANYTHING
 OFFLOADING_PEER = 0
 ROUND_ROBIN_TIMEOUT = 2
 
@@ -36,8 +35,8 @@ EPS_MAX = 1.
 EPS_STEP_COUNT = 1000
 
 # energy management
-FPGA_POWER_PLAN = sim.powerPolicy.IDLE_TIMEOUT
-MCU_POWER_PLAN = sim.powerPolicy.IMMEDIATELY_OFF
+FPGA_POWER_PLAN = sim.devices.components.powerPolicy.IDLE_TIMEOUT
+MCU_POWER_PLAN = sim.devices.components.powerPolicy.IMMEDIATELY_OFF
 FPGA_IDLE_SLEEP = 0.5
 MCU_IDLE_SLEEP = .05
 
@@ -45,7 +44,7 @@ MCU_IDLE_SLEEP = .05
 MINIMUM_BATCH = 5
 
 # tasks
-DEFAULT_TASK_GRAPH = [sim.tasks.EASY] # TODO: single task only
+DEFAULT_TASK_GRAPH = [sim.tasks.tasks.EASY] # TODO: single task only
 MAXIMUM_TASK_QUEUE = 5
 
 # visualisation

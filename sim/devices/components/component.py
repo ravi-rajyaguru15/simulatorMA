@@ -1,7 +1,6 @@
-import sim.constants
-import sim.powerState
+import sim.simulations.constants
+import sim.devices.components.powerState
 
-import numpy as np
 
 class component:
 	voltage = activePower = idlePower = None
@@ -20,7 +19,7 @@ class component:
 		self.sleepPower = sleepPower
 
 		# start idle
-		self.state = sim.powerState.SLEEP
+		self.state = sim.devices.components.powerState.SLEEP
 
 	# def activeEnergy(self, time):
 	# 	print (time)
@@ -30,31 +29,31 @@ class component:
 	# 	return time * np.dot([voltage.gen() for voltage in self.voltage], [current.gen() for current in self.idleCurrent])
 
 	def busy(self):
-		return self.state == sim.powerState.ACTIVE
+		return self.state == sim.devices.components.powerState.ACTIVE
 
 	# change power states
 	def active(self):
-		self.state = sim.powerState.ACTIVE
+		self.state = sim.devices.components.powerState.ACTIVE
 	def isActive(self):
-		return self.state == sim.powerState.ACTIVE
+		return self.state == sim.devices.components.powerState.ACTIVE
 	def idle(self):
-		self.state = sim.powerState.IDLE
+		self.state = sim.devices.components.powerState.IDLE
 	def isIdle(self):
-		return self.state == sim.powerState.IDLE
+		return self.state == sim.devices.components.powerState.IDLE
 	def sleep(self):
-		self.state = sim.powerState.SLEEP
+		self.state = sim.devices.components.powerState.SLEEP
 	def isSleeping(self):
-		return self.state == sim.powerState.SLEEP
+		return self.state == sim.devices.components.powerState.SLEEP
 
 	def getPowerState(self):
 		return self.state
 
 	def colour(self):
-		if self.state == sim.powerState.IDLE:
+		if self.state == sim.devices.components.powerState.IDLE:
 			return self.idleColour
-		elif self.state == sim.powerState.ACTIVE:
+		elif self.state == sim.devices.components.powerState.ACTIVE:
 			return self.busyColour
-		elif self.state == sim.powerState.SLEEP:
+		elif self.state == sim.devices.components.powerState.SLEEP:
 			return self.sleepColour
 		else:
 			raise Exception("Unknown power state")
@@ -62,11 +61,11 @@ class component:
 
 	# power level right now
 	def power(self):
-		if self.state == sim.powerState.IDLE:
+		if self.state == sim.devices.components.powerState.IDLE:
 			powerList = self.idlePower
-		elif self.state == sim.powerState.ACTIVE:
+		elif self.state == sim.devices.components.powerState.ACTIVE:
 			powerList = self.activePower
-		elif self.state == sim.powerState.SLEEP:
+		elif self.state == sim.devices.components.powerState.SLEEP:
 			powerList = self.sleepPower
 		else:
 			raise Exception("Unknown power state: " + str(self.state))

@@ -1,5 +1,4 @@
-import sim.constants
-from sim.result import result
+from sim.simulations.result import result
 
 class gateway:
 	message = None

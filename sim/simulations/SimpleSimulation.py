@@ -2,12 +2,15 @@ import sys
 import traceback
 from queue import PriorityQueue
 
-from sim.simulations.Simulation import queueLengths, BasicSimulation
-from sim import constants, debug, offloadingPolicy, offloadingDecision, systemState
-from sim.elasticNode import elasticNode
+from sim.devices import elasticNode
+from sim.simulations.Simulation import BasicSimulation
+from sim import debug
+from sim.simulations import constants
+from sim.learning import offloadingDecision, systemState
+from sim.offloading import offloadingPolicy
 import numpy as np
 
-from sim.subtask import subtask
+from sim.tasks.subtask import subtask
 
 
 class SimpleSimulation(BasicSimulation):
@@ -88,29 +91,28 @@ class SimpleSimulation(BasicSimulation):
 
 		# print all results if interesting
 		tasksAfter = np.array([dev.currentSubtask for dev in self.devices])
-		# if debug.enabled:
-		# 	if not (np.all(tasksAfter == None) and np.all(tasksBefore == None)):
-		# 		debug.out('tick {}'.format(self.time), 'b')
-		# 		# 	debug.out("nothing...")
-		# 		# else:
-		# 		debug.out("tasks before {0}".format(tasksBefore), 'r')
-		# 		debug.out("have jobs:\t{0}".format([dev.hasJob() for dev in self.devices]), 'b')
-		# 		debug.out("jobQueues:\t{0}".format([len(dev.jobQueue) for dev in self.devices]), 'g')
-		# 		debug.out("batchLengths:\t{0}".format(self.batchLengths()), 'c')
-		# 		debug.out("currentBatch:\t{0}".format([dev.currentBatch for dev in self.devices]))
-		# 		debug.out("currentConfig:\t{0}".format([dev.fpga.currentConfig for dev in self.devices if isinstance(dev, elasticNode)]))
-		# 		debug.out("taskQueues:\t{0}".format([len(dev.taskQueue) for dev in self.devices]), 'dg')
-		# 		debug.out("taskQueues:\t{0}".format([[task for task in dev.taskQueue] for dev in self.devices]), 'dg')
-		# 		debug.out("states: {0}".format([[comp.state for comp in dev.components] for dev in self.devices]))
-		# 		debug.out("tasks after {0}".format(tasksAfter), 'r')
-		#
-		# 		if np.sum(self.currentDelays) > 0:
-		# 			debug.out("delays {}".format(self.currentDelays))
+		if debug.enabled:
+			# if not (np.all(tasksAfter == None) and np.all(tasksBefore == None)):
+			debug.out('tick {}'.format(self.time), 'b')
+			# 	debug.out("nothing...")
+			# else:
+			debug.out("tasks before {0}".format(tasksBefore), 'r')
+			debug.out("have jobs:\t{0}".format([dev.hasJob() for dev in self.devices]), 'b')
+			debug.out("jobQueues:\t{0}".format([dev.getNumJobs() for dev in self.devices]), 'g')
+			debug.out("batchLengths:\t{0}".format(self.batchLengths()), 'c')
+			debug.out("currentBatch:\t{0}".format([dev.currentBatch for dev in self.devices]))
+			debug.out("currentConfig:\t{0}".format([dev.getFpgaConfiguration() for dev in self.devices]))
+			debug.out("taskQueues:\t{0}".format([dev.getNumSubtasks() for dev in self.devices]), 'dg')
+			# debug.out("taskQueues:\t{0}".format([[task for task in dev.taskQueue] for dev in self.devices]), 'dg')
+			debug.out("states: {0}".format([[comp.state for comp in dev.components] for dev in self.devices]))
+			debug.out("tasks after {0}".format(tasksAfter), 'r')
 
-		self.frames += 1
-		# if constants.DRAW_DEVICES:
-		if self.frames % self.plotFrames == 0:
-			self.visualiser.update()
+			if np.sum(self.currentDelays) > 0:
+				debug.out("delays {}".format(self.currentDelays))
+
+		# # if constants.DRAW_DEVICES:
+		# if self.frames % self.plotFrames == 0:
+		# 	self.visualiser.update()
 
 		# progress += constants.TD
 
@@ -137,7 +139,6 @@ class SimpleSimulation(BasicSimulation):
 		idlePeriod = self.time - device.previousTimestamp
 		idlePower = device.getTotalPower()
 		debug.out("idle %f %f" % (idlePeriod, idlePower), 'r')
-		device.previousTimestamp = self.time.current
 
 		# perform queued task
 		if task == NEW_JOB:
@@ -153,12 +154,15 @@ class SimpleSimulation(BasicSimulation):
 				self.processDeviceSubtask(affectedDevice)
 
 			self.queueNextJob(device)
+
+			device.previousTimestamp = self.time.current
 		elif task == CONTINUE_JOB:
 			debug.out("continue existing job", 'b')
 			device = args[1]
 			self.processDeviceSubtask(device)
+			device.previousTimestamp = self.time.current
 
-		# # capture energy values
+	# # capture energy values
 		# for dev in self.devices:
 		# 	energy = dev.energy()
 		#
@@ -190,11 +194,22 @@ class SimpleSimulation(BasicSimulation):
 
 	def processDeviceSubtask(self, device):
 		assert device is not None
-		currentJob = device.currentJob
-		affectedDevices, duration, devicePower = device.updateTime()
+
+		visualiser = None
+		# decide whether to pass in visualiser or not
+		self.frames += 1
+		if self.frames % self.plotFrames == 0:
+			visualiser = self.visualiser # this will trigger an update
+
+		affectedDevices, duration, devicePower = device.updateTime(visualiser)
+
 		device.currentTd = duration
 		incrementalEnergy = device.updateDeviceEnergy(devicePower)
-		currentJob.addEnergyCost(incrementalEnergy)
+		currentJob = device.currentJob
+
+		# if not associated with job, nothing to increment energy cost of
+		if currentJob is not None:
+			currentJob.addEnergyCost(incrementalEnergy)
 
 		try:
 			# create follow up task in queue

@@ -1,4 +1,4 @@
-import sim.constants
+import sim.simulations.constants
 
 class clock:
 	current = None
@@ -31,4 +31,4 @@ class clock:
 		self.current = value
 
 	def increment(self):
-		self.current += sim.constants.TD
+		self.current += sim.simulations.constants.TD

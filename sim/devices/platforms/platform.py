@@ -1,5 +1,4 @@
-import sim.tasks
-from sim.variable import *
+from sim.simulations.variable import *
 
 
 class platform:

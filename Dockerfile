@@ -16,5 +16,5 @@ COPY ./sim ./sim
 # RUN pip3 install -r ./requirements.txt --disable-pip-version-check
 ENTRYPOINT ["./sim/entrypoint.py"]
 # ENTRYPOINT ["/usr/bin/python3", "/app/elasticNode.py", "loadann"]
-# CMD ["sh", "-c", "/usr/bin/python /app/src/training.py"]
-# CMD ["sh", "-c", "/usr/bin/python /app/src/training.py /cpu:0 10 10 100 128"]
+# CMD ["sh", "-c", "/usr/bin/python /app/src/training.py.old"]
+# CMD ["sh", "-c", "/usr/bin/python /app/src/training.py.old /cpu:0 10 10 100 128"]

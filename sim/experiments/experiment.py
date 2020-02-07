@@ -1,17 +1,22 @@
 # from sim import simulation
 import sys
 
+from sim.devices.components import powerPolicy
+from sim.learning import offloadingDecision
+from sim.offloading import offloadingPolicy
+from sim.simulations import constants
+from sim.tasks.job import job
+
 print(sys.path)
 sys.path.insert(0, ".")
-# from sim.simulations.SimpleSimulation import SimpleSimulation as Simulation
-from sim.simulations.TdSimulation import TdSimulation as Simulation
-import sim.constants
-import sim.variable
-import sim.offloadingPolicy
-import sim.offloadingDecision
+from sim.simulations.SimpleSimulation import SimpleSimulation as Simulation
+# from sim.simulations.TdSimulation import TdSimulation as Simulation
+import sim.simulations.variable
+import sim.offloading.offloadingPolicy
+import sim.learning.offloadingDecision
 import sim.debug
 import sim.plotting
-import sim.tasks
+import sim.tasks.tasks
 
 import multiprocessing
 import multiprocessing.pool
@@ -21,24 +26,24 @@ import sys
 
 # TODO: initial sleep mcu!
 # TODO: sleep mcu during reconfiguration!
-def randomJobs(offloadingPolicy=sim.offloadingPolicy.ANYTHING, hw=True):
-	sim.constants.NUM_DEVICES = 1
+def randomJobs(offloadingPolicy=sim.offloading.offloadingPolicy.ANYTHING, hw=True):
+	constants.NUM_DEVICES = 1
 	print("random jobs")
 	sim.debug.enabled = True
-	sim.constants.OFFLOADING_POLICY = offloadingPolicy
-	sim.constants.JOB_LIKELIHOOD = 9e-3  # 2e-3
-	sim.constants.SAMPLE_RAW_SIZE = sim.variable.Constant(40)
-	sim.constants.SAMPLE_SIZE = sim.variable.Constant(10)
-	sim.constants.PLOT_TD = sim.constants.TD * 1e2
-	sim.constants.FPGA_POWER_PLAN = sim.powerPolicy.IDLE_TIMEOUT
-	sim.constants.DRAW_DEVICES = True
-	sim.constants.FPGA_IDLE_SLEEP = 0.075
-	if offloadingPolicy == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
-		sim.constants.MINIMUM_BATCH = 1e5
+	constants.OFFLOADING_POLICY = offloadingPolicy
+	constants.JOB_LIKELIHOOD = 9e-3  # 2e-3
+	constants.SAMPLE_RAW_SIZE = sim.simulations.variable.Constant(40)
+	constants.SAMPLE_SIZE = sim.simulations.variable.Constant(10)
+	constants.PLOT_SKIP = 1
+	constants.FPGA_POWER_PLAN = powerPolicy.IDLE_TIMEOUT
+	constants.DRAW_DEVICES = True
+	constants.FPGA_IDLE_SLEEP = 0.075
+	if offloadingPolicy == sim.offloading.offloadingPolicy.REINFORCEMENT_LEARNING:
+		constants.MINIMUM_BATCH = 1e5
 	else:
-		sim.constants.MINIMUM_BATCH = 5
-	sim.constants.DEFAULT_TASK_GRAPH = [sim.tasks.EASY]
-	sim.constants.ROUND_ROBIN_TIMEOUT = 1e1
+		constants.MINIMUM_BATCH = 5
+	constants.DEFAULT_TASK_GRAPH = [sim.tasks.tasks.EASY]
+	constants.ROUND_ROBIN_TIMEOUT = 1e1
 
 	sim.simulations.current = Simulation(hardwareAccelerated=hw)
 	print("start simulation")
@@ -141,7 +146,7 @@ def executeMulti(processes, results, finished, numResults=None):
 	startedThreads = 0
 	finishedThreads = 0
 	while startedThreads < len(processes):
-		while currentThreads < np.min([sim.constants.THREAD_COUNT, len(processes)]):
+		while currentThreads < np.min([constants.THREAD_COUNT, len(processes)]):
 			processes[startedThreads].start()
 			startedThreads += 1
 			currentThreads += 1
@@ -162,8 +167,8 @@ def executeMulti(processes, results, finished, numResults=None):
 
 def doLocalJob(experiment, device):
 	sim.debug.out("LOCAL JOB", 'g')
-	localJob = sim.job.job(device, 5, hardwareAccelerated=True)
-	decision = sim.offloadingDecision.possibleActions[-1]
+	localJob = job(device, 5, hardwareAccelerated=True)
+	decision = offloadingDecision.possibleActions[-1]
 	print("decision is", decision)
 	decision.updateDevice(device)
 	localJob.setDecisionTarget(decision)
@@ -175,21 +180,21 @@ def doLocalJob(experiment, device):
 def doWaitJob(experiment, device):
 	# fix decision to wait
 	sim.debug.out("\nWAIT JOB", 'g')
-	waitJob = sim.job.job(device, 5, hardwareAccelerated=True)
-	decision = sim.offloadingDecision.possibleActions[-2]
+	waitJob = job(device, 5, hardwareAccelerated=True)
+	decision = sim.learning.offloadingDecision.possibleActions[-2]
 	decision.updateDevice(device)
 	print("target index", decision.targetDeviceIndex)
 	waitJob.setDecisionTarget(decision)
 	experiment.addJob(device, waitJob)
-	experiment.simulateTime(sim.constants.PLOT_TD * 100)
+	experiment.simulateTime(constants.PLOT_TD * 100)
 	print("wait done")
 	print("forward", sim.counters.NUM_FORWARD, "backward", sim.counters.NUM_BACKWARD)
 
 
 def doOffloadJob(experiment, source, destination):
 	sim.debug.out("OFFLOAD JOB", 'g')
-	offloadJob = sim.job.job(source, 5, hardwareAccelerated=True)
-	decision = sim.offloadingDecision.possibleActions[destination.index]
+	offloadJob = job(source, 5, hardwareAccelerated=True)
+	decision = sim.learning.offloadingDecision.possibleActions[destination.index]
 	decision.updateDevice()
 	print("target index", decision.targetDeviceIndex)
 	offloadJob.setDecisionTarget(decision)
@@ -200,7 +205,7 @@ def doOffloadJob(experiment, source, destination):
 		print('\n\n-\n')
 	print("destination has job again")
 	print("forward", sim.counters.NUM_FORWARD, "backward", sim.counters.NUM_BACKWARD)
-	decision = sim.offloadingDecision.possibleActions[-2]
+	decision = sim.learning.offloadingDecision.possibleActions[-2]
 	decision.updateDevice(destination)
 	offloadJob.setDecisionTarget(decision)
 	# batch 2
@@ -243,7 +248,7 @@ if __name__ == '__main__':
 	# randomPeerJobs(False)
 	# testActions()
 
-	# randomJobs(offloadingPolicy=sim.offloadingPolicy.REINFORCEMENT_LEARNING, hw=True)
+	randomJobs(offloadingPolicy=offloadingPolicy.REINFORCEMENT_LEARNING, hw=True)
 # testPerformance()
 # profileTarget()
 

@@ -1,16 +1,14 @@
-import sys
-from warnings import warn
-
-import sim.constants
+import sim.simulations.constants
 import sim.debug
 # from sim.result import result
-import sim.results
-import sim.subtask
-import sim.history
-import sim.systemState
-import sim.offloadingDecision
-import sim.offloadingPolicy
-import traceback
+import sim.simulations.results
+import sim.tasks.subtask
+import sim.simulations.history
+import sim.learning.systemState
+import sim.learning.offloadingDecision
+import sim.offloading.offloadingPolicy
+
+
 # from node import node
 
 class job:
@@ -84,7 +82,7 @@ class job:
 		self.processed = False
 		self.finished = False
 		if taskGraph is None:
-			taskGraph = sim.constants.DEFAULT_TASK_GRAPH
+			taskGraph = sim.simulations.constants.DEFAULT_TASK_GRAPH
 		self.taskGraph = taskGraph
 
 		# start at first task
@@ -94,7 +92,7 @@ class job:
 		self.datasize = self.rawMessageSize()
 
 		# private history to be used by rl
-		self.history = sim.history.history()
+		self.history = sim.simulations.history.history()
 
 		# initiate task by setting processing node
 		destination = jobCreator.decision.chooseDestination(self.currentTask, self, jobCreator)
@@ -109,7 +107,7 @@ class job:
 	def setDecisionTarget(self, decision):
 		# initiate task by setting processing node
 		# decision.updateDevice()
-		self.immediate = decision == sim.offloadingDecision.LOCAL
+		self.immediate = decision == sim.learning.offloadingDecision.LOCAL
 		sim.debug.out("set immediate to {}".format(self.immediate))
 
 		# self.decision = decision
@@ -121,7 +119,7 @@ class job:
 		# selectedDevice = self.simulation.devices[self.decision.targetDeviceIndex]
 		sim.debug.out("selected {}".format(decision.targetDevice))
 		self.setprocessingNode(decision.targetDevice)
-		sim.results.addChosenDestination(decision.targetDevice)
+		sim.simulations.results.addChosenDestination(decision.targetDevice)
 
 		# when assigning a new target we can assume the job is inactive
 		self.active = False
@@ -183,15 +181,15 @@ class job:
 		if not self.offloaded():
 			sim.debug.out("already at correct place")
 			if self.immediate:
-				self.processingNode.addSubtask(sim.subtask.newJob(self))
+				self.processingNode.addSubtask(sim.tasks.subtask.newJob(self))
 			else:
-				self.processingNode.addSubtask(sim.subtask.batching(self))
+				self.processingNode.addSubtask(sim.tasks.subtask.batching(self))
 			return self.processingNode
 		# otherwise we have to send task
 		else:
 			# elif self.destination.nodeType == sim.constants.ELASTIC_NODE:
 			sim.debug.out("offloading to other device")
-			self.owner.addSubtask(sim.subtask.createMessage(self))
+			self.owner.addSubtask(sim.tasks.subtask.createMessage(self))
 			return self.owner
 
 	def finish(self):
@@ -199,7 +197,7 @@ class job:
 		self.finished = True
 		self.owner.removeJob(self)
 
-		if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
+		if sim.simulations.constants.OFFLOADING_POLICY == sim.offloading.offloadingPolicy.REINFORCEMENT_LEARNING:
 			sim.debug.learnOut("training when finishing job")
 			self.owner.decision.train(self.currentTask, self, self.owner)
 
@@ -209,7 +207,7 @@ class job:
 		self.incrementCompletedJobs(self)
 
 		# save this job's history to communal history
-		sim.results.learningHistory.combine(self.history)
+		sim.simulations.results.learningHistory.combine(self.history)
 
 		# print("finished job", self.simulation.completedJobs)
 		# add results to overall results

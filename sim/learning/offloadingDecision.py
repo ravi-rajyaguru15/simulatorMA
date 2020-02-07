@@ -1,5 +1,4 @@
 import random
-import traceback
 
 import numpy as np
 import rl
@@ -8,13 +7,13 @@ import rl.util
 import tensorflow as tf
 import tensorflow.keras as keras
 
-import sim.constants
 import sim.simulations
-import sim.systemState
+import sim.learning.systemState
 import sim.counters
 import sim.debug
-import sim.offloadingPolicy
-import copy
+import sim.offloading.offloadingPolicy
+from sim.offloading.offloadingPolicy import *
+from sim.simulations import constants
 
 sharedAgent = None
 possibleActions = None  # TODO: offloading to self
@@ -41,34 +40,33 @@ class offloadingDecision:
 		# set options for all policies that use it, or select constant target
 		# if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.LOCAL_ONLY:
 		# 	self.target = self.owner
-		if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.RANDOM_PEER_ONLY:
+		if constants.OFFLOADING_POLICY == RANDOM_PEER_ONLY:
 			# only offload to something with fpga when needed
-			elasticNodes = offloadingDecision.selectElasticNodes(
-				allDevices)  # select elastic nodes from alldevices list]
+			elasticNodes = offloadingDecision.selectElasticNodes(allDevices)  # select elastic nodes from alldevices list]
 			if self.owner in elasticNodes:
 				elasticNodes.remove(self.owner)
 			self.options = elasticNodes
-		elif sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.SPECIFIC_PEER_ONLY:
-			self.target = allDevices[sim.constants.OFFLOADING_PEER]
-		elif sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.ANYTHING \
-				or sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.ANNOUNCED \
-				or sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
+		elif constants.OFFLOADING_POLICY == SPECIFIC_PEER_ONLY:
+			self.target = allDevices[constants.OFFLOADING_PEER]
+		elif constants.OFFLOADING_POLICY == ANYTHING \
+				or constants.OFFLOADING_POLICY == ANNOUNCED \
+				or constants.OFFLOADING_POLICY == REINFORCEMENT_LEARNING:
 			self.options = offloadingDecision.selectElasticNodes(
 				allDevices)  # select elastic nodes from alldevices list]
 		# self.target = self.owner
-		elif sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.ROUND_ROBIN:
+		elif constants.OFFLOADING_POLICY == ROUND_ROBIN:
 			# assign static targets (will happen multiple times but that's fine)
 			offloadingDecision.options = offloadingDecision.selectElasticNodes(
 				allDevices)  # select elastic nodes from alldevices list]
-		elif sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.LOCAL_ONLY:
+		elif constants.OFFLOADING_POLICY == LOCAL_ONLY:
 			offloadingDecision.options = [self.owner]
 		else:
 			raise Exception("Unknown offloading policy")
 
 		# setup learning if needed
-		if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
+		if constants.OFFLOADING_POLICY == REINFORCEMENT_LEARNING:
 			# create either private or shared agent
-			if not sim.constants.CENTRALISED_LEARNING:
+			if not constants.CENTRALISED_LEARNING:
 				self.privateAgent = agent(self.systemState)
 			else:
 				# create shared agent if required
@@ -92,7 +90,7 @@ class offloadingDecision:
 			raise Exception("No options available!")
 		else:
 			# choose randomly from the options available
-			if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.ANNOUNCED:
+			if constants.OFFLOADING_POLICY == ANNOUNCED:
 				# every other offloading policy involves randoming
 				batches = np.array([len(dev.batch[task]) if task in dev.batch.keys() else 0 for dev in self.options])
 				# is the config already available?
@@ -108,13 +106,13 @@ class offloadingDecision:
 					largestBatches = np.argmax(decisionFactors)
 					# print('largest:', largestBatches)
 					choice = action.findAction(self.options[largestBatches].index)
-			elif sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
+			elif constants.OFFLOADING_POLICY == REINFORCEMENT_LEARNING:
 				sim.debug.learnOut("deciding how to offload new job")
 				sim.debug.learnOut("owner: {}".format(self.owner), 'r')
 				choice = self.firstDecideDestination(task, job, device)
 			# sim.debug.learnOut("choice: {}".format(choice))
-			elif sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.LOCAL_ONLY:
-				choice = sim.offloadingDecision.LOCAL
+			elif constants.OFFLOADING_POLICY == LOCAL_ONLY:
+				choice = sim.learning.offloadingDecision.LOCAL
 				choice.updateDevice(self.owner)
 			else:
 				choice = action("Random", targetIndex=random.choice(self.options).index)
@@ -141,7 +139,7 @@ class offloadingDecision:
 		return choice
 
 	def redecideDestination(self, task, job, device):
-		assert sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING
+		assert constants.OFFLOADING_POLICY == REINFORCEMENT_LEARNING
 		# print("redeciding")
 		self.train(task, job, device)
 		return self.privateAgent.forward(job, device)
@@ -177,7 +175,7 @@ def updateOffloadingTarget():
 		# start at the beginning
 		offloadingDecision.currentTargetIndex = 0
 		newTarget = True
-	elif sharedClock >= (offloadingDecision.previousUpdateTime + sim.constants.ROUND_ROBIN_TIMEOUT):
+	elif sharedClock >= (offloadingDecision.previousUpdateTime + constants.ROUND_ROBIN_TIMEOUT):
 		# print ("next round robin")
 		offloadingDecision.currentTargetIndex += 1
 		if offloadingDecision.currentTargetIndex >= len(offloadingDecision.options):
@@ -317,12 +315,12 @@ class agent:
 	def __init__(self, systemState):
 		self.systemState = systemState
 
-		self.gamma = sim.constants.GAMMA
+		self.gamma = constants.GAMMA
 
-		sim.debug.out(sim.constants.OFFLOADING_POLICY)
-		self.policy = rl.policy.EpsGreedyQPolicy(eps=sim.constants.EPS)
+		sim.debug.out(constants.OFFLOADING_POLICY)
+		self.policy = rl.policy.EpsGreedyQPolicy(eps=constants.EPS)
 		# self.dqn = rl.agents.DQNAgent(model=self.model, policy=rl.policy.LinearAnnealedPolicy(, attr='eps', value_max=sim.constants.EPS_MAX, value_min=sim.constants.EPS_MIN, value_test=.05, nb_steps=sim.constants.EPS_STEP_COUNT), enable_double_dqn=False, gamma=.99, batch_size=1, nb_actions=self.numActions)
-		self.optimizer = keras.optimizers.Adam(lr=sim.constants.LEARNING_RATE)
+		self.optimizer = keras.optimizers.Adam(lr=constants.LEARNING_RATE)
 
 		self.totalReward = 0
 		self.reset()
@@ -417,7 +415,7 @@ class agent:
 
 		sim.counters.NUM_FORWARD += 1
 
-		job.beforeState = sim.systemState.systemState.fromSystemState(sim.systemState.current, sim.simulations.current)
+		job.beforeState = sim.learning.systemState.systemState.fromSystemState(sim.learning.systemState.current, sim.simulations.current)
 		sim.debug.out("beforestate {}".format(job.beforeState))
 		qValues = self.model.predict(job.beforeState.currentState.reshape((1, 1, self.systemState.stateCount)))[0]
 		# sim.debug.learnOut('q {}'.format(qValues))
@@ -427,8 +425,8 @@ class agent:
 		# sim.debug.learnOut("chose action {}".format(actionIndex))
 		# self.history["action"].append(float(self.latestAction))
 
-		assert sim.offloadingDecision.possibleActions is not None
-		choice = sim.offloadingDecision.possibleActions[actionIndex]
+		assert sim.learning.offloadingDecision.possibleActions is not None
+		choice = sim.learning.offloadingDecision.possibleActions[actionIndex]
 		sim.debug.learnOut("choice: {} ({})".format(choice, actionIndex), 'r')
 
 		choice.updateDevice(device)
@@ -457,7 +455,7 @@ class agent:
 		# We perform this prediction on the target_model instead of the model for reasons
 		# outlined in Mnih (2015). In short: it makes the algorithm more stable.
 		target_q_values = self.model.predict_on_batch(
-			np.array([np.array([np.array(sim.systemState.current.currentState)])]))  # TODO: target_model
+			np.array([np.array([np.array(sim.learning.systemState.current.currentState)])]))  # TODO: target_model
 		q_batch = np.max(target_q_values, axis=1).flatten()
 
 		targets = np.zeros((1, self.numActions))
@@ -499,9 +497,9 @@ class agent:
 		self.latestMeanQ = metrics[2]
 
 		# sim.debug.learnOut\
-		diff = sim.systemState.current - job.beforeState
+		diff = sim.learning.systemState.current - job.beforeState
 		np.set_printoptions(precision=3)
-		sim.debug.infoOut("{}, created: {:6.3f} {:<7}: {}, deadline: {:9.5f} ({:10.5f}), action: {:<9}, expectedLife (before: {:9.5f} - after: {:9.5f}) = {:10.5f}, reward: {}".format(job.currentTime, job.createdTime, str(job), int(job.finished), job.deadlineRemaining(), (job.currentTime - job.createdTime), str(possibleActions[job.latestAction]), job.beforeState.	getField("selfExpectedLife")[0], sim.systemState.current.getField("selfExpectedLife")[0], diff["selfExpectedLife"][0], reward))
+		sim.debug.infoOut("{}, created: {:6.3f} {:<7}: {}, deadline: {:9.5f} ({:10.5f}), action: {:<9}, expectedLife (before: {:9.5f} - after: {:9.5f}) = {:10.5f}, reward: {}".format(job.currentTime, job.createdTime, str(job), int(job.finished), job.deadlineRemaining(), (job.currentTime - job.createdTime), str(possibleActions[job.latestAction]), job.beforeState.	getField("selfExpectedLife")[0], sim.learning.systemState.current.getField("selfExpectedLife")[0], diff["selfExpectedLife"][0], reward))
 		# print("state diff: {}".format(diff).replace("array", ""), 'p')
 
 		# save to history
@@ -526,7 +524,7 @@ class agent:
 
 
 def actionFromIndex(index):
-	return sim.offloadingDecision.possibleActions[index]
+	return sim.learning.offloadingDecision.possibleActions[index]
 
 # def actionFromTarget(targetIndex):
 # 	# find target device for offloading that matches this index

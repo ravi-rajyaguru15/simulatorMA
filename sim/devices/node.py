@@ -1,19 +1,18 @@
+import traceback
 from queue import PriorityQueue
 
-import sim.offloadingDecision
-import sim.subtask
-import sim.constants
+import sim.learning.offloadingDecision
+import sim.tasks.subtask
+import sim.simulations.constants
 # from sim.job import job
-import sim.job
-from sim.fpga import fpga
-import sim.processor
+import sim.tasks.job
+from sim.devices.components.fpga import fpga
+import sim.devices.components.processor
 import sim.debug
 
-import sys
 import time
 import numpy as np
-from collections import deque
-import sim.systemState as systemState
+import sim.learning.systemState as systemState
 
 
 class node:
@@ -57,7 +56,7 @@ class node:
 	def __init__(self, clock, platform, index, components, episodeFinished, alwaysHardwareAccelerate=None):
 		self.platform = platform
 
-		self.decision = sim.offloadingDecision.offloadingDecision(self, systemState.current)
+		self.decision = sim.learning.offloadingDecision.offloadingDecision(self, systemState.current)
 		# self.simulation = simulation
 		self.currentTime = clock
 
@@ -91,11 +90,13 @@ class node:
 	def resetEnergyLevel(self):
 		self.energyLevel = node.convertEnergy(self.platform.BATTERY_SIZE, self.platform.BATTERY_VOLTAGE)
 
+	def getEnergyLevel(self): return self.energyLevel
+
 	def setComponents(self, components):
 		if components is None:
 			return
 		self.components = components
-		self.processors = [component for component in self.components if isinstance(component, sim.processor.processor)]
+		self.processors = [component for component in self.components if isinstance(component, sim.devices.components.processor.processor)]
 		for processor in self.processors:
 			processor.timeOutSleep()
 
@@ -122,6 +123,11 @@ class node:
 	def hasFpga(self):
 		return np.any([isinstance(component, fpga) for component in self.processors])
 
+	def getFpgaConfiguration(self):
+		if self.hasFpga():
+			# assuming maximum one fpga per device
+			return self.fpga.currentConfig
+
 	def hasJob(self):
 		# busy if any are busy
 		return self.currentJob is not None
@@ -141,13 +147,16 @@ class node:
 		self.setCurrentBatch(job)
 
 		# start first job in queue
-		self.addSubtask(sim.subtask.newJob(job), appendLeft=True)
+		self.addSubtask(sim.tasks.subtask.newJob(job), appendLeft=True)
 
 	# appends one job to the end of the task queue (used for queueing future tasks)
 	def addSubtask(self, task, appendLeft=False):
 		task.owner = self
 		sim.debug.out("adding subtask %s %s" % (str(task), str(self)))
-		self.taskQueue.put(PrioritizedItem(task.job.id, task))
+
+		# prioritised tasks without jobs (batchContinue mostly)
+		taskPriority = task.job.id if task.job is not None else 0
+		self.taskQueue.put(PrioritizedItem(taskPriority, task))
 		# if appendLeft:
 		# 	self.taskQueue.appendleft(task)
 		# else:
@@ -264,7 +273,7 @@ class node:
 				newChoice = self.decision.redecideDestination(job.currentTask, job, self)
 				# print("updated", newChoice)
 				# check if just batching
-				if newChoice == sim.offloadingDecision.BATCH or newChoice.offloadingToTarget(self.index):  # (isinstance(newChoice, sim.offloadingDecision.offloading) and newChoice.targetDeviceIndex == self.owner.index):
+				if newChoice == sim.learning.offloadingDecision.BATCH or newChoice.offloadingToTarget(self.index):  # (isinstance(newChoice, sim.offloadingDecision.offloading) and newChoice.targetDeviceIndex == self.owner.index):
 					sim.debug.learnOut("just batching again: {}".format(newChoice), 'p')
 				else:
 					# update destination
@@ -308,8 +317,9 @@ class node:
 		# calculate total power for all components
 		totalPower = 0
 		for component in self.components:
-			print("component", component, component.getPowerState())
+			# print("component", component, component.getPowerState())
 			totalPower += component.power()
+
 		return totalPower
 
 	def updateAveragePower(self, power):
@@ -317,10 +327,11 @@ class node:
 		# 1/n
 		# self.averagePower += 1.0 / self.powerCount * (power - self.averagePower) 
 		# alpha
-		self.averagePower += sim.constants.EXPECTED_LIFETIME_ALPHA * (power - self.averagePower)
+		self.averagePower += sim.simulations.constants.EXPECTED_LIFETIME_ALPHA * (power - self.averagePower)
 		# sim.debug.out("average power: {}, {}".format(power, self.averagePower))
 
-	def updateTime(self):
+	def updateTime(self, visualiser=None):
+		devicePower = 0
 		# if no jobs available, perhaps generate one
 		asleepBefore = self.asleep()
 
@@ -342,22 +353,23 @@ class node:
 		# print("updating device", self, self.currentSubtask, self.getNumSubtasks())
 		# do process and check if done
 		if self.currentSubtask is not None:
-			affectedDevices, duration, devicePower = self.currentSubtask.update() # only used in simple simulations
+			affectedDevices, duration, devicePower = self.currentSubtask.update(visualiser) # only used in simple simulations
+			self.previousTimestamp = self.currentTime + duration
 			# print(affectedDevices, duration)
 		else:
 			# just idle, entire td is used
-			self.currentTd = sim.constants.TD
+			self.currentTd = sim.simulations.constants.TD
 
 		# check for idle sleep trigger
 		for component in self.components:
-			if isinstance(component, sim.processor.processor):
+			if isinstance(component, sim.devices.components.processor.processor):
 				component.timeOutSleep()
  
 
 		asleepAfter = self.asleep()
 
 		if asleepBefore and asleepAfter:
-			self.totalSleepTime += sim.constants.TD
+			self.totalSleepTime += sim.simulations.constants.TD
 
 		return affectedDevices, duration, devicePower
 	
@@ -470,7 +482,7 @@ class node:
 		if self.currentJob is None:
 			if self.getNumJobs() > 0:
 				index, self.currentJob = self.jobQueue.get()
-				sim.debug.out("grabbed job from queue: %s" % self.currentJob)
+				sim.debug.out("grabbed job from queue: %s (%d)" % (self.currentJob, self.getNumJobs()))
 				# self.jobQueue.remove(self.currentJob)
 
 				# see if it's a brand new job
@@ -496,7 +508,7 @@ class node:
 			# print("set job to NONE")
 			self.currentJob = None
 
-		sim.debug.out("result: {}".format(self.currentJob))
+		sim.debug.out("resulting job: %s (%d)" % (self.currentJob, self.getNumSubtasks()))
 
 from dataclasses import dataclass, field
 from typing import Any

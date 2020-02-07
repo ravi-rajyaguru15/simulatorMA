@@ -1,4 +1,4 @@
-import sim.history
+import sim.simulations.history
 
 class history:
 	data = None
@@ -16,7 +16,7 @@ class history:
 
 	def combine(self, targetHistory):
 		assert targetHistory is not None
-		assert isinstance(targetHistory, sim.history.history)
+		assert isinstance(targetHistory, sim.simulations.history.history)
 		for field in history.fields:
 			self.data[field] += targetHistory.getField(field)
 

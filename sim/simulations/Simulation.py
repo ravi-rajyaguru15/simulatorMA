@@ -2,19 +2,18 @@ import multiprocessing
 
 import numpy as np
 
-import sim.constants
 import sim.debug
-import sim.history
-import sim.offloadingDecision
-import sim.offloadingPolicy
-import sim.results
-import sim.systemState
-import sim.tasks
-import sim.variable
+import sim.simulations.history
+import sim.learning.offloadingDecision
+import sim.offloading.offloadingPolicy
+import sim.simulations.results
+import sim.learning.systemState
+import sim.tasks.tasks
+import sim.simulations.variable
 from sim.clock import clock
-from sim.elasticNode import elasticNode
-from sim.endDevice import endDevice
-from sim.job import job
+from sim.devices.elasticNode import elasticNode
+from sim.simulations import constants
+from sim.tasks.job import job
 # from message import message
 from sim.visualiser import visualiser
 
@@ -55,28 +54,32 @@ class BasicSimulation:
 		self.completedJobs = 0
 
 		self.time = clock()
-		sim.offloadingDecision.sharedClock = self.time
+		sim.learning.offloadingDecision.sharedClock = self.time
 		
 		# requires simulation to be populated
-		sim.systemState.current = sim.systemState.systemState(self)
-		useSharedAgent = (sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING) and (sim.constants.CENTRALISED_LEARNING)
+		sim.learning.systemState.current = sim.learning.systemState.systemState(self)
+		useSharedAgent = (
+								 constants.OFFLOADING_POLICY == sim.offloading.offloadingPolicy.REINFORCEMENT_LEARNING) and (
+							 constants.CENTRALISED_LEARNING)
 
-		sim.results.learningHistory = sim.history.history()
+		sim.simulations.results.learningHistory = sim.simulations.history.history()
 
-		print(useSharedAgent, sim.constants.OFFLOADING_POLICY, sim.constants.CENTRALISED_LEARNING)
+		print(useSharedAgent, constants.OFFLOADING_POLICY, constants.CENTRALISED_LEARNING)
 		if useSharedAgent:
 			# create shared learning agent
-			sim.offloadingDecision.sharedAgent = sim.offloadingDecision.agent(sim.systemState.current)
+			sim.learning.offloadingDecision.sharedAgent = sim.learning.offloadingDecision.agent(
+				sim.learning.systemState.current)
 		
 		# self.ed = [] # endDevice(None, self, self.results, i, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(numEndDevices)]
 		# self.ed = endDevice()
 		# self.ed2 = endDevice()
-		self.devices = [elasticNode(self, sim.constants.DEFAULT_ELASTIC_NODE, self.results, i, episodeFinished=self.isEpisodeFinished, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(sim.constants.NUM_DEVICES)]
-		sim.offloadingDecision.devices = self.devices
+		self.devices = [elasticNode(self.time, constants.DEFAULT_ELASTIC_NODE, self.results, i, episodeFinished=self.isEpisodeFinished, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(
+			constants.NUM_DEVICES)]
+		sim.learning.offloadingDecision.devices = self.devices
 		if useSharedAgent:
-			sim.offloadingDecision.sharedAgent.setDevices()
+			sim.learning.offloadingDecision.sharedAgent.setDevices()
 		else:
-			if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.REINFORCEMENT_LEARNING:
+			if constants.OFFLOADING_POLICY == sim.offloading.offloadingPolicy.REINFORCEMENT_LEARNING:
 				for device in self.devices: device.decision.privateAgent.setDevices()
 		# assemble expected lifetime for faster computation later
 		self.devicesExpectedLifetimeFunctions = [dev.expectedLifetime for dev in self.devices]
@@ -91,7 +94,7 @@ class BasicSimulation:
 		self.hardwareAccelerated = hardwareAccelerated
 		self.visualiser = visualiser(self)
 		self.frames = 0
-		self.plotFrames = sim.constants.PLOT_TD / sim.constants.TD
+		self.plotFrames = constants.PLOT_SKIP
 		sim.debug.out (self.plotFrames)
 			
 		# set all device options correctly
@@ -128,7 +131,7 @@ class BasicSimulation:
 			self.simulateTick()
 
 	def reset(self):
-		sim.offloadingDecision.sharedAgent.reset()
+		sim.learning.offloadingDecision.sharedAgent.reset()
 
 		# reset energy
 		for dev in self.devices:
@@ -210,7 +213,7 @@ class BasicSimulation:
 		return np.min(devicesExpectedLifetimes)
 	
 	def devicesLifetimes(self):
-		for i in range(sim.constants.NUM_DEVICES):
+		for i in range(constants.NUM_DEVICES):
 			self.devicesExpectedLifetimes[i] = self.devicesExpectedLifetimeFunctions[i]()
 		return self.devicesExpectedLifetimes
 			# return [dev.expectedLifetime() for dev in self.devices]
@@ -235,7 +238,7 @@ class BasicSimulation:
 		# if still None, unknown behaviour
 		assert (hardwareAccelerated is not None)
 
-		newJob = job(device, sim.constants.SAMPLE_SIZE.gen(), hardwareAccelerated=hardwareAccelerated, taskGraph=taskGraph)
+		newJob = job(device, constants.SAMPLE_SIZE.gen(), hardwareAccelerated=hardwareAccelerated, taskGraph=taskGraph)
 		self.addJob(device, newJob)
 		sim.debug.out('creating %s on %s' % (newJob, device), 'r')
 		sim.debug.out("added job to device queue", 'p')

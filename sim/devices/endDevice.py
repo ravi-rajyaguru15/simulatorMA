@@ -1,11 +1,7 @@
-import random
+from sim.devices.node import node
+from sim.devices.components.mcu import mcu
+from sim.devices.components.mrf import mrf
 
-import sim.constants
-
-from sim.node import node
-from sim.mcu import mcu
-from sim.mrf import mrf
-from sim.result import result
 
 class endDevice(node):
 	def __repr__(self):

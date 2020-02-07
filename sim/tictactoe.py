@@ -1,9 +1,6 @@
 import numpy as np
-import random
-import matplotlib as mpl
 
-import os 
-import warnings
+import os
 # oldBackend = mpl.get_backend()
 # print ("existing", oldBackend)
 # if os.name != 'nt':
@@ -29,7 +26,6 @@ import tensorflow.keras as keras
 print(tf.__version__)
 
 # %matplotlib inline
-import sim.dqn as dqn
 # import dqn
 
 # import sim.memory

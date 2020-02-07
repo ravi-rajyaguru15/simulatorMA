@@ -5,9 +5,8 @@ import matplotlib.pyplot as pp
 import numpy as np
 import pickle
 
-import sim.constants
+import sim.simulations.constants
 
-import time 
 import os
 # print (os.environ["DISPLAY"])
 if "DISPLAY" not in os.environ:
@@ -81,10 +80,10 @@ def plotAgentHistory(history):
 	
 	fig.tight_layout()
 		
-	if sim.constants.SAVE_GRAPH:
+	if sim.simulations.constants.SAVE_GRAPH:
 		saveFig(filename)
 
-	if sim.constants.DRAW_GRAPH:
+	if sim.simulations.constants.DRAW_GRAPH:
 		pp.show()
 
 def plotMultiWithErrors(name, results=None, ylim=None, ylabel=None, xlabel=None, separate=False): # , show=False, save=False):
@@ -127,10 +126,10 @@ def plotMultiWithErrors(name, results=None, ylim=None, ylabel=None, xlabel=None,
 	if xlabel is not None:
 		pp.xlabel(xlabel)
 		
-	if sim.constants.SAVE_GRAPH:
+	if sim.simulations.constants.SAVE_GRAPH:
 		saveFig(filename)
 
-	if sim.constants.DRAW_GRAPH:
+	if sim.simulations.constants.DRAW_GRAPH:
 		pp.show()
 
 def saveFig(filename):

@@ -1,8 +1,6 @@
-import sim.constants
-from sim.component import component
+import sim.simulations.constants
+from sim.devices.components.component import component
 
-import numpy as np
-import matplotlib.pyplot as pp
 
 class processor(component):
 	processingSpeed = None
@@ -35,7 +33,7 @@ class processor(component):
 				self.sleep()
 				sim.debug.out("PROCESSOR SLEEP")
 			else:
-				self.idleTime += sim.constants.TD
+				self.idleTime += sim.simulations.constants.TD
 		else:
 			self.idleTime = 0
 		

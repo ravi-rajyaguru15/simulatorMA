@@ -1,10 +1,10 @@
-import numpy as np
+import sim.simulations.constants
+from sim.devices.components import powerPolicy
+from sim.devices.components.processor import processor
+from sim.devices.components.component import component
+import sim.devices.components.powerState
+from sim.simulations import constants
 
-from sim.result import result
-import sim.constants 
-from sim.processor import processor
-from sim.component import component
-import sim.powerState 
 
 class fpga(processor):
 	busyColour = (0, 0, 1, 1)
@@ -21,20 +21,20 @@ class fpga(processor):
 		self.reconfigurationPower = [owner.platform.FPGA_RECONFIGURATION_INT_POWER, owner.platform.FPGA_RECONFIGURATION_AUX_POWER]
     		
 		processor.__init__(self, owner,
-			# voltage = [platform.FPGA_ INT_VOLTAGE, platform.FPGA_AUX_VOLTAGE],
-			activePower = [owner.platform.FPGA_ACTIVE_INT_POWER, owner.platform.FPGA_ACTIVE_AUX_POWER],
-			idlePower = [owner.platform.FPGA_IDLE_INT_POWER, owner.platform.FPGA_IDLE_AUX_POWER],
-			sleepPower = [owner.platform.FPGA_SLEEP_INT_POWER, owner.platform.FPGA_SLEEP_AUX_POWER],
-			processingSpeed = owner.platform.FPGA_PROCESSING_SPEED, 
-			idleTimeout = sim.constants.FPGA_IDLE_SLEEP)
+						   # voltage = [platform.FPGA_ INT_VOLTAGE, platform.FPGA_AUX_VOLTAGE],
+						   activePower = [owner.platform.FPGA_ACTIVE_INT_POWER, owner.platform.FPGA_ACTIVE_AUX_POWER],
+						   idlePower = [owner.platform.FPGA_IDLE_INT_POWER, owner.platform.FPGA_IDLE_AUX_POWER],
+						   sleepPower = [owner.platform.FPGA_SLEEP_INT_POWER, owner.platform.FPGA_SLEEP_AUX_POWER],
+						   processingSpeed = owner.platform.FPGA_PROCESSING_SPEED,
+						   idleTimeout = constants.FPGA_IDLE_SLEEP)
 
 	def timeOutSleep(self):
 		# do not sleep until done with batch
 		if self.owner.currentBatch is None:
 			# check if it's time to sleep device
-			if sim.constants.FPGA_POWER_PLAN == sim.powerPolicy.IDLE_TIMEOUT:
+			if constants.FPGA_POWER_PLAN == powerPolicy.IDLE_TIMEOUT:
 				processor.timeOutSleep(self)
-			elif sim.constants.FPGA_POWER_PLAN == sim.powerPolicy.IMMEDIATELY_OFF and self.isIdle():
+			elif constants.FPGA_POWER_PLAN == powerPolicy.IMMEDIATELY_OFF and self.isIdle():
 				self.sleep()
 			
 
@@ -43,7 +43,7 @@ class fpga(processor):
 		self.currentConfig = task
 		self.busyColour = task.colour
 		# print ("changed fpga colour")
-		self.state = sim.powerState.RECONFIGURING
+		self.state = sim.devices.components.powerState.RECONFIGURING
 
 	# loses configuration when it sleeps
 	def sleep(self):
@@ -57,13 +57,13 @@ class fpga(processor):
 	# 		return component.current(self)
 
 	def power(self):
-		if self.state == sim.powerState.RECONFIGURING:
+		if self.state == sim.devices.components.powerState.RECONFIGURING:
 			return component._total(self.reconfigurationPower)
 		else:
 			return component.power(self)
 
 	def colour(self):
-		if self.state == sim.powerState.RECONFIGURING:
+		if self.state == sim.devices.components.powerState.RECONFIGURING:
 			return self.reconfigurationColour
 		else:
 			return component.colour(self)

@@ -1,7 +1,7 @@
-import sim.constants 
-from sim.component import component
+import sim.simulations.constants
+from sim.devices.components import powerState
+from sim.devices.components.component import component
 
-import random
 import numpy as np
 
 class mrf(component):
@@ -25,28 +25,28 @@ class mrf(component):
 			)
 	
 	def busy(self):
-		return self.state == sim.powerState.TX or self.state == sim.powerState.RX or component.busy(self)
+		return self.state == powerState.TX or self.state == powerState.RX or component.busy(self)
 
 	def tx(self):
-		self.state = sim.powerState.TX
+		self.state = powerState.TX
 
 	def rx(self):
-		self.state = sim.powerState.RX
+		self.state = powerState.RX
 
 	# special states
 	def colour(self):
-		if self.state == sim.powerState.TX:
+		if self.state == powerState.TX:
 			return self.busyColour
-		elif self.state == sim.powerState.RX:
+		elif self.state == powerState.RX:
 			return self.busyColour
 		else:
 			# pass it up to the parent
 			return component.colour(self)
 	
 	def power(self):
-		if self.state == sim.powerState.TX:
+		if self.state == powerState.TX:
 			return np.sum([power.gen() for power in self.txPower])
-		elif self.state == sim.powerState.RX:
+		elif self.state == powerState.RX:
 			return np.sum([power.gen() for power in self.rxPower])
 
 		else:
@@ -55,9 +55,9 @@ class mrf(component):
     		
 
 	# def current(self):
-	# 	if self.state == sim.powerState.TX:
+	# 	if self.state == powerState.TX:
 	# 		return self.txCurrent
-	# 	elif self.state == sim.powerState.RX:
+	# 	elif self.state == powerState.RX:
 	# 		return self.rxCurrent
 	# 	else:
 	# 		# pass it up to the parent

@@ -20,7 +20,7 @@ pipeline:
     image: tensorflow/tensorflow
     commands:
       - echo "Small test"
-      - /usr/bin/python src/training.py
+      - /usr/bin/python src/training.py.old
     when:
       event: [push]
   # uds:
@@ -94,8 +94,8 @@ pipeline:
     group: tests
     image: build.es.uni-due.de/simulator:latest
     commands:
-      - python /app/src/training.py
-      - python /app/src/training.py /gpu:0 10 10 100 128
+      - python /app/src/training.py.old
+      - python /app/src/training.py.old /gpu:0 10 10 100 128
 
   deploy:
     group: deploy
