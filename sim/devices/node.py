@@ -360,19 +360,21 @@ class node:
 			# just idle, entire td is used
 			self.currentTd = sim.simulations.constants.TD
 
+		self.updateSleepStatus(asleepBefore)
+
+		return affectedDevices, duration, devicePower
+
+	def updateSleepStatus(self, asleepBefore):
 		# check for idle sleep trigger
 		for component in self.components:
 			if isinstance(component, sim.devices.components.processor.processor):
 				component.timeOutSleep()
- 
 
 		asleepAfter = self.asleep()
 
 		if asleepBefore and asleepAfter:
 			self.totalSleepTime += sim.simulations.constants.TD
 
-		return affectedDevices, duration, devicePower
-	
 	def expectedLifetime(self):
 		# estimate total life time based on previous use
 		if self.averagePower == 0:

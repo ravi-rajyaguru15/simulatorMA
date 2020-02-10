@@ -26,7 +26,7 @@ class offloadingDecision:
 	owner = None
 	target = None
 	simulation = None
-	privateAgent = None
+	agent = None
 
 	def __init__(self, device, systemState):
 		self.owner = device
@@ -67,11 +67,11 @@ class offloadingDecision:
 		if constants.OFFLOADING_POLICY == REINFORCEMENT_LEARNING:
 			# create either private or shared agent
 			if not constants.CENTRALISED_LEARNING:
-				self.privateAgent = agent(self.systemState)
+				self.agent = agent(self.systemState)
 			else:
 				# create shared agent if required
 				assert sharedAgent is not None
-				self.privateAgent = sharedAgent
+				self.agent = sharedAgent
 
 	# print(sim.constants.OFFLOADING_POLICY, self.owner, self.options)
 
@@ -126,27 +126,29 @@ class offloadingDecision:
 			# 	choice.updateDevice() # self.options)
 			return choice
 
+	# check offloading decision on idle job
 	def rechooseDestination(self, task, job, device):
 		# self.updateState(task, job, device)
 		# self.privateAgent.backward(job.reward(), sim.simulations.current.finished)
 		self.train(task, job, device)
 		# choice = self.decideDestination(task, job, device)
-		choice = self.privateAgent.forward(job, device)
+		choice = self.agent.forward(job, device)
 
 		job.setDecisionTarget(choice)
 		# job.activate()
 
 		return choice
 
+	# update decision to see if should be uploaded again
 	def redecideDestination(self, task, job, device):
 		assert constants.OFFLOADING_POLICY == REINFORCEMENT_LEARNING
 		# print("redeciding")
 		self.train(task, job, device)
-		return self.privateAgent.forward(job, device)
+		return self.agent.forward(job, device)
 
+	# decide initial decision for job
 	def firstDecideDestination(self, task, job, device):
-		self.updateState(task, job, device)
-		return self.privateAgent.forward(job, device)
+		return self.agent.forward(task, job, device)
 
 	def updateState(self, task, job, device):
 		# update state
@@ -155,7 +157,7 @@ class offloadingDecision:
 	def train(self, task, job, device):
 		sim.debug.learnOut("Training: [{}] [{}] [{}]".format(task, job, device), 'y')
 		self.updateState(task, job, device)
-		self.privateAgent.backward(job)
+		self.agent.backward(job)
 
 
 # print("choice: {}".format(choice))
@@ -409,7 +411,9 @@ class agent:
 	# 	return result
 
 	# predict best action using Q values
-	def forward(self, job, device):
+	def forward(self, task, job, device):
+		self.updateState(task, job, device)
+
 		sim.debug.learnOut("forward", 'y')
 		assert self.model is not None
 
