@@ -2,32 +2,33 @@
 # import pycallgraph.output.GraphvizOutput
 
 import cProfile
-from sim.simulation import simulation
-import sim.simulation
-import sim.tasks.tasks
-import sim.simulations.variable
-import sim.offloading.offloadingPolicy
-import sim.devices.components.powerPolicy
-import sim.platforms
+
+from sim import debug
+from sim.devices.components.powerPolicy import IDLE_TIMEOUT
+from sim.offloading.offloadingPolicy import REINFORCEMENT_LEARNING
+from sim.simulations import constants
+from sim.simulations.variable import Constant
+from sim.tasks.tasks import EASY
+from sim.simulations.SimpleSimulation import SimpleSimulation as Simulation
+
 
 def profileTarget():
-	sim.debug.enabled = False
-	sim.constants.OFFLOADING_POLICY = sim.offloading.offloadingPolicy.REINFORCEMENT_LEARNING
-	sim.constants.JOB_LIKELIHOOD = 1e-3 # 2e-3
-	sim.constants.SAMPLE_RAW_SIZE = sim.simulations.variable.Constant(40)
-	sim.constants.SAMPLE_SIZE = sim.simulations.variable.Constant(10)
-	sim.constants.PLOT_TD = 10
-	sim.constants.FPGA_POWER_PLAN = sim.devices.components.powerPolicy.IDLE_TIMEOUT
-	sim.constants.DRAW_DEVICES = False
-	sim.constants.FPGA_IDLE_SLEEP = 0.75
-	sim.constants.MINIMUM_BATCH = 5
-	sim.constants.DEFAULT_TASK_GRAPH = [sim.tasks.tasks.EASY]
-	sim.constants.ROUND_ROBIN_TIMEOUT = 1e1
-	sim.constants.MEASUREMENT_NOISE = True
-	sim.constants.DEFAULT_ELASTIC_NODE.BATTERY_SIZE = 1
+	debug.enabled = True
+	constants.OFFLOADING_POLICY = REINFORCEMENT_LEARNING
+	constants.JOB_LIKELIHOOD = 1e-3 # 2e-3
+	constants.SAMPLE_RAW_SIZE = Constant(40)
+	constants.SAMPLE_SIZE = Constant(10)
+	constants.PLOT_TD = 10
+	constants.FPGA_POWER_PLAN = IDLE_TIMEOUT
+	constants.DRAW_DEVICES = False
+	constants.FPGA_IDLE_SLEEP = 0.75
+	constants.MINIMUM_BATCH = 5
+	constants.DEFAULT_TASK_GRAPH = [EASY]
+	constants.ROUND_ROBIN_TIMEOUT = 1e1
+	constants.MEASUREMENT_NOISE = True
+	constants.DEFAULT_ELASTIC_NODE.BATTERY_SIZE = 1e-2
 
-	exp = simulation(hardwareAccelerated=True)
-	sim.simulations.current = exp
+	exp = Simulation(hardwareAccelerated=True)
 	exp.simulateEpisode()
 	# exp.simulateTime(10)
 

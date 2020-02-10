@@ -1,6 +1,6 @@
 from sim.simulations.Simulation import queueLengths, BasicSimulation
 from sim import debug
-from sim.simulations import constants
+from sim.simulations import constants, Simulation
 from sim.learning import offloadingDecision, systemState
 from sim.offloading import offloadingPolicy
 from sim.devices.elasticNode import elasticNode
@@ -37,7 +37,7 @@ class TdSimulation(BasicSimulation):
 		for dev in self.devices:
 			if not (dev.currentJob is None and dev.currentSubtask is None):
 				debug.out('\ntick device [{}] [{}] [{}]'.format(dev, dev.currentJob, dev.currentSubtask))
-			dev.updateTime()
+			dev.updateDevice()
 			queueLengths.append(dev.getNumJobs())
 
 		# capture energy values
@@ -61,7 +61,8 @@ class TdSimulation(BasicSimulation):
 			self.lifetimes.append(self.devicesLifetimes())
 			self.energylevels.append(self.devicesEnergyLevels())
 
-		self.finished = self.systemLifetime() <= 0
+		if self.systemLifetime() <= 0:
+			self.stop()
 
 		# check if task queue is too long
 		self.taskQueueLength = [dev.getNumSubtasks() for dev in self.devices]

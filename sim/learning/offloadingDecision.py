@@ -12,6 +12,7 @@ import sim.learning.systemState
 import sim.counters
 import sim.debug
 import sim.offloading.offloadingPolicy
+from sim.learning import systemState
 from sim.offloading.offloadingPolicy import *
 from sim.simulations import constants
 
@@ -113,10 +114,10 @@ class offloadingDecision:
 			# sim.debug.learnOut("choice: {}".format(choice))
 			elif constants.OFFLOADING_POLICY == LOCAL_ONLY:
 				choice = sim.learning.offloadingDecision.LOCAL
-				choice.updateDevice(self.owner)
+				choice.updateTargetDevice(self.owner)
 			else:
 				choice = action("Random", targetIndex=random.choice(self.options).index)
-				choice.updateDevice(self.owner)
+				choice.updateTargetDevice(self.owner)
 			# choice = np.random.choice(self.options) #  action.findAction(random.choice(self.options).index)
 
 			sim.debug.out("Job assigned: {} -> {}".format(self.owner, choice))
@@ -132,19 +133,19 @@ class offloadingDecision:
 		# self.privateAgent.backward(job.reward(), sim.simulations.current.finished)
 		self.train(task, job, device)
 		# choice = self.decideDestination(task, job, device)
-		choice = self.agent.forward(job, device)
+		choice = self.agent.forward(task, job, device)
 
 		job.setDecisionTarget(choice)
-		# job.activate()
+		return job.activate()
 
-		return choice
+		# return choice
 
 	# update decision to see if should be uploaded again
 	def redecideDestination(self, task, job, device):
 		assert constants.OFFLOADING_POLICY == REINFORCEMENT_LEARNING
 		# print("redeciding")
 		self.train(task, job, device)
-		return self.agent.forward(job, device)
+		return self.agent.forward(task, job, device)
 
 	# decide initial decision for job
 	def firstDecideDestination(self, task, job, device):
@@ -227,7 +228,7 @@ class action:
 	def offloadingToTarget(self, targetIndex=None): return False
 
 	# update device based on latest picked device index
-	def updateDevice(self, owner=None):
+	def updateTargetDevice(self, owner=None):
 		if self.local:
 			assert owner is not None
 			self.targetDeviceIndex = owner.index
@@ -410,6 +411,10 @@ class agent:
 	# 	# result = decision(options)
 	# 	return result
 
+	def updateState(self, task, job, device):
+		# update state
+		self.systemState.update(task, job, device)
+
 	# predict best action using Q values
 	def forward(self, task, job, device):
 		self.updateState(task, job, device)
@@ -419,7 +424,7 @@ class agent:
 
 		sim.counters.NUM_FORWARD += 1
 
-		job.beforeState = sim.learning.systemState.systemState.fromSystemState(sim.learning.systemState.current, sim.simulations.current)
+		job.beforeState = systemState.systemState.fromSystemState(systemState.current, sim.simulations.Simulation.currentSimulation)
 		sim.debug.out("beforestate {}".format(job.beforeState))
 		qValues = self.model.predict(job.beforeState.currentState.reshape((1, 1, self.systemState.stateCount)))[0]
 		# sim.debug.learnOut('q {}'.format(qValues))
@@ -433,7 +438,7 @@ class agent:
 		choice = sim.learning.offloadingDecision.possibleActions[actionIndex]
 		sim.debug.learnOut("choice: {} ({})".format(choice, actionIndex), 'r')
 
-		choice.updateDevice(device)
+		choice.updateTargetDevice(device)
 		return choice
 
 	# update based on resulting system state and reward

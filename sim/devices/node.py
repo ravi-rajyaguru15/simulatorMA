@@ -1,3 +1,4 @@
+import sys
 import traceback
 from queue import PriorityQueue
 
@@ -6,6 +7,7 @@ import sim.tasks.subtask
 import sim.simulations.constants
 # from sim.job import job
 import sim.tasks.job
+from sim import debug
 from sim.devices.components.fpga import fpga
 import sim.devices.components.processor
 import sim.debug
@@ -147,12 +149,16 @@ class node:
 		self.setCurrentBatch(job)
 
 		# start first job in queue
-		self.addSubtask(sim.tasks.subtask.newJob(job), appendLeft=True)
+		return sim.tasks.subtask.newJob(job)
 
 	# appends one job to the end of the task queue (used for queueing future tasks)
 	def addSubtask(self, task, appendLeft=False):
 		task.owner = self
-		sim.debug.out("adding subtask %s %s" % (str(task), str(self)))
+		sim.debug.out("adding subtask %s %s" % (str(task), str(self)), 'b')
+
+		# time.sleep(0.5)
+		# traceback.print_stack()
+		# time.sleep(0.5)
 
 		# prioritised tasks without jobs (batchContinue mostly)
 		taskPriority = task.job.id if task.job is not None else 0
@@ -306,7 +312,10 @@ class node:
 
 	def updateDeviceEnergy(self, totalPower):
 		self.updateAveragePower(totalPower)
+		assert self.currentTd is not None
 		incrementalEnergy = totalPower * self.currentTd
+		# ensure only using each time diff once
+		self.currentTd = None
 		self.totalEnergyCost += incrementalEnergy
 		# TODO: assuming battery powered
 		# print (incrementalEnergy)
@@ -330,31 +339,56 @@ class node:
 		self.averagePower += sim.simulations.constants.EXPECTED_LIFETIME_ALPHA * (power - self.averagePower)
 		# sim.debug.out("average power: {}, {}".format(power, self.averagePower))
 
-	def updateTime(self, visualiser=None):
+	def updateDevice(self, subtask=None, visualiser=None):
+		affectedDevices = None
+		affectedDevice = None
 		devicePower = 0
 		# if no jobs available, perhaps generate one
 		asleepBefore = self.asleep()
 
-		# see if there's a job available
-		if self.currentJob is None:
-			# print(self, "next job")
-			self.nextJob()
-		# restarting existing job
-		elif self.currentJob.started and not self.currentJob.active:
-			sim.debug.out("restarting existing job", 'r')
-			self.currentJob.activate()
+		debug.out("update %s: %s (%s) [%s]" % (self, self.currentSubtask, self.currentJob, subtask), 'g')
+		if subtask is None:
+			# see if there's a job available
+			if self.currentJob is None:
+				# print(self, "next job")
+				self.nextJob()
+				debug.out("next job: %s" % self.currentJob)
+			# restarting existing job
+			elif self.currentJob.started and not self.currentJob.active:
+				sim.debug.out("restarting existing job", 'r')
+				affectedDevice = self.currentJob.activate()
 
-		# check if there's something to be done now
+			# check if there's something to be done now
+			if self.currentSubtask is None:
+				self.nextTask()
+				debug.out("next subtask: %s" % self.currentSubtask)
+		else:
+			# ensure that correct subtask is being done
+			if self.currentSubtask != subtask:
+				if self.currentSubtask is None:
+					self.currentSubtask = subtask
+					# remove this subtask from device taskqueue
+					print(self.taskQueue.queue)
+					print(self.taskQueue.get_nowait())
+					sys.exit(0)
+				else:
+					print("current:", self.currentSubtask, "subtask:", subtask)
+					time.sleep(0.5)
+					raise Exception("device already has different subtask!")
+
+			print(self.currentSubtask)
+			debug.out("subtask specified", 'b')
+
 		if self.currentSubtask is None:
-			self.nextTask()
+			debug.out("%s" % (self.batch))
 
-		affectedDevices = None
 		duration = None
 		# print("updating device", self, self.currentSubtask, self.getNumSubtasks())
 		# do process and check if done
 		if self.currentSubtask is not None:
 			affectedDevices, duration, devicePower = self.currentSubtask.update(visualiser) # only used in simple simulations
-			self.previousTimestamp = self.currentTime + duration
+			self.updatePreviousTimestamp(self.currentTime + duration)
+			debug.out("%s time handled to %f" % (self, self.previousTimestamp), 'p')
 			# print(affectedDevices, duration)
 		else:
 			# just idle, entire td is used
@@ -362,7 +396,15 @@ class node:
 
 		self.updateSleepStatus(asleepBefore)
 
+		if affectedDevice is not None:
+			affectedDevices += [affectedDevice]
+
 		return affectedDevices, duration, devicePower
+
+	def updatePreviousTimestamp(self, newTimestamp):
+		if newTimestamp > self.previousTimestamp:
+			self.previousTimestamp = newTimestamp
+		debug.out("%s time handled to %f" % (self, self.previousTimestamp), 'p')
 
 	def updateSleepStatus(self, asleepBefore):
 		# check for idle sleep trigger
@@ -489,7 +531,9 @@ class node:
 
 				# see if it's a brand new job
 				if not self.currentJob.started:
-					return self.currentJob.start()
+					affectedDevice, newSubtask = self.currentJob.start()
+					affectedDevice.addSubtask(newSubtask) # add subtask from brand new job
+					return affectedDevice, newSubtask
 				else:
 					assert self.getNumSubtasks() > 0
 					sim.debug.out("\tALREADY STARTED")

@@ -1,11 +1,12 @@
 import sys
 import traceback
+import warnings
 from queue import PriorityQueue
 
 from sim.devices import elasticNode
 from sim.simulations.Simulation import BasicSimulation
 from sim import debug
-from sim.simulations import constants
+from sim.simulations import constants, Simulation
 from sim.learning import offloadingDecision, systemState
 from sim.offloading import offloadingPolicy
 import numpy as np
@@ -18,6 +19,7 @@ class SimpleSimulation(BasicSimulation):
 
 	def __init__(self, hardwareAccelerated=True):
 		BasicSimulation.__init__(self, hardwareAccelerated=hardwareAccelerated)
+
 		# specify subtask behaviour
 		subtask.update = subtask.perform
 
@@ -28,7 +30,9 @@ class SimpleSimulation(BasicSimulation):
 			self.queueNextJob(dev)
 
 	def simulateTick(self):
-		# try:
+		debug.out("\n" + "*"*50 + "\ntick\n" + "*"*50)
+
+		# update state if required
 		if constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING:
 			systemState.current.updateSystem()
 
@@ -52,7 +56,8 @@ class SimpleSimulation(BasicSimulation):
 		nextTask = self.queue.get()
 		newTime = nextTask.priority
 		arguments = nextTask.item
-		debug.out("new time %f %s %s" % (newTime, arguments, [(dev.getNumSubtasks(), dev.queuedTask) for dev in self.devices]))
+		debug.out("new time %f %s %s" % (newTime, arguments, [dev.getNumSubtasks() for dev in self.devices]))
+		debug.out("remaining tasks: %d" % self.queue.qsize(), 'dg')
 		self.time.set(newTime)
 		self.processQueuedTask(arguments)
 
@@ -74,7 +79,8 @@ class SimpleSimulation(BasicSimulation):
 			self.lifetimes.append(self.devicesLifetimes())
 			self.energylevels.append(self.devicesEnergyLevels())
 
-		self.finished = self.systemLifetime() <= 0
+		if self.systemLifetime() <= 0:
+			self.stop()
 
 		# check if task queue is too long
 		self.taskQueueLength = [dev.getNumSubtasks() for dev in self.devices]
@@ -136,9 +142,18 @@ class SimpleSimulation(BasicSimulation):
 		device.queuedTask = None
 
 		# energy from idle period
+		# TODO: check that this idle period is correct
+		print(self.time, device.previousTimestamp, self.time - device.previousTimestamp)
 		idlePeriod = self.time - device.previousTimestamp
-		idlePower = device.getTotalPower()
-		debug.out("idle %f %f" % (idlePeriod, idlePower), 'r')
+		if idlePeriod >= 0:
+			# idlePower = device.getTotalPower()
+			debug.out("%s idle %f" % (device, idlePeriod), 'r')
+			device.currentTd = idlePeriod
+			device.updateDeviceEnergy(device.getTotalPower())
+			device.updatePreviousTimestamp(self.time.current)
+			debug.out("%s time handled to %f" % (device, device.previousTimestamp), 'p')
+		else:
+			warnings.warn("going back in time!")
 
 		# perform queued task
 		if task == NEW_JOB:
@@ -151,16 +166,16 @@ class SimpleSimulation(BasicSimulation):
 			# no devices affected if already has job
 			if affectedDevice is not None:
 				# start created subtask
-				self.processDeviceSubtask(affectedDevice)
+				print("new job affected:", affectedDevice)
+				self.processAffectedDevice(affectedDevice)
 
 			self.queueNextJob(device)
 
-			device.previousTimestamp = self.time.current
+			device.updatePreviousTimestamp(self.time.current)
 		elif task == CONTINUE_JOB:
 			debug.out("continue existing job", 'b')
-			device = args[1]
-			self.processDeviceSubtask(device)
-			device.previousTimestamp = self.time.current
+			subtask = args[2]  # none for new_job
+			self.processDeviceSubtask(device, subtask)
 
 	# # capture energy values
 		# for dev in self.devices:
@@ -181,19 +196,25 @@ class SimpleSimulation(BasicSimulation):
 		# # only allow one queued task per device
 		# assert self.queue.qsize() <= len(self.devices)
 
-	def queueTask(self, time, taskType, device):
+	def queueTask(self, time, taskType, device, subtask=None):
 		# check if this device has a task lined up already:
 		# if device.queuedTask is None:
 		assert device is not None
-		debug.out("queueing task %f %s %s" % (time, taskType, device))
-		newTask = PrioritizedItem(time, (taskType, device))
+		debug.out("queueing task %f %s %s %s" % (time, taskType, device, subtask))
+		newTask = PrioritizedItem(time, (taskType, device, subtask))
 		self.queue.put(newTask)
 		device.queuedTask = newTask
 
 		# eoh m# 	print("device", device, "already has queued item!", self.queue)
 
-	def processDeviceSubtask(self, device):
-		assert device is not None
+	def processAffectedDevice(self, affectedDevice):
+		device, subtask = affectedDevice
+		self.processDeviceSubtask(device, subtask)
+
+	def processDeviceSubtask(self, device, subtask):
+		# assert affected is not None
+
+		# device, subtask = affected
 
 		visualiser = None
 		# decide whether to pass in visualiser or not
@@ -201,8 +222,13 @@ class SimpleSimulation(BasicSimulation):
 		if self.frames % self.plotFrames == 0:
 			visualiser = self.visualiser # this will trigger an update
 
-		affectedDevices, duration, devicePower = device.updateTime(visualiser)
+		print("processing device subtask:", device, subtask)
+		affectedDevices, duration, devicePower = device.updateDevice(subtask, visualiser=visualiser)
 
+		assert affectedDevices is not None
+
+		# update device energy
+		assert duration != constants.TD
 		device.currentTd = duration
 		incrementalEnergy = device.updateDeviceEnergy(devicePower)
 		currentJob = device.currentJob
@@ -215,12 +241,8 @@ class SimpleSimulation(BasicSimulation):
 			# create follow up task in queue
 			for affectedDevice in affectedDevices:
 				if affectedDevice is not None:
-					self.queueTask(self.time + duration, CONTINUE_JOB, affectedDevice)
-				# else:
-				# 	self.queueTask(self.time + duration, CONTINUE_JOB, device)
-			# print("affected:", affectedDevices)
-			# if affectedDevices is not None:
-			# 	print([affected.taskQueue for affected in affectedDevices if affected is not None])
+					device, subtask = affectedDevice
+					self.queueTask(self.time + duration, CONTINUE_JOB, device, subtask)
 		except:
 			exc_type, exc_value, exc_traceback = sys.exc_info()
 			traceback.print_stack()

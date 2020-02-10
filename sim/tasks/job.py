@@ -8,7 +8,6 @@ import sim.learning.systemState
 import sim.learning.offloadingDecision
 import sim.offloading.offloadingPolicy
 
-
 # from node import node
 
 class job:
@@ -62,8 +61,8 @@ class job:
 		self.creator = jobCreator
 		# self.simulation = origin.simulation
 
-		assert sim.simulations.current is not None
-		simulation = sim.simulations.current
+		assert sim.simulations.Simulation.currentSimulation is not None
+		simulation = sim.simulations.Simulation.currentSimulation
 		self.incrementCompletedJobs = simulation.incrementCompletedJobs
 		self.systemLifetime = simulation.systemLifetime
 		self.startExpectedLifetime = self.systemLifetime()
@@ -172,6 +171,7 @@ class job:
 
 	# create correct subtask
 	def activate(self):
+		affectedDevice, newSubtask = None, None
 		assert self.immediate is not None
 		sim.debug.out("activating {} owner {} on {}".format(self, self.owner, self.processingNode))
 
@@ -180,20 +180,25 @@ class job:
 		# populate subtasks based on types of devices
 		if not self.offloaded():
 			sim.debug.out("already at correct place")
+			affectedDevice = self.processingNode
 			if self.immediate:
-				self.processingNode.addSubtask(sim.tasks.subtask.newJob(self))
+				newSubtask = sim.tasks.subtask.newJob(self)
 			else:
-				self.processingNode.addSubtask(sim.tasks.subtask.batching(self))
-			return self.processingNode
+				newSubtask = sim.tasks.subtask.batching(self)
 		# otherwise we have to send task
 		else:
 			# elif self.destination.nodeType == sim.constants.ELASTIC_NODE:
 			sim.debug.out("offloading to other device")
-			self.owner.addSubtask(sim.tasks.subtask.createMessage(self))
-			return self.owner
+			affectedDevice = self.owner
+			newSubtask = sim.tasks.subtask.createMessage(self)
+
+		# add subtask to device task queue
+		# affectedDevice.addSubtask(newSubtask)
+
+		return affectedDevice, newSubtask
 
 	def finish(self):
-		sim.debug.out("%s %s %s (%f) %s" % ("-" * 100, self, "finished", self.totalEnergyCost, "-" * 100))
+		sim.debug.out("%s %s %s (%f) %s" % ("-"*50, self, "finished", self.totalEnergyCost, "-"*50))
 		self.finished = True
 		self.owner.removeJob(self)
 

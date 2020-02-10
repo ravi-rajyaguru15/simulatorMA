@@ -1,4 +1,4 @@
-import sim.simulations.variable
+from sim.simulations.variable import Gaussian
 
 class task:
 	colour = None
@@ -34,7 +34,7 @@ EASY = task(
 	complexity=8e3,
 	rawSize=5,
 	processedSize=1,
-	deadline=sim.simulations.variable.Gaussian(5, 0.1),
+	deadline=Gaussian(5, 0.1),
 	configSize=.01
 	)
 
@@ -44,7 +44,7 @@ HARD = task(
 	complexity=10e6,
 	rawSize=1e3,
 	processedSize=10,
-	deadline=sim.simulations.variable.Gaussian(5, 0.5),
+	deadline=Gaussian(5, 0.5),
 	configSize=1.0
 	)
 

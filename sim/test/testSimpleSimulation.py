@@ -1,3 +1,4 @@
+import sim
 import sim.debug as debug
 import sim.simulations.constants as constants
 import sim.simulations as simulations
@@ -10,13 +11,14 @@ if __name__ == '__main__':
 	constants.OFFLOADING_POLICY = LOCAL_ONLY
 	debug.enabled = True
 	constants.DRAW_DEVICES = False
-	simulations.current = Simulation()
+	Simulation()
+	exp = sim.simulations.Simulation.currentSimulation
 
 	# for i in range(1000):
 	i = 0
-	while simulations.current.getCompletedJobs() < 1:
+	while exp.getCompletedJobs() < 10:
 		debug.out("\ntick %d" % i)
 		i+=1
-		simulations.current.simulateTick()
+		exp.simulateTick()
 
-	print("Experiment done!", simulations.current.time)
+	print("Experiment done!", exp.time)

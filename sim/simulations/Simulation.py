@@ -2,26 +2,24 @@ import multiprocessing
 
 import numpy as np
 
-import sim.debug
-import sim.simulations.history
-import sim.learning.offloadingDecision
-import sim.offloading.offloadingPolicy
-import sim.simulations.results
-import sim.learning.systemState
-import sim.tasks.tasks
-import sim.simulations.variable
+import sim
+from sim import debug
 from sim.clock import clock
 from sim.devices.elasticNode import elasticNode
-from sim.simulations import constants
+from sim.learning import offloadingDecision, systemState
+from sim.offloading import offloadingPolicy
+from sim.simulations import constants, results
+from sim.simulations.history import history
 from sim.tasks.job import job
 # from message import message
 from sim.visualiser import visualiser
 
 queueLengths = list()
-current = None
-finishedJobsList = []
+currentSimulation = None
 
 class BasicSimulation:
+	finishedJobsList = []
+	unfinishedJobsList = []
 	ed, ed2, en, gw, srv, selectedOptions = None, None, None, None, None, None
 	results = None
 	jobResults = None
@@ -46,7 +44,7 @@ class BasicSimulation:
 	completedJobs = None
 
 	def __init__(self, hardwareAccelerated=None): # numEndDevices, numElasticNodes, numServers,
-		# sim.debug.out(numEndDevices + numElasticNodes)
+		# debug.out(numEndDevices + numElasticNodes)
 		self.results = multiprocessing.Manager().Queue()
 		# self.jobResults = multiprocessing.Manager().Queue()
 		job.jobResultsQueue = multiprocessing.Manager().Queue()
@@ -54,32 +52,32 @@ class BasicSimulation:
 		self.completedJobs = 0
 
 		self.time = clock()
-		sim.learning.offloadingDecision.sharedClock = self.time
+		offloadingDecision.sharedClock = self.time
 		
 		# requires simulation to be populated
-		sim.learning.systemState.current = sim.learning.systemState.systemState(self)
+		systemState.current = systemState.systemState(self)
 		useSharedAgent = (
-								 constants.OFFLOADING_POLICY == sim.offloading.offloadingPolicy.REINFORCEMENT_LEARNING) and (
+								 constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING) and (
 							 constants.CENTRALISED_LEARNING)
 
-		sim.simulations.results.learningHistory = sim.simulations.history.history()
+		results.learningHistory = history()
 
 		print(useSharedAgent, constants.OFFLOADING_POLICY, constants.CENTRALISED_LEARNING)
 		if useSharedAgent:
 			# create shared learning agent
-			sim.learning.offloadingDecision.sharedAgent = sim.learning.offloadingDecision.agent(
-				sim.learning.systemState.current)
+			offloadingDecision.sharedAgent = offloadingDecision.agent(
+				systemState.current)
 		
 		# self.ed = [] # endDevice(None, self, self.results, i, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(numEndDevices)]
 		# self.ed = endDevice()
 		# self.ed2 = endDevice()
 		self.devices = [elasticNode(self.time, constants.DEFAULT_ELASTIC_NODE, self.results, i, episodeFinished=self.isEpisodeFinished, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(
 			constants.NUM_DEVICES)]
-		sim.learning.offloadingDecision.devices = self.devices
+		offloadingDecision.devices = self.devices
 		if useSharedAgent:
-			sim.learning.offloadingDecision.sharedAgent.setDevices()
+			offloadingDecision.sharedAgent.setDevices()
 		else:
-			if constants.OFFLOADING_POLICY == sim.offloading.offloadingPolicy.REINFORCEMENT_LEARNING:
+			if constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING:
 				for device in self.devices: device.decision.privateAgent.setDevices()
 		# assemble expected lifetime for faster computation later
 		self.devicesExpectedLifetimeFunctions = [dev.expectedLifetime for dev in self.devices]
@@ -95,7 +93,7 @@ class BasicSimulation:
 		self.visualiser = visualiser(self)
 		self.frames = 0
 		self.plotFrames = constants.PLOT_SKIP
-		sim.debug.out (self.plotFrames)
+		debug.out (self.plotFrames)
 			
 		# set all device options correctly
 		# needs simulation and system state to be populated
@@ -103,10 +101,19 @@ class BasicSimulation:
 			# choose options based on policy
 			device.setOffloadingDecisions(self.devices)
 
+		sim.simulations.Simulation.currentSimulation = self
 		
 	def stop(self):
-		sim.debug.out("STOP", 'r')
+		debug.out("STOP", 'r')
 		self.finished = True
+
+		# dump incomplete jobs to job list
+		for dev in self.devices:
+			if dev.currentJob is not None:
+				self.unfinishedJobsList.append(dev.currentJob)
+			for batch in dev.batch:
+				for job in dev.batch[batch]:
+					self.unfinishedJobsList.append(job)
 
 	def allDone(self):
 		return np.all([not device.hasJob() for device in self.devices])
@@ -114,7 +121,7 @@ class BasicSimulation:
 	def simulate(self):
 		while not self.finished:
 			self.simulateTick()
-	
+
 	# if multiple jobs finish in the same line, 
 	def simulateUntilJobDone(self):
 		numJobs = self.completedJobs
@@ -131,7 +138,7 @@ class BasicSimulation:
 			self.simulateTick()
 
 	def reset(self):
-		sim.learning.offloadingDecision.sharedAgent.reset()
+		offloadingDecision.sharedAgent.reset()
 
 		# reset energy
 		for dev in self.devices:
@@ -146,8 +153,12 @@ class BasicSimulation:
 	def getCompletedJobs(self): return self.completedJobs
 	def incrementCompletedJobs(self, job):
 		self.completedJobs += 1
-		assert job not in finishedJobsList
-		finishedJobsList.append(job)
+		assert job not in self.finishedJobsList
+		self.finishedJobsList.append(job)
+
+	def getLatestFinishedJob(self):
+		assert len(self.finishedJobsList) > 0
+		return self.finishedJobsList[-1]
 
 	def simulateUntilTime(self, finalTime):
 		assert(finalTime > self.time)
@@ -178,13 +189,13 @@ class BasicSimulation:
 				energies.append(res.energy)
 			
 			queueLengths = np.array(sim.simulations.Simulation.queueLengths)
-			sim.debug.out("averages:")
-			# sim.debug.out ("latency:\t", 	np.average(np.array(latencies)))
-			# sim.debug.out ("energy:\t\t", 	np.average(np.array(energies)))
-			# sim.debug.out ("jobs:\t\t", 		np.average(queueLengths))
-			sim.debug.out (np.histogram(queueLengths, bins=np.array(range(np.max(queueLengths) + 3)) - .5))
+			debug.out("averages:")
+			# debug.out ("latency:\t", 	np.average(np.array(latencies)))
+			# debug.out ("energy:\t\t", 	np.average(np.array(energies)))
+			# debug.out ("jobs:\t\t", 		np.average(queueLengths))
+			debug.out (np.histogram(queueLengths, bins=np.array(range(np.max(queueLengths) + 3)) - .5))
 		except:
-			sim.debug.out ("no results available")		
+			debug.out ("no results available")		
 
 
 
@@ -240,8 +251,8 @@ class BasicSimulation:
 
 		newJob = job(device, constants.SAMPLE_SIZE.gen(), hardwareAccelerated=hardwareAccelerated, taskGraph=taskGraph)
 		self.addJob(device, newJob)
-		sim.debug.out('creating %s on %s' % (newJob, device), 'r')
-		sim.debug.out("added job to device queue", 'p')
+		debug.out('creating %s on %s' % (newJob, device), 'r')
+		debug.out("added job to device queue", 'p')
 
 	# add job to device queue
 	def addJob(self, device, job):

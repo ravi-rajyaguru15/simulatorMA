@@ -25,7 +25,7 @@ class clock:
 		return self.current - target
 
 	def __repr__(self):
-		return "{:.3f}".format(self.current)
+		return "{:.5f}".format(self.current)
 
 	def set(self, value):
 		self.current = value

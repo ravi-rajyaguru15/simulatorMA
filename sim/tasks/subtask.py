@@ -196,9 +196,20 @@ class subtask:
 		return False
 
 	def finishTask(self, affectedDevices):
-		sim.debug.out("finishing subtask! {}".format(self), 'b')
+		sim.debug.out("finishing subtask! {} {}".format(self, self.owner), 'b')
 
 		self.owner.currentSubtask = None
+
+		if not isinstance(affectedDevices, list):
+			affectedDevices = [affectedDevices]
+
+		# add any new subtasks
+		# TODO: add queuedTime to created subtasks
+		if affectedDevices is not None:
+			for affected in affectedDevices:
+				if affected is not None:
+					device, newSubtask = affected
+					device.addSubtask(newSubtask)
 
 		# sim.debug.out("current task: {} {}".format(self.owner, self.owner.currentSubtask))
 		return affectedDevices
@@ -240,9 +251,9 @@ class createMessage(subtask):
 	# must send message now 
 	def finishTask(self):
 		self.owner.mcu.idle()
-		self.owner.addSubtask(txJob(self.job, self.job.owner, self.job.processingNode), appendLeft=True)
 
-		return subtask.finishTask(self, [self.owner, self.job.processingNode])
+		newSubtask = txJob(self.job, self.job.owner, self.job.processingNode)
+		return subtask.finishTask(self, [(self.owner, newSubtask), (self.job.processingNode, newSubtask.correspondingRx)])
 
 # class idle(subtask):
 # 	__name__ = "Idle"
@@ -275,6 +286,7 @@ class batchContinue(subtask):
 		# # remove existing task from processing batch
 		# self.job.processingNode.removeJobFromBatch(self.job)
 		affected = None
+		newSubtask = None
 
 		if constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING:
 			affected = self.owner.reconsiderBatch()
@@ -302,8 +314,7 @@ class batchContinue(subtask):
 				# 	sim.debug.out ("SLEEPING FPGA")
 			else:
 				# print("newjob because continuing batch")
-				self.job.processingNode.addSubtask(newJob(self.job), appendLeft=True)
-				affected = self.job.processingNode
+				affected = self.job.processingNode, newJob(self.job)
 
 		return subtask.finishTask(self, [affected])
 
@@ -324,6 +335,7 @@ class batching(subtask):
 	def finishTask(self):
 		# which devices have additinal tasks added?
 		affected = None
+		nextSubtask = None
 		# add current job to node's batch
 		self.job.processingNode.addJobToBatch(self.job)
 		# # job has been backed up in batch and will be selected in finish
@@ -340,19 +352,18 @@ class batching(subtask):
 			# special case: hardware acceleration already there
 			if self.job.hardwareAccelerated and self.job.processingNode.fpga.isConfigured(self.job.currentTask):
 				sim.debug.out("special case batching: hw already available")
-				self.job.processingNode.setActiveJob(self.job.processingNode.nextJobFromBatch())
 
 				# self.job.processingNode.addSubtask(newJob(self.job), appendLeft=True)
-				affected = self.job.processingNode
+				affected = self.job.processingNode, self.job.processingNode.setActiveJob(self.job.processingNode.nextJobFromBatch())
 			else:
 				sim.debug.out("Batch: {0}/{1}".format(self.job.processingNode.batchLength(self.job.currentTask), constants.MINIMUM_BATCH), 'c')
 
 				# see if batch is full enough to start now, or
 				# if decided to start locally
 				if self.job.processingNode.batchLength(self.job.currentTask) >= constants.MINIMUM_BATCH:
-					self.job.processingNode.setActiveJob(self.job.processingNode.nextJobFromBatch())
+					newSubtask = self.job.processingNode.setActiveJob(self.job.processingNode.nextJobFromBatch())
 					if self.job is not None:
-						affected = self.job.processingNode
+						affected = self.job.processingNode, newSubtask
 				# go to sleep until next task
 				else:
 					self.job.processingNode.mcu.sleep()
@@ -373,16 +384,19 @@ class newJob(subtask):
 		subtask.beginTask(self)
 
 	def finishTask(self):
+		newSubtask = None
 		# start first job in queue
 		if self.job.hardwareAccelerated:
 			if self.job.processingNode.fpga.isConfigured(self.job.currentTask):
-				self.job.processingNode.addSubtask(mcuFpgaOffload(self.job), appendLeft=True)
+				newSubtask = mcuFpgaOffload(self.job)
 			else:
-				self.job.processingNode.addSubtask(reconfigureFPGA(self.job), appendLeft=True)
+				newSubtask = reconfigureFPGA(self.job)
 		else:
-			self.job.processingNode.addSubtask(processing(self.job), appendLeft=True)
+			newSubtask = processing(self.job)
 
-		return subtask.finishTask(self, [self.job.processingNode])
+		assert newSubtask is not None
+
+		return subtask.finishTask(self, [(self.job.processingNode, newSubtask)])
 
 
 class reconfigureFPGA(subtask):
@@ -403,10 +417,8 @@ class reconfigureFPGA(subtask):
 		sim.debug.out("done reconfiguration")
 		self.job.processingNode.fpga.idle()
 
-		# move onto processing steps
-		self.job.processingNode.addSubtask(mcuFpgaOffload(self.job), appendLeft=True)
-
-		return subtask.finishTask(self, [self.job.processingNode])
+		# start processing
+		return subtask.finishTask(self, (self.job.processingNode, mcuFpgaOffload(self.job)))
 
 
 class xmem(subtask):
@@ -452,9 +464,9 @@ class mcuFpgaOffload(xmem):
 
 	def finishTask(self):
 		# always follow up with processing
-		self.job.processingNode.addSubtask(processing(self.job), appendLeft=True)
+		# self.job.processingNode.addSubtask(, appendLeft=True)
 
-		return xmem.finishTask(self, [self.job.processingNode])
+		return xmem.finishTask(self, (self.job.processingNode, processing(self.job)))
 
 class fpgaMcuOffload(xmem):
 	__name__ = "FPGA->MCU Offload"
@@ -462,12 +474,14 @@ class fpgaMcuOffload(xmem):
 	def finishTask(self):
 		# check if offloaded
 		if self.job.offloaded():
-			self.job.processingNode.addSubtask(txResult(self.job, self.job.processingNode, self.job.creator), appendLeft=True)
+			# self.job.processingNode.addSubtask(, appendLeft=True)
+			newSubtask = txResult(self.job, self.job.processingNode, self.job.creator)
 		else:
 			self.job.finish()
-			self.job.processingNode.addSubtask(batchContinue(node=self.owner), appendLeft=True)
+			# self.job.processingNode.addSubtask(, appendLeft=True)
+			newSubtask = batchContinue(node=self.owner)
 
-		return xmem.finishTask(self, [self.job.processingNode])
+		return xmem.finishTask(self, [(self.job.processingNode, newSubtask)])
 
 	# def possible(self):
 	# 	if
@@ -515,17 +529,17 @@ class processing(subtask):
 		sim.debug.out("processed hw: {0} offload: {1}".format(self.job.hardwareAccelerated, self.job.offloaded()))
 
 		if self.job.hardwareAccelerated:
-			self.job.processingNode.addSubtask(fpgaMcuOffload(self.job), appendLeft=True)
+			newSubtask = fpgaMcuOffload(self.job)
 		else:
 			# check if offloaded
 			if self.job.offloaded():
-				self.job.processingNode.addSubtask(txResult(self.job, self.job.processingNode, self.job.creator), appendLeft=True)
+				newSubtask = txResult(self.job, self.job.processingNode, self.job.creator)
 			else:
-				self.job.processingNode.addSubtask(batchContinue(self.job), appendLeft=True)
+				newSubtask = batchContinue(self.job)
 
 
 				# self.job.creator.jobActive = False
-		return subtask.finishTask(self, [self.job.processingNode])
+		return subtask.finishTask(self, [(self.job.processingNode, newSubtask)])
 
 class txMessage(subtask):
 	destination = None
@@ -551,7 +565,7 @@ class txMessage(subtask):
 
 		# create receiving task
 		rx = jobToAdd(job, duration, self, source, destination) #, owner=destination)
-		destination.addSubtask(rx)
+		# # destination.addSubtask(rx)
 		self.correspondingRx = rx
 		self.waitingForRX = False
 
@@ -620,13 +634,13 @@ class txMessage(subtask):
 
 		subtask.beginTask(self)
 
-	def finishTask(self):
+	def finishTask(self, affectedDevices):
 		self.source.mrf.sleep()
 		self.source.mcu.sleep()
 		# self.destination.mrf.sleep()
 
 		# return subtask.finishTask(self, [self.source, self.destination])
-		return subtask.finishTask(self, [None])
+		return subtask.finishTask(self, affectedDevices)
 
 class txJob(txMessage):
 	__name__ = "TX Job"
@@ -641,7 +655,7 @@ class txJob(txMessage):
 
 		subtask.beginTask(self)
 
-	def finishTask(self):
+	def finishTask(self, affectedDevices=None):
 		# if using rl, update model
 		# must update when starting,
 		if constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING:
@@ -652,7 +666,7 @@ class txJob(txMessage):
 		self.owner.removeJob(self.job)
 
 
-		return txMessage.finishTask(self)
+		return txMessage.finishTask(self, None)
 
 
 class txResult(txMessage):
@@ -667,10 +681,10 @@ class txResult(txMessage):
 
 	def finishTask(self):
 		# see if there's a next job to continue
-		self.job.processingNode.addSubtask(batchContinue(node=self.owner), appendLeft=True)
+		# self.job.processingNode.addSubtask(, appendLeft=True)
 
 		# move result of job back to the creator
-		return txMessage.finishTask(self)
+		return txMessage.finishTask(self, (self.job.processingNode, batchContinue(node=self.owner)))
 
 class rxMessage(subtask):
 	correspondingTx = None
@@ -783,14 +797,14 @@ class rxJob(rxMessage):
 			# self.job.setDecisionTarget(choice)
 			# self.job.activate()
 
-			choice = self.job.owner.decision.rechooseDestination(self.job.currentTask, self.job, self.job.owner)
+			affected = self.job.owner.decision.rechooseDestination(self.job.currentTask, self.job, self.job.owner)
 			# warnings.warn("redecision isn't affected i think")
-			affected = choice.targetDevice
+			# affected = choice.targetDevice
 		# otherwise, just add it to the local batch
 		else:
 			# add this task to the right, so it doesn't happen soon
-			self.job.processingNode.addSubtask(batching(self.job)) #, appendLeft=True)
-			affected = self.job.processingNode
+			# self.job.processingNode.addSubtask() #, appendLeft=True)
+			affected = self.job.processingNode, batching(self.job)
 
 		return rxMessage.finishTask(self, [affected])
 
