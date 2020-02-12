@@ -8,6 +8,8 @@ import numpy as np
 
 # used as shared variable
 # current = None
+from sim import debug
+
 singles = ['taskIdentifier', 'taskSize', 'selfDeviceIndex', 'selfExpectedLife', 'systemExpectedLife',
 		   'deadlineRemaining', 'selfBatch', 'selfCurrentConfig']
 multiples = ['expectedLife', 'batchLengths', 'allConfig']
@@ -70,8 +72,8 @@ class systemState:
 	def getDictionaryRepresentation(arrayRepresentation):
 		# link array elements to dictionary for easier access
 		dictRepresentation = dict()
-		print("creating dictionary representation from " + str(arrayRepresentation.shape))
-		time.sleep(0.5)
+		debug.out("creating dictionary representation from " + str(arrayRepresentation.shape))
+		# time.sleep(0.5)
 		for i in range(len(singles)):
 			dictRepresentation[singles[i]] = arrayRepresentation[i:i + 1]
 		for i in range(len(multiples)):

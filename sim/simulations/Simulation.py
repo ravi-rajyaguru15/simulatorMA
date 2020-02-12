@@ -61,23 +61,20 @@ class BasicSimulation:
 		results.learningHistory = history()
 
 		print("Learning: shared: %s offloading: %s centralised: %s" % (useSharedAgent, constants.OFFLOADING_POLICY, constants.CENTRALISED_LEARNING))
+		self.devices = [elasticNode(self.time, constants.DEFAULT_ELASTIC_NODE, self.results, i, episodeFinished=self.isEpisodeFinished, currentSystemState=self.currentSystemState, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(constants.NUM_DEVICES)]
+
 		if useSharedAgent:
 			# create shared learning agent
 			offloadingDecision.sharedAgent = offloadingDecision.agent(self.currentSystemState)
-		
+
 		# self.ed = [] # endDevice(None, self, self.results, i, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(numEndDevices)]
 		# self.ed = endDevice()
 		# self.ed2 = endDevice()
-		self.devices = [elasticNode(self.time, constants.DEFAULT_ELASTIC_NODE, self.results, i, episodeFinished=self.isEpisodeFinished, currentSystemState=self.currentSystemState, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(
-			constants.NUM_DEVICES)]
-		offloadingDecision.devices = self.devices
 		if constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING:
 			if useSharedAgent:
 				offloadingDecision.sharedAgent.setDevices(self.devices)
 			else:
 				for device in self.devices: device.decision.privateAgent.setDevices(self.devices)
-
-
 
 		# assemble expected lifetime for faster computation later
 		self.devicesExpectedLifetimeFunctions = [dev.expectedLifetime for dev in self.devices]

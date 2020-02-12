@@ -16,7 +16,7 @@ if __name__ == '__main__':
 
 	# for i in range(1000):
 	i = 0
-	while exp.getCompletedJobs() < 10:
+	while exp.getCompletedJobs() < 100:
 		debug.out("\ntick %d" % i)
 		i+=1
 		exp.simulateTick()

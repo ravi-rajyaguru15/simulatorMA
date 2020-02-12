@@ -1,3 +1,8 @@
+import sys
+import traceback
+
+from sim import debug
+
 
 class action:
 	name = None
@@ -23,14 +28,14 @@ class action:
 	def offloadingToTarget(self, targetIndex=None): return False
 
 	# update device based on latest picked device index
-	def updateTargetDevice(self, owner=None, devices=None):
+	def updateTargetDevice(self, owner, devices):
 		if self.local:
 			assert owner is not None
 			self.targetDeviceIndex = owner.index
 			self.targetDevice = owner
 		else:
 			assert self.targetDeviceIndex is not None
-			print("updating target device for action: " + self)
+			debug.out("updating target device for action: %s [%s]" % (str(self), devices))
 			assert devices is not None
 
 			self.targetDevice = None

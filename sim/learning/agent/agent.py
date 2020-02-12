@@ -63,7 +63,7 @@ class agent:
 		self.totalReward = 0
 		self.reset()
 
-	# self.setDevices()
+		# self.setDevices(devices)
 
 	def reset(self):
 		self.episodeReward = 0
@@ -87,6 +87,7 @@ class agent:
 		# needs numActions
 		self.createModel()
 
+		self.devices = devices
 		# return self.possibleActions
 
 	def createModel(self):
@@ -176,7 +177,7 @@ class agent:
 		choice = self.possibleActions[actionIndex]
 		sim.debug.learnOut("choice: {} ({})".format(choice, actionIndex), 'r')
 
-		choice.updateTargetDevice(owner=device)
+		choice.updateTargetDevice(owner=device, devices=self.devices)
 		# choice.updateTargetDevice(devices=self.devices)
 		return choice
 

@@ -1,7 +1,11 @@
 
 # @staticmethod
+from sim.offloading import offloadingPolicy
+from sim.simulations import constants
+
+
 def singleBatchLocal(accelerated=True):
-	sim.constants.OFFLOADING_POLICY = sim.offloadingPolicy.LOCAL_ONLY
+	constants.OFFLOADING_POLICY = offloadingPolicy.LOCAL_ONLY
 	
 	exp = simulation(0, 2, 0)
 

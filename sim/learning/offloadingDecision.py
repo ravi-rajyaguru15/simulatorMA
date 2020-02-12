@@ -1,25 +1,19 @@
 import random
 
 import numpy as np
-import rl
-import rl.policy
-import rl.util
-import tensorflow as tf
-import tensorflow.keras as keras
 
 import sim.simulations
 import sim.learning.systemState
 import sim.counters
 import sim.debug
 import sim.offloading.offloadingPolicy
-from sim.learning import systemState
 from sim.learning.action import action
-from sim.learning.agent import agent
+from sim.learning.agent.agent import agent
 from sim.offloading.offloadingPolicy import *
 from sim.simulations import constants
 
 sharedAgent = None
-devices = None
+# devices = None
 sharedClock = None
 
 
@@ -69,7 +63,7 @@ class offloadingDecision:
 		if constants.OFFLOADING_POLICY == REINFORCEMENT_LEARNING:
 			# create either private or shared agent
 			if not constants.CENTRALISED_LEARNING:
-				self.agent = agent(self.systemState)
+				self.agent = agent(self.systemState, allDevices)
 			else:
 				# create shared agent if required
 				assert sharedAgent is not None
