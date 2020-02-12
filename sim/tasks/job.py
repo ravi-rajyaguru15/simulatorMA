@@ -9,6 +9,8 @@ import sim.learning.offloadingDecision
 import sim.offloading.offloadingPolicy
 
 # from node import node
+from sim.learning.action import LOCAL
+
 
 class job:
 	# static results queue
@@ -106,7 +108,7 @@ class job:
 	def setDecisionTarget(self, decision):
 		# initiate task by setting processing node
 		# decision.updateDevice()
-		self.immediate = decision == sim.learning.offloadingDecision.LOCAL
+		self.immediate = decision == LOCAL
 		sim.debug.out("set immediate to {}".format(self.immediate))
 
 		# self.decision = decision

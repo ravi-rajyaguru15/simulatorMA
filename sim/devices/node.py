@@ -15,6 +15,7 @@ import sim.debug
 import time
 import numpy as np
 import sim.learning.systemState as systemState
+from sim.learning.action import BATCH
 
 
 class node:
@@ -55,10 +56,10 @@ class node:
 	location = None
 	episodeFinished = None
 
-	def __init__(self, clock, platform, index, components, episodeFinished, alwaysHardwareAccelerate=None):
+	def __init__(self, clock, platform, index, components, episodeFinished, currentSystemState, alwaysHardwareAccelerate=None):
 		self.platform = platform
 
-		self.decision = sim.learning.offloadingDecision.offloadingDecision(self, systemState.current)
+		self.decision = sim.learning.offloadingDecision.offloadingDecision(self, currentSystemState)
 		# self.simulation = simulation
 		self.currentTime = clock
 
@@ -279,7 +280,7 @@ class node:
 				newChoice = self.decision.redecideDestination(job.currentTask, job, self)
 				# print("updated", newChoice)
 				# check if just batching
-				if newChoice == sim.learning.offloadingDecision.BATCH or newChoice.offloadingToTarget(self.index):  # (isinstance(newChoice, sim.offloadingDecision.offloading) and newChoice.targetDeviceIndex == self.owner.index):
+				if newChoice == BATCH or newChoice.offloadingToTarget(self.index):  # (isinstance(newChoice, sim.offloadingDecision.offloading) and newChoice.targetDeviceIndex == self.owner.index):
 					sim.debug.learnOut("just batching again: {}".format(newChoice), 'p')
 				else:
 					# update destination
@@ -376,8 +377,7 @@ class node:
 					time.sleep(0.5)
 					raise Exception("device already has different subtask!")
 
-			print(self.currentSubtask)
-			debug.out("subtask specified", 'b')
+			debug.out("subtask specified: %s" % self.currentSubtask, 'b')
 
 		if self.currentSubtask is None:
 			debug.out("%s" % (self.batch))

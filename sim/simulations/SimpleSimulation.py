@@ -34,7 +34,7 @@ class SimpleSimulation(BasicSimulation):
 
 		# update state if required
 		if constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING:
-			systemState.current.updateSystem()
+			self.currentSystemState.updateSystem()
 
 		# # create new jobs
 		# for device in self.devices:
@@ -143,7 +143,7 @@ class SimpleSimulation(BasicSimulation):
 
 		# energy from idle period
 		# TODO: check that this idle period is correct
-		print(self.time, device.previousTimestamp, self.time - device.previousTimestamp)
+		debug.out("%s %.2f (%.2f)" % (self.time, device.previousTimestamp, self.time - device.previousTimestamp))
 		idlePeriod = self.time - device.previousTimestamp
 		if idlePeriod >= 0:
 			# idlePower = device.getTotalPower()
@@ -166,7 +166,7 @@ class SimpleSimulation(BasicSimulation):
 			# no devices affected if already has job
 			if affectedDevice is not None:
 				# start created subtask
-				print("new job affected:", affectedDevice)
+				debug.out("new job affected: %s %s" % (affectedDevice), 'b')
 				self.processAffectedDevice(affectedDevice)
 
 			self.queueNextJob(device)
@@ -222,7 +222,7 @@ class SimpleSimulation(BasicSimulation):
 		if self.frames % self.plotFrames == 0:
 			visualiser = self.visualiser # this will trigger an update
 
-		print("processing device subtask:", device, subtask)
+		debug.out("processing device subtask: %s %s" % (device, subtask))
 		affectedDevices, duration, devicePower = device.updateDevice(subtask, visualiser=visualiser)
 
 		assert affectedDevices is not None

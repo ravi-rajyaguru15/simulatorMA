@@ -18,6 +18,7 @@ queueLengths = list()
 currentSimulation = None
 
 class BasicSimulation:
+	currentSystemState = None
 	finishedJobsList = []
 	unfinishedJobsList = []
 	ed, ed2, en, gw, srv, selectedOptions = None, None, None, None, None, None
@@ -40,7 +41,6 @@ class BasicSimulation:
 	timestamps = list()
 	lifetimes = list()
 	energylevels = list()
-	systemState = None
 	completedJobs = None
 
 	def __init__(self, hardwareAccelerated=None): # numEndDevices, numElasticNodes, numServers,
@@ -55,30 +55,30 @@ class BasicSimulation:
 		offloadingDecision.sharedClock = self.time
 		
 		# requires simulation to be populated
-		systemState.current = systemState.systemState(self)
-		useSharedAgent = (
-								 constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING) and (
-							 constants.CENTRALISED_LEARNING)
+		self.currentSystemState = systemState.systemState(self)
+		useSharedAgent = (constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING) and (constants.CENTRALISED_LEARNING)
 
 		results.learningHistory = history()
 
-		print(useSharedAgent, constants.OFFLOADING_POLICY, constants.CENTRALISED_LEARNING)
+		print("Learning: shared: %s offloading: %s centralised: %s" % (useSharedAgent, constants.OFFLOADING_POLICY, constants.CENTRALISED_LEARNING))
 		if useSharedAgent:
 			# create shared learning agent
-			offloadingDecision.sharedAgent = offloadingDecision.agent(
-				systemState.current)
+			offloadingDecision.sharedAgent = offloadingDecision.agent(self.currentSystemState)
 		
 		# self.ed = [] # endDevice(None, self, self.results, i, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(numEndDevices)]
 		# self.ed = endDevice()
 		# self.ed2 = endDevice()
-		self.devices = [elasticNode(self.time, constants.DEFAULT_ELASTIC_NODE, self.results, i, episodeFinished=self.isEpisodeFinished, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(
+		self.devices = [elasticNode(self.time, constants.DEFAULT_ELASTIC_NODE, self.results, i, episodeFinished=self.isEpisodeFinished, currentSystemState=self.currentSystemState, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(
 			constants.NUM_DEVICES)]
 		offloadingDecision.devices = self.devices
-		if useSharedAgent:
-			offloadingDecision.sharedAgent.setDevices()
-		else:
-			if constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING:
-				for device in self.devices: device.decision.privateAgent.setDevices()
+		if constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING:
+			if useSharedAgent:
+				offloadingDecision.sharedAgent.setDevices(self.devices)
+			else:
+				for device in self.devices: device.decision.privateAgent.setDevices(self.devices)
+
+
+
 		# assemble expected lifetime for faster computation later
 		self.devicesExpectedLifetimeFunctions = [dev.expectedLifetime for dev in self.devices]
 		self.devicesExpectedLifetimes = np.zeros((len(self.devices),))

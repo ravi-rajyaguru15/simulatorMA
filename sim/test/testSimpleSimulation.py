@@ -8,8 +8,8 @@ from sim.offloading.offloadingPolicy import *
 if __name__ == '__main__':
 	print("testing simple simulation")
 	constants.NUM_DEVICES = 1
-	constants.OFFLOADING_POLICY = LOCAL_ONLY
-	debug.enabled = True
+	constants.OFFLOADING_POLICY = REINFORCEMENT_LEARNING
+	debug.enabled = False
 	constants.DRAW_DEVICES = False
 	Simulation()
 	exp = sim.simulations.Simulation.currentSimulation
