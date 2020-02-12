@@ -7,6 +7,7 @@ from sim import debug
 from sim.clock import clock
 from sim.devices.elasticNode import elasticNode
 from sim.learning import offloadingDecision, systemState
+from sim.learning.agent.dqnAgent import dqnAgent as Agent
 from sim.offloading import offloadingPolicy
 from sim.simulations import constants, results
 from sim.simulations.history import history
@@ -65,7 +66,7 @@ class BasicSimulation:
 
 		if useSharedAgent:
 			# create shared learning agent
-			offloadingDecision.sharedAgent = offloadingDecision.agent(self.currentSystemState)
+			offloadingDecision.sharedAgent = Agent(self.currentSystemState)
 
 		# self.ed = [] # endDevice(None, self, self.results, i, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(numEndDevices)]
 		# self.ed = endDevice()

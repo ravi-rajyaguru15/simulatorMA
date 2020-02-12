@@ -8,7 +8,7 @@ import sim.counters
 import sim.debug
 import sim.offloading.offloadingPolicy
 from sim.learning.action import action
-from sim.learning.agent.agent import agent
+from sim.learning.agent.dqnAgent import dqnAgent as Agent
 from sim.offloading.offloadingPolicy import *
 from sim.simulations import constants
 
@@ -63,7 +63,7 @@ class offloadingDecision:
 		if constants.OFFLOADING_POLICY == REINFORCEMENT_LEARNING:
 			# create either private or shared agent
 			if not constants.CENTRALISED_LEARNING:
-				self.agent = agent(self.systemState, allDevices)
+				self.agent = Agent(self.systemState, allDevices)
 			else:
 				# create shared agent if required
 				assert sharedAgent is not None
