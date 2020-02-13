@@ -42,6 +42,7 @@ MCU_IDLE_SLEEP = .05
 
 # batching policy
 MINIMUM_BATCH = 5
+MAX_JOBS = 3
 
 # tasks
 DEFAULT_TASK_GRAPH = [sim.tasks.tasks.EASY] # TODO: single task only

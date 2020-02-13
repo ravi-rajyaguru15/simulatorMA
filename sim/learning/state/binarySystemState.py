@@ -1,6 +1,8 @@
 import numpy as np
 
 from sim.learning.state.systemState import systemState
+from sim.simulations import constants
+
 
 class binarySystemState(systemState):
 	def binarise(self):
@@ -13,7 +15,12 @@ class binarySystemState(systemState):
 		if value > 1: value = 1
 		return value
 
+	def getUniqueStates(self):
+		return 2 ** (len(self.singles) + len(self.multiples) * constants.NUM_DEVICES)
+
+
 	def setField(self, field, value):
+		print("field", field, "in", self.dictRepresentation)
 		assert field in self.dictRepresentation
 		if isinstance(value, list):
 			for i in range(len(value)):
@@ -24,10 +31,10 @@ class binarySystemState(systemState):
 	# convert currentState to an integer index
 	def getIndex(self):
 		out = 0
-		for i in self.currentState:
+		for i in self.currentState[::-1]:
 			assert 1 >= i >= 0
 			out = (out << 1) | i
-		print("index", out, self.currentState)
+		# print("index", out, self.currentState, self.currentState[0], self.currentState[-1])
 		return out
 
 	def setState(self, arrayState):

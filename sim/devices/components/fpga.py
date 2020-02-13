@@ -45,6 +45,13 @@ class fpga(processor):
 		# print ("changed fpga colour")
 		self.state = sim.devices.components.powerState.RECONFIGURING
 
+	# encode current config for 0: none; 1,2,3: different tasks
+	def getCurrentConfigIndex(self):
+		if self.currentConfig is None:
+			return 0
+		else:
+			return self.currentConfig.identifier + 1
+
 	# loses configuration when it sleeps
 	def sleep(self):
 		self.currentConfig = None

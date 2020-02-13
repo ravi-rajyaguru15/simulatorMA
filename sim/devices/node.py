@@ -31,6 +31,7 @@ class node:
 	index = None
 
 	energyLevel = None
+	maxEnergyLevel = None
 	totalEnergyCost = None
 	averagePower = None
 	powerCount = None
@@ -66,6 +67,7 @@ class node:
 		self.index = index
 		# self.nodeType = nodeType
 
+		self.maxEnergyLevel = node.convertEnergy(self.platform.BATTERY_SIZE, self.platform.BATTERY_VOLTAGE)
 		self.reset()
 
 		self.drawLocation = (0,0)
@@ -90,9 +92,16 @@ class node:
 		self.batch = dict()
 
 	def resetEnergyLevel(self):
-		self.energyLevel = node.convertEnergy(self.platform.BATTERY_SIZE, self.platform.BATTERY_VOLTAGE)
+		self.energyLevel = self.maxEnergyLevel
 
-	def getEnergyLevel(self): return self.energyLevel
+	# get node battery level, limited to different discrete bins if required
+	def getEnergyLevel(self):
+		return self.energyLevel
+
+	# get node battery level, limited to different discrete bins if required
+	def getEnergyLevelPercentage(self):
+		return self.energyLevel / self.maxEnergyLevel
+
 
 	def setComponents(self, components):
 		if components is None:

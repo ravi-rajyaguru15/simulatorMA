@@ -5,7 +5,7 @@ from queue import PriorityQueue
 
 import sim
 from sim.learning.agent import dqnAgent
-from sim.learning.state.binarySystemState import binarySystemState
+from sim.learning.state.minimalSystemState import minimalSystemState
 from sim.simulations.Simulation import BasicSimulation
 from sim import debug
 from sim.simulations import constants
@@ -18,7 +18,7 @@ from sim.tasks.subtask import subtask
 class SimpleSimulation(BasicSimulation):
 	queue = None
 
-	def __init__(self, systemStateClass=binarySystemState, offloadingDecisionClass=offloadingDecision, agentClass=dqnAgent):
+	def __init__(self, systemStateClass=minimalSystemState, offloadingDecisionClass=offloadingDecision, agentClass=dqnAgent):
 		BasicSimulation.__init__(self, systemStateClass=systemStateClass, offloadingDecisionClass=offloadingDecisionClass, agentClass=agentClass)
 
 		# specify subtask behaviour
@@ -34,8 +34,8 @@ class SimpleSimulation(BasicSimulation):
 		debug.out("\n" + "*"*50 + "\ntick\n" + "*"*50)
 
 		# update state if required
-		if constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING:
-			self.currentSystemState.updateSystem()
+		# if constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING:
+		# 	self.currentSystemState.updateSystem()
 
 		# # create new jobs
 		# for device in self.devices:

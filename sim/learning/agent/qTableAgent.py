@@ -37,11 +37,16 @@ class qTableAgent(agent):
 
 	def createModel(self):
 		# create Q table
-		self.model = np.zeros((2 ** self.systemState.stateCount, self.numActions)) # assuming binary states TODO: number of states
+		print("qtable:", (self.systemState.getUniqueStates(), self.numActions))
+		self.model = np.zeros((self.systemState.getUniqueStates(), self.numActions))
 
-	def trainModel(self, latestAction, R, beforeState):
-		index = beforeState.getIndex()
-		self.model[index, latestAction] += R
+	def trainModel(self, latestAction, reward, beforeState, currentState, finished):
+		beforeIndex = beforeState.getIndex()
+		Qsa = self.model[beforeIndex, latestAction]
+		currentIndex = currentState.getIndex()
+		maxQ = np.argmax(self.model[currentIndex,:])
+		# Q learning 101:
+		self.model[beforeIndex, latestAction] = Qsa + constants.LEARNING_RATE * (reward + constants.GAMMA * maxQ - Qsa)
 
 	def predict(self, state):
 		# find row from q table for this state
@@ -55,10 +60,10 @@ class qTableAgent(agent):
 		if self.policy.evaluate(constants.EPS):
 			# return random
 			action = np.random.randint(0, self.numActions - 1)
-			print('selecting random in', qValues, action)
+			# print('selecting random in', qValues, action)
 			return action
 		else:
-			print('selecting max from', qValues, np.argmax(qValues))
+			# print('selecting max from', qValues, np.argmax(qValues))
 			return np.argmax(qValues)
 
 

@@ -1,8 +1,12 @@
+import sys
+
+import numpy as np
+
 import sim
 import sim.debug as debug
-from sim.learning.state.binarySystemState import binarySystemState
+# from sim.learning.state.binarySystemState import binarySystemState as chosenSystemState
+from sim.learning.state.minimalSystemState import minimalSystemState as chosenSystemState
 import sim.simulations.constants as constants
-import sim.simulations as simulations
 from sim.simulations.SimpleSimulation import SimpleSimulation as Simulation
 from sim.offloading.offloadingPolicy import *
 from sim.learning.agent.qTableAgent import qTableAgent
@@ -14,7 +18,7 @@ if __name__ == '__main__':
 	constants.OFFLOADING_POLICY = REINFORCEMENT_LEARNING
 	debug.enabled = False
 	constants.DRAW_DEVICES = False
-	exp =Simulation(binarySystemState, offloadingDecision, qTableAgent)
+	exp = Simulation(chosenSystemState, offloadingDecision, qTableAgent)
 	# exp = sim.simulations.Simulation.currentSimulation
 
 	# for i in range(1000):
@@ -25,3 +29,6 @@ if __name__ == '__main__':
 		exp.simulateTick()
 
 	print("Experiment done!", exp.time)
+
+	np.set_printoptions(threshold=sys.maxsize, suppress=True)
+	print(sim.learning.offloadingDecision.sharedAgent.model)

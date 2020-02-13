@@ -4,7 +4,6 @@ import sim
 from sim import debug, counters
 from sim.learning import offloadingDecision
 from sim.learning.action import offloading, LOCAL, BATCH
-from sim.learning.state.systemState import systemState
 from sim.simulations import constants
 
 
@@ -80,7 +79,8 @@ class agent:
 
 	def updateState(self, task, job, device):
 		# update state
-		self.systemState.update(task, job, device)
+		print("systemstate", self.systemState.__class__)
+		self.systemState.updateState(task, job, device)
 
 	# predict best action using Q values
 	def forward(self, task, job, device):
@@ -121,7 +121,7 @@ class agent:
 		raise self.genericException
 	def selectAction(self, qValues):
 		raise self.genericException
-	def trainModel(self, latestAction, R, beforeState):
+	def trainModel(self, latestAction, R, beforeState, afterState, finished):
 		raise self.genericException
 
 	def reward(self, job):
@@ -155,35 +155,18 @@ class agent:
 
 		sim.counters.NUM_BACKWARD += 1
 
-		# Compute the q_values given state1, and extract the maximum for each sample in the batch.
-		# We perform this prediction on the target_model instead of the model for reasons
-		# outlined in Mnih (2015). In short: it makes the algorithm more stable.
-		# target_q_values =  self.model.predict_on_batch(
-		# 	np.array([np.array([np.array(self.systemState.currentState)])]))  # TODO: target_model
-		target_q_values = self.predict(self.systemState)
-		# print(self.predict(self.systemState), target_q_values)
-		q_batch = np.max(target_q_values).flatten()
-		# print(q_batch)
-		# sys.exit(0)
 
-		# Compute r_t + gamma * max_a Q(s_t+1, a) and update the target targets accordingly,
-		# but only for the affected output units (as given by action_batch).
-		discounted_reward_batch = self.gamma * q_batch
-		# Set discounted reward to zero for all states that were terminal.
-		discounted_reward_batch *= [0. if finished else 1.]
-		# assert discounted_reward_batch.shape == reward_batch.shape
-		R = reward + discounted_reward_batch
 
-		self.trainModel(job.latestAction, R, job.beforeState)
+		self.trainModel(job.latestAction, reward, job.beforeState, self.systemState, finished)
 
 		# new metrics
 		self.latestReward = reward
-		self.latestR = R
+		# self.latestR = R
 
 		# sim.debug.learnOut\
 		diff = self.systemState - job.beforeState
 		np.set_printoptions(precision=3)
-		sim.debug.infoOut("{}, created: {:6.3f} {:<7}: {}, deadline: {:9.5f} ({:10.5f}), action: {:<9}, expectedLife (before: {:9.5f} - after: {:9.5f}) = {:10.5f}, reward: {}".format(job.currentTime, job.createdTime, str(job), int(job.finished), job.deadlineRemaining(), (job.currentTime - job.createdTime), str(self.possibleActions[job.latestAction]), job.beforeState.	getField("selfExpectedLife")[0], self.systemState.getField("selfExpectedLife")[0], diff["selfExpectedLife"][0], reward))
+		# sim.debug.infoOut("{}, created: {:6.3f} {:<7}: {}, deadline: {:9.5f} ({:10.5f}), action: {:<9}, expectedLife (before: {:9.5f} - after: {:9.5f}) = {:10.5f}, reward: {}".format(job.currentTime, job.createdTime, str(job), int(job.finished), job.deadlineRemaining(), (job.currentTime - job.createdTime), str(self.possibleActions[job.latestAction]), job.beforeState.	getField("selfExpectedLife")[0], self.systemState.getField("selfExpectedLife")[0], diff["selfExpectedLife"][0], reward))
 		# print("state diff: {}".format(diff).replace("array", ""), 'p')
 
 		# save to history
@@ -196,8 +179,9 @@ class agent:
 
 		# print('reward', reward)
 
-		sim.debug.learnOut("loss: {} reward: {} R: {}".format(self.latestLoss, self.latestReward, self.latestR), 'r')
-
+		sim.debug.learnOut("loss: {} reward: {}".format(self.latestLoss, self.latestReward), 'r')
+		# sim.debug.learnOut("loss: {} reward: {} R: {}".format(self.latestLoss, self.latestReward, self.latestR), 'r')
+	#
 	# agent.step += 1
 	# agent.update_target_model_hard()
 

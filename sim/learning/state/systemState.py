@@ -1,38 +1,15 @@
-import time
-import traceback
-
 import sim.simulations.constants
 import sim.debug
 
 import numpy as np
 
-# used as shared variable
-# current = None
 from sim import debug
 
-singles = ['taskIdentifier', 'taskSize', 'selfDeviceIndex', 'selfExpectedLife', 'systemExpectedLife',
-		   'deadlineRemaining', 'selfBatch', 'selfCurrentConfig']
-multiples = ['expectedLife', 'batchLengths', 'allConfig']
-
 class systemState:
-	# simulation = None
 	currentTask = None
 	currentState = None
 	
-	# simulation states
-	# batchLengths = [None]
-	# expectedLife = None
-	# self states
-	# selfDeviceIndex = None
-	# selfBatch = None
-	# selfExpectedLife = None
-	# selfCurrentConfiguration = None
-	# task states
-	# taskSize = None
-	# taskIdentifier = None
-	# deadlineRemaining = None
-	currentTime = None # not added as input 
-	# task size, data size, identifier, current config, deadline
+	currentTime = None # not added as input
 
 	stateCount = None
 	dictRepresentation = None
@@ -40,12 +17,16 @@ class systemState:
 	devicesLifetimesFunction = None
 	systemExpectedLifeFunction = None
 	taskBatchLengthsFunction = None
+	singles, multiples = None, None
+	genericException = None
 
 
+	# singles are individual states, multiples are per device
+	def __init__(self, simulation, singles, multiples):
+		self.genericException = Exception("not implemented in " + str(self.__class__.__name__))
 
-	def __init__(self, simulation):
-	# 	self.simulation = simulation
-	# 	print("statecount", self.stateCount)
+		self.singles = singles
+		self.multiples = multiples
 		self.stateCount = sim.simulations.constants.NUM_DEVICES * len(multiples) + len(singles)
 		self.batchLengths = np.array([0] * sim.simulations.constants.NUM_DEVICES)
 		self.currentState = np.zeros((self.stateCount,))
@@ -64,12 +45,12 @@ class systemState:
 	# @staticmethod
 	def createDictionaryRepresentation(self):
 		# self.dictRepresentation = systemState.createDictionaryRepresentation(self.currentState)
-		self.dictRepresentation = systemState.getDictionaryRepresentation(self.currentState)
+		self.dictRepresentation = systemState.getDictionaryRepresentation(self.currentState, self.singles, self.multiples)
 		# print('i', i)
 		# self.dictRepresentation['batchLengths']
 
 	@staticmethod
-	def getDictionaryRepresentation(arrayRepresentation):
+	def getDictionaryRepresentation(arrayRepresentation, singles, multiples):
 		# link array elements to dictionary for easier access
 		dictRepresentation = dict()
 		debug.out("creating dictionary representation from " + str(arrayRepresentation.shape))
@@ -92,7 +73,7 @@ class systemState:
 
 	def __sub__(self, otherState):
 		difference = self.currentState - otherState.currentState
-		return systemState.getDictionaryRepresentation(difference)
+		return systemState.getDictionaryRepresentation(difference, self.singles, self.multiples)
 
 	def setSimulation(self, simulation):
 		self.devicesLifetimesFunction = simulation.devicesLifetimes
@@ -103,80 +84,17 @@ class systemState:
 	def __repr__(self):
 		return str(self.currentState)
 
-	def updateSystem(self):
-		# self.stateCount = simulation.constants.NUM_DEVICES * 2 + 7
-		# self.simulation = simulation
+	def updateState(self, device, job, task):
+		raise self.genericException
 
-		# self.expectedLife = self.devicesLifetimesFunction()
-		# self.systemExpectedLife = self.systemExpectedLifeFunction()
-
-		# sim.debug.out("update system: {} {}".format(self.expectedLife, self.currentTime))
-		expectedLifetimes = self.devicesLifetimesFunction()
-		self.setField('expectedLife', expectedLifetimes)
-		self.setField('systemExpectedLife', self.systemExpectedLifeFunction(expectedLifetimes))
-		# sim.debug.out(self.dictRepresentation)
-		# self.update()
-
-	# the order is important, therefore the other functions are private
-	def update(self, task, job, device):
-		sim.debug.learnOut("updating systemState with [{}] [{}] [{}]".format(task, job, device), 'c')
-		self.__updateTask(task)
-		self.__updateJob(job)
-		self.__updateDevice(device)
-
-		# sim.debug.learnOut(self.dictRepresentation)
-
-	# update the system state based on which task is to be done
-	def __updateTask(self, task):
-		self.currentTask = task
-		
-		# self.batchLengths = self.taskBatchLengthsFunction(task)
-		# self.taskIdentifier = task.identifier
-		# self.taskSize = task.rawSize
-
-		# sim.debug.out("update task {} {} {} {}".format(self.currentTask, self.batchLengths, self.taskIdentifier, self.taskSize))
-		self.setField('batchLengths', self.taskBatchLengthsFunction(task))
-		self.setField('taskIdentifier', task.identifier)
-		self.setField('taskSize', task.rawSize)
-	
-		# sim.debug.out(self.dictRepresentation)
-
-		# self.update()
-
-	def __updateJob(self, job):
-		# self.deadlineRemaining = np.max([0, job.deadlineTime - self.currentTime.current])
-		# sim.debug.out('update job {}'.format(self.deadlineRemaining))
-		remaining = job.deadlineTime - self.currentTime.current
-		self.setField('deadlineRemaining', remaining if remaining >= 0 else 0)
-
-		# sim.debug.out(self.dictRepresentation)
-		# self.update()
-
-	def __updateDevice(self, device):
-		# self.selfBatch = len(device.batch[self.currentTask]) if self.currentTask is not None and self.currentTask in device.batch else 0
-		# self.selfExpectedLife = device.expectedLifetime()
-		# self.selfDeviceIndex = device.index
-
-		# if device.hasFpga():
-		# 	if device.fpga.currentConfig is not None:
-		# 		self.selfCurrentConfiguration = device.fpga.currentConfig.identifier
-		# 	else:
-		# 		self.selfCurrentConfiguration = 0
-		# else:
-		# 	self.selfCurrentConfiguration = 0
-
-		# print('update device', self.selfBatch, self.selfExpectedLife, self.selfDeviceIndex)
-		self.setField('selfBatch', len(device.batch[self.currentTask]) if self.currentTask is not None and self.currentTask in device.batch else 0)
-		self.setField('selfExpectedLife', device.expectedLifetime())
-		self.setField('selfDeviceIndex', device.index)
-		
-		self.setField('selfCurrentConfig', device.getCurrentConfiguration())
-
-
-		# sim.debug.out(self.dictRepresentation)
-
-		# self.update()
-		# sys.exit(0)
+	# def updateSystem(self):
+	# 	raise self.genericException
+	# def updateTask(self, task):
+	# 	raise self.genericException
+	# def updateJob(self, job):
+	# 	raise self.genericException
+	# def updateDevice(self, device):
+	# 	raise self.genericException
 
 	def setField(self, field, value):
 		assert field in self.dictRepresentation

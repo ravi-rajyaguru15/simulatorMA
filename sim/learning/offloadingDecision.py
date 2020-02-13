@@ -153,7 +153,7 @@ class offloadingDecision:
 
 	def updateState(self, task, job, device):
 		# update state
-		self.systemState.update(task, job, device)
+		self.systemState.updateState(task, job, device)
 
 	def train(self, task, job, device):
 		sim.debug.learnOut("Training: [{}] [{}] [{}]".format(task, job, device), 'y')

@@ -96,10 +96,29 @@ class dqnAgent(agent):
 	def selectAction(self, qValues):
 		return self.policy.select_action(q_values=qValues)
 
-	def trainModel(self, latestAction, R, beforeState):
+	def trainModel(self, latestAction, reward, beforeState, afterState, finished):
 		assert self.trainable_model is not None
 
 		metrics = [np.nan for _ in self.metrics_names]
+
+		# Compute the q_values given state1, and extract the maximum for each sample in the batch.
+		# We perform this prediction on the target_model instead of the model for reasons
+		# outlined in Mnih (2015). In short: it makes the algorithm more stable.
+		# target_q_values =  self.model.predict_on_batch(
+		# 	np.array([np.array([np.array(self.systemState.currentState)])]))  # TODO: target_model
+		target_q_values = self.predict(self.systemState)
+		# print(self.predict(self.systemState), target_q_values)
+		q_batch = np.max(target_q_values).flatten()
+		# print(q_batch)
+		# sys.exit(0)
+
+		# Compute r_t + gamma * max_a Q(s_t+1, a) and update the target targets accordingly,
+		# but only for the affected output units (as given by action_batch).
+		discounted_reward_batch = self.gamma * q_batch
+		# Set discounted reward to zero for all states that were terminal.
+		discounted_reward_batch *= [0. if finished else 1.]
+		# assert discounted_reward_batch.shape == reward_batch.shape
+		R = reward + discounted_reward_batch
 
 		targets = np.zeros((1, self.numActions))
 		dummy_targets = np.zeros((1,))
