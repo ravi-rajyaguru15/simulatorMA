@@ -81,11 +81,11 @@ class systemState:
 
 		return dictRepresentation
 
-	@classmethod
-	def fromSystemState(cls, simulation):
-		second = cls(simulation)
+	# @classmethod
+	def fromSystemState(self, simulation):
+		second = self.__class__(simulation)
 
-		second.setState(simulation.currentSystemState.currentState)
+		second.setState(self.currentState)
 
 		# second.dictRepresentation = systemState.createDictionaryRepresentation(second.currentState)
 		return second

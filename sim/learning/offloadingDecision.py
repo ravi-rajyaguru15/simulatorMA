@@ -3,12 +3,10 @@ import random
 import numpy as np
 
 import sim.simulations
-import sim.learning.systemState
 import sim.counters
 import sim.debug
 import sim.offloading.offloadingPolicy
 from sim.learning.action import action
-from sim.learning.agent.dqnAgent import dqnAgent as Agent
 from sim.offloading.offloadingPolicy import *
 from sim.simulations import constants
 
@@ -17,20 +15,28 @@ sharedAgent = None
 sharedClock = None
 
 
+# print(sim.constants.OFFLOADING_POLICY, self.owner, self.options)
+
 class offloadingDecision:
 	options = None
 	owner = None
 	target = None
 	simulation = None
 	agent = None
+	agentClass = None
 
-	def __init__(self, device, systemState):
+	def __init__(self, device, systemState, agentClass):
 		self.owner = device
 		self.systemState = systemState
+		self.agentClass = agentClass
 
 	@staticmethod
 	def selectElasticNodes(devices):
 		return [node for node in devices if node.hasFpga()]
+
+	@staticmethod
+	def createSharedAgent(state, agentClass):
+		sim.learning.offloadingDecision.sharedAgent = agentClass(state)
 
 	def setOptions(self, allDevices):
 		# set options for all policies that use it, or select constant target
@@ -63,13 +69,12 @@ class offloadingDecision:
 		if constants.OFFLOADING_POLICY == REINFORCEMENT_LEARNING:
 			# create either private or shared agent
 			if not constants.CENTRALISED_LEARNING:
-				self.agent = Agent(self.systemState, allDevices)
+				self.agent = self.agentClass(self.systemState, allDevices)
 			else:
 				# create shared agent if required
 				assert sharedAgent is not None
 				self.agent = sharedAgent
 
-	# print(sim.constants.OFFLOADING_POLICY, self.owner, self.options)
 
 	def chooseDestination(self, task, job, device):
 		# if specified fixed target, return it

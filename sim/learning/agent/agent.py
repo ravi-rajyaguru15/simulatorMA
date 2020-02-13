@@ -1,23 +1,22 @@
-import tensorflow as tf
 import numpy as np
 
 import sim
 from sim import debug, counters
 from sim.learning import offloadingDecision
 from sim.learning.action import offloading, LOCAL, BATCH
-from sim.learning.systemState import systemState
+from sim.learning.state.systemState import systemState
 from sim.simulations import constants
 
 
 class agent:
 	possibleActions = None  # TODO: offloading to self
+	metrics_names = None
 
 	systemState = None
 	dqn = None
 	model = None
 	trainable_model = None
 	policy = None
-	optimizer = None
 	loss = None
 	# beforeState = None
 	# latestAction = None
@@ -93,9 +92,11 @@ class agent:
 		counters.NUM_FORWARD += 1
 
 		currentSim = sim.simulations.Simulation.currentSimulation
-		job.beforeState = systemState.fromSystemState(currentSim)
+		# job.beforeState = systemState.fromSystemState(currentSim)
+		job.beforeState = self.systemState.fromSystemState(currentSim)
 		sim.debug.out("beforestate {}".format(job.beforeState))
-		qValues = self.predict(job.beforeState.currentState.reshape((1, 1, self.systemState.stateCount)))
+		qValues = self.predict(job.beforeState)
+
 		# sim.debug.learnOut('q {}'.format(qValues))
 		actionIndex = self.selectAction(qValues)
 		job.latestAction = actionIndex
@@ -114,16 +115,34 @@ class agent:
 	genericException = Exception("Not implemented in generic agent")
 	def predict(self, state):
 		raise self.genericException
+	# def predictBatch(self, stateBatch):
+	# 	raise self.genericException
 	def createModel(self):
 		raise self.genericException
 	def selectAction(self, qValues):
 		raise self.genericException
+	def trainModel(self, latestAction, R, beforeState):
+		raise self.genericException
+
+	def reward(self, job):
+		# default reward behaviour
+		jobReward = 1 if job.finished else 0
+		deadlineReward = 0 if job.deadlineMet() else -0.5
+		expectedLifetimeReward = -.5 if (job.startExpectedLifetime - job.systemLifetime()) > (
+					job.currentTime - job.createdTime) else 0  # reward if not reducing lifetime more than actual duration
+		simulationDoneReward = -100 if job.episodeFinished() else 0
+
+		sim.debug.learnOut(
+			'reward: job {} deadline {} expectedLife {} simulationDone {}'.format(jobReward, deadlineReward,
+																				  expectedLifetimeReward,
+																				  simulationDoneReward), 'b')
+		# traceback.print_stack()
+
+		return jobReward + deadlineReward + expectedLifetimeReward + simulationDoneReward
 
 	# update based on resulting system state and reward
 	def backward(self, job):
-		assert self.trainable_model is not None
-
-		reward = job.reward()
+		reward = self.reward(job)
 		finished = job.episodeFinished()
 
 		sim.debug.learnOut("backward {} {}".format(reward, finished), 'y')
@@ -136,18 +155,16 @@ class agent:
 
 		sim.counters.NUM_BACKWARD += 1
 
-		metrics = [np.nan for _ in self.metrics_names]
-
 		# Compute the q_values given state1, and extract the maximum for each sample in the batch.
 		# We perform this prediction on the target_model instead of the model for reasons
 		# outlined in Mnih (2015). In short: it makes the algorithm more stable.
-		target_q_values = self.model.predict_on_batch(
-			np.array([np.array([np.array(self.systemState.currentState)])]))  # TODO: target_model
-		q_batch = np.max(target_q_values, axis=1).flatten()
-
-		targets = np.zeros((1, self.numActions))
-		dummy_targets = np.zeros((1,))
-		masks = np.zeros((1, self.numActions))
+		# target_q_values =  self.model.predict_on_batch(
+		# 	np.array([np.array([np.array(self.systemState.currentState)])]))  # TODO: target_model
+		target_q_values = self.predict(self.systemState)
+		# print(self.predict(self.systemState), target_q_values)
+		q_batch = np.max(target_q_values).flatten()
+		# print(q_batch)
+		# sys.exit(0)
 
 		# Compute r_t + gamma * max_a Q(s_t+1, a) and update the target targets accordingly,
 		# but only for the affected output units (as given by action_batch).
@@ -156,32 +173,12 @@ class agent:
 		discounted_reward_batch *= [0. if finished else 1.]
 		# assert discounted_reward_batch.shape == reward_batch.shape
 		R = reward + discounted_reward_batch
-		targets[0, job.latestAction] = R  # update action with estimated accumulated reward
-		dummy_targets[0] = R
-		masks[0, job.latestAction] = 1.  # enable loss for this specific action
 
-		targets = np.array(targets).astype('float32')
-		masks = np.array(masks).astype('float32')
-
-		# Finally, perform a single update on the entire batch. We use a dummy target since
-		# the actual loss is computed in a Lambda layer that needs more complex input. However,
-		# it is still useful to know the actual target to compute metrics properly.
-		x = [np.array([[job.beforeState.currentState]])] + [targets, masks]
-		y = [dummy_targets, targets]
-
-		self.trainable_model._make_train_function()
-		metrics = self.trainable_model.train_on_batch(x, y)
-		# metrics = metrics[1:3]
-		metrics = [metric for idx, metric in enumerate(metrics) if idx not in (1, 2)]  # throw away individual losses
-		metrics += self.policy.metrics
-		# print(metrics, self.metrics_names)
+		self.trainModel(job.latestAction, R, job.beforeState)
 
 		# new metrics
-		self.latestLoss = metrics[0]
 		self.latestReward = reward
 		self.latestR = R
-		self.latestMAE = metrics[1]
-		self.latestMeanQ = metrics[2]
 
 		# sim.debug.learnOut\
 		diff = self.systemState - job.beforeState
@@ -206,3 +203,5 @@ class agent:
 
 	# return metrics
 
+	def getPolicyMetrics(self):
+		return []

@@ -1,6 +1,7 @@
 from rl.policy import EpsGreedyQPolicy
 from rl.util import huber_loss
 from tensorflow import keras
+from keras.backend import mean, max
 import tensorflow as tf
 import numpy as np
 
@@ -10,6 +11,11 @@ from sim.simulations import constants
 
 
 class dqnAgent(agent):
+	optimizer = None
+
+	def getPolicyMetrics(self):
+		return self.policy.metrics
+
 	@property
 	def metrics_names(self):
 		# Throw away individual losses and replace output name since this is hidden from the user.
@@ -25,7 +31,7 @@ class dqnAgent(agent):
 	def __init__(self, systemState):
 		self.gamma = constants.GAMMA
 
-		debug.out(constants.OFFLOADING_POLICY)
+		debug.out("DQN agent: %s" % constants.OFFLOADING_POLICY)
 		self.policy = EpsGreedyQPolicy(eps=constants.EPS)
 		# self.dqn = rl.agents.DQNAgent(model=self.model, policy=rl.policy.LinearAnnealedPolicy(, attr='eps', value_max=sim.constants.EPS_MAX, value_min=sim.constants.EPS_MIN, value_test=.05, nb_steps=sim.constants.EPS_STEP_COUNT), enable_double_dqn=False, gamma=.99, batch_size=1, nb_actions=self.numActions)
 		self.optimizer = keras.optimizers.Adam(lr=constants.LEARNING_RATE)
@@ -82,11 +88,48 @@ class dqnAgent(agent):
 		self.trainable_model.compile(optimizer=self.optimizer, loss=losses, metrics=combined_metrics)
 
 	def predict(self, state):
-		return self.model.predict(state)[0]
+		return self.model.predict(state.currentState.reshape((1, 1, state.stateCount)))[0]
+
+	# def predictBatch(self, stateBatch):
+	# 	return self.model.predict_on_batch(stateBatch)
 
 	def selectAction(self, qValues):
 		return self.policy.select_action(q_values=qValues)
 
+	def trainModel(self, latestAction, R, beforeState):
+		assert self.trainable_model is not None
+
+		metrics = [np.nan for _ in self.metrics_names]
+
+		targets = np.zeros((1, self.numActions))
+		dummy_targets = np.zeros((1,))
+		masks = np.zeros((1, self.numActions))
+
+		targets[0, latestAction] = R  # update action with estimated accumulated reward
+		dummy_targets[0] = R
+		masks[0, latestAction] = 1.  # enable loss for this specific action
+
+		targets = np.array(targets).astype('float32')
+		masks = np.array(masks).astype('float32')
+
+		# Finally, perform a single update on the entire batch. We use a dummy target since
+		# the actual loss is computed in a Lambda layer that needs more complex input. However,
+		# it is still useful to know the actual target to compute metrics properly.
+		x = [np.array([[beforeState.currentState]])] + [targets, masks]
+		y = [dummy_targets, targets]
+
+		self.trainable_model._make_train_function()
+		metrics = self.trainable_model.train_on_batch(x, y)
+		# metrics = metrics[1:3]
+		metrics = [metric for idx, metric in enumerate(metrics) if idx not in (1, 2)]  # throw away individual losses
+		metrics += self.getPolicyMetrics()
+		# print(metrics, self.metrics_names)
+
+		self.latestLoss = metrics[0]
+		self.latestMAE = metrics[1]
+		self.latestMeanQ = metrics[2]
+
+
 def mean_q(correctQ, predictedQ):
-	return tf.keras.backend.mean(tf.keras.backend.max(predictedQ, axis=-1))
+	return mean(max(predictedQ, axis=-1))
 

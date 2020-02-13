@@ -4,7 +4,7 @@ import sim.debug
 import sim.simulations.results
 import sim.tasks.subtask
 import sim.simulations.history
-import sim.learning.systemState
+import sim.learning.state.systemState
 import sim.learning.offloadingDecision
 import sim.offloading.offloadingPolicy
 
@@ -144,17 +144,6 @@ class job:
 			self.processor = processingNode.fpga
 		else:
 			self.processor = processingNode.mcu
-
-	def reward(self):
-		jobReward = 1 if self.finished else 0
-		deadlineReward = 0 if self.deadlineMet() else -0.5
-		expectedLifetimeReward = -.5 if (self.startExpectedLifetime - self.systemLifetime()) > (self.currentTime - self.createdTime) else 0 # reward if not reducing lifetime more than actual duration
-		simulationDoneReward = -100 if self.episodeFinished() else 0
-
-		sim.debug.learnOut('reward: job {} deadline {} expectedLife {} simulationDone {}'.format(jobReward, deadlineReward, expectedLifetimeReward, simulationDoneReward), 'b')
-		# traceback.print_stack()
-
-		return jobReward + deadlineReward + expectedLifetimeReward + simulationDoneReward
 
 	def addToHistory(self, reward, q, loss):
 		self.history.add("reward", reward)

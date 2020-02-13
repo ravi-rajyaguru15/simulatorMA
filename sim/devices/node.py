@@ -1,5 +1,4 @@
 import sys
-import traceback
 from queue import PriorityQueue
 
 import sim.learning.offloadingDecision
@@ -14,8 +13,8 @@ import sim.debug
 
 import time
 import numpy as np
-import sim.learning.systemState as systemState
 from sim.learning.action import BATCH
+from sim.simulations import constants
 
 
 class node:
@@ -56,10 +55,10 @@ class node:
 	location = None
 	episodeFinished = None
 
-	def __init__(self, clock, platform, index, components, episodeFinished, currentSystemState, alwaysHardwareAccelerate=None):
+	def __init__(self, clock, platform, index, components, episodeFinished, currentSystemState, offloadingDecisionClass, agentClass, alwaysHardwareAccelerate=None):
 		self.platform = platform
 
-		self.decision = sim.learning.offloadingDecision.offloadingDecision(self, currentSystemState)
+		self.decision = offloadingDecisionClass(self, currentSystemState, agentClass)
 		# self.simulation = simulation
 		self.currentTime = clock
 

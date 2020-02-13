@@ -3,22 +3,23 @@ import traceback
 import warnings
 from queue import PriorityQueue
 
-from sim.devices import elasticNode
+import sim
+from sim.learning.agent import dqnAgent
+from sim.learning.state.binarySystemState import binarySystemState
 from sim.simulations.Simulation import BasicSimulation
 from sim import debug
-from sim.simulations import constants, Simulation
-from sim.learning import offloadingDecision, systemState
+from sim.simulations import constants
+from sim.learning import offloadingDecision
 from sim.offloading import offloadingPolicy
 import numpy as np
 
 from sim.tasks.subtask import subtask
 
-
 class SimpleSimulation(BasicSimulation):
 	queue = None
 
-	def __init__(self, hardwareAccelerated=True):
-		BasicSimulation.__init__(self, hardwareAccelerated=hardwareAccelerated)
+	def __init__(self, systemStateClass=binarySystemState, offloadingDecisionClass=offloadingDecision, agentClass=dqnAgent):
+		BasicSimulation.__init__(self, systemStateClass=systemStateClass, offloadingDecisionClass=offloadingDecisionClass, agentClass=agentClass)
 
 		# specify subtask behaviour
 		subtask.update = subtask.perform

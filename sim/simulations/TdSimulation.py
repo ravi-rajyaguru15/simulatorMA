@@ -1,7 +1,9 @@
+from sim.learning.agent.dqnAgent import dqnAgent
 from sim.simulations.Simulation import queueLengths, BasicSimulation
 from sim import debug
-from sim.simulations import constants, Simulation
-from sim.learning import offloadingDecision, systemState
+from sim.simulations import constants
+from sim.learning import offloadingDecision
+from sim.learning.state import systemState
 from sim.offloading import offloadingPolicy
 from sim.devices.elasticNode import elasticNode
 import numpy as np
@@ -9,8 +11,8 @@ from sim.tasks.subtask import subtask
 
 
 class TdSimulation(BasicSimulation):
-	def __init__(self, hardwareAccelerated=True):
-		BasicSimulation.__init__(self, hardwareAccelerated=hardwareAccelerated)
+	def __init__(self, systemStateClass=systemState, offloadingDecisionClass=offloadingDecision, agentClass=dqnAgent):
+		BasicSimulation.__init__(self, systemStateClass, offloadingDecisionClass, agentClass)
 		# specify subtask behaviour
 		subtask.update = subtask.tick
 

@@ -6,14 +6,15 @@ import sim
 from sim import debug
 from sim.clock import clock
 from sim.devices.elasticNode import elasticNode
-from sim.learning import offloadingDecision, systemState
-from sim.learning.agent.dqnAgent import dqnAgent as Agent
+from sim.learning import offloadingDecision
 from sim.offloading import offloadingPolicy
 from sim.simulations import constants, results
 from sim.simulations.history import history
 from sim.tasks.job import job
 # from message import message
 from sim.visualiser import visualiser
+from sim.learning.agent.dqnAgent import dqnAgent
+from sim.learning.agent.qTableAgent import qTableAgent
 
 queueLengths = list()
 currentSimulation = None
@@ -44,7 +45,9 @@ class BasicSimulation:
 	energylevels = list()
 	completedJobs = None
 
-	def __init__(self, hardwareAccelerated=None): # numEndDevices, numElasticNodes, numServers,
+	def __init__(self, systemStateClass, offloadingDecisionClass, agentClass):
+		hardwareAccelerated = True
+
 		# debug.out(numEndDevices + numElasticNodes)
 		self.results = multiprocessing.Manager().Queue()
 		# self.jobResults = multiprocessing.Manager().Queue()
@@ -56,23 +59,24 @@ class BasicSimulation:
 		offloadingDecision.sharedClock = self.time
 		
 		# requires simulation to be populated
-		self.currentSystemState = systemState.systemState(self)
+		self.currentSystemState = systemStateClass(self)
 		useSharedAgent = (constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING) and (constants.CENTRALISED_LEARNING)
 
 		results.learningHistory = history()
 
 		print("Learning: shared: %s offloading: %s centralised: %s" % (useSharedAgent, constants.OFFLOADING_POLICY, constants.CENTRALISED_LEARNING))
-		self.devices = [elasticNode(self.time, constants.DEFAULT_ELASTIC_NODE, self.results, i, episodeFinished=self.isEpisodeFinished, currentSystemState=self.currentSystemState, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(constants.NUM_DEVICES)]
+		self.devices = [elasticNode(self.time, constants.DEFAULT_ELASTIC_NODE, self.results, i, episodeFinished=self.isEpisodeFinished, currentSystemState=self.currentSystemState, offloadingDecisionClass=offloadingDecisionClass, agentClass=agentClass, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(constants.NUM_DEVICES)]
 
 		if useSharedAgent:
 			# create shared learning agent
-			offloadingDecision.sharedAgent = Agent(self.currentSystemState)
+			offloadingDecision.offloadingDecision.createSharedAgent(self.currentSystemState, agentClass)
 
 		# self.ed = [] # endDevice(None, self, self.results, i, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(numEndDevices)]
 		# self.ed = endDevice()
 		# self.ed2 = endDevice()
 		if constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING:
 			if useSharedAgent:
+				assert offloadingDecision.sharedAgent is not None
 				offloadingDecision.sharedAgent.setDevices(self.devices)
 			else:
 				for device in self.devices: device.decision.privateAgent.setDevices(self.devices)
@@ -88,6 +92,7 @@ class BasicSimulation:
 		self.taskQueueLength = [0] * len(self.devices)
 
 		self.hardwareAccelerated = hardwareAccelerated
+		print("saving hardware acceleration as", self.hardwareAccelerated)
 		self.visualiser = visualiser(self)
 		self.frames = 0
 		self.plotFrames = constants.PLOT_SKIP
