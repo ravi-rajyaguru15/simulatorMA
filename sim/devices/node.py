@@ -273,9 +273,6 @@ class node:
 		# if it gets here, nothing is awake
 		return True
 
-	def batchLengths(self):
-		return [len(batch) for key, batch in self.batch.items()]
-
 	# reconsider each job in batch, maybe start it. return which device (if any) is affected
 	def reconsiderBatch(self):
 		sim.debug.learnOut("deciding whether to continue batch ({}) or not".format(self.batchLengths()), 'b')
@@ -452,7 +449,10 @@ class node:
 			self.batch[task] = list()
 		
 		self.batch[task].append(job)
-	
+
+	def batchLengths(self):
+		return [len(batch) for key, batch in self.batch.items()]
+
 	def maxBatchLength(self):
 		# investigate batch if not empty
 		if self.batch:
@@ -468,6 +468,9 @@ class node:
 		else:
 			sim.debug.out("batch {} does not exist".format(task))
 			return 0
+
+	def isQueueFull(self, task):
+		return self.batchLength(task) >= constants.MAX_JOBS
 
 	def nextJobFromBatch(self):
 		# print("currentjob", self.currentJob)

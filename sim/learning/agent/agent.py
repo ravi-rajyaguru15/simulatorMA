@@ -79,7 +79,6 @@ class agent:
 
 	def updateState(self, task, job, device):
 		# update state
-		print("systemstate", self.systemState.__class__)
 		self.systemState.updateState(task, job, device)
 
 	# predict best action using Q values
@@ -92,17 +91,19 @@ class agent:
 		counters.NUM_FORWARD += 1
 
 		currentSim = sim.simulations.Simulation.currentSimulation
-		# job.beforeState = systemState.fromSystemState(currentSim)
 		job.beforeState = self.systemState.fromSystemState(currentSim)
 		sim.debug.out("beforestate {}".format(job.beforeState))
-		qValues = self.predict(job.beforeState)
 
-		# sim.debug.learnOut('q {}'.format(qValues))
-		actionIndex = self.selectAction(qValues)
+		# special case if job queue is full
+		if device.isQueueFull(task):
+			actionIndex = self.numActions - 1
+			print("special case! queue is full")
+		else:
+			# choose best action based on current state
+			qValues = self.predict(job.beforeState)
+			actionIndex = self.selectAction(qValues)
 		job.latestAction = actionIndex
 		job.history.add("action", actionIndex)
-		# sim.debug.learnOut("chose action {}".format(actionIndex))
-		# self.history["action"].append(float(self.latestAction))
 
 		assert self.possibleActions is not None
 		choice = self.possibleActions[actionIndex]
@@ -155,8 +156,7 @@ class agent:
 
 		sim.counters.NUM_BACKWARD += 1
 
-
-
+		# update model here
 		self.trainModel(job.latestAction, reward, job.beforeState, self.systemState, finished)
 
 		# new metrics

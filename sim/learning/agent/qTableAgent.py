@@ -45,8 +45,10 @@ class qTableAgent(agent):
 		Qsa = self.model[beforeIndex, latestAction]
 		currentIndex = currentState.getIndex()
 		maxQ = np.argmax(self.model[currentIndex,:])
+		increment = constants.LEARNING_RATE * (reward + constants.GAMMA * maxQ - Qsa)
+		debug.out("updating qtable: %d\t%d\t%f\t%f" % (beforeIndex, latestAction, increment, reward))
 		# Q learning 101:
-		self.model[beforeIndex, latestAction] = Qsa + constants.LEARNING_RATE * (reward + constants.GAMMA * maxQ - Qsa)
+		self.model[beforeIndex, latestAction] = Qsa + increment
 
 	def predict(self, state):
 		# find row from q table for this state
@@ -66,6 +68,15 @@ class qTableAgent(agent):
 			# print('selecting max from', qValues, np.argmax(qValues))
 			return np.argmax(qValues)
 
+	def printModel(self):
+		print()
+		print(self.possibleActions)
+		for i in range(self.systemState.getUniqueStates()):
+			entry = "["
+			for j in range(self.numActions):
+				entry += "{:8.4f}".format(self.model[i, j]) + " "
+			entry += " ]"
+			print(self.systemState.getStateDescription(i), entry)
 
 def mean_q(correctQ, predictedQ):
 	return mean(max(predictedQ, axis=-1))
