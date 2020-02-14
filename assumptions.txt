@@ -1,0 +1,2 @@
+tdsimulation not handling conflicts
+jobs handled from queue in priority of index
