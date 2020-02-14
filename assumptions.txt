@@ -1,2 +1,3 @@
 tdsimulation not handling conflicts
 jobs handled from queue in priority of index
+some tasks take zero time (energy)

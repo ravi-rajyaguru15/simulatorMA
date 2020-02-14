@@ -1,4 +1,5 @@
 import sim.simulations.constants
+from sim import debug
 from sim.devices.components import powerPolicy
 from sim.devices.components.processor import processor
 from sim.devices.components.component import component
@@ -41,7 +42,7 @@ class fpga(processor):
 	# power states
 	def reconfigure(self, task):
 		self.currentConfig = task
-		print("changed fpga config to", task.identifier)
+		debug.out("changed fpga config to", task.identifier)
 		self.busyColour = task.colour
 		# print ("changed fpga colour")
 		self.state = sim.devices.components.powerState.RECONFIGURING

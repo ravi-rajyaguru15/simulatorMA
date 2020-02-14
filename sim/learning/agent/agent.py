@@ -97,7 +97,7 @@ class agent:
 		# special case if job queue is full
 		if device.isQueueFull(task):
 			actionIndex = self.numActions - 1
-			print("special case! queue is full")
+			debug.out("special case! queue is full")
 		else:
 			# choose best action based on current state
 			qValues = self.predict(job.beforeState)
