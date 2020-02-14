@@ -5,7 +5,7 @@ import numpy as np
 import sim
 import sim.debug as debug
 # from sim.learning.state.binarySystemState import binarySystemState
-from sim.learning.state.minimalAgent import minimalAgent
+from sim.learning.agent.minimalAgent import minimalAgent
 from sim.learning.state.minimalSystemState import minimalSystemState
 import sim.simulations.constants as constants
 from sim.simulations.SimpleSimulation import SimpleSimulation as Simulation
