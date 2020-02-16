@@ -1,13 +1,14 @@
-import collections 
-import datetime 
+import collections
+import datetime
+import os
+import pickle
+
 import matplotlib as mpl
 import matplotlib.pyplot as pp
 import numpy as np
-import pickle
 
 import sim.simulations.constants
 
-import os
 # print (os.environ["DISPLAY"])
 if "DISPLAY" not in os.environ:
 	# os.environ["DISPLAY"] = "localhost:10.0"

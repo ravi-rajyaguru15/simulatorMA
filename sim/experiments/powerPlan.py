@@ -1,14 +1,15 @@
-import sim.simulations.constants
-import sim.simulations.variable
-import sim.debug
-from sim.simulation import simulation
-import sim.plotting
-import sim.experiments.experiment
-
-import numpy as np
 import multiprocessing
 import sys
 import traceback
+
+import numpy as np
+from sim.simulation import simulation
+
+import sim.debug
+import sim.experiments.experiment
+import sim.plotting
+import sim.simulations.constants
+import sim.simulations.variable
 
 numDevices = 4
 def runThread(jobLikelihood, offloadingPolicy, fpgaPowerPlan, results, finished):

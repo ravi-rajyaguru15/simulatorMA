@@ -1,9 +1,11 @@
+import sys
+
+import numpy as np
+import tensorflow as tf
+from keras.backend import mean, max as kerasMax
 from rl.policy import EpsGreedyQPolicy
 from rl.util import huber_loss
 from tensorflow import keras
-from keras.backend import mean, max
-import tensorflow as tf
-import numpy as np
 
 from sim import debug
 from sim.learning.agent.agent import agent
@@ -12,7 +14,6 @@ from sim.simulations.variable import Uniform
 
 
 class qTableAgent(agent):
-	metrics_names = None
 	# @property
 	# def metrics_names(self):
 	# 	# Throw away individual losses and replace output name since this is hidden from the user.
@@ -70,14 +71,23 @@ class qTableAgent(agent):
 
 	def printModel(self):
 		print()
-		print(self.possibleActions)
+		maxEntryWorth = 0
 		for i in range(self.systemState.getUniqueStates()):
+			description = self.systemState.getStateDescription(i)
 			entry = "["
 			for j in range(self.numActions):
-				entry += "{:8.4f}".format(self.model[i, j]) + " "
+				entry += "{:10.4f}".format(self.model[i, j]) + " "
 			entry += " ]"
-			print(self.systemState.getStateDescription(i), entry)
+			print(description, entry)
+
+			maxEntryWorth = max(len(description), maxEntryWorth)
+
+		formattedString = ""
+		for formattedAction in ["%11s" % action for action in self.possibleActions]:
+			formattedString += formattedAction
+		print("%s%s" % (" " * (maxEntryWorth+1), formattedString))
+
 
 def mean_q(correctQ, predictedQ):
-	return mean(max(predictedQ, axis=-1))
+	return mean(kerasMax(predictedQ, axis=-1))
 

@@ -1,16 +1,16 @@
 import random
+import warnings
 
 import numpy as np
 
-import sim.simulations
 import sim.counters
 import sim.debug
 import sim.offloading.offloadingPolicy
+import sim.simulations
 from sim.learning.action import action
 from sim.offloading.offloadingPolicy import *
 from sim.simulations import constants
 
-sharedAgent = None
 # devices = None
 sharedClock = None
 
@@ -18,6 +18,8 @@ sharedClock = None
 # print(sim.constants.OFFLOADING_POLICY, self.owner, self.options)
 
 class offloadingDecision:
+	sharedAgent = None
+
 	options = None
 	owner = None
 	target = None
@@ -36,7 +38,9 @@ class offloadingDecision:
 
 	@staticmethod
 	def createSharedAgent(state, agentClass):
-		sim.learning.offloadingDecision.sharedAgent = agentClass(state)
+		offloadingDecision.sharedAgent = agentClass(state)
+		# print("created shared", offloadingDecision.sharedAgent)
+		# sim.learning.offloadingDecision.sharedAgent = agentClass(state)
 
 	def setOptions(self, allDevices):
 		# set options for all policies that use it, or select constant target
@@ -72,8 +76,8 @@ class offloadingDecision:
 				self.agent = self.agentClass(self.systemState, allDevices)
 			else:
 				# create shared agent if required
-				assert sharedAgent is not None
-				self.agent = sharedAgent
+				assert sim.learning.offloadingDecision.offloadingDecision.sharedAgent is not None
+				self.agent = sim.learning.offloadingDecision.offloadingDecision.sharedAgent
 
 
 	def chooseDestination(self, task, job, device):

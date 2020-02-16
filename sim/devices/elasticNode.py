@@ -1,9 +1,9 @@
 import sim.debug
 import sim.simulations.constants
-from sim.devices.node import node
+from sim.devices.components.fpga import fpga
 from sim.devices.components.mcu import mcu
 from sim.devices.components.mrf import mrf
-from sim.devices.components.fpga import fpga
+from sim.devices.node import node
 
 
 class elasticNode(node):

@@ -1,6 +1,8 @@
 # check resulting job energy based on system state
 from queue import PriorityQueue
 
+import matplotlib.pyplot as pp
+
 import sim
 from sim import debug
 from sim.devices.components import powerPolicy
@@ -8,7 +10,6 @@ from sim.devices.platforms.platform import elasticNodev4
 from sim.offloading import offloadingPolicy
 from sim.simulations import constants
 from sim.simulations.SimpleSimulation import SimpleSimulation as Simulation
-import matplotlib.pyplot as pp
 
 if __name__ == "__main__":
 	constants.FPGA_POWER_PLAN = powerPolicy.STAYS_ON

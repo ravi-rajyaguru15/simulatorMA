@@ -1,5 +1,5 @@
-import sim.simulations.constants
 import sim.devices.components.powerState
+import sim.simulations.constants
 
 
 class component:

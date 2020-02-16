@@ -1,12 +1,13 @@
-from sim.learning.agent.dqnAgent import dqnAgent
-from sim.simulations.Simulation import queueLengths, BasicSimulation
+import numpy as np
+
 from sim import debug
-from sim.simulations import constants
+from sim.devices.elasticNode import elasticNode
 from sim.learning import offloadingDecision
+from sim.learning.agent.dqnAgent import dqnAgent
 from sim.learning.state import systemState
 from sim.offloading import offloadingPolicy
-from sim.devices.elasticNode import elasticNode
-import numpy as np
+from sim.simulations import constants
+from sim.simulations.Simulation import queueLengths, BasicSimulation
 from sim.tasks.subtask import subtask
 
 

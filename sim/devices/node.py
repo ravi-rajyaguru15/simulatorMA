@@ -1,18 +1,18 @@
 import sys
+import time
 from queue import PriorityQueue
 
+import numpy as np
+
+import sim.debug
+import sim.devices.components.processor
 import sim.learning.offloadingDecision
-import sim.tasks.subtask
 import sim.simulations.constants
 # from sim.job import job
 import sim.tasks.job
+import sim.tasks.subtask
 from sim import debug
 from sim.devices.components.fpga import fpga
-import sim.devices.components.processor
-import sim.debug
-
-import time
-import numpy as np
 from sim.learning.action import BATCH
 from sim.simulations import constants
 
@@ -24,10 +24,10 @@ class node:
 	taskQueue = None
 	currentJob = None
 	# queuedTask = None # used in simple simulation
+	hasJobScheduled = None # used in simple simulation
 	previousTimestamp = None
 	numJobs = None
 	currentSubtask = None
-	simulation = None
 	index = None
 
 	energyLevel = None
@@ -60,7 +60,6 @@ class node:
 		self.platform = platform
 
 		self.decision = offloadingDecisionClass(self, currentSystemState, agentClass)
-		# self.simulation = simulation
 		self.currentTime = clock
 
 		# self.resultsQueue = queue
@@ -81,6 +80,7 @@ class node:
 		self.jobQueue = PriorityQueue()
 		self.taskQueue = PriorityQueue()
 		sim.debug.out("jobqueue" + str(self.jobQueue))
+		self.hasJobScheduled = False
 		
 		self.resetEnergyLevel()
 		self.averagePower = 0.05
@@ -158,6 +158,7 @@ class node:
 		self.setCurrentBatch(job)
 
 		# start first job in queue
+		print("newjob in setactivejob")
 		return sim.tasks.subtask.newJob(job)
 
 	# appends one job to the end of the task queue (used for queueing future tasks)
@@ -444,6 +445,7 @@ class node:
 			# 0 task indicates software solutions
 			task = 0
 
+		# print("adding job to batch", self.batch)
 		# create list if new task
 		if task not in self.batch.keys():
 			self.batch[task] = list()
@@ -467,6 +469,8 @@ class node:
 			return len(self.batch[task])
 		else:
 			sim.debug.out("batch {} does not exist".format(task))
+			# print(self.batch)
+			# print()
 			return 0
 
 	def isQueueFull(self, task):

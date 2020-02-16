@@ -5,6 +5,7 @@
 # oldBackend = mpl.get_backend()
 # print("existing", oldBackend)
 
+import math
 # if sys.platform != 'darwin':
 # 	try:
 # 		mpl.use("TkAgg")
@@ -17,10 +18,10 @@ import sys
 import traceback
 
 import matplotlib.pyplot as pp
+import numpy as np
 # pp.switch_backend("tkagg")
 import pylab
-import math
-import numpy as np
+
 # import sys
 # sys.exit(0)
 import sim.learning.offloadingDecision

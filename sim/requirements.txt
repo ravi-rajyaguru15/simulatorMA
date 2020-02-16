@@ -1,4 +1,7 @@
+pip
 matplotlib
 numpy
 tensorflow
 keras-rl
+pillow
+pyyaml

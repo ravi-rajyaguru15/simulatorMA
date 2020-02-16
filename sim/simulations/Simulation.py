@@ -7,22 +7,23 @@ from sim import debug
 from sim.clock import clock
 from sim.devices.elasticNode import elasticNode
 from sim.learning import offloadingDecision
+from sim.learning.agent.dqnAgent import dqnAgent
+from sim.learning.agent.qTableAgent import qTableAgent
 from sim.offloading import offloadingPolicy
 from sim.simulations import constants, results
 from sim.simulations.history import history
 from sim.tasks.job import job
 # from message import message
 from sim.visualiser import visualiser
-from sim.learning.agent.dqnAgent import dqnAgent
-from sim.learning.agent.qTableAgent import qTableAgent
 
 queueLengths = list()
 currentSimulation = None
 
 class BasicSimulation:
+	episodeNumber = None
 	currentSystemState = None
-	finishedJobsList = []
-	unfinishedJobsList = []
+	finishedJobsList = None
+	unfinishedJobsList = None
 	ed, ed2, en, gw, srv, selectedOptions = None, None, None, None, None, None
 	results = None
 	jobResults = None
@@ -47,6 +48,7 @@ class BasicSimulation:
 
 	def __init__(self, systemStateClass, offloadingDecisionClass, agentClass):
 		hardwareAccelerated = True
+		self.episodeNumber = 0
 
 		# debug.out(numEndDevices + numElasticNodes)
 		self.results = multiprocessing.Manager().Queue()
@@ -69,6 +71,7 @@ class BasicSimulation:
 
 		if useSharedAgent:
 			# create shared learning agent
+			print("creating shared")
 			offloadingDecision.offloadingDecision.createSharedAgent(self.currentSystemState, agentClass)
 
 		# self.ed = [] # endDevice(None, self, self.results, i, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(numEndDevices)]
@@ -76,8 +79,9 @@ class BasicSimulation:
 		# self.ed2 = endDevice()
 		if constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING:
 			if useSharedAgent:
-				assert offloadingDecision.sharedAgent is not None
-				offloadingDecision.sharedAgent.setDevices(self.devices)
+				print("shared exists")
+				assert offloadingDecision.offloadingDecision.sharedAgent is not None
+				offloadingDecision.offloadingDecision.sharedAgent.setDevices(self.devices)
 			else:
 				for device in self.devices: device.decision.privateAgent.setDevices(self.devices)
 
@@ -96,12 +100,14 @@ class BasicSimulation:
 		self.visualiser = visualiser(self)
 		self.frames = 0
 		self.plotFrames = constants.PLOT_SKIP
-		debug.out (self.plotFrames)
+		debug.out(self.plotFrames)
 			
 		# set all device options correctly
 		# needs simulation and system state to be populated
 		for device in self.devices: 
 			# choose options based on policy
+			print("setting shared")
+			print("shared", offloadingDecision.offloadingDecision.sharedAgent)
 			device.setOffloadingDecisions(self.devices)
 
 		sim.simulations.Simulation.currentSimulation = self
@@ -137,15 +143,22 @@ class BasicSimulation:
 	# reset energy levels of all devices and run entire simulation
 	def simulateEpisode(self):
 		self.reset()
+		i = 0
 		while not self.finished:
+			# print("tick", i)
+			i +=1
 			self.simulateTick()
+		self.episodeNumber += 1
 
 	def reset(self):
-		offloadingDecision.sharedAgent.reset()
+		offloadingDecision.offloadingDecision.sharedAgent.reset()
+		self.finishedJobsList = []
+		self.unfinishedJobsList = []
 
 		# reset energy
 		for dev in self.devices:
 			dev.reset()
+		# print([dev.getEnergyLevelPercentage() for dev in self.devices])
 
 		self.time.reset()
 		self.finished = False

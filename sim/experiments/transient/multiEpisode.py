@@ -1,17 +1,18 @@
-import sim.simulations.constants
-import sim.simulations.variable
-import sim.debug
-from sim.simulation import simulation
-import sim.plotting
-import sim.experiments.experiment
-import sim.learning.offloadingDecision
-import sim.tasks.job
-import sim.counters
-import sim.simulations.results
-
 import multiprocessing
 import sys
 import traceback
+
+from sim.simulation import simulation
+
+import sim.counters
+import sim.debug
+import sim.experiments.experiment
+import sim.learning.offloadingDecision
+import sim.plotting
+import sim.simulations.constants
+import sim.simulations.results
+import sim.simulations.variable
+import sim.tasks.job
 
 sim.simulations.constants.NUM_DEVICES = 1
 

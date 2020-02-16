@@ -1,6 +1,6 @@
-from sim.devices.node import node
 from sim.devices.components.mcu import mcu
 from sim.devices.components.mrf import mrf
+from sim.devices.node import node
 
 
 class endDevice(node):

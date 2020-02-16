@@ -1,19 +1,20 @@
 import sys
 import traceback
 import warnings
-from queue import PriorityQueue
+from queue import PriorityQueue, Empty
 
-import sim
-from sim.learning.agent import dqnAgent
-from sim.learning.state.minimalSystemState import minimalSystemState
-from sim.simulations.Simulation import BasicSimulation
-from sim import debug
-from sim.simulations import constants
-from sim.learning import offloadingDecision
-from sim.offloading import offloadingPolicy
 import numpy as np
 
+import sim
+from sim import debug
+from sim.learning import offloadingDecision
+from sim.learning.agent import dqnAgent
+from sim.learning.state.minimalSystemState import minimalSystemState
+from sim.offloading import offloadingPolicy
+from sim.simulations import constants
+from sim.simulations.Simulation import BasicSimulation
 from sim.tasks.subtask import subtask
+
 
 class SimpleSimulation(BasicSimulation):
 	queue = None
@@ -25,10 +26,24 @@ class SimpleSimulation(BasicSimulation):
 		subtask.update = subtask.perform
 
 		self.queue = PriorityQueue()
+		self.queueInitialJobs()
 
+	def queueInitialJobs(self):
 		# need to initially check when each device's first task is
 		for dev in self.devices:
 			self.queueNextJob(dev)
+
+	def reset(self):
+		# remove remaining tasks from queue
+		while not self.queue.empty():
+			try:
+				self.queue.get(False)
+			except Empty:
+				continue
+			self.queue.task_done()
+
+		BasicSimulation.reset(self)
+		self.queueInitialJobs()
 
 	def simulateTick(self):
 		debug.out("\n" + "*"*50 + "\ntick\n" + "*"*50)
@@ -61,6 +76,7 @@ class SimpleSimulation(BasicSimulation):
 		debug.out("remaining tasks: %d" % self.queue.qsize(), 'dg')
 		self.time.set(newTime)
 		self.processQueuedTask(arguments)
+		# print("popped time", newTime, arguments)
 
 		# # should always have task lined up for each device
 		# assert self.queue.qsize() == len(self.devices)
@@ -134,7 +150,9 @@ class SimpleSimulation(BasicSimulation):
 		# print("next job is at", nextJob, device)
 		# add task to queue
 		self.queueTask(nextJob, NEW_JOB, device)
+		# print("new", self.time, nextJob)
 
+	previous = None
 	# do next queued task
 	def processQueuedTask(self, args):
 		task = args[0]
@@ -155,6 +173,12 @@ class SimpleSimulation(BasicSimulation):
 			debug.out("%s time handled to %f" % (device, device.previousTimestamp), 'p')
 		else:
 			warnings.warn("going back in time!")
+			print(self.time.current, device.previousTimestamp, self.time - device.previousTimestamp, device)
+			print("args", args, self.queue.qsize())
+			print("previous", self.previous)
+			print(device.__dict__)
+			# traceback.print_stack()
+			raise Exception("This doesn't make sense")
 
 		# perform queued task
 		if task == NEW_JOB:
@@ -177,6 +201,8 @@ class SimpleSimulation(BasicSimulation):
 			debug.out("continue existing job", 'b')
 			subtask = args[2]  # none for new_job
 			self.processDeviceSubtask(device, subtask)
+
+		self.previous = (self.time.current, args, self.queue.qsize())
 
 	# # capture energy values
 		# for dev in self.devices:
@@ -243,7 +269,12 @@ class SimpleSimulation(BasicSimulation):
 			for affectedDevice in affectedDevices:
 				if affectedDevice is not None:
 					device, subtask = affectedDevice
-					self.queueTask(self.time + duration, CONTINUE_JOB, device, subtask)
+					# next task begins at
+					nextTask = self.time + duration
+					# queue based on when next task is finished
+					# nextTaskFinished = nextTask + subtask.duration
+					# print("continue", subtask, self.time, duration, nextTask, nextTaskFinished)
+					self.queueTask(nextTask, CONTINUE_JOB, device, subtask)
 		except:
 			exc_type, exc_value, exc_traceback = sys.exc_info()
 			traceback.print_stack()
@@ -257,8 +288,10 @@ class QueueTask:
 	def __repr__(self): return self.__name__
 
 	__name__ = "INVALID TASK"
+
 	def __init__(self, name):
 		self.__name__ = name
+
 
 NEW_JOB = QueueTask("New Job")
 CONTINUE_JOB = QueueTask("Continue job")
@@ -269,6 +302,5 @@ from typing import Any
 @dataclass(order=True)
 class PrioritizedItem:
 	priority: float
-	item: Any=field(compare=False)
-
+	item: Any = field(compare=False)
 	def __repr__(self): return "(%.2f - %s)" % (self.priority, self.item)

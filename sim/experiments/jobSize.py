@@ -1,12 +1,14 @@
-import sim.simulations.constants
-import sim.simulations.variable
-import sim.debug
-import sim.simulation
-import sim.plotting
-import sim.experiments.experiment
+import multiprocessing
 
 import numpy as np
-import multiprocessing
+import sim.simulation
+
+import sim.debug
+import sim.experiments.experiment
+import sim.plotting
+import sim.simulations.constants
+import sim.simulations.variable
+
 
 def totalEnergyJobSizeThread(hw, samples, results, finished):
 	sim.simulations.constants.SAMPLE_SIZE = sim.simulations.variable.Constant(samples)

@@ -1,13 +1,12 @@
-import sim.simulations.constants
 import sim.debug
+import sim.learning.offloadingDecision
+import sim.learning.state.systemState
+import sim.offloading.offloadingPolicy
+import sim.simulations.constants
+import sim.simulations.history
 # from sim.result import result
 import sim.simulations.results
 import sim.tasks.subtask
-import sim.simulations.history
-import sim.learning.state.systemState
-import sim.learning.offloadingDecision
-import sim.offloading.offloadingPolicy
-
 # from node import node
 from sim.learning.action import LOCAL
 
@@ -174,6 +173,7 @@ class job:
 			affectedDevice = self.processingNode
 			if self.immediate:
 				newSubtask = sim.tasks.subtask.newJob(self)
+				# print("newjob in activate")
 			else:
 				newSubtask = sim.tasks.subtask.batching(self)
 		# otherwise we have to send task

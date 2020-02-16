@@ -1,15 +1,16 @@
-import sim.simulations.constants
-import sim.simulations.variable
-import sim.debug
-from sim.simulation import simulation
-import sim.plotting
-import sim.offloading.offloadingPolicy
-import sim.experiments.experiment
-
-import numpy as np
 import multiprocessing
 import sys
 import traceback
+
+import numpy as np
+from sim.simulation import simulation
+
+import sim.debug
+import sim.experiments.experiment
+import sim.offloading.offloadingPolicy
+import sim.plotting
+import sim.simulations.constants
+import sim.simulations.variable
 
 numDevices = 4
 totalTime = 5e1

@@ -1,9 +1,9 @@
+import numpy as np
+import tensorflow as tf
+from keras.backend import mean, max
 from rl.policy import EpsGreedyQPolicy
 from rl.util import huber_loss
 from tensorflow import keras
-from keras.backend import mean, max
-import tensorflow as tf
-import numpy as np
 
 from sim import debug
 from sim.learning.agent.agent import agent

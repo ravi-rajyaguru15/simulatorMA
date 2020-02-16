@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
-import sys
 import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
+import sys
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 print (sys.path)
 sys.path.insert(0, '.')
 

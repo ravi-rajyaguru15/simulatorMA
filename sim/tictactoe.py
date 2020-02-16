@@ -1,6 +1,6 @@
-import numpy as np
-
 import os
+import sys
+
 # oldBackend = mpl.get_backend()
 # print ("existing", oldBackend)
 # if os.name != 'nt':
@@ -11,7 +11,8 @@ import os
 # 		mpl.use(oldBackend)
 # 		print ("Cannot import MPL backend")
 import matplotlib.pyplot as plt
-import sys
+import numpy as np
+
 # os.environ['DISPLAY'] = "localhost:10.0"
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 # import rl.agents

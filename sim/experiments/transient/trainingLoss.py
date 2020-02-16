@@ -1,14 +1,15 @@
-import sim.simulations.constants
-import sim.simulations.variable
-import sim.debug
-from sim.simulation import simulation
-import sim.plotting
-import sim.experiments.experiment
-import sim.learning.offloadingDecision
-
 import multiprocessing
 import sys
 import traceback
+
+from sim.simulation import simulation
+
+import sim.debug
+import sim.experiments.experiment
+import sim.learning.offloadingDecision
+import sim.plotting
+import sim.simulations.constants
+import sim.simulations.variable
 
 sim.simulations.constants.NUM_DEVICES = 4
 numJobs = int(1e2)

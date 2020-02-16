@@ -1,9 +1,9 @@
-import sim.simulations.constants
-import sim.debug
-
 import numpy as np
 
+import sim.debug
+import sim.simulations.constants
 from sim import debug
+
 
 class systemState:
 	currentTask = None
@@ -53,8 +53,7 @@ class systemState:
 	def getDictionaryRepresentation(arrayRepresentation, singles, multiples):
 		# link array elements to dictionary for easier access
 		dictRepresentation = dict()
-		debug.out("creating dictionary representation from " + str(arrayRepresentation.shape))
-		# time.sleep(0.5)
+		# debug.out("creating dictionary representation from " + str(arrayRepresentation.shape))
 		for i in range(len(singles)):
 			dictRepresentation[singles[i]] = arrayRepresentation[i:i + 1]
 		for i in range(len(multiples)):

@@ -1,13 +1,14 @@
-import sim.learning.offloadingDecision
-import sim.tasks.job
+import sys
+
 import sim.counters
 import sim.debug
+import sim.learning.offloadingDecision
+import sim.tasks.job
 from sim.devices.components import powerPolicy
 from sim.experiments import experiment
 from sim.offloading import offloadingPolicy
 from sim.simulations import variable, constants
 from sim.simulations.TdSimulation import TdSimulation as simulation
-import sys
 
 if __name__ == '__main__':
 	sim.debug.enabled = False

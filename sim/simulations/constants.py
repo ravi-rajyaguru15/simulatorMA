@@ -1,9 +1,10 @@
+import multiprocessing
+
+import sim.devices.components.powerPolicy
+import sim.devices.platforms.platform
+import sim.offloading.offloadingPolicy
 import sim.tasks.tasks
 from sim.simulations.variable import *
-import sim.devices.components.powerPolicy
-import sim.offloading.offloadingPolicy
-import multiprocessing
-import sim.devices.platforms.platform
 
 # node types
 DEFAULT_ELASTIC_NODE = sim.devices.platforms.platform.elasticNodev4

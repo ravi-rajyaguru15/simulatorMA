@@ -1,8 +1,8 @@
 # TX RESULT destination swap source
 
+import sim.debug
 import sim.devices.components.powerPolicy
 import sim.learning.offloadingDecision
-import sim.debug
 from sim.offloading import offloadingPolicy
 from sim.simulations import constants
 
@@ -315,6 +315,7 @@ class batchContinue(subtask):
 			else:
 				# print("newjob because continuing batch")
 				affected = self.job.processingNode, newJob(self.job)
+				print("newjob in batchcontinue")
 
 		return subtask.finishTask(self, [affected])
 

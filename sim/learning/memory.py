@@ -1,10 +1,10 @@
 from __future__ import absolute_import
-from collections import deque, namedtuple
-import warnings
+
 import random
+import warnings
+from collections import deque, namedtuple
 
 import numpy as np
-
 
 # This is to be understood as a transition: Given `state0`, performing `action`
 # yields `reward` and results in `state1`, which might be `terminal`.

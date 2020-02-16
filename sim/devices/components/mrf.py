@@ -1,8 +1,9 @@
+import numpy as np
+
 import sim.simulations.constants
 from sim.devices.components import powerState
 from sim.devices.components.component import component
 
-import numpy as np
 
 class mrf(component):
 	busyColour = (0, 1, 0, 1)

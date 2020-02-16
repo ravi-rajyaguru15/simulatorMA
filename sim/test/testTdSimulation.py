@@ -1,8 +1,8 @@
 import sim.debug as debug
-import sim.simulations.constants as constants
 import sim.simulations as simulations
-from sim.simulations.TdSimulation import TdSimulation as Simulation
+import sim.simulations.constants as constants
 from sim.offloading.offloadingPolicy import *
+from sim.simulations.TdSimulation import TdSimulation as Simulation
 
 if __name__ == '__main__':
 	print("testing simple simulation")
