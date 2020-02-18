@@ -1,12 +1,9 @@
 import sys
-import traceback
-import numpy as np
 
-import sim
 import sim.debug as debug
 import sim.simulations.constants as constants
 from sim.learning.agent.minimalAgent import minimalAgent
-from sim.learning.offloadingDecision import offloadingDecision as offloadingDecisionClass
+from offloading.offloadingDecision import offloadingDecision as offloadingDecisionClass
 from sim.learning.state.minimalSystemState import minimalSystemState
 from sim.offloading.offloadingPolicy import *
 from sim.simulations.SimpleSimulation import SimpleSimulation as Simulation

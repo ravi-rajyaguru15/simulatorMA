@@ -2,7 +2,7 @@ import numpy as np
 
 import sim
 from sim import debug, counters
-from sim.learning import offloadingDecision
+from offloading import offloadingDecision
 from sim.learning.action import offloading, LOCAL, BATCH
 from sim.simulations import constants
 

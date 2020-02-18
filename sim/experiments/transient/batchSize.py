@@ -6,7 +6,6 @@ from sim.simulation import simulation
 
 import sim.debug
 import sim.experiments.experiment
-import sim.learning.offloadingDecision
 import sim.plotting
 import sim.simulations.constants
 import sim.simulations.variable

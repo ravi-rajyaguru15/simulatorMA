@@ -2,7 +2,7 @@
 import sys
 
 from sim.devices.components import powerPolicy
-from sim.learning import offloadingDecision
+from offloading import offloadingDecision
 from sim.learning.agent.minimalAgent import minimalAgent
 from sim.offloading import offloadingPolicy
 from sim.simulations import constants
@@ -14,7 +14,7 @@ from sim.simulations.SimpleSimulation import SimpleSimulation as Simulation
 # from sim.simulations.TdSimulation import TdSimulation as Simulation
 import sim.simulations.variable
 import sim.offloading.offloadingPolicy
-import sim.learning.offloadingDecision
+import offloading.offloadingDecision
 import sim.debug
 import sim.plotting
 import sim.tasks.tasks
@@ -182,7 +182,7 @@ def doWaitJob(experiment, device):
 	# fix decision to wait
 	sim.debug.out("\nWAIT JOB", 'g')
 	waitJob = job(device, 5, hardwareAccelerated=True)
-	decision = sim.learning.offloadingDecision.possibleActions[-2]
+	decision = offloading.offloadingDecision.possibleActions[-2]
 	decision.updateDevice(device)
 	print("target index", decision.targetDeviceIndex)
 	waitJob.setDecisionTarget(decision)
@@ -195,7 +195,7 @@ def doWaitJob(experiment, device):
 def doOffloadJob(experiment, source, destination):
 	sim.debug.out("OFFLOAD JOB", 'g')
 	offloadJob = job(source, 5, hardwareAccelerated=True)
-	decision = sim.learning.offloadingDecision.possibleActions[destination.index]
+	decision = offloading.offloadingDecision.possibleActions[destination.index]
 	decision.updateDevice()
 	print("target index", decision.targetDeviceIndex)
 	offloadJob.setDecisionTarget(decision)
@@ -206,7 +206,7 @@ def doOffloadJob(experiment, source, destination):
 		print('\n\n-\n')
 	print("destination has job again")
 	print("forward", sim.counters.NUM_FORWARD, "backward", sim.counters.NUM_BACKWARD)
-	decision = sim.learning.offloadingDecision.possibleActions[-2]
+	decision = offloading.offloadingDecision.possibleActions[-2]
 	decision.updateDevice(destination)
 	offloadJob.setDecisionTarget(decision)
 	# batch 2

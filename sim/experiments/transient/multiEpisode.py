@@ -7,7 +7,7 @@ from sim.simulation import simulation
 import sim.counters
 import sim.debug
 import sim.experiments.experiment
-import sim.learning.offloadingDecision
+import offloading.offloadingDecision
 import sim.plotting
 import sim.simulations.constants
 import sim.simulations.results
@@ -24,8 +24,8 @@ def runThread(numEpisodes, results, finished, histories):
 		for e in range(numEpisodes):
 			exp.simulateEpisode()
 			results.put(["Duration", e, exp.time.current])
-			results.put(["Episode reward", e, sim.learning.offloadingDecision.sharedAgent.episodeReward])
-			results.put(["Overall reward", e, sim.learning.offloadingDecision.sharedAgent.totalReward])
+			results.put(["Episode reward", e, offloading.offloadingDecision.sharedAgent.episodeReward])
+			results.put(["Overall reward", e, offloading.offloadingDecision.sharedAgent.totalReward])
 	except:
 		traceback.print_exc(file=sys.stdout)
 		print("Error in experiment:", exp.time)

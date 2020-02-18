@@ -2,7 +2,6 @@
 
 import sim.debug
 import sim.devices.components.powerPolicy
-import sim.learning.offloadingDecision
 from sim.offloading import offloadingPolicy
 from sim.simulations import constants
 

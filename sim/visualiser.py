@@ -15,7 +15,6 @@ import math
 # 		print(i)
 # 		print("Cannot import MPL backend")
 import sys
-import traceback
 
 import matplotlib.pyplot as pp
 import numpy as np
@@ -24,7 +23,7 @@ import pylab
 
 # import sys
 # sys.exit(0)
-import sim.learning.offloadingDecision
+import offloading.offloadingDecision
 import sim.plotting
 from sim.offloading import offloadingPolicy
 from sim.simulations import constants
@@ -289,7 +288,7 @@ class visualiser:
 		pp.figure(DEVICES_FIGURE)
 		pp.cla()
 		if constants.OFFLOADING_POLICY == offloadingPolicy.ROUND_ROBIN:
-			roundRobinText = ", {}".format(sim.learning.offloadingDecision.currentSubtask.target)
+			roundRobinText = ", {}".format(offloading.offloadingDecision.currentSubtask.target)
 		else:
 			roundRobinText = ""
 		pp.title("Time = {}, TotalSleep = {:.3f}, TotalJobs {:d}, AveragePower {:.3f}mW{}".format(self.clock, np.average([dev.totalSleepTime for dev in self.devices]), self.completedJobs(), np.average(self.totalDevicesEnergyFunction()) / self.clock.current * 1000., roundRobinText))

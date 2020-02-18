@@ -1,5 +1,4 @@
 import random
-import warnings
 
 import numpy as np
 
@@ -76,8 +75,8 @@ class offloadingDecision:
 				self.agent = self.agentClass(self.systemState, allDevices)
 			else:
 				# create shared agent if required
-				assert sim.learning.offloadingDecision.offloadingDecision.sharedAgent is not None
-				self.agent = sim.learning.offloadingDecision.offloadingDecision.sharedAgent
+				assert offloading.offloadingDecision.offloadingDecision.sharedAgent is not None
+				self.agent = offloading.offloadingDecision.offloadingDecision.sharedAgent
 
 
 	def chooseDestination(self, task, job, device):
@@ -214,7 +213,7 @@ def updateOffloadingTarget():
 
 
 def actionFromIndex(index):
-	return sim.learning.offloadingDecision.possibleActions[index]
+	return offloading.offloadingDecision.possibleActions[index]
 
 # def actionFromTarget(targetIndex):
 # 	# find target device for offloading that matches this index

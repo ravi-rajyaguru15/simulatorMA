@@ -6,9 +6,7 @@ import sim
 from sim import debug
 from sim.clock import clock
 from sim.devices.elasticNode import elasticNode
-from sim.learning import offloadingDecision
-from sim.learning.agent.dqnAgent import dqnAgent
-from sim.learning.agent.qTableAgent import qTableAgent
+from offloading import offloadingDecision
 from sim.offloading import offloadingPolicy
 from sim.simulations import constants, results
 from sim.simulations.history import history

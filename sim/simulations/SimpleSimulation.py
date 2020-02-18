@@ -5,10 +5,8 @@ from queue import PriorityQueue, Empty
 
 import numpy as np
 
-import sim
 from sim import debug
-from sim.learning import offloadingDecision
-from sim.learning.agent import dqnAgent
+from offloading import offloadingDecision
 from sim.learning.agent.minimalAgent import minimalAgent
 from sim.learning.state.minimalSystemState import minimalSystemState
 from sim.offloading import offloadingPolicy

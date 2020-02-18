@@ -2,7 +2,7 @@ import sys
 
 import sim.counters
 import sim.debug
-import sim.learning.offloadingDecision
+import offloading.offloadingDecision
 import sim.tasks.job
 from sim.devices.components import powerPolicy
 from sim.experiments import experiment
@@ -50,7 +50,7 @@ if __name__ == '__main__':
 	print("job: fourth")
 	sim.debug.out("FOURTH", 'g')
 	fourth = sim.tasks.job.job(dev, 5, hardwareAccelerated=True)
-	decision = sim.learning.offloadingDecision.possibleActions[1]
+	decision = offloading.offloadingDecision.possibleActions[1]
 	decision.updateDevice(dev)
 	print("target index", decision.targetDeviceIndex)
 	fourth.setDecisionTarget(decision)
@@ -61,7 +61,7 @@ if __name__ == '__main__':
 		print('\n\n-\n')
 	print("dev2 has job again")
 	print("forward", sim.counters.NUM_FORWARD, "backward", sim.counters.NUM_BACKWARD)
-	decision = sim.learning.offloadingDecision.possibleActions[0]
+	decision = offloading.offloadingDecision.possibleActions[0]
 	decision.updateDevice(dev)
 	fourth.setDecisionTarget(decision)
 	counter = 0
@@ -77,7 +77,7 @@ if __name__ == '__main__':
 	print("forward", sim.counters.NUM_FORWARD, "backward", sim.counters.NUM_BACKWARD)
 	sim.debug.enabled = False
 	print("**")
-	decision = sim.learning.offloadingDecision.possibleActions[2]
+	decision = offloading.offloadingDecision.possibleActions[2]
 	decision.updateDevice(dev)
 	fourth.setDecisionTarget(decision)
 	# time.sleep(1)
@@ -89,7 +89,7 @@ if __name__ == '__main__':
 	# offload from 0 to 0
 	print("job: fifth")
 	fifth = sim.tasks.job.job(dev, 5, hardwareAccelerated=True)
-	decision = sim.learning.offloadingDecision.possibleActions[0]
+	decision = offloading.offloadingDecision.possibleActions[0]
 	decision.updateDevice(dev)
 	fifth.setDecisionTarget(decision)
 	exp.addJob(dev, fifth)
@@ -107,7 +107,7 @@ if __name__ == '__main__':
 	# another local to start things off
 	print("\n\nanother local to start ")
 	sixth = sim.tasks.job.job(dev, 5, hardwareAccelerated=True)
-	decision = sim.learning.offloadingDecision.possibleActions[3]
+	decision = offloading.offloadingDecision.possibleActions[3]
 	decision.updateDevice(dev)
 	print("override sixth")
 	print("target index", decision.targetDeviceIndex)

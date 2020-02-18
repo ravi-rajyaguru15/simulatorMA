@@ -8,7 +8,7 @@ import sim.simulations.constants as constants
 from experiments.experiment import executeMulti
 from plotting import plotMultiWithErrors
 from sim.learning.agent.minimalAgent import minimalAgent
-from sim.learning.offloadingDecision import offloadingDecision
+from offloading.offloadingDecision import offloadingDecision
 from sim.learning.state.minimalSystemState import minimalSystemState
 from sim.offloading.offloadingPolicy import *
 from sim.simulations.SimpleSimulation import SimpleSimulation as Simulation

@@ -4,7 +4,7 @@
 import cProfile
 
 from learning.agent.minimalAgent import minimalAgent
-from learning.offloadingDecision import offloadingDecision
+from offloading.offloadingDecision import offloadingDecision
 from learning.state.minimalSystemState import minimalSystemState
 from sim import debug
 from sim.devices.components.powerPolicy import IDLE_TIMEOUT

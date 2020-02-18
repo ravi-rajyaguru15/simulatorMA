@@ -8,7 +8,7 @@ import sim.counters
 import sim.debug
 import sim.devices.components.powerPolicy
 import sim.experiments.experiment
-import sim.learning.offloadingDecision
+import offloading.offloadingDecision
 import sim.offloading.offloadingPolicy
 import sim.plotting
 import sim.simulations.constants
@@ -32,8 +32,8 @@ def runThread(numEpisodes, results, finished, histories):
             while not exp.finished:
                 exp.simulateTick()
             results.put(["Duration", e, exp.time.current])
-            results.put(["Episode reward", e, sim.learning.offloadingDecision.sharedAgent.episodeReward])
-            results.put(["Overall reward", e, sim.learning.offloadingDecision.sharedAgent.totalReward])
+            results.put(["Episode reward", e, offloading.offloadingDecision.sharedAgent.episodeReward])
+            results.put(["Overall reward", e, offloading.offloadingDecision.sharedAgent.totalReward])
     except:
         traceback.print_exc(file=sys.stdout)
         print("Error in experiment ̰:", exp.time)

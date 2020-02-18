@@ -6,7 +6,7 @@ from sim.simulation import simulation
 
 import sim.debug
 import sim.experiments.experiment
-import sim.learning.offloadingDecision
+import offloading.offloadingDecision
 import sim.plotting
 import sim.simulations.constants
 import sim.simulations.variable
@@ -19,11 +19,11 @@ def runThread(results, finished):
 	try:
 		for i in range(numJobs):
 			exp.simulateUntilJobDone()
-			results.put(["Loss", exp.completedJobs, sim.learning.offloadingDecision.offloadingDecision.learningAgent.loss, True])
-			results.put(["Reward", exp.completedJobs, sim.learning.offloadingDecision.offloadingDecision.learningAgent.latestReward, True])
-			results.put(["Action", exp.completedJobs, sim.learning.offloadingDecision.offloadingDecision.learningAgent.latestAction, True])
-			results.put(["MAE", exp.completedJobs, sim.learning.offloadingDecision.offloadingDecision.learningAgent.latestMAE, True])
-			results.put(["MeanQ", exp.completedJobs, sim.learning.offloadingDecision.offloadingDecision.learningAgent.latestMeanQ, True])
+			results.put(["Loss", exp.completedJobs, offloading.offloadingDecision.offloadingDecision.learningAgent.loss, True])
+			results.put(["Reward", exp.completedJobs, offloading.offloadingDecision.offloadingDecision.learningAgent.latestReward, True])
+			results.put(["Action", exp.completedJobs, offloading.offloadingDecision.offloadingDecision.learningAgent.latestAction, True])
+			results.put(["MAE", exp.completedJobs, offloading.offloadingDecision.offloadingDecision.learningAgent.latestMAE, True])
+			results.put(["MeanQ", exp.completedJobs, offloading.offloadingDecision.offloadingDecision.learningAgent.latestMeanQ, True])
 	except:
 		traceback.print_exc(file=sys.stdout)
 		sys.exit(0)
