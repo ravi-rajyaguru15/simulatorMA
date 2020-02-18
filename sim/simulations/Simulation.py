@@ -66,7 +66,7 @@ class BasicSimulation:
 
 		results.learningHistory = history()
 
-		print("Learning: shared: %s offloading: %s centralised: %s" % (useSharedAgent, constants.OFFLOADING_POLICY, constants.CENTRALISED_LEARNING))
+		debug.out("Learning: shared: %s offloading: %s centralised: %s" % (useSharedAgent, constants.OFFLOADING_POLICY, constants.CENTRALISED_LEARNING), 'r')
 		self.devices = [elasticNode(self.time, constants.DEFAULT_ELASTIC_NODE, self.results, i, episodeFinished=self.isEpisodeFinished, currentSystemState=self.currentSystemState, offloadingDecisionClass=offloadingDecisionClass, agentClass=agentClass, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(constants.NUM_DEVICES)]
 
 		if useSharedAgent:
@@ -96,7 +96,7 @@ class BasicSimulation:
 		self.taskQueueLength = [0] * len(self.devices)
 
 		self.hardwareAccelerated = hardwareAccelerated
-		print("saving hardware acceleration as", self.hardwareAccelerated)
+		debug.out("saving hardware acceleration as %s" % self.hardwareAccelerated)
 		self.visualiser = visualiser(self)
 		self.frames = 0
 		self.plotFrames = constants.PLOT_SKIP
@@ -106,8 +106,7 @@ class BasicSimulation:
 		# needs simulation and system state to be populated
 		for device in self.devices: 
 			# choose options based on policy
-			print("setting shared")
-			print("shared", offloadingDecision.offloadingDecision.sharedAgent)
+			debug.out("setting shared: %s" % offloadingDecision.offloadingDecision.sharedAgent)
 			device.setOffloadingDecisions(self.devices)
 
 		sim.simulations.Simulation.currentSimulation = self

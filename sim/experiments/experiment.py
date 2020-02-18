@@ -3,6 +3,7 @@ import sys
 
 from sim.devices.components import powerPolicy
 from sim.learning import offloadingDecision
+from sim.learning.agent.minimalAgent import minimalAgent
 from sim.offloading import offloadingPolicy
 from sim.simulations import constants
 from sim.tasks.job import job
@@ -45,7 +46,7 @@ def randomJobs(offloadingPolicy=sim.offloading.offloadingPolicy.ANYTHING, hw=Tru
 	constants.DEFAULT_TASK_GRAPH = [sim.tasks.tasks.EASY]
 	constants.ROUND_ROBIN_TIMEOUT = 1e1
 
-	sim.simulations.current = Simulation(hardwareAccelerated=hw)
+	sim.simulations.current = Simulation(agentClass=minimalAgent)
 	print("start simulation")
 	sim.simulations.current.simulate()  # UntilTime(1)
 

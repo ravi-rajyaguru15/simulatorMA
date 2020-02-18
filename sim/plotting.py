@@ -10,6 +10,8 @@ import numpy as np
 import sim.simulations.constants
 
 # print (os.environ["DISPLAY"])
+from sim.simulations import constants
+
 if "DISPLAY" not in os.environ:
 	# os.environ["DISPLAY"] = "localhost:10.0"
 	os.environ["DISPLAY"] = "/private/tmp/com.apple.launchd.HheW1tn9qY/org.macosforge.xquartz:0"
@@ -33,7 +35,7 @@ def plotWithErrors(x, y=None, errors=None, results=None):
 def plotAgentHistory(history):
 	print("plotting agent")
 	assert history is not None
-	filename = "/output/{}_{}".format("agentHistory", datetime.datetime.now()).replace(":", ".")
+	filename = "{}/{}_{}".format(constants.OUTPUT_DIRECTORY, "agentHistory", datetime.datetime.now()).replace(":", ".")
 	pickle.dump(history, open("{}.pickle".format(filename), "wb"))
 
 	fig, ax1 = pp.subplots()
@@ -81,15 +83,15 @@ def plotAgentHistory(history):
 	
 	fig.tight_layout()
 		
-	if sim.simulations.constants.SAVE_GRAPH:
+	if constants.SAVE_GRAPH:
 		saveFig(filename)
 
-	if sim.simulations.constants.DRAW_GRAPH:
+	if constants.DRAW_GRAPH:
 		pp.show()
 
 def plotMultiWithErrors(name, results=None, ylim=None, ylabel=None, xlabel=None, separate=False): # , show=False, save=False):
 	# print("plotting!")
-	filename = "/output/{}_{}".format(name, datetime.datetime.now()).replace(":", ".")
+	filename = "{}/{}_{}".format(constants.OUTPUT_DIRECTORY, name, datetime.datetime.now()).replace(":", ".")
 	pickle.dump((name, results, ylim, ylabel, xlabel), open("{}.pickle".format(filename), "wb"))
 	
 	# sort by graph key
@@ -127,10 +129,10 @@ def plotMultiWithErrors(name, results=None, ylim=None, ylabel=None, xlabel=None,
 	if xlabel is not None:
 		pp.xlabel(xlabel)
 		
-	if sim.simulations.constants.SAVE_GRAPH:
+	if constants.SAVE_GRAPH:
 		saveFig(filename)
 
-	if sim.simulations.constants.DRAW_GRAPH:
+	if constants.DRAW_GRAPH:
 		pp.show()
 
 def saveFig(filename):

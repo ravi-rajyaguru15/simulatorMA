@@ -9,6 +9,7 @@ import sim
 from sim import debug
 from sim.learning import offloadingDecision
 from sim.learning.agent import dqnAgent
+from sim.learning.agent.minimalAgent import minimalAgent
 from sim.learning.state.minimalSystemState import minimalSystemState
 from sim.offloading import offloadingPolicy
 from sim.simulations import constants
@@ -19,7 +20,7 @@ from sim.tasks.subtask import subtask
 class SimpleSimulation(BasicSimulation):
 	queue = None
 
-	def __init__(self, systemStateClass=minimalSystemState, offloadingDecisionClass=offloadingDecision, agentClass=dqnAgent):
+	def __init__(self, systemStateClass=minimalSystemState, offloadingDecisionClass=offloadingDecision.offloadingDecision, agentClass=minimalAgent):
 		BasicSimulation.__init__(self, systemStateClass=systemStateClass, offloadingDecisionClass=offloadingDecisionClass, agentClass=agentClass)
 
 		# specify subtask behaviour

@@ -1,4 +1,5 @@
 import multiprocessing
+import os
 
 import sim.devices.components.powerPolicy
 import sim.devices.platforms.platform
@@ -69,3 +70,6 @@ REPEATS = 4
 THREAD_COUNT = multiprocessing.cpu_count()
 MAX_DELAY = 0.1
 EXPECTED_LIFETIME_ALPHA = 0.1
+OUTPUT_DIRECTORY = "/tmp/output"
+try: os.mkdir(OUTPUT_DIRECTORY)
+except FileExistsError: pass

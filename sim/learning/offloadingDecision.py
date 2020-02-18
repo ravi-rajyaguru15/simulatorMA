@@ -7,7 +7,7 @@ import sim.counters
 import sim.debug
 import sim.offloading.offloadingPolicy
 import sim.simulations
-from sim.learning.action import action
+from sim.learning.action import action, LOCAL
 from sim.offloading.offloadingPolicy import *
 from sim.simulations import constants
 
@@ -108,20 +108,21 @@ class offloadingDecision:
 					# then have to do it yourself
 					choice = action.findAction(self.owner.index)
 				else:
+					raise Exception("arguments incorrect")
 					largestBatches = np.argmax(decisionFactors)
 					# print('largest:', largestBatches)
-					choice = action.findAction(self.options[largestBatches].index)
+					choice = actionFromIndex(self.options[largestBatches].index)
 			elif constants.OFFLOADING_POLICY == REINFORCEMENT_LEARNING:
 				sim.debug.learnOut("deciding how to offload new job")
 				sim.debug.learnOut("owner: {}".format(self.owner), 'r')
 				choice = self.firstDecideDestination(task, job, device)
 			# sim.debug.learnOut("choice: {}".format(choice))
 			elif constants.OFFLOADING_POLICY == LOCAL_ONLY:
-				choice = sim.learning.offloadingDecision.LOCAL
-				choice.updateTargetDevice(self.owner)
+				choice = LOCAL
+				choice.updateTargetDevice(self.owner, [self.owner])
 			else:
 				choice = action("Random", targetIndex=random.choice(self.options).index)
-				choice.updateTargetDevice(self.owner)
+				choice.updateTargetDevice(self.owner, self.options)
 			# choice = np.random.choice(self.options) #  action.findAction(random.choice(self.options).index)
 
 			sim.debug.out("Job assigned: {} -> {}".format(self.owner, choice))

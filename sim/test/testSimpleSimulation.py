@@ -5,8 +5,6 @@ import numpy as np
 import sim
 import sim.debug as debug
 import sim.simulations.constants as constants
-# from sim.learning.state.binarySystemState import binarySystemState
-from learning import offloadingDecision
 from sim.learning.agent.minimalAgent import minimalAgent
 from sim.learning.offloadingDecision import offloadingDecision as offloadingDecisionClass
 from sim.learning.state.minimalSystemState import minimalSystemState
