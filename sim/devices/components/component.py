@@ -1,13 +1,13 @@
-import sim.devices.components.powerState
-import sim.simulations.constants
+from sim.devices.components.powerState import SLEEP, ACTIVE, IDLE
 
 
 class component:
 	voltage = activePower = idlePower = None
 	
-	state = None
+	__state = None
 	owner = None
 	# platform = None
+	latestActive = None
 
 	def __init__(self, owner, activePower, idlePower, sleepPower):
 		# self.platform = platform
@@ -19,7 +19,8 @@ class component:
 		self.sleepPower = sleepPower
 
 		# start idle
-		self.state = sim.devices.components.powerState.SLEEP
+		self.__state = SLEEP
+		latestActive = None
 
 	# def activeEnergy(self, time):
 	# 	print (time)
@@ -29,31 +30,36 @@ class component:
 	# 	return time * np.dot([voltage.gen() for voltage in self.voltage], [current.gen() for current in self.idleCurrent])
 
 	def busy(self):
-		return self.state == sim.devices.components.powerState.ACTIVE
+		return self.__state == ACTIVE
 
 	# change power states
 	def active(self):
-		self.state = sim.devices.components.powerState.ACTIVE
+		self.__state = ACTIVE
 	def isActive(self):
-		return self.state == sim.devices.components.powerState.ACTIVE
+		return self.__state == ACTIVE
 	def idle(self):
-		self.state = sim.devices.components.powerState.IDLE
+		# if was active: update latest active time (used for sleeping)
+		if self.__state == ACTIVE:
+			self.latestActive = self.owner.currentTime.current
+		self.__state = IDLE
 	def isIdle(self):
-		return self.state == sim.devices.components.powerState.IDLE
+		return self.__state == IDLE
 	def sleep(self):
-		self.state = sim.devices.components.powerState.SLEEP
+		self.__state = SLEEP
 	def isSleeping(self):
-		return self.state == sim.devices.components.powerState.SLEEP
+		return self.__state == SLEEP
 
+	def setPowerState(self, newState):
+		self.__state = newState
 	def getPowerState(self):
-		return self.state
+		return self.__state
 
 	def colour(self):
-		if self.state == sim.devices.components.powerState.IDLE:
+		if self.__state == IDLE:
 			return self.idleColour
-		elif self.state == sim.devices.components.powerState.ACTIVE:
+		elif self.__state == ACTIVE:
 			return self.busyColour
-		elif self.state == sim.devices.components.powerState.SLEEP:
+		elif self.__state == SLEEP:
 			return self.sleepColour
 		else:
 			raise Exception("Unknown power state")
@@ -61,14 +67,14 @@ class component:
 
 	# power level right now
 	def power(self):
-		if self.state == sim.devices.components.powerState.IDLE:
+		if self.__state == IDLE:
 			powerList = self.idlePower
-		elif self.state == sim.devices.components.powerState.ACTIVE:
+		elif self.__state == ACTIVE:
 			powerList = self.activePower
-		elif self.state == sim.devices.components.powerState.SLEEP:
+		elif self.__state == SLEEP:
 			powerList = self.sleepPower
 		else:
-			raise Exception("Unknown power state: " + str(self.state))
+			raise Exception("Unknown power state: " + str(self.__state))
 
 		# compute total power for all lines
 		return component._total(powerList)

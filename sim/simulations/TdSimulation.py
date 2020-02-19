@@ -40,7 +40,11 @@ class TdSimulation(BasicSimulation):
 		for dev in self.devices:
 			if not (dev.currentJob is None and dev.currentSubtask is None):
 				debug.out('\ntick device [{}] [{}] [{}]'.format(dev, dev.currentJob, dev.currentSubtask))
+
+			asleepBefore = dev.asleep()
 			dev.updateDevice()
+			dev.updateSleepStatus(asleepBefore)
+
 			queueLengths.append(dev.getNumJobs())
 
 		# capture energy values
@@ -95,7 +99,7 @@ class TdSimulation(BasicSimulation):
 				debug.out("currentConfig:\t{0}".format([dev.fpga.currentConfig for dev in self.devices if isinstance(dev, elasticNode)]))
 				debug.out("taskQueues:\t{0}".format([dev.getNumSubtasks() for dev in self.devices]), 'dg')
 				# debug.out("taskQueues:\t{0}".format([[task for task in dev.taskQueue] for dev in self.devices]), 'dg')
-				debug.out("states: {0}".format([[comp.state for comp in dev.components] for dev in self.devices]))
+				debug.out("states: {0}".format([[comp.getPowerState() for comp in dev.components] for dev in self.devices]))
 				debug.out("tasks after {0}".format(tasksAfter), 'r')
 
 				if np.sum(self.currentDelays) > 0:
@@ -115,3 +119,16 @@ class TdSimulation(BasicSimulation):
 		if constants.uni.evaluate(constants.JOB_LIKELIHOOD):  # 0.5
 			debug.out("\t\t** {} new job ** ".format(self))
 			self.createNewJob(device)
+
+	@staticmethod
+	def timeOutSleep(processor):
+		print(processor, processor.isIdle(), processor.idleTime, processor.idleTimeout, processor.owner.currentTd)
+		if processor.isIdle():
+			if processor.idleTime >= processor.idleTimeout:
+				processor.sleep()
+				debug.out("PROCESSOR SLEEP")
+			else:
+				processor.idleTime += constants.TD
+		# else:
+		else:
+			processor.idleTime = 0

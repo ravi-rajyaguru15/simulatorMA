@@ -22,9 +22,9 @@ class mcu(processor):
 		self.messageOverheadLatency = owner.platform.MCU_MESSAGE_OVERHEAD_LATENCY
 
 
-	def timeOutSleep(self):
-		if constants.MCU_POWER_PLAN == powerPolicy.IDLE_TIMEOUT:
-			processor.timeOutSleep(self)
+	# def timeOutSleep(self):
+	# 	if constants.MCU_POWER_PLAN == powerPolicy.IDLE_TIMEOUT:
+	# 		processor.timeOutSleep(self)
 
 	def overheadTime(self):
 		return self.messageOverheadLatency.gen()

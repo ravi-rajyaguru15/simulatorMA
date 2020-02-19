@@ -45,6 +45,7 @@ class BasicSimulation:
 	lifetimes = list()
 	energylevels = list()
 	completedJobs = None
+	useSharedAgent = None
 
 	def __init__(self, systemStateClass, offloadingDecisionClass, agentClass):
 		hardwareAccelerated = True
@@ -62,14 +63,14 @@ class BasicSimulation:
 		
 		# requires simulation to be populated
 		self.currentSystemState = systemStateClass(self)
-		useSharedAgent = (constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING) and (constants.CENTRALISED_LEARNING)
+		self.useSharedAgent = (constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING) and (constants.CENTRALISED_LEARNING)
 
 		results.learningHistory = history()
 
-		debug.out("Learning: shared: %s offloading: %s centralised: %s" % (useSharedAgent, constants.OFFLOADING_POLICY, constants.CENTRALISED_LEARNING), 'r')
+		debug.out("Learning: shared: %s offloading: %s centralised: %s" % (self.useSharedAgent, constants.OFFLOADING_POLICY, constants.CENTRALISED_LEARNING), 'r')
 		self.devices = [elasticNode(self.time, constants.DEFAULT_ELASTIC_NODE, self.results, i, episodeFinished=self.isEpisodeFinished, currentSystemState=self.currentSystemState, offloadingDecisionClass=offloadingDecisionClass, agentClass=agentClass, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(constants.NUM_DEVICES)]
 
-		if useSharedAgent:
+		if self.useSharedAgent:
 			# create shared learning agent
 			print("creating shared")
 			offloadingDecision.offloadingDecision.createSharedAgent(self.currentSystemState, agentClass)
@@ -78,7 +79,7 @@ class BasicSimulation:
 		# self.ed = endDevice()
 		# self.ed2 = endDevice()
 		if constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING:
-			if useSharedAgent:
+			if self.useSharedAgent:
 				print("shared exists")
 				assert offloadingDecision.offloadingDecision.sharedAgent is not None
 				offloadingDecision.offloadingDecision.sharedAgent.setDevices(self.devices)
@@ -150,7 +151,8 @@ class BasicSimulation:
 		self.episodeNumber += 1
 
 	def reset(self):
-		offloadingDecision.offloadingDecision.sharedAgent.reset()
+		if self.useSharedAgent:
+			offloadingDecision.offloadingDecision.sharedAgent.reset()
 		self.finishedJobsList = []
 		self.unfinishedJobsList = []
 
@@ -159,7 +161,9 @@ class BasicSimulation:
 			dev.reset()
 		# print([dev.getEnergyLevelPercentage() for dev in self.devices])
 
-		self.time.reset()
+		# time is None when not using global clock
+		if self.time is not None:
+			self.time.reset()
 		self.finished = False
 
 	def isEpisodeFinished(self):
@@ -273,6 +277,11 @@ class BasicSimulation:
 	def addJob(self, device, job):
 		device.numJobs += 1
 		device.addJobToQueue(job)
+
+	@staticmethod
+	def timeOutSleep(processor):
+		raise Exception("Not implemented in BasicSimulation")
+
 # if __name__ == '__main__':
 # 	print ("running sim")
 

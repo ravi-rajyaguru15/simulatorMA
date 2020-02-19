@@ -3,6 +3,7 @@
 import sim.debug
 import sim.devices.components.powerPolicy
 import sim.learning.offloadingDecision
+from sim import debug
 from sim.offloading import offloadingPolicy
 from sim.simulations import constants
 
@@ -41,6 +42,10 @@ class subtask:
 		else:
 			self.owner = owner
 		# assert(self.owner is not None)
+
+		debug.out("subtask duration: {:.10f}".format(duration), 'y')
+
+		assert duration >= 0
 		self.duration = duration
 		self.__class__.totalDuration += duration
 		# self.energyCost = energyCost
@@ -315,7 +320,7 @@ class batchContinue(subtask):
 			else:
 				# print("newjob because continuing batch")
 				affected = self.job.processingNode, newJob(self.job)
-				print("newjob in batchcontinue")
+				# print("newjob in batchcontinue")
 
 		return subtask.finishTask(self, [affected])
 
@@ -821,3 +826,33 @@ class rxResult(rxMessage):
 		sim.debug.out("finishing rxresult!", 'b')
 
 		return rxMessage.finishTask(self, None)
+
+class dummy(subtask):
+	# only used for testing
+	__name__ = "Dummy"
+	mcuActive = None
+	fpgaActive = None
+
+	def __init__(self, job, device, mcuActive, fpgaActive):
+		subtask.__init__(self, job, owner=device, duration=0)
+
+		self.mcuActive = mcuActive
+		self.fpgaActive = fpgaActive
+
+	def beginTask(self):
+		if self.mcuActive:
+			self.owner.mcu.active()
+		if self.fpgaActive:
+			self.owner.fpga.active()
+
+		subtask.beginTask(self)
+
+	def finishTask(self):
+		if self.mcuActive:
+			# self.owner.mcu.active()
+			self.owner.mcu.sleep()
+		if self.fpgaActive:
+			# self.owner.fpga.active()
+			self.owner.fpga.idle()
+
+		return subtask.finishTask(self, [None])

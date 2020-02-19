@@ -1,5 +1,6 @@
 import sys
 import time
+import warnings
 from queue import PriorityQueue
 
 import numpy as np
@@ -75,6 +76,9 @@ class node:
 		self.episodeFinished = episodeFinished
 		self.alwaysHardwareAccelerate = alwaysHardwareAccelerate
 
+	def setTime(self, newTime):
+		self.currentTime.set(newTime)
+
 	def reset(self):
 		self.previousTimestamp = 0
 		self.jobQueue = PriorityQueue()
@@ -108,8 +112,8 @@ class node:
 			return
 		self.components = components
 		self.processors = [component for component in self.components if isinstance(component, sim.devices.components.processor.processor)]
-		for processor in self.processors:
-			processor.timeOutSleep()
+		# for processor in self.processors:
+		# 	processor.timeOutSleep()
 
 
 	@staticmethod
@@ -158,7 +162,7 @@ class node:
 		self.setCurrentBatch(job)
 
 		# start first job in queue
-		print("newjob in setactivejob")
+		# print("newjob in setactivejob")
 		return sim.tasks.subtask.newJob(job)
 
 	# appends one job to the end of the task queue (used for queueing future tasks)
@@ -351,7 +355,6 @@ class node:
 		affectedDevice = None
 		devicePower = 0
 		# if no jobs available, perhaps generate one
-		asleepBefore = self.asleep()
 
 		debug.out("update %s: %s (%s) [%s]" % (self, self.currentSubtask, self.currentJob, subtask), 'g')
 		if subtask is None:
@@ -375,9 +378,11 @@ class node:
 				if self.currentSubtask is None:
 					self.currentSubtask = subtask
 					# remove this subtask from device taskqueue
-					print(self.taskQueue.queue)
-					print(self.taskQueue.get_nowait())
-					sys.exit(0)
+					print("taskQueue:", self.taskQueue.queue)
+					# check that this subtask was not queued
+					assert self.taskQueue.empty()
+					# print(self.taskQueue.get_nowait())
+					# sys.exit(0)
 				else:
 					print("current:", self.currentSubtask, "subtask:", subtask)
 					time.sleep(0.5)
@@ -389,18 +394,17 @@ class node:
 			debug.out("%s" % (self.batch))
 
 		duration = None
-		# print("updating device", self, self.currentSubtask, self.getNumSubtasks())
 		# do process and check if done
 		if self.currentSubtask is not None:
+			sim.debug.out("updating device %s %s %s" % (self, self.currentSubtask, self.getNumSubtasks()), 'r')
 			affectedDevices, duration, devicePower = self.currentSubtask.update(visualiser) # only used in simple simulations
 			self.updatePreviousTimestamp(self.currentTime + duration)
-			debug.out("%s time handled to %f" % (self, self.previousTimestamp), 'p')
+			debug.out("subtask %s time handled to %f" % (self, self.previousTimestamp), 'p')
 			# print(affectedDevices, duration)
 		else:
 			# just idle, entire td is used
 			self.currentTd = sim.simulations.constants.TD
 
-		self.updateSleepStatus(asleepBefore)
 
 		if affectedDevice is not None:
 			affectedDevices += [affectedDevice]
@@ -410,18 +414,23 @@ class node:
 	def updatePreviousTimestamp(self, newTimestamp):
 		if newTimestamp > self.previousTimestamp:
 			self.previousTimestamp = newTimestamp
-		debug.out("%s time handled to %f" % (self, self.previousTimestamp), 'p')
+		# debug.out("%s time handled to %f" % (self, self.previousTimestamp), 'p')
+
+	# def timeOutSleep(self):
+	# 	# check for idle sleep trigger
+	# 	for component in self.components:
+	# 		if isinstance(component, sim.devices.components.processor.processor):
+	# 			component.timeOutSleep()
 
 	def updateSleepStatus(self, asleepBefore):
-		# check for idle sleep trigger
-		for component in self.components:
-			if isinstance(component, sim.devices.components.processor.processor):
-				component.timeOutSleep()
+		raise Exception("deprecated")
+		self.timeOutSleep()
 
 		asleepAfter = self.asleep()
 
 		if asleepBefore and asleepAfter:
-			self.totalSleepTime += sim.simulations.constants.TD
+			warnings.warn("don't think this is correct")
+			self.totalSleepTime += self.currentTd
 
 	def expectedLifetime(self):
 		# estimate total life time based on previous use

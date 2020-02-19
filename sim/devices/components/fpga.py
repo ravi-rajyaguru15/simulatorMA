@@ -1,8 +1,7 @@
-import sim.devices.components.powerState
-import sim.simulations.constants
 from sim import debug
-from sim.devices.components import powerPolicy
+# from sim.devices.components import component
 from sim.devices.components.component import component
+from sim.devices.components.powerState import RECONFIGURING
 from sim.devices.components.processor import processor
 from sim.simulations import constants
 
@@ -28,15 +27,15 @@ class fpga(processor):
 						   sleepPower = [owner.platform.FPGA_SLEEP_INT_POWER, owner.platform.FPGA_SLEEP_AUX_POWER],
 						   processingSpeed = owner.platform.FPGA_PROCESSING_SPEED,
 						   idleTimeout = constants.FPGA_IDLE_SLEEP)
-
-	def timeOutSleep(self):
-		# do not sleep until done with batch
-		if self.owner.currentBatch is None:
-			# check if it's time to sleep device
-			if constants.FPGA_POWER_PLAN == powerPolicy.IDLE_TIMEOUT:
-				processor.timeOutSleep(self)
-			elif constants.FPGA_POWER_PLAN == powerPolicy.IMMEDIATELY_OFF and self.isIdle():
-				self.sleep()
+	#
+	# def timeOutSleep(self):
+	# 	# do not sleep until done with batch
+	# 	if self.owner.currentBatch is None:
+	# 		# check if it's time to sleep device
+	# 		if constants.FPGA_POWER_PLAN == powerPolicy.IDLE_TIMEOUT:
+	# 			processor.timeOutSleep(self)
+	# 		elif constants.FPGA_POWER_PLAN == powerPolicy.IMMEDIATELY_OFF and self.isIdle():
+	# 			self.sleep()
 			
 
 	# power states
@@ -45,7 +44,7 @@ class fpga(processor):
 		debug.out("changed fpga config to %s" % task.identifier)
 		self.busyColour = task.colour
 		# print ("changed fpga colour")
-		self.state = sim.devices.components.powerState.RECONFIGURING
+		self.__state = RECONFIGURING
 
 	# encode current config for 0: none; 1,2,3: different tasks
 	def getCurrentConfigIndex(self):
@@ -59,6 +58,8 @@ class fpga(processor):
 		self.currentConfig = None
 		processor.sleep(self)
 
+	def isReconfiguring(self):
+		return self.getPowerState() == RECONFIGURING
 	# def current(self):
 	# 	if self.state == sim.powerState.RECONFIGURING:
 	# 		return self.reconfigurationCurrent
@@ -66,13 +67,13 @@ class fpga(processor):
 	# 		return component.current(self)
 
 	def power(self):
-		if self.state == sim.devices.components.powerState.RECONFIGURING:
+		if self.isReconfiguring():
 			return component._total(self.reconfigurationPower)
 		else:
 			return component.power(self)
 
 	def colour(self):
-		if self.state == sim.devices.components.powerState.RECONFIGURING:
+		if self.isReconfiguring():
 			return self.reconfigurationColour
 		else:
 			return component.colour(self)
