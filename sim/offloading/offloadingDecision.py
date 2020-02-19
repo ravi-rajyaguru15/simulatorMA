@@ -63,8 +63,8 @@ class offloadingDecision:
 			# assign static targets (will happen multiple times but that's fine)
 			offloadingDecision.options = offloadingDecision.selectElasticNodes(
 				allDevices)  # select elastic nodes from alldevices list]
-		elif constants.OFFLOADING_POLICY == LOCAL_ONLY:
-			offloadingDecision.options = [self.owner]
+		# elif constants.OFFLOADING_POLICY == LOCAL_ONLY:
+		# 	offloadingDecision.options = [self.owner]
 		else:
 			raise Exception("Unknown offloading policy")
 
@@ -75,8 +75,8 @@ class offloadingDecision:
 				self.agent = self.agentClass(self.systemState, allDevices)
 			else:
 				# create shared agent if required
-				assert offloading.offloadingDecision.offloadingDecision.sharedAgent is not None
-				self.agent = offloading.offloadingDecision.offloadingDecision.sharedAgent
+				assert offloadingDecision.sharedAgent is not None
+				self.agent = offloadingDecision.sharedAgent
 
 
 	def chooseDestination(self, task, job, device):
