@@ -1,8 +1,7 @@
 import numpy as np
 
-import sim.simulations.constants
-from sim.devices.components import powerState
 from sim.devices.components.component import component
+from sim.devices.components.powerState import RX, TX
 
 
 class mrf(component):
@@ -26,39 +25,41 @@ class mrf(component):
 			)
 	
 	def busy(self):
-		return self.state == powerState.TX or self.state == powerState.RX or component.busy(self)
+		return self.getPowerState() == TX or self.getPowerState() == RX or component.busy(self)
 
 	def tx(self):
-		self.state = powerState.TX
+		self.setPowerState(TX)
 
 	def rx(self):
-		self.state = powerState.RX
+		self.setPowerState(RX)
+
+	def isSending(self):
+		return self.getPowerState() == TX
+	def isReceiving(self):
+		return self.getPowerState() == RX
 
 	# special states
 	def colour(self):
-		if self.state == powerState.TX:
-			return self.busyColour
-		elif self.state == powerState.RX:
+		if self.isSending() or self.isReceiving():
 			return self.busyColour
 		else:
 			# pass it up to the parent
 			return component.colour(self)
 	
 	def power(self):
-		if self.state == powerState.TX:
+		if self.isSending():
 			return np.sum([power.gen() for power in self.txPower])
-		elif self.state == powerState.RX:
+		elif self.isReceiving():
 			return np.sum([power.gen() for power in self.rxPower])
 
 		else:
 			# pass it up to the parent
 			return component.power(self)
-    		
 
 	# def current(self):
-	# 	if self.state == powerState.TX:
+	# 	if self.getPowerState() == powerState.TX:
 	# 		return self.txCurrent
-	# 	elif self.state == powerState.RX:
+	# 	elif self.getPowerState() == powerState.RX:
 	# 		return self.rxCurrent
 	# 	else:
 	# 		# pass it up to the parent

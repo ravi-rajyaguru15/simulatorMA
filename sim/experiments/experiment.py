@@ -48,7 +48,7 @@ def randomJobs(offloadingPolicy=sim.offloading.offloadingPolicy.ANYTHING, hw=Tru
 
 	sim.simulations.current = Simulation(agentClass=minimalAgent)
 	print("start simulation")
-	sim.simulations.current.simulate()  # UntilTime(1)
+	sim.simulations.current.simulateEpisode()  # UntilTime(1)
 
 
 # sim.simulations.current.simulateTime(5)

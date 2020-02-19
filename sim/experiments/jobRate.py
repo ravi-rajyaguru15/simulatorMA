@@ -32,7 +32,7 @@ def runThread(jobLikelihood, results, finished):
 	finished.put(True)
 
 def run():
-	print ("starting experiment")
+	print("starting experiment")
 	debug.enabled = False
 	constants.DRAW = False
 	constants.SAMPLE_SIZE = variable.Gaussian(10, 2)

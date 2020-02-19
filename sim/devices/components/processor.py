@@ -27,15 +27,6 @@ class processor(component):
 		# print("processing", samples, self.processingSpeed.gen(), task.complexity, samples / self.processingSpeed.gen() * task.complexity, )
 		return samples / self.processingSpeed.gen() * task.complexity
 
-	def timeOutSleep(self):
-		if self.isIdle():
-			if self.idleTime >= self.idleTimeout:
-				self.sleep()
-				sim.debug.out("PROCESSOR SLEEP")
-			else:
-				self.idleTime += sim.simulations.constants.TD
-		else:
-			self.idleTime = 0
-		
+
 		# if self.idleTime != 0:
 		# 	sim.debug.out("idleTime: {:.3f}".format(self.idleTime))

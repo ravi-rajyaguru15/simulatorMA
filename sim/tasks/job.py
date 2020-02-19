@@ -8,6 +8,7 @@ import sim.simulations.results
 import sim.tasks.subtask
 # from node import node
 from sim.learning.action import LOCAL
+from sim.simulations import constants
 
 
 class job:
@@ -66,8 +67,8 @@ class job:
 		self.incrementCompletedJobs = simulation.incrementCompletedJobs
 		self.systemLifetime = simulation.systemLifetime
 		self.startExpectedLifetime = self.systemLifetime()
-		self.currentTime = simulation.time
-		self.createdTime = self.currentTime.current
+		# self.currentTime = jobCreator.current # simulation.time
+		self.createdTime = jobCreator.currentTime.current
 
 		self.samples = samples
 		self.hardwareAccelerated = hardwareAccelerated
@@ -81,7 +82,7 @@ class job:
 		self.processed = False
 		self.finished = False
 		if taskGraph is None:
-			taskGraph = sim.simulations.constants.DEFAULT_TASK_GRAPH
+			taskGraph = constants.DEFAULT_TASK_GRAPH
 		self.taskGraph = taskGraph
 
 		# start at first task
@@ -148,12 +149,17 @@ class job:
 		self.history.add("q", q)
 		self.history.add("loss", loss)
 
+	def setOwner(self, newOwner):
+		self.owner = newOwner
+		self.currentTime = self.owner.currentTime
+
 	def start(self):
 		self.started = True
+		# to start with, owner is the node who created it
+		self.setOwner(self.creator)
+
 		self.startTime = self.currentTime.current
 
-		# to start with, owner is the node who created it
-		self.owner = self.creator
 
 		return self.activate()
 
@@ -234,7 +240,7 @@ class job:
 
 		# add job to new owner
 		# destinationNode.jobQueue.append(self)
-		self.owner = destinationNode
+		self.setOwner(destinationNode)
 
 	# def computeResult(self):
 	# 	output = result()

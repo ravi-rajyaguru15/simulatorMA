@@ -5,8 +5,8 @@ import traceback
 import sim.debug as debug
 import sim.simulations.constants as constants
 # from sim.learning.state.binarySystemState import binarySystemState
-from experiments.experiment import executeMulti
-from plotting import plotMultiWithErrors
+from sim.experiments.experiment import executeMulti
+from sim.plotting import plotMultiWithErrors
 from sim.learning.agent.minimalAgent import minimalAgent
 from offloading.offloadingDecision import offloadingDecision
 from sim.learning.state.minimalSystemState import minimalSystemState

@@ -23,8 +23,8 @@ import pylab
 
 # import sys
 # sys.exit(0)
-import offloading.offloadingDecision
 import sim.plotting
+from sim.learning.action import offloading
 from sim.offloading import offloadingPolicy
 from sim.simulations import constants
 from sim.tasks import subtask
