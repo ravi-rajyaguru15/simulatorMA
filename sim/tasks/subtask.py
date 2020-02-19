@@ -59,8 +59,8 @@ class subtask:
 	def perform(self, visualiser=None):
 		self.beginTask()
 		subtaskPower = self.owner.getTotalPower()
-		sim.debug.out("process {} {} {}".format(self, self.started, self.duration))
-		sim.debug.out("power: %s" % subtaskPower, 'g')
+		debug.out("process {} {} {}".format(self, self.started, self.duration))
+		debug.out("power: %s" % subtaskPower, 'g')
 		self.progress = self.duration
 
 		# update visualiser if passed in
@@ -70,7 +70,7 @@ class subtask:
 		self.finished = True
 
 		affectedDevices = self.__class__.finishTask(self)
-		sim.debug.out("affected by finishing subtask: %s" % str(affectedDevices))
+		debug.out("affected by finishing subtask: %s" % str(affectedDevices))
 
 		# add delay to job
 		if self.addsLatency:
@@ -84,19 +84,19 @@ class subtask:
 	def tick(self):
 		# only proceed if already started 
 		if not self.started:
-			sim.debug.out ("{} possible? {}".format(self, self.possible()))
+			debug.out ("{} possible? {}".format(self, self.possible()))
 			if self.possible():
 				self.beginTask()
-				sim.debug.out ("begin {} {}".format(self, self.started))
+				debug.out ("begin {} {}".format(self, self.started))
 			# else:
 			# 	self.delay += sim.constants.TD
 			# 	# check for deadlock
 			# 	if isinstance(self, txMessage):
 			# 		if self.deadlock():
 			# 			# raise Exception("DEADLOCK", self.job.creator, self.job.processingNode, sim.constants.OFFLOADING_POLICY, sim.constants.JOB_LIKELIHOOD)
-			# 			sim.debug.out("TX DEADLOCK!\n\n\n")
+			# 			debug.out("TX DEADLOCK!\n\n\n")
 			# 			# time.sleep(1.5)
-			# 			sim.debug.out ("removing task {} from {}".format(self.correspondingRx, self.destination))
+			# 			debug.out ("removing task {} from {}".format(self.correspondingRx, self.destination))
 			# 			# TODO: move this to private functions
 			# 			# resolve deadlock by making destination prioritise reception
 			# 			# move current task to queue to be done later
@@ -121,10 +121,10 @@ class subtask:
 			# 	elif isinstance(self, rxMessage):
 			# 		if self.deadlock():
 			# 			# raise Exception("DEADLOCK", self.job.creator, self.job.processingNode, sim.constants.OFFLOADING_POLICY, sim.constants.JOB_LIKELIHOOD)
-			# 			sim.debug.out("RX DEADLOCK!\n\n\n")
-			# 			if sim.debug.enabled:
+			# 			debug.out("RX DEADLOCK!\n\n\n")
+			# 			if debug.enabled:
 			# 				time.sleep(1.5)
-			# 			# sim.debug.out ("removing task {} from {}".format(self.correspondingRx, self.destination))
+			# 			# debug.out ("removing task {} from {}".format(self.correspondingRx, self.destination))
 			# 			# resolve deadlock by making destination prioritise reception
 			# 			# move current task to queue to be done later
 			# 			try:
@@ -152,7 +152,7 @@ class subtask:
 			# 		# 		self.delay = 0
 			#
 			#
-			# 	sim.debug.out("try again...")
+			# 	debug.out("try again...")
 
 		totalDevicePower = self.owner.getTotalPower()
 
@@ -198,7 +198,7 @@ class subtask:
 		return False
 
 	def finishTask(self, affectedDevices):
-		sim.debug.out("finishing subtask! {} {}".format(self, self.owner), 'b')
+		debug.out("finishing subtask! {} {}".format(self, self.owner), 'b')
 
 		self.owner.currentSubtask = None
 
@@ -213,7 +213,7 @@ class subtask:
 					device, newSubtask = affected
 					device.addSubtask(newSubtask)
 
-		# sim.debug.out("current task: {} {}".format(self.owner, self.owner.currentSubtask))
+		# debug.out("current task: {} {}".format(self.owner, self.owner.currentSubtask))
 		return affectedDevices
 
 	def beginTask(self):
@@ -221,8 +221,8 @@ class subtask:
 		self.owner.currentJob = self.job
 		# all versions of begin must set started
 		self.start()
-		# sim.debug.out("started {} {}".format(self, self.job.samples))
-		sim.debug.out("started {}".format(self))
+		# debug.out("started {} {}".format(self, self.job.samples))
+		debug.out("started {}".format(self))
 		pass
 
 	def start(self):
@@ -270,7 +270,7 @@ class batchContinue(subtask):
 	def __init__(self, job=None, node=None):
 
 		if job is not None:
-			sim.debug.out("creating batchContinue with job {}".format(job))
+			debug.out("creating batchContinue with job {}".format(job))
 			self.processingNode = job.processingNode
 		elif node is not None:
 			debug.out("creating batchContinue with node {}".format(node))

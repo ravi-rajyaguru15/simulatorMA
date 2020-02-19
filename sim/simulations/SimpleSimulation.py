@@ -8,6 +8,7 @@ import numpy as np
 from sim import debug
 from sim.clock import clock
 from sim.devices.components import powerPolicy
+from sim.devices.components.processor import processor
 from sim.devices.components.fpga import fpga
 from sim.devices.node import node
 from sim.learning.agent.minimalAgent import minimalAgent
@@ -218,14 +219,14 @@ class SimpleSimulation(BasicSimulation):
 		elif task == PROCESS_SUBTASK:
 			# energy from idle period
 			# TODO: check that this idle period is correct
-			debug.out("idle %s: %s %.2f (%.2f)" % (device, device.currentTime.current, device.previousTimestamp, self.time - device.previousTimestamp), 'r')
+			debug.out("idle %s: %s %.2f (%.2f)" % (device, device.currentTime.current, device.previousTimestamp, device.currentTime.current - device.previousTimestamp), 'r')
 			idlePeriod = device.currentTime.current - device.previousTimestamp
 			if idlePeriod >= 0:
 				# idlePower = device.getTotalPower()
 				debug.out("%s idle %f" % (device, idlePeriod), 'r')
 				device.currentTd = idlePeriod
 				device.updateDeviceEnergy(device.getTotalPower())
-				device.updatePreviousTimestamp(self.time.current)
+				device.updatePreviousTimestamp(device.currentTime.current)
 				debug.out("idle %s time handled to %f" % (device, device.previousTimestamp), 'p')
 			else:
 				warnings.warn("going back in time!")
@@ -306,7 +307,7 @@ class SimpleSimulation(BasicSimulation):
 
 		debug.out("processing device subtask: %s %s" % (device, subtask))
 		affectedDevices, duration, devicePower = device.updateDevice(subtask, visualiser=visualiser)
-		taskEnding = self.time + duration
+		taskEnding = device.currentTime + duration
 
 		assert affectedDevices is not None
 
@@ -349,6 +350,9 @@ class SimpleSimulation(BasicSimulation):
 		# 	if not device.mcu.isSleeping():
 		# 		self.queueTask(nextTask + constants.MCU_IDLE_SLEEP, SLEEP_COMPONENT, device)
 
+		# update device time
+		device.currentTime.set(taskEnding)
+
 		return hasOffspring
 		# return duration
 
@@ -365,14 +369,15 @@ class SimpleSimulation(BasicSimulation):
 	def timeOutSleep(self, target):
 		# call on any contained FPGAs
 		if isinstance(target, node):
-			for processor in target.processors:
+			for targetProcessor in target.processors:
 				# mcu sleeping is managed in subtask finish
-				if isinstance(processor, fpga):
-					self.timeOutSleep(processor)
+				if isinstance(targetProcessor, fpga):
+					self.timeOutSleep(targetProcessor)
 
 		else:
+			assert isinstance(target, processor)
 			if target.isIdle():
-				idleTime = self.time - target.latestActive
+				idleTime = target.owner.currentTime - target.latestActive
 				print(target, target.isIdle(), idleTime, target.idleTimeout, target.owner.currentTd)
 
 				# target.idleTime += target.owner.currentTd
