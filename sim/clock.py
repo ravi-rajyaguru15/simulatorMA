@@ -1,10 +1,15 @@
 import sim.simulations.constants
+from sim import debug
+from sim.simulations import constants
+
 
 class clock:
 	current = None
+	owner = None
 	
-	def __init__(self):
+	def __init__(self, owner=None):
 		self.reset()
+		self.owner = owner
 	
 	def reset(self):
 		self.current = 0
@@ -28,7 +33,9 @@ class clock:
 		return "{:.5f}".format(self.current)
 
 	def set(self, value):
+		debug.out("updated clock of %s to %.6f" % (self.owner, value), 'dg')
 		self.current = value
 
-	def increment(self):
-		self.current += sim.simulations.constants.TD
+	def increment(self, increment=constants.TD):
+		debug.out("updated clock of %s by %.6f" % (self.owner, increment), 'dg')
+		self.current += increment

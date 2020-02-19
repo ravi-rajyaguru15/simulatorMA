@@ -26,11 +26,11 @@ class SimpleSimulation(BasicSimulation):
 	def __init__(self, systemStateClass=minimalSystemState,
 				 offloadingDecisionClass=offloadingDecision.offloadingDecision, agentClass=minimalAgent, autoJobs=True):
 		BasicSimulation.__init__(self, systemStateClass=systemStateClass,
-								 offloadingDecisionClass=offloadingDecisionClass, agentClass=agentClass)
+								 offloadingDecisionClass=offloadingDecisionClass, agentClass=agentClass, globalClock=False)
 
-		# overwrite device clocks so each tracks its own time (no global time)
-		for dev in self.devices:
-			dev.currentTime = clock()
+		# # overwrite device clocks so each tracks its own time (no global time)
+		# for dev in self.devices:
+		# 	dev.currentTime = clock(dev)
 		self.time = None
 
 		# specify subtask behaviour
@@ -219,20 +219,23 @@ class SimpleSimulation(BasicSimulation):
 		elif task == PROCESS_SUBTASK:
 			# energy from idle period
 			# TODO: check that this idle period is correct
-			debug.out("idle %s: %s %.2f (%.2f)" % (device, device.currentTime.current, device.previousTimestamp, device.currentTime.current - device.previousTimestamp), 'r')
-			idlePeriod = device.currentTime.current - device.previousTimestamp
+			# TODO: if schedule is missed, adjust scheduled time
+			debug.out("idle %s: %s %.6f (%.6f)" % (device, scheduledTime, device.currentTime.current, scheduledTime - device.currentTime.current), 'r')
+			# idlePeriod = device.currentTime.current - device.previousTimestamp
+			idlePeriod = scheduledTime - device.currentTime.current
+			print(device.currentTime.owner)
 			if idlePeriod >= 0:
 				# idlePower = device.getTotalPower()
 				debug.out("%s idle %f" % (device, idlePeriod), 'r')
 				device.currentTd = idlePeriod
 				device.updateDeviceEnergy(device.getTotalPower())
 				device.updatePreviousTimestamp(device.currentTime.current)
-				debug.out("idle %s time handled to %f" % (device, device.previousTimestamp), 'p')
+				debug.out("idle %s time handled to %f (%f)" % (device, device.currentTime.current, device.previousTimestamp), 'p')
 			else:
 				warnings.warn("going back in time!")
 				print()
 				print()
-				print(self.time.current, device.previousTimestamp, self.time - device.previousTimestamp, device)
+				print(device.currentTime.current, device.previousTimestamp, device.currentTime - device.previousTimestamp, device)
 				print("args", args, self.queue.qsize())
 				print("previous", self.previous)
 				print(device.__dict__)
@@ -305,9 +308,10 @@ class SimpleSimulation(BasicSimulation):
 		if self.frames % self.plotFrames == 0:
 			visualiser = self.visualiser  # this will trigger an update
 
+		# perform subtask here
 		debug.out("processing device subtask: %s %s" % (device, subtask))
 		affectedDevices, duration, devicePower = device.updateDevice(subtask, visualiser=visualiser)
-		taskEnding = device.currentTime + duration
+		taskEnding = device.currentTime.current
 
 		assert affectedDevices is not None
 
@@ -325,14 +329,14 @@ class SimpleSimulation(BasicSimulation):
 			# create follow up task in queue
 			for affectedDevice in affectedDevices:
 				if affectedDevice is not None:
-					device, subtask = affectedDevice
+					nextDevice, nextSubtask = affectedDevice
 					# next task begins at
 
 
 					# queue based on when next task is finished
 					# nextTaskFinished = nextTask + subtask.duration
 					# print("continue", subtask, self.time, duration, nextTask, nextTaskFinished)
-					self.queueTask(taskEnding, PROCESS_SUBTASK, device, subtask)
+					self.queueTask(taskEnding, PROCESS_SUBTASK, nextDevice, nextSubtask)
 					hasOffspring = True
 
 		except:
@@ -351,7 +355,7 @@ class SimpleSimulation(BasicSimulation):
 		# 		self.queueTask(nextTask + constants.MCU_IDLE_SLEEP, SLEEP_COMPONENT, device)
 
 		# update device time
-		device.currentTime.set(taskEnding)
+		# device.currentTime.set(taskEnding)
 
 		return hasOffspring
 		# return duration
@@ -411,6 +415,6 @@ class PrioritizedItem:
 	priority: float
 	item: Any = field(compare=False)
 
-	def __repr__(self): return "(%.2f - %s)" % (self.priority, self.item)
+	def __repr__(self): return "(%.6f - %s)" % (self.priority, self.item)
 
 

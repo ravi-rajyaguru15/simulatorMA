@@ -40,7 +40,7 @@ class subtask:
 			self.owner = owner
 		# assert(self.owner is not None)
 
-		debug.out("subtask duration: {:.10f}".format(duration), 'y')
+		debug.out("subtask {} duration: {:.10f}".format(self.__name__, duration), 'y')
 
 		assert duration >= 0
 		self.duration = duration
@@ -68,6 +68,7 @@ class subtask:
 			visualiser.update()
 
 		self.finished = True
+		# self.owner.currentTime.increment(self.duration)
 
 		affectedDevices = self.__class__.finishTask(self)
 		debug.out("affected by finishing subtask: %s" % str(affectedDevices))

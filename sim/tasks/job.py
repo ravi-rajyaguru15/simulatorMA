@@ -19,6 +19,7 @@ class job:
 	datasize = None
 	samples = None
 
+	currentTime = None # copy owner's clock
 	started = None
 	active = None
 	createdTime = None

@@ -33,6 +33,8 @@ secondJob.creator = dev
 secondJob.owner = dev
 secondJob.processingNode = dev2
 dev.currentJob = secondJob
+
+print('*'*100)
 exp.processAffectedDevice(secondJob.activate())
 
 print("tasks lined up:", exp.queue.qsize())

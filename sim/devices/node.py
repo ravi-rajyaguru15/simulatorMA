@@ -12,6 +12,7 @@ import sim.simulations.constants
 import sim.tasks.job
 import sim.tasks.subtask
 from sim import debug
+from sim.clock import clock
 from sim.devices.components.fpga import fpga
 from sim.learning.action import BATCH
 from sim.simulations import constants
@@ -56,11 +57,14 @@ class node:
 	location = None
 	episodeFinished = None
 
-	def __init__(self, clock, platform, index, components, episodeFinished, currentSystemState, offloadingDecisionClass, agentClass, alwaysHardwareAccelerate=None):
+	def __init__(self, inputClock, platform, index, components, episodeFinished, currentSystemState, offloadingDecisionClass, agentClass, alwaysHardwareAccelerate=None):
 		self.platform = platform
 
 		self.decision = offloadingDecisionClass(self, currentSystemState, agentClass)
-		self.currentTime = clock
+		if inputClock is None:
+			self.currentTime = clock(self)
+		else:
+			self.currentTime = inputClock
 
 		# self.resultsQueue = queue
 		self.index = index
@@ -397,8 +401,9 @@ class node:
 		if self.currentSubtask is not None:
 			sim.debug.out("updating device %s %s %s" % (self, self.currentSubtask, self.getNumSubtasks()), 'r')
 			affectedDevices, duration, devicePower = self.currentSubtask.update(visualiser) # only used in simple simulations
-			self.updatePreviousTimestamp(self.currentTime + duration)
-			debug.out("subtask %s time handled to %f" % (self, self.previousTimestamp), 'p')
+			# self.updatePreviousTimestamp(self.currentTime + duration)
+			self.currentTime.increment(duration)
+			debug.out("subtask %s time handled from %f to %f" % (self, self.previousTimestamp, self.currentTime.current), 'p')
 			# print(affectedDevices, duration)
 		else:
 			# just idle, entire td is used
@@ -413,7 +418,7 @@ class node:
 	def updatePreviousTimestamp(self, newTimestamp):
 		if newTimestamp > self.previousTimestamp:
 			self.previousTimestamp = newTimestamp
-		# debug.out("%s time handled to %f" % (self, self.previousTimestamp), 'p')
+		debug.out("%s time handled to %f" % (self, self.previousTimestamp), 'p')
 
 	# def timeOutSleep(self):
 	# 	# check for idle sleep trigger

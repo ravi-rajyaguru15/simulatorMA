@@ -44,7 +44,7 @@ class BasicSimulation:
 	completedJobs = None
 	useSharedAgent = None
 
-	def __init__(self, systemStateClass, offloadingDecisionClass, agentClass):
+	def __init__(self, systemStateClass, offloadingDecisionClass, agentClass, globalClock=True):
 		hardwareAccelerated = True
 		self.episodeNumber = 0
 
@@ -55,8 +55,9 @@ class BasicSimulation:
 		self.delays = list()
 		self.completedJobs = 0
 
-		self.time = clock()
-		offloadingDecision.sharedClock = self.time
+		if globalClock:
+			self.time = clock()
+			offloadingDecision.sharedClock = self.time
 		
 		# requires simulation to be populated
 		self.currentSystemState = systemStateClass(self)
