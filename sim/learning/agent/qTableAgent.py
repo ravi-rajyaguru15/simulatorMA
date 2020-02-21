@@ -9,11 +9,12 @@ from tensorflow import keras
 
 from sim import debug
 from sim.learning.agent.agent import agent
+from sim.learning.agent.qAgent import qAgent
 from sim.simulations import constants
 from sim.simulations.variable import Uniform
 
 
-class qTableAgent(agent):
+class qTableAgent(qAgent):
 	# @property
 	# def metrics_names(self):
 	# 	# Throw away individual losses and replace output name since this is hidden from the user.
@@ -26,7 +27,7 @@ class qTableAgent(agent):
 	#
 	# 	return names
 
-	def __init__(self, systemState):
+	def __init__(self, systemState, owner=None):
 		self.gamma = constants.GAMMA
 		self.policy = Uniform(.5, 1)
 
@@ -34,7 +35,7 @@ class qTableAgent(agent):
 		debug.out("Q Table agent: %s" % constants.OFFLOADING_POLICY)
 		# self.dqn = rl.agents.DQNAgent(model=self.model, policy=rl.policy.LinearAnnealedPolicy(, attr='eps', value_max=sim.constants.EPS_MAX, value_min=sim.constants.EPS_MIN, value_test=.05, nb_steps=sim.constants.EPS_STEP_COUNT), enable_double_dqn=False, gamma=.99, batch_size=1, nb_actions=self.numActions)
 
-		agent.__init__(self, systemState)
+		agent.__init__(self, systemState, owner=owner)
 
 	def createModel(self):
 		# create Q table
@@ -58,7 +59,7 @@ class qTableAgent(agent):
 	# def predictBatch(self, stateBatch):
 	# 	return self.model.predict_on_batch(stateBatch)
 
-	def selectAction(self, qValues):
+	def selectAction(self, systemState):
 		# EPS greedy
 		if self.policy.evaluate(constants.EPS):
 			# return random
@@ -66,6 +67,7 @@ class qTableAgent(agent):
 			# print('selecting random in', qValues, action)
 			return action
 		else:
+			qValues = self.predict(systemState)
 			# print('selecting max from', qValues, np.argmax(qValues))
 			return np.argmax(qValues)
 

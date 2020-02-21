@@ -6,7 +6,7 @@ import sim
 from sim import debug
 from sim.clock import clock
 from sim.devices.elasticNode import elasticNode
-from sim.offloading import offloadingPolicy, offloadingDecision
+from sim.offloading import offloadingPolicy #, offloadingDecision
 from sim.simulations import constants, results
 from sim.simulations.history import history
 from sim.tasks.job import job
@@ -17,6 +17,8 @@ queueLengths = list()
 currentSimulation = None
 
 class BasicSimulation:
+	sharedAgent = None
+
 	episodeNumber = None
 	currentSystemState = None
 	finishedJobsList = None
@@ -44,7 +46,7 @@ class BasicSimulation:
 	completedJobs = None
 	useSharedAgent = None
 
-	def __init__(self, systemStateClass, offloadingDecisionClass, agentClass, globalClock=True):
+	def __init__(self, systemStateClass, agentClass, globalClock=True):
 		hardwareAccelerated = True
 		self.episodeNumber = 0
 
@@ -57,32 +59,38 @@ class BasicSimulation:
 
 		if globalClock:
 			self.time = clock()
-			offloadingDecision.sharedClock = self.time
+			agentClass.sharedClock = self.time
 		
 		# requires simulation to be populated
 		self.currentSystemState = systemStateClass(self)
 		self.useSharedAgent = (constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING) and (constants.CENTRALISED_LEARNING)
+		if self.useSharedAgent:
+			# create shared learning agent
+			print("creating shared")
+			self.sharedAgent = agentClass(self.currentSystemState)
 
 		results.learningHistory = history()
 
 		debug.out("Learning: shared: %s offloading: %s centralised: %s" % (self.useSharedAgent, constants.OFFLOADING_POLICY, constants.CENTRALISED_LEARNING), 'r')
-		self.devices = [elasticNode(self.time, constants.DEFAULT_ELASTIC_NODE, self.results, i, episodeFinished=self.isEpisodeFinished, currentSystemState=self.currentSystemState, offloadingDecisionClass=offloadingDecisionClass, agentClass=agentClass, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(constants.NUM_DEVICES)]
+		agentClass = self.sharedAgent
+		self.devices = [elasticNode(self.time, constants.DEFAULT_ELASTIC_NODE, self.results, i, episodeFinished=self.isEpisodeFinished, currentSystemState=self.currentSystemState, agent=agentClass, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(constants.NUM_DEVICES)]
 
-		if self.useSharedAgent:
-			# create shared learning agent
-			print("creating shared")
-			offloadingDecision.offloadingDecision.createSharedAgent(self.currentSystemState, agentClass)
+
+			# offloadingDecision.offloadingDecision.createSharedAgent(self.currentSystemState, agentClass)
+		# @staticmethod
+		# def createSharedAgent(state, agentClass):
+		# 	offloadingDecision.sharedAgent = agentClass(state)
 
 		# self.ed = [] # endDevice(None, self, self.results, i, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(numEndDevices)]
 		# self.ed = endDevice()
 		# self.ed2 = endDevice()
-		if constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING:
-			if self.useSharedAgent:
-				print("shared exists")
-				assert offloadingDecision.offloadingDecision.sharedAgent is not None
-				offloadingDecision.offloadingDecision.sharedAgent.setDevices(self.devices)
-			else:
-				for device in self.devices: device.decision.privateAgent.setDevices(self.devices)
+		# if constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING:
+		if self.useSharedAgent:
+			print("shared exists")
+			assert self.sharedAgent is not None
+			self.sharedAgent.setDevices(self.devices)
+		else:
+			for device in self.devices: device.decision.privateAgent.setDevices(self.devices)
 
 		# assemble expected lifetime for faster computation later
 		self.devicesExpectedLifetimeFunctions = [dev.expectedLifetime for dev in self.devices]
@@ -105,11 +113,11 @@ class BasicSimulation:
 		# needs simulation and system state to be populated
 		for device in self.devices: 
 			# choose options based on policy
-			debug.out("setting shared: %s" % offloadingDecision.offloadingDecision.sharedAgent)
+			debug.out("setting shared: %s" % self.sharedAgent)
 			device.setOffloadingDecisions(self.devices)
 
 		sim.simulations.Simulation.currentSimulation = self
-		
+
 	def stop(self):
 		debug.out("STOP", 'r')
 		self.finished = True
@@ -150,7 +158,7 @@ class BasicSimulation:
 
 	def reset(self):
 		if self.useSharedAgent:
-			offloadingDecision.offloadingDecision.sharedAgent.reset()
+			self.sharedAgent.reset()
 		self.finishedJobsList = []
 		self.unfinishedJobsList = []
 
@@ -178,16 +186,22 @@ class BasicSimulation:
 		return self.finishedJobsList[-1]
 
 	def simulateUntilTime(self, finalTime):
-		assert(finalTime > self.time)
-		self.simulateTime(finalTime - self.time)
+		self.simulateTime(finalTime - self.getCurrentTime())
+
+	def getCurrentTime(self):
+		if self.time is None:
+			time = np.max([dev.currentTime.current for dev in self.devices])
+		else:
+			time = self.time.current
+		return time
 
 	def simulateTime(self, duration):
 		# progress = 0
-		endTime = self.time + duration
+		endTime = self.getCurrentTime() + duration
 		
 		if self.finished: return
 
-		while self.time < endTime and not self.finished:
+		while self.getCurrentTime() < endTime and not self.finished:
 			# try:
 			if True:
 				self.simulateTick()

@@ -1,19 +1,14 @@
-from sim.learning.action import LOCAL, BATCH
+from sim.learning.action import offloading, LOCAL, BATCH
 from sim.learning.agent.staticAgent import staticAgent
 
 
-class localAgent(staticAgent):
+class randomAgent(staticAgent):
 	def setOptions(self, allDevices):
-		self.options = [self.owner]
-	#
-	# def chooseDestination(self, task, job, device):
-	# 	choice = LOCAL
-	# 	choice.updateTargetDevice(self.owner, [self.owner])
-	# 	return choice
+		self.options = allDevices
 
 	def setDevices(self, devices):
 		# local options are only available
-		self.possibleActions = [BATCH, LOCAL]
+		self.possibleActions = [offloading(i) for i in range(len(devices))] + [BATCH, LOCAL]
 		for i in range(len(self.possibleActions)):
 			self.possibleActions[i].index = i
 		print('actions', self.possibleActions)

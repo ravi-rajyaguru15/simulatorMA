@@ -96,7 +96,7 @@ class job:
 		self.history = sim.simulations.history.history()
 
 		# initiate task by setting processing node
-		destination = jobCreator.decision.chooseDestination(self.currentTask, self, jobCreator)
+		destination = jobCreator.agent.chooseDestination(self.currentTask, self, jobCreator)
 		self.setDecisionTarget(destination)
 
 		# define episode finished function for training
@@ -201,7 +201,7 @@ class job:
 
 		if sim.simulations.constants.OFFLOADING_POLICY == sim.offloading.offloadingPolicy.REINFORCEMENT_LEARNING:
 			sim.debug.learnOut("training when finishing job")
-			self.owner.decision.train(self.currentTask, self, self.owner)
+			self.owner.agent.train(self.currentTask, self, self.owner)
 
 			# agent = self.owner.decision.privateAgent
 			# self.addToHistory(agent.latestReward, agent.latestMeanQ, agent.latestLoss)

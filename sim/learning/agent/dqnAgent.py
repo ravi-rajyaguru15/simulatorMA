@@ -7,10 +7,11 @@ from tensorflow import keras
 
 from sim import debug
 from sim.learning.agent.agent import agent
+from sim.learning.agent.qAgent import qAgent
 from sim.simulations import constants
 
 
-class dqnAgent(agent):
+class dqnAgent(qAgent):
 	optimizer = None
 
 	def getPolicyMetrics(self):
@@ -94,6 +95,7 @@ class dqnAgent(agent):
 	# 	return self.model.predict_on_batch(stateBatch)
 
 	def selectAction(self, qValues):
+		raise Exception("not getting qvalues")
 		return self.policy.select_action(q_values=qValues)
 
 	def trainModel(self, latestAction, reward, beforeState, afterState, finished):

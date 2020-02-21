@@ -1,9 +1,9 @@
 import sys
+import traceback
 
 import sim.debug as debug
 import sim.simulations.constants as constants
-from sim.learning.agent.minimalAgent import minimalAgent
-from offloading.offloadingDecision import offloadingDecision as offloadingDecisionClass
+from sim.learning.agent.localAgent import localAgent
 from sim.learning.state.minimalSystemState import minimalSystemState
 from sim.offloading.offloadingPolicy import *
 from sim.simulations.SimpleSimulation import SimpleSimulation as Simulation
@@ -15,7 +15,7 @@ if __name__ == '__main__':
 	constants.OFFLOADING_POLICY = REINFORCEMENT_LEARNING
 	debug.enabled = False
 	constants.DRAW_DEVICES = False
-	exp = Simulation(minimalSystemState, offloadingDecisionClass, minimalAgent)
+	exp = Simulation(minimalSystemState, localAgent)
 
 	# while True:
 	if True:
@@ -25,12 +25,13 @@ if __name__ == '__main__':
 	# 	debug.out("\ntick %d" % i)
 	# 	i+=1
 	# 	exp.simulateTick()
-		try:
-			exp.simulateEpisode()
-			print("Experiment done!", exp.time)
-		except Exception:
-			print("number of successful episodes:", exp.episodeNumber)
-			print(sys.exc_info())
+	# 	try:
+		exp.simulateEpisode()
+		print("Experiment done!", exp.time)
+		# except Exception:
+		# 	print("number of successful episodes:", exp.episodeNumber)
+		# 	print(sys.exc_info())
+		# 	traceback.print_stack()
 			# traceback.print_stack()
 		# print("end of episode!", exp.time)
 

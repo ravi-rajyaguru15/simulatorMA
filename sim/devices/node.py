@@ -20,7 +20,7 @@ from sim.simulations import constants
 
 class node:
 	# message = None
-	decision = None
+	# decision = None
 	jobQueue = None
 	taskQueue = None
 	currentJob = None
@@ -57,10 +57,18 @@ class node:
 	location = None
 	episodeFinished = None
 
-	def __init__(self, inputClock, platform, index, components, episodeFinished, currentSystemState, offloadingDecisionClass, agentClass, alwaysHardwareAccelerate=None):
+	def __init__(self, inputClock, platform, index, components, episodeFinished, currentSystemState=None, agent=None, alwaysHardwareAccelerate=None):
 		self.platform = platform
 
-		self.decision = offloadingDecisionClass(self, currentSystemState, agentClass)
+		# self.decision = offloadingDecisionClass(self, currentSystemState, agentClass)
+
+		# if agentClass is a class, create private
+		if type(agent) is type(__class__):
+			print("agent class", agent)
+			self.agent = agent(currentSystemState, owner=self)
+		else:
+			self.agent = agent
+
 		if inputClock is None:
 			self.currentTime = clock(self)
 		else:
@@ -85,7 +93,8 @@ class node:
 	def reset(self):
 		self.previousTimestamp = 0
 		self.jobQueue = PriorityQueue()
-		self.taskQueue = PriorityQueue()
+		if self.taskQueue is not None:
+			self.taskQueue = PriorityQueue()
 		sim.debug.out("jobqueue" + str(self.jobQueue))
 		self.hasJobScheduled = False
 		
@@ -132,7 +141,7 @@ class node:
 		# self.setOffloadingDecisions(options)
 
 	def setOffloadingDecisions(self, devices):
-		self.decision.setOptions(devices)
+		self.agent.setOptions(devices)
 
 	def getCurrentConfiguration(self):
 		# default behaviour is to not have a configuration
@@ -169,24 +178,20 @@ class node:
 		return sim.tasks.subtask.newJob(job)
 
 	# appends one job to the end of the task queue (used for queueing future tasks)
-	def addSubtask(self, task, appendLeft=False):
+	def addSubtask(self, task):
 		task.owner = self
 		sim.debug.out("adding subtask %s %s" % (str(task), str(self)), 'b')
 
-		# time.sleep(0.5)
-		# traceback.print_stack()
-		# time.sleep(0.5)
-
 		# prioritised tasks without jobs (batchContinue mostly)
 		taskPriority = task.job.id if task.job is not None else 0
-		self.taskQueue.put(PrioritizedItem(taskPriority, task))
-		# if appendLeft:
-		# 	self.taskQueue.appendleft(task)
-		# else:
-		# 	self.taskQueue.append(task)
+		# some simulations remove task queues (because they are queued elsewhere)
+		if self.taskQueue is not None:
+			self.taskQueue.put(PrioritizedItem(taskPriority, task))
 
-		# if nothing else happening, start task
-		self.nextTask()
+			# # if added by another device (e.g. rxmessage), do not activate yet
+			# if device is None or device == self:
+			# if nothing else happening, start task
+			self.nextTask()
 
 	# used in deadlock resolving
 	# def removeTask(self, task):
@@ -245,7 +250,7 @@ class node:
 				# self.taskQueue.remove(self.currentTask)
 
 				self.currentSubtask.owner = self
-				sim.debug.out (str(self) + " NEXT TASK " + str(self.currentSubtask))
+				sim.debug.out(str(self) + " NEXT TASK " + str(self.currentSubtask))
 
 			else:
 				# sim.debug.out("no next task")
@@ -255,7 +260,10 @@ class node:
 		return self.jobQueue.qsize()
 
 	def getNumSubtasks(self):
-		return self.taskQueue.qsize()
+		if self.taskQueue is None:
+			return None
+		else:
+			return self.taskQueue.qsize()
 
 	# check if this node has a subtask lined up
 	def hasSubtask(self):
@@ -285,12 +293,13 @@ class node:
 	def reconsiderBatch(self):
 		sim.debug.learnOut("deciding whether to continue batch ({}) or not".format(self.batchLengths()), 'b')
 		# sim.debug.out("Batch before: {0}/{1}".format(self.batchLength(self.currentJob.currentTask), sim.constants.MINIMUM_BATCH), 'c')
-		sim.debug.out("Batch lengths before: {}".format(self.batchLengths()), 'c')
+		sim.debug.out("Batch lengths before reconsider: {}".format(self.batchLengths()), 'c')
 		for batchName in self.batch:
 			currentBatch = self.batch[batchName]
 			for job in currentBatch:
-				sim.debug.learnOut("considering job from batch".format(job))
-				newChoice = self.decision.redecideDestination(job.currentTask, job, self)
+				sim.debug.out("considering job from batch {}".format(job))
+				newChoice = self.agent.redecideDestination(job.currentTask, job, self)
+				sim.debug.out("new decision: %s" % newChoice)
 				# print("updated", newChoice)
 				# check if just batching
 				if newChoice == BATCH or newChoice.offloadingToTarget(self.index):  # (isinstance(newChoice, sim.offloadingDecision.offloading) and newChoice.targetDeviceIndex == self.owner.index):
@@ -305,7 +314,7 @@ class node:
 					self.currentJob = job
 					return job.activate()
 
-		sim.debug.out("Batch lengths after: {}".format(self.batchLengths()), 'c')
+		sim.debug.out("Batch lengths after reconsider: {}".format(self.batchLengths()), 'c')
 		return None
 		# sim.debug.out("Batch after: {0}/{1}".format(self.currentJob.processingNode.batchLength(self.job.currentTask), sim.constants.MINIMUM_BATCH), 'c')
 
@@ -327,13 +336,21 @@ class node:
 	def updateDeviceEnergy(self, totalPower):
 		self.updateAveragePower(totalPower)
 		assert self.currentTd is not None
+		debug.out("updating device energy %f" % self.currentTd)
 		incrementalEnergy = totalPower * self.currentTd
 		# ensure only using each time diff once
-		self.currentTd = None
 		self.totalEnergyCost += incrementalEnergy
 		# TODO: assuming battery powered
 		# print (incrementalEnergy)
 		self.energyLevel -= incrementalEnergy
+
+		# update device time if local time used
+		if self.currentTime is not None:
+			self.previousTimestamp = self.currentTime.current
+			self.currentTime.increment(self.currentTd)
+
+		self.currentTd = None
+
 		return incrementalEnergy
 
 	def getTotalPower(self):
@@ -378,16 +395,29 @@ class node:
 		else:
 			# ensure that correct subtask is being done
 			if self.currentSubtask != subtask:
-				if self.currentSubtask is None:
+				if self.currentSubtask is None or self.taskQueue is None:
 					self.currentSubtask = subtask
 					# remove this subtask from device taskqueue
-					print("taskQueue:", self.taskQueue.queue)
+					# print("taskQueue:", self.taskQueue.queue)
+					# print(self.taskQueue.qsize())
+					# print(subtask)
+					# print("set currentsubtask to subtask")
 					# check that this subtask was not queued
-					assert self.taskQueue.empty()
-					# print(self.taskQueue.get_nowait())
-					# sys.exit(0)
+					# tmp = []
+					# while not self.taskQueue.empty():
+					# 	tmptask = self.taskQueue.get()
+					# 	print("tmptask", tmptask, tmptask.item)
+					# 	if tmptask.item != subtask:
+					# 		tmp.append(tmptask)
+					#
+					# for tmptask in tmp:
+					# 	self.taskQueue.put(tmptask)
+
+					# print(self.taskQueue.qsize())
+
 				else:
 					print("current:", self.currentSubtask, "subtask:", subtask)
+					print(self.taskQueue)
 					time.sleep(0.5)
 					raise Exception("device already has different subtask!")
 
@@ -582,7 +612,7 @@ class node:
 			# print("set job to NONE")
 			self.currentJob = None
 
-		sim.debug.out("resulting job: %s (%d)" % (self.currentJob, self.getNumSubtasks()))
+		sim.debug.out("resulting job: %s (%s)" % (self.currentJob, str(self.getNumSubtasks())))
 
 from dataclasses import dataclass, field
 from typing import Any

@@ -1,7 +1,6 @@
 from sim import debug
 from sim.simulations import constants
 from sim.simulations.SimpleSimulation import SimpleSimulation, NEW_JOB, PROCESS_SUBTASK
-from sim.tasks import subtask
 from sim.tasks.job import job
 from sim.tasks.subtask import reconfigureFPGA
 
