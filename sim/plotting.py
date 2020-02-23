@@ -73,8 +73,8 @@ def plotAgentHistory(history):
 			func(axis, np.array(range(len(graph))), graph, colours[i])
 		i += 1
 
-	ax1.legend(legend1, loc='upper left')
-	ax2.legend(legend2, loc='upper right')
+	ax1.legend(legend1, loc='lower left')
+	ax2.legend(legend2, loc='lower right')
 	ax1.set_ylim([0, 1.1 * np.max(history.getField("action"))])
 	minimum = -1 if negative else 0
 	ax2.set_ylim([minimum, 1])

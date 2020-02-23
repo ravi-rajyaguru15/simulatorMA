@@ -1,57 +1,47 @@
-# from sim import simulation
-import sys
-
-from sim.devices.components import powerPolicy
-from offloading import offloadingDecision
-from sim.learning.agent.minimalAgent import minimalAgent
-from sim.offloading import offloadingPolicy
-from sim.simulations import constants
-from sim.tasks.job import job
-
-print(sys.path)
-sys.path.insert(0, ".")
-from sim.simulations.SimpleSimulation import SimpleSimulation as Simulation
-# from sim.simulations.TdSimulation import TdSimulation as Simulation
-import sim.simulations.variable
-import sim.offloading.offloadingPolicy
-import offloading.offloadingDecision
-import sim.debug
-import sim.plotting
-import sim.tasks.tasks
-
-import multiprocessing
-import multiprocessing.pool
-import numpy as np
-import sys
 
 
 # TODO: initial sleep mcu!
 # TODO: sleep mcu during reconfiguration!
-def randomJobs(offloadingPolicy=sim.offloading.offloadingPolicy.ANYTHING, hw=True):
+from sys import stdout
+
+from sim import debug, counters
+from sim.devices.components.powerPolicy import IDLE_TIMEOUT
+from sim.learning.agent.minimalAgent import minimalAgent
+from sim.offloading.offloadingPolicy import ANYTHING, REINFORCEMENT_LEARNING
+from sim.simulations import constants
+from sim.simulations.variable import Constant
+from sim.tasks.job import job
+from sim.tasks.tasks import EASY
+from sim.simulations.SimpleSimulation import SimpleSimulation as Simulation
+
+import numpy as np
+import multiprocessing
+
+def randomJobs(offloadingPolicy=ANYTHING, hw=True):
 	constants.NUM_DEVICES = 1
 	print("random jobs")
-	sim.debug.enabled = True
+	debug.enabled = True
 	constants.OFFLOADING_POLICY = offloadingPolicy
 	constants.JOB_LIKELIHOOD = 9e-3  # 2e-3
-	constants.SAMPLE_RAW_SIZE = sim.simulations.variable.Constant(40)
-	constants.SAMPLE_SIZE = sim.simulations.variable.Constant(10)
+	constants.SAMPLE_RAW_SIZE = Constant(40)
+	constants.SAMPLE_SIZE = Constant(10)
 	constants.PLOT_SKIP = 1
-	constants.FPGA_POWER_PLAN = powerPolicy.IDLE_TIMEOUT
+	constants.FPGA_POWER_PLAN = IDLE_TIMEOUT
 	constants.DRAW_DEVICES = True
 	constants.FPGA_IDLE_SLEEP = 0.075
-	if offloadingPolicy == sim.offloading.offloadingPolicy.REINFORCEMENT_LEARNING:
+	if offloadingPolicy == REINFORCEMENT_LEARNING:
 		constants.MINIMUM_BATCH = 1e5
 	else:
 		constants.MINIMUM_BATCH = 5
-	constants.DEFAULT_TASK_GRAPH = [sim.tasks.tasks.EASY]
+	constants.DEFAULT_TASK_GRAPH = [EASY]
 	constants.ROUND_ROBIN_TIMEOUT = 1e1
 
-	sim.simulations.current = Simulation(agentClass=minimalAgent)
+	exp = Simulation(agentClass=minimalAgent)
 	print("start simulation")
-	sim.simulations.current.simulateEpisode()  # UntilTime(1)
+	exp.simulateEpisode()  # UntilTime(1)
 
 
-# sim.simulations.current.simulateTime(5)
+# simulations.current.simulateTime(5)
 
 
 # creates dictionary with (avg, std) for each x for each graph
@@ -67,8 +57,8 @@ def assembleResults(resultsQueue, outputQueue, numResults=None):
 	for i in range(numResults):
 		result = resultsQueue.get()
 
-		sys.stdout.write("\rProgress: {:.2f}%".format((i + 1) / numResults * 100.0))
-		sys.stdout.flush()
+		stdout.write("\rProgress: {:.2f}%".format((i + 1) / numResults * 100.0))
+		stdout.flush()
 
 		if len(result) == 4:
 			graphName, sample, datapoint, normalise = result
@@ -88,7 +78,7 @@ def assembleResults(resultsQueue, outputQueue, numResults=None):
 
 	# normalise if required
 	# print()
-	sim.debug.out("normalise:", normaliseDict)
+	debug.out("normalise:", normaliseDict)
 	# print("find max")
 	# print("graphs", graphs)
 	# for key in graphs:
@@ -167,7 +157,7 @@ def executeMulti(processes, results, finished, numResults=None):
 
 
 def doLocalJob(experiment, device):
-	sim.debug.out("LOCAL JOB", 'g')
+	debug.out("LOCAL JOB", 'g')
 	localJob = job(device, 5, hardwareAccelerated=True)
 	decision = offloadingDecision.possibleActions[-1]
 	print("decision is", decision)
@@ -180,7 +170,7 @@ def doLocalJob(experiment, device):
 
 def doWaitJob(experiment, device):
 	# fix decision to wait
-	sim.debug.out("\nWAIT JOB", 'g')
+	debug.out("\nWAIT JOB", 'g')
 	waitJob = job(device, 5, hardwareAccelerated=True)
 	decision = offloading.offloadingDecision.possibleActions[-2]
 	decision.updateDevice(device)
@@ -189,13 +179,13 @@ def doWaitJob(experiment, device):
 	experiment.addJob(device, waitJob)
 	experiment.simulateTime(constants.PLOT_TD * 100)
 	print("wait done")
-	print("forward", sim.counters.NUM_FORWARD, "backward", sim.counters.NUM_BACKWARD)
+	print("forward", counters.NUM_FORWARD, "backward", counters.NUM_BACKWARD)
 
 
 def doOffloadJob(experiment, source, destination):
-	sim.debug.out("OFFLOAD JOB", 'g')
+	debug.out("OFFLOAD JOB", 'g')
 	offloadJob = job(source, 5, hardwareAccelerated=True)
-	decision = offloading.offloadingDecision.possibleActions[destination.index]
+	decision = experiment.sharedAgent.possibleActions[destination.index]
 	decision.updateDevice()
 	print("target index", decision.targetDeviceIndex)
 	offloadJob.setDecisionTarget(decision)
@@ -205,7 +195,7 @@ def doOffloadJob(experiment, source, destination):
 		experiment.simulateTick()
 		print('\n\n-\n')
 	print("destination has job again")
-	print("forward", sim.counters.NUM_FORWARD, "backward", sim.counters.NUM_BACKWARD)
+	print("forward", counters.NUM_FORWARD, "backward", counters.NUM_BACKWARD)
 	decision = offloading.offloadingDecision.possibleActions[-2]
 	decision.updateDevice(destination)
 	offloadJob.setDecisionTarget(decision)
@@ -231,11 +221,11 @@ if __name__ == '__main__':
 	# for i in range(1, 100, 10):
 	# 	print i, exp.simulateAll(i, "latency")
 
-	# sim.constants.DRAW_DEVICES = True
+	# constants.DRAW_DEVICES = True
 	# testPerformance()
 
 	# singleDelayedJobLocal(False)
-	# sim.singleDelayedJobLocal(True)
+	# singleDelayedJobLocal(True)
 	# doubleDelayedJobLocal(True)
 	# differentBatchesLocal(True)
 	# singleDelayedJobPeer(False)
@@ -244,12 +234,12 @@ if __name__ == '__main__':
 	# singleBatchLocal(False)
 	# singleBatchRemote(False)
 	# singleBatchRemote(True)
-	# sim.randomPeerJobs(True)
+	# randomPeerJobs(True)
 	# randomLocalJobs(False)
 	# randomPeerJobs(False)
 	# testActions()
 
-	randomJobs(offloadingPolicy=offloadingPolicy.REINFORCEMENT_LEARNING, hw=True)
+	randomJobs(offloadingPolicy=REINFORCEMENT_LEARNING, hw=True)
 # testPerformance()
 # profileTarget()
 

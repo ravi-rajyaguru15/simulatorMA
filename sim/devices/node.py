@@ -79,11 +79,11 @@ class node:
 		# self.nodeType = nodeType
 
 		self.maxEnergyLevel = node.convertEnergy(self.platform.BATTERY_SIZE, self.platform.BATTERY_VOLTAGE)
-		self.reset()
 
 		self.drawLocation = (0,0)
 
 		self.setComponents(components)
+		self.reset()
 		self.episodeFinished = episodeFinished
 		self.alwaysHardwareAccelerate = alwaysHardwareAccelerate
 
@@ -93,6 +93,9 @@ class node:
 	def reset(self):
 		self.previousTimestamp = 0
 		self.jobQueue = PriorityQueue()
+		self.currentJob = None
+		self.currentSubtask = None
+		self.currentBatch = None
 		if self.taskQueue is not None:
 			self.taskQueue = PriorityQueue()
 		sim.debug.out("jobqueue" + str(self.jobQueue))
@@ -106,6 +109,12 @@ class node:
 		self.jobActive = False
 		self.numJobs = 0
 		self.batch = dict()
+		self.currentTime.reset()
+
+		# first run the components can be None
+		if self.components is not None:
+			for com in self.components:
+				com.reset()
 
 	def resetEnergyLevel(self):
 		self.energyLevel = self.maxEnergyLevel
@@ -318,6 +327,21 @@ class node:
 		return None
 		# sim.debug.out("Batch after: {0}/{1}".format(self.currentJob.processingNode.batchLength(self.job.currentTask), sim.constants.MINIMUM_BATCH), 'c')
 
+	def continueBatch(self):
+		# assert task in self.batch
+		assert self.currentBatch is not None
+
+		debug.learnOut("continue batch for %s (%d)" % (self.currentBatch, self.batchLength(self.currentBatch)))
+		# assert task == self.currentBatch
+
+		if self.batchLength(self.currentBatch) > 0:
+			self.currentJob = self.batch[self.currentBatch][0]
+			self.removeJobFromBatch(self.currentJob)
+
+			return self.currentJob
+
+		return None
+
 	# calculate the energy at the current activity of all the components
 	def energy(self): # , duration=sim.constants.TD):
 		assert self.currentTd is not None
@@ -376,7 +400,7 @@ class node:
 		devicePower = 0
 		# if no jobs available, perhaps generate one
 
-		debug.out("update %s: %s (%s) [%s]" % (self, self.currentSubtask, self.currentJob, subtask), 'g')
+		debug.out("update device %s: %s (%s) [%s]" % (self, self.currentSubtask, self.currentJob, subtask), 'g')
 		if subtask is None:
 			# see if there's a job available
 			if self.currentJob is None:
@@ -517,7 +541,9 @@ class node:
 			return 0
 
 	def isQueueFull(self, task):
-		return self.batchLength(task) >= constants.MAX_JOBS
+		full = self.batchLength(task) >= constants.MAX_JOBS - 1
+		debug.out("jobs: %d full: %s" % (self.batchLength(task), full))
+		return full
 
 	def nextJobFromBatch(self):
 		# print("currentjob", self.currentJob)
@@ -574,7 +600,6 @@ class node:
 
 		assert found is True
 		sim.debug.out("batch after remove {}".format(self.batch))
-
 
 	def addJobToQueue(self, job):
 		sim.debug.out("adding %s to queue of %s" % (job, self))

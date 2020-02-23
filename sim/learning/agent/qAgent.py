@@ -1,7 +1,18 @@
+import numpy as np
+
+from sim import debug, counters
 from sim.learning.agent.agent import agent
+from sim.offloading.offloadingPolicy import REINFORCEMENT_LEARNING
+from sim.simulations import constants
 
 
 class qAgent(agent):
+	__name__ = "Q Agent"
+
+	def __init__(self):
+		agent.__init__(self)
+		constants.OFFLOADING_POLICY = REINFORCEMENT_LEARNING
+
 	def reward(self, job):
 		# default reward behaviour
 		jobReward = 1 if job.finished else 0
@@ -10,7 +21,7 @@ class qAgent(agent):
 					job.currentTime - job.createdTime) else 0  # reward if not reducing lifetime more than actual duration
 		simulationDoneReward = -100 if job.episodeFinished() else 0
 
-		sim.debug.learnOut(
+		debug.learnOut(
 			'reward: job {} deadline {} expectedLife {} simulationDone {}'.format(jobReward, deadlineReward,
 																				  expectedLifetimeReward,
 																				  simulationDoneReward), 'b')
@@ -23,15 +34,15 @@ class qAgent(agent):
 		reward = self.reward(job)
 		finished = job.episodeFinished()
 
-		sim.debug.learnOut("backward {} {}".format(reward, finished), 'y')
-		sim.debug.learnOut("\n")
+		debug.learnOut("backward {} {}".format(reward, finished), 'y')
+		debug.learnOut("\n")
 		# traceback.print_stack()
-		# sim.debug.learnOut("\n")
+		# debug.learnOut("\n")
 
 		self.totalReward += reward
 		self.episodeReward += reward
 
-		sim.counters.NUM_BACKWARD += 1
+		counters.NUM_BACKWARD += 1
 
 		# update model here
 		self.trainModel(job.latestAction, reward, job.beforeState, self.systemState, finished)
@@ -40,10 +51,10 @@ class qAgent(agent):
 		self.latestReward = reward
 		# self.latestR = R
 
-		# sim.debug.learnOut\
+		# debug.learnOut\
 		diff = self.systemState - job.beforeState
 		np.set_printoptions(precision=3)
-		# sim.debug.infoOut("{}, created: {:6.3f} {:<7}: {}, deadline: {:9.5f} ({:10.5f}), action: {:<9}, expectedLife (before: {:9.5f} - after: {:9.5f}) = {:10.5f}, reward: {}".format(job.currentTime, job.createdTime, str(job), int(job.finished), job.deadlineRemaining(), (job.currentTime - job.createdTime), str(self.possibleActions[job.latestAction]), job.beforeState.	getField("selfExpectedLife")[0], self.systemState.getField("selfExpectedLife")[0], diff["selfExpectedLife"][0], reward))
+		# debug.infoOut("{}, created: {:6.3f} {:<7}: {}, deadline: {:9.5f} ({:10.5f}), action: {:<9}, expectedLife (before: {:9.5f} - after: {:9.5f}) = {:10.5f}, reward: {}".format(job.currentTime, job.createdTime, str(job), int(job.finished), job.deadlineRemaining(), (job.currentTime - job.createdTime), str(self.possibleActions[job.latestAction]), job.beforeState.	getField("selfExpectedLife")[0], self.systemState.getField("selfExpectedLife")[0], diff["selfExpectedLife"][0], reward))
 		# print("state diff: {}".format(diff).replace("array", ""), 'p')
 
 		# save to history
@@ -56,19 +67,25 @@ class qAgent(agent):
 
 		# print('reward', reward)
 
-		sim.debug.learnOut("loss: {} reward: {}".format(self.latestLoss, self.latestReward), 'r')
-		# sim.debug.learnOut("loss: {} reward: {} R: {}".format(self.latestLoss, self.latestReward, self.latestR), 'r')
+		debug.learnOut("loss: {} reward: {}".format(self.latestLoss, self.latestReward), 'r')
+		# debug.learnOut("loss: {} reward: {} R: {}".format(self.latestLoss, self.latestReward, self.latestR), 'r')
 	#
 	# agent.step += 1
 	# agent.update_target_model_hard()
 
 	# return metrics
 
+	def chooseDestination(self, task, job, device):
+		debug.learnOut("deciding how to offload new job", 'y')
+		debug.learnOut("owner: {}".format(self.owner), 'r')
+		choice = self.firstDecideDestination(task, job, device)
+		return choice
+
 	def getPolicyMetrics(self):
 		return []
 
 	def train(self, task, job, device):
-		sim.debug.learnOut("Training: [{}] [{}] [{}]".format(task, job, device), 'y')
+		debug.learnOut("Training: [{}] [{}] [{}]".format(task, job, device), 'y')
 		self.systemState.updateState(task, job, device)
 		self.backward(job)
 

@@ -10,7 +10,7 @@ import sim.experiments.experiment
 import offloading.offloadingDecision
 import sim.plotting
 import sim.simulations.constants
-import sim.simulations.results
+import sim.simulations.simulationResults
 import sim.simulations.variable
 import sim.tasks.job
 
@@ -32,7 +32,7 @@ def runThread(numEpisodes, results, finished, histories):
 		sys.exit(0)
 
 	finished.put(True)
-	histories.put(sim.simulations.results.learningHistory)
+	histories.put(sim.simulations.simulationResults.learningHistory)
 	# print("\nsaving history", sim.results.learningHistory, '\nr')
 
 	print("forward", sim.counters.NUM_FORWARD, "backward", sim.counters.NUM_BACKWARD)

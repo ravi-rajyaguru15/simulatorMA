@@ -18,9 +18,13 @@ class component:
 		self.idlePower = idlePower
 		self.sleepPower = sleepPower
 
+		self.reset()
+
+	def reset(self):
 		# start idle
 		self.__state = SLEEP
-		latestActive = None
+		self.latestActive = None
+
 
 	# def activeEnergy(self, time):
 	# 	print (time)

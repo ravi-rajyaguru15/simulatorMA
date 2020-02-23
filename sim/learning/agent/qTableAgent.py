@@ -1,3 +1,4 @@
+import math
 import sys
 
 import numpy as np
@@ -15,6 +16,7 @@ from sim.simulations.variable import Uniform
 
 
 class qTableAgent(qAgent):
+	__name__ = "Q Table Agent"
 	# @property
 	# def metrics_names(self):
 	# 	# Throw away individual losses and replace output name since this is hidden from the user.
@@ -46,11 +48,16 @@ class qTableAgent(qAgent):
 		beforeIndex = beforeState.getIndex()
 		Qsa = self.model[beforeIndex, latestAction]
 		currentIndex = currentState.getIndex()
-		maxQ = np.argmax(self.model[currentIndex,:])
-		increment = constants.LEARNING_RATE * (reward + constants.GAMMA * maxQ - Qsa)
-		debug.out("updating qtable: %d\t%d\t%f\t%f" % (beforeIndex, latestAction, increment, reward))
+		maxQ = np.argmax(self.model[currentIndex, :])
+		target = reward + constants.GAMMA * maxQ
+		increment = constants.LEARNING_RATE * (target - Qsa)
+		debug.learnOut("updating qtable: %d\t%d\t%f\t%f" % (beforeIndex, latestAction, increment, reward))
+
 		# Q learning 101:
 		self.model[beforeIndex, latestAction] = Qsa + increment
+		self.latestLoss = (target - Qsa) ** 2.
+		self.latestMeanQ = np.mean(self.model[beforeIndex, :])
+
 
 	def predict(self, state):
 		# find row from q table for this state
@@ -73,6 +80,7 @@ class qTableAgent(qAgent):
 
 	def printModel(self):
 		print()
+		print("%s Model" % self)
 		maxEntryWorth = 0
 		for i in range(self.systemState.getUniqueStates()):
 			description = self.systemState.getStateDescription(i)

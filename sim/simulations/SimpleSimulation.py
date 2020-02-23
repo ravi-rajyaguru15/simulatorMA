@@ -212,8 +212,8 @@ class SimpleSimulation(BasicSimulation):
 			# no devices affected if already has job
 			if affectedDevice is not None:
 				# start created subtask
-				debug.out("new job affected: %s %s" % (affectedDevice), 'b')
 				nextdevice, nextsubtask = affectedDevice
+				debug.out("new job affected: %s %s" % (nextdevice, nextsubtask), 'b')
 				self.queueTask(scheduledTime, PROCESS_SUBTASK, nextdevice, nextsubtask)
 				#
 				# self.processAffectedDevice(affectedDevice)
@@ -361,7 +361,7 @@ class SimpleSimulation(BasicSimulation):
 		# queue task to check if device should sleep
 		# print(constants.FPGA_POWER_PLAN, device.fpga.getPowerState())
 		if constants.FPGA_POWER_PLAN == powerPolicy.IDLE_TIMEOUT:
-			if device.fpga.isIdle():
+			if device.fpga.isIdle() and device.fpga.latestActive is not None:
 				self.queueTask(timeBefore + constants.FPGA_IDLE_SLEEP, SLEEP_COMPONENT, device)
 		# if constants.MCU_POWER_PLAN == powerPolicy.IDLE_TIMEOUT:
 		# 	if not device.mcu.isSleeping():

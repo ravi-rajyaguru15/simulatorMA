@@ -9,7 +9,7 @@ class action:
 	targetDevice = None
 	targetDeviceIndex = None
 	local = False
-	# index = None
+	index = None
 	immediate = None
 
 	def __init__(self, name, targetIndex=None, immediate=False):

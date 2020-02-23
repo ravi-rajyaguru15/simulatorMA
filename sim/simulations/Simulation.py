@@ -7,7 +7,7 @@ from sim import debug
 from sim.clock import clock
 from sim.devices.elasticNode import elasticNode
 from sim.offloading import offloadingPolicy #, offloadingDecision
-from sim.simulations import constants, results
+from sim.simulations import constants, simulationResults
 from sim.simulations.history import history
 from sim.tasks.job import job
 # from message import message
@@ -21,7 +21,9 @@ class BasicSimulation:
 
 	episodeNumber = None
 	currentSystemState = None
-	finishedJobsList = None
+	# finishedJobsList = None
+	latestFinishedJob = None
+	numFinishedJobs = None
 	unfinishedJobsList = None
 	ed, ed2, en, gw, srv, selectedOptions = None, None, None, None, None, None
 	results = None
@@ -69,7 +71,7 @@ class BasicSimulation:
 			print("creating shared")
 			self.sharedAgent = agentClass(self.currentSystemState)
 
-		results.learningHistory = history()
+		simulationResults.learningHistory = history()
 
 		debug.out("Learning: shared: %s offloading: %s centralised: %s" % (self.useSharedAgent, constants.OFFLOADING_POLICY, constants.CENTRALISED_LEARNING), 'r')
 		agentClass = self.sharedAgent
@@ -150,17 +152,21 @@ class BasicSimulation:
 	def simulateEpisode(self):
 		self.reset()
 		i = 0
-		while not self.finished:
-			# print("tick", i)
-			i +=1
+		while not self.finished:#  and i < 100:
+			# debug.out("%s" % [dev.getEnergyLevelPercentage() for dev in self.devices])
+			i += 1
 			self.simulateTick()
 		self.episodeNumber += 1
+		# debug.enabled = True
 
 	def reset(self):
 		if self.useSharedAgent:
 			self.sharedAgent.reset()
-		self.finishedJobsList = []
+		# self.finishedJobsList = []
+		self.latestFinishedJob = None
+		self.numFinishedJobs = 0
 		self.unfinishedJobsList = []
+		job.id = 0
 
 		# reset energy
 		for dev in self.devices:
@@ -178,12 +184,15 @@ class BasicSimulation:
 	def getCompletedJobs(self): return self.completedJobs
 	def incrementCompletedJobs(self, job):
 		self.completedJobs += 1
-		assert job not in self.finishedJobsList
-		self.finishedJobsList.append(job)
+		# assert job not in self.finishedJobsList
+		# self.finishedJobsList.append(job)
+		self.latestFinishedJob = job
+		self.numFinishedJobs += 1
 
 	def getLatestFinishedJob(self):
-		assert len(self.finishedJobsList) > 0
-		return self.finishedJobsList[-1]
+		# assert len(self.finishedJobsList) > 0
+		# return self.finishedJobsList[-1]
+		return self.latestFinishedJob
 
 	def simulateUntilTime(self, finalTime):
 		self.simulateTime(finalTime - self.getCurrentTime())

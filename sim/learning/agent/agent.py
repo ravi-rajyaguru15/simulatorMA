@@ -17,11 +17,11 @@ class agent:
 	target = None
 	possibleActions = None  # TODO: offloading to self
 	numOptions = None
+	numActions = None
 	metrics_names = None
 	owner = None
 
 	systemState = None
-	dqn = None
 	model = None
 	trainable_model = None
 	policy = None
@@ -50,14 +50,36 @@ class agent:
 		self.totalReward = 0
 		self.reset()
 
+	def __repr__(self): return "<" + self.__name__ + ">"
 		# self.setDevices(devices)
 
 	def reset(self):
 		self.episodeReward = 0
 
-	# self.history = sim.history.history()
+	def setOptions(self, allDevices):
+		self.options = allDevices
+
 	def setDevices(self, devices):
-		raise self.genericException
+		# default devices is all of them
+		self.possibleActions = [offloading(i) for i in range(len(devices))] + [BATCH, LOCAL]
+		for i in range(len(self.possibleActions)):
+			self.possibleActions[i].index = i
+		print('actions', self.possibleActions)
+
+		self.numOptions = len(self.possibleActions)
+		self.numActions = len(self.possibleActions)
+
+		# needs numActions
+		self.createModel()
+
+		self.devices = devices
+
+	def createModel(self):
+		pass
+
+	# self.history = sim.history.history()
+	# def setDevices(self, devices):
+	# 	raise self.genericException
 	# def setDevices(self, devices):
 	# 	assert devices is not None
 	# 	self.possibleActions = [offloading(i) for i in range(len(devices))] + [BATCH, LOCAL]
@@ -77,9 +99,11 @@ class agent:
 	def chooseDestination(self, task, job, device):
 		# default behaviour is to choose a random option
 		if len(self.options) == 1:
+			debug.out("only one option for job", 'y')
 			choice = self.possibleActions[0]
 			choice.updateTargetDevice(device, self.options)
 		else:
+			debug.out("assigning job randomly", 'y')
 			choice = action("Random", targetIndex=random.choice(self.options).index)
 			choice.updateTargetDevice(self.owner, self.options)
 		return choice
@@ -115,17 +139,9 @@ class agent:
 		# 			largestBatches = np.argmax(decisionFactors)
 		# 			# print('largest:', largestBatches)
 		# 			choice = actionFromIndex(self.options[largestBatches].index)
-		# 	elif constants.OFFLOADING_POLICY == REINFORCEMENT_LEARNING:
-		# 		sim.debug.learnOut("deciding how to offload new job")
-		# 		sim.debug.learnOut("owner: {}".format(self.owner), 'r')
-		# 		choice = self.firstDecideDestination(task, job, device)
-		# 	# sim.debug.learnOut("choice: {}".format(choice))
 		# 	elif constants.OFFLOADING_POLICY == LOCAL_ONLY:
 		# 		choice = LOCAL
 		# 		choice.updateTargetDevice(self.owner, [self.owner])
-		# 	else:
-		# 		choice = action("Random", targetIndex=random.choice(self.options).index)
-		# 		choice.updateTargetDevice(self.owner, self.options)
 		# 	# choice = np.random.choice(self.options) #  action.findAction(random.choice(self.options).index)
 		#
 		# 	sim.debug.out("Job assigned: {} -> {}".format(self.owner, choice))
@@ -161,8 +177,8 @@ class agent:
 		# print("created shared", offloadingDecision.sharedAgent)
 		# sim.learning.offloadingDecision.sharedAgent = agentClass(state)
 
-	def setOptions(self, allDevices):
-		raise self.genericException
+	# def setOptions(self, allDevices):
+	# 	raise self.genericException
 		# # set options for all policies that use it, or select constant target
 		# # if sim.constants.OFFLOADING_POLICY == sim.offloadingPolicy.LOCAL_ONLY:
 		# # 	self.target = self.owner
@@ -213,12 +229,18 @@ class agent:
 		currentSim = sim.simulations.Simulation.currentSimulation
 		job.beforeState = self.systemState.fromSystemState(currentSim)
 		sim.debug.out("beforestate {}".format(job.beforeState))
+		# print(device.batchLengths(), device.batchLength(task), device.isQueueFull(task))
 
 		# special case if job queue is full
 		if device.isQueueFull(task):
 			actionIndex = self.numOptions - 1
-			debug.out("special case! queue is full")
+			debug.learnOut("special case! queue is full")
+
+			# print("special case! queue is full", device, device.batchLengths())
+			# debug.enabled = True
+			# debug.learnEnabled = True
 		else:
+			debug.out("getting action %s %s" % (device, device.batchLengths()))
 			# choose best action based on current state
 			actionIndex = self.selectAction(job.beforeState)
 			# qValues = self.predict(job.beforeState)

@@ -23,7 +23,7 @@ JOB_LIKELIHOOD = 1e-3 # used in td simulations
 JOB_INTERVAL = Gaussian(10, 1e-0) # used in simple simulations
 
 # offloading
-OFFLOADING_POLICY = sim.offloading.offloadingPolicy.ANYTHING
+OFFLOADING_POLICY = sim.offloading.offloadingPolicy.REINFORCEMENT_LEARNING
 OFFLOADING_PEER = 0
 ROUND_ROBIN_TIMEOUT = 2
 
@@ -61,13 +61,12 @@ DRAW_GRAPH_EXPECTED_LIFETIME = False
 DRAW_GRAPH = True
 SAVE_GRAPH = False
 
-# def randomise(range):
-# 	return random.uniform(range[0], range[1])
+RECONSIDER_BATCHES = False
 
 # experiments
 NUM_DEVICES = 2
 REPEATS = 4
-THREAD_COUNT = multiprocessing.cpu_count()
+THREAD_COUNT = multiprocessing.cpu_count() - 1
 MAX_DELAY = 0.1
 EXPECTED_LIFETIME_ALPHA = 0.1
 OUTPUT_DIRECTORY = "/tmp/output"

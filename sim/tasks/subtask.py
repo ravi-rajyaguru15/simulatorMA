@@ -219,7 +219,7 @@ class subtask:
 
 	def beginTask(self):
 		if (self.owner.currentJob is not None and self.job is None):
-			print("changing current job of %s from %s to %s" % (self.owner, self.owner.currentJob, self.job))
+			debug.out("changing current job of %s from %s to %s" % (self.owner, self.owner.currentJob, self.job))
 		# assert not (self.owner.currentJob is not None and self.job is None) # this would erase existing job
 		self.owner.currentJob = self.job
 		# all versions of begin must set started
@@ -294,8 +294,20 @@ class batchContinue(subtask):
 		newSubtask = None
 
 		if constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING:
-			affected = self.owner.reconsiderBatch()
-			if affected is None:
+			sleepMcu = False
+			if constants.RECONSIDER_BATCHES:
+				affected = self.owner.reconsiderBatch()
+				if affected is None:
+					sleepMcu = True
+			else:
+				self.job = self.processingNode.continueBatch()
+
+				if self.job is None:
+					sleepMcu = True
+				else:
+					affected = self.job.processingNode, newJob(self.job)
+
+			if sleepMcu:
 				self.owner.mcu.sleep()
 		else:
 			# check if there's more tasks in the current batch
@@ -348,10 +360,16 @@ class batching(subtask):
 		self.job.processingNode.removeJob(self.job)
 
 		if constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING:
+			sleepMcu = False
+			if constants.RECONSIDER_BATCHES:
+				# decide which of the jobs in the batch should be started now
+				affected = self.owner.reconsiderBatch()
+				if affected is None:
+					sleepMcu = True
+			else:
+				sleepMcu = True
 
-			# decide which of the jobs in the batch should be started now
-			affected = self.owner.reconsiderBatch()
-			if affected is None:
+			if sleepMcu:
 				self.owner.mcu.sleep()
 
 		else:
@@ -392,6 +410,8 @@ class newJob(subtask):
 	def finishTask(self):
 		newSubtask = None
 		# start first job in queue
+		self.job.processingNode.currentBatch = self.job.currentTask
+
 		if self.job.hardwareAccelerated:
 			if self.job.processingNode.fpga.isConfigured(self.job.currentTask):
 				newSubtask = mcuFpgaOffload(self.job)
@@ -773,44 +793,48 @@ class rxJob(rxMessage):
 		newOwner = self.job.processingNode
 		# self.job.creator.waiting = True
 
-		if usingReinforcementLearning:
-			debug.learnOut("training before reevaluating")
-			debug.learnOut("backward before update")
-			# TODO: this the correct device?
-			self.owner.agent.train(self.job.currentTask, self.job, self.owner)
-			# systemState.current.update(self.job.currentTask, self.job, self.owner) # still old owner
-			# self.job.creator.decision.privateAgent.backward(self.job.reward(), self.job.finished)
+		# if usingReinforcementLearning:
+		# 	debug.learnOut("training before reevaluating")
+		# 	debug.learnOut("backward before update")
+		# 	# TODO: this the correct device?
+		# 	self.owner.agent.train(self.job.currentTask, self.job, self.owner)
+		# 	# systemState.current.update(self.job.currentTask, self.job, self.owner) # still old owner
+		# 	# self.job.creator.decision.privateAgent.backward(self.job.reward(), self.job.finished)
 
 
 		# TODO: rx job in tdsimulation likely broken because not adding received job to backlog (assuming subtask is created)
 		self.job.moveTo(newOwner)
 
 
-		# # if using rl, reevalute decision
-		# if usingReinforcementLearning:
-		# 	# print()
-		# 	debug.learnOut("updating decision upon reception")
-		# 	debug.learnOut("owner: {}".format(self.job.owner))
-		# 	# systemState.current.update(self.job.currentTask, self.job, self.job.owner)
-		# 	# debug.out("systemstate: {}".format(systemState.current))
-		#
-		#
-		#
-		# 	# # print("systemstate: {}".format(systemState.current))
-		# 	# choice = self.job.owner.decision.privateAgent.forward(self.job.owner)
-		# 	# print("choice: {}".format(choice))
-		#
-		# 	# self.job.setDecisionTarget(choice)
-		# 	# self.job.activate()
-		#
-		#
-		# 	# TODO: removed this redeciding...
-		# 	affected = self.job.owner.agent.retarget(self.job.currentTask, self.job, self.job.owner)
-		# 	# warnings.warn("redecision isn't affected i think")
-		# 	# affected = choice.targetDevice
-		# # otherwise, just add it to the local batch
-		# else:
-		affected = self.job.processingNode, batching(self.job)
+		# if using rl, reevalute decision
+		if usingReinforcementLearning:
+			# print()
+			debug.learnOut("updating decision upon reception")
+			debug.learnOut("owner: {}".format(self.job.owner))
+			# systemState.current.update(self.job.currentTask, self.job, self.job.owner)
+			# debug.out("systemstate: {}".format(systemState.current))
+
+
+
+			# # print("systemstate: {}".format(systemState.current))
+			# choice = self.job.owner.decision.privateAgent.forward(self.job.owner)
+			# print("choice: {}".format(choice))
+
+			# self.job.setDecisionTarget(choice)
+			# self.job.activate()
+
+
+			# TODO: removed this redeciding...
+			# affected = self.job.owner.agent.retarget(self.job.currentTask, self.job, self.job.owner)
+			choice = self.job.owner.agent.redecideDestination(self.job.currentTask, self.job, self.job.owner)
+			debug.learnOut("redeciding choice", choice)
+			self.job.setDecisionTarget(choice)
+			affected = self.job.activate()
+			# warnings.warn("redecision isn't affected i think")
+			# affected = choice.targetDevice
+		# otherwise, just add it to the local batch
+		else:
+			affected = self.job.processingNode, batching(self.job)
 
 		return rxMessage.finishTask(self, [affected])
 

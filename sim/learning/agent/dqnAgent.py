@@ -12,6 +12,8 @@ from sim.simulations import constants
 
 
 class dqnAgent(qAgent):
+	__name__ = "Deep Q Agent"
+
 	optimizer = None
 
 	def getPolicyMetrics(self):

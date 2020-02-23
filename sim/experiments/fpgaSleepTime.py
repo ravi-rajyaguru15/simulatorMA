@@ -4,14 +4,13 @@ import traceback
 
 import numpy as np
 
+from sim import debug
 from sim.devices.components import powerPolicy
+from sim.experiments.experiment import executeMulti
 from sim.offloading import offloadingPolicy
+from sim.plotting import plotMultiWithErrors
 from sim.simulations import constants, variable
 from sim.simulations.SimpleSimulation import SimpleSimulation
-
-import sim.debug
-import sim.experiments.experiment
-import sim.plotting
 
 numDevices = 4
 def runThread(jobLikelihood, fpgaSleepTime, results, finished):
@@ -26,23 +25,25 @@ def runThread(jobLikelihood, fpgaSleepTime, results, finished):
 		exp.simulateEpisode()
 	except:
 		traceback.print_exc(file=sys.stdout)
-		print("Error in experiment:", jobLikelihood, fpgaSleepTime, exp.time)
+		print(jobLikelihood, fpgaSleepTime, )
+		print("Error in experiment:", jobLikelihood, fpgaSleepTime, exp.getCurrentTime())
 
 	results.put(["FPGA Idle Sleep {}".format(fpgaSleepTime), jobLikelihood, np.sum(exp.totalDevicesEnergy()) / numDevices])
 	finished.put(True)
 
 def run():
 	print ("starting experiment")
-	sim.debug.enabled = False
+	debug.enabled = False
 	constants.DRAW = False
 	constants.SAMPLE_SIZE = variable.Gaussian(10, 2)
 	constants.SAMPLE_RAW_SIZE = variable.Constant(4, integer=True)
 	constants.SAMPLE_PROCESSED_SIZE = variable.Constant(4, integer=True)
 	constants.FPGA_POWER_PLAN = powerPolicy.IDLE_TIMEOUT
-	constants.OFFLOADING_POLICY = offloadingPolicy.ANYTHING
+	constants.OFFLOADING_POLICY = offloadingPolicy.REINFORCEMENT_LEARNING
 
 	processes = list()
 	constants.MINIMUM_BATCH = 5
+	constants.DEFAULT_ELASTIC_NODE.BATTERY_SIZE = 1e2
 	
 	# offloadingOptions = [True, False]
 	results = multiprocessing.Queue()
@@ -54,9 +55,9 @@ def run():
 			for _ in range(constants.REPEATS):
 				processes.append(multiprocessing.Process(target=runThread, args=(jobLikelihood, fpgaSleepTime, results, finished)))
 	
-	results = sim.experiments.experiment.executeMulti(processes, results, finished)
+	results = executeMulti(processes, results, finished)
 	
-	sim.plotting.plotMultiWithErrors("Average Energy", results=results) # , save=True)
+	plotMultiWithErrors("Average Energy", results=results) # , save=True)
 
 try:
 	run()

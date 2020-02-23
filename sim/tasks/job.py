@@ -4,11 +4,11 @@ import sim.offloading.offloadingPolicy
 import sim.simulations.constants
 import sim.simulations.history
 # from sim.result import result
-import sim.simulations.results
+import sim.simulations.simulationResults
 import sim.tasks.subtask
 # from node import node
 from sim.learning.action import LOCAL
-from sim.simulations import constants
+from sim.simulations import constants, simulationResults
 
 
 class job:
@@ -120,7 +120,7 @@ class job:
 		# selectedDevice = self.simulation.devices[self.decision.targetDeviceIndex]
 		sim.debug.out("selected {}".format(decision.targetDevice))
 		self.setprocessingNode(decision.targetDevice)
-		sim.simulations.results.addChosenDestination(decision.targetDevice)
+		sim.simulations.simulationResults.addChosenDestination(decision.targetDevice)
 
 		# when assigning a new target we can assume the job is inactive
 		self.active = False
@@ -204,12 +204,12 @@ class job:
 			self.owner.agent.train(self.currentTask, self, self.owner)
 
 			# agent = self.owner.decision.privateAgent
-			# self.addToHistory(agent.latestReward, agent.latestMeanQ, agent.latestLoss)
+			# self.addToHistory(self.owner.agent.latestReward, self.owner.agent.latestLoss)
 
 		self.incrementCompletedJobs(self)
 
 		# save this job's history to communal history
-		sim.simulations.results.learningHistory.combine(self.history)
+		simulationResults.learningHistory.combine(self.history)
 
 		# print("finished job", self.simulation.completedJobs)
 		# add results to overall results
