@@ -36,6 +36,7 @@ class node:
 	totalEnergyCost = None
 	averagePower = None
 	powerCount = None
+	latestPower = None
 	totalSleepTime = None
 	drawLocation = None
 
@@ -103,6 +104,7 @@ class node:
 		
 		self.resetEnergyLevel()
 		self.averagePower = 0.05
+		self.latestPower = 0
 		self.powerCount = 0
 		self.totalEnergyCost = 0
 		self.totalSleepTime = 0
@@ -367,6 +369,7 @@ class node:
 		# TODO: assuming battery powered
 		# print (incrementalEnergy)
 		self.energyLevel -= incrementalEnergy
+		self.latestPower = totalPower
 
 		# update device time if local time used
 		if self.currentTime is not None:

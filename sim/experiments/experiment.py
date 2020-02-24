@@ -74,6 +74,7 @@ def assembleResults(resultsQueue, outputQueue, numResults=None):
 			graphs[graphName][sample] = list()
 		# print ("creating list", graphName, sample)
 
+		# print("adding", datapoint, "to", graphName, sample)
 		graphs[graphName][sample].append(datapoint)
 
 	# normalise if required
@@ -119,17 +120,65 @@ def assembleResults(resultsQueue, outputQueue, numResults=None):
 	outputQueue.put(outputGraphs)
 
 
+# creates dictionary with (avg, std) for each x for each graph
+# takes results as input,
+def assembleResultsBasic(resultsQueue, outputQueue, numResults=None):
+	# process results into dict
+	if numResults is None:
+		numResults = resultsQueue.qsize()
+	print("assembling results", numResults)
+	graphs = dict()
+	# print("")
+	for i in range(numResults):
+		result = resultsQueue.get()
+
+		stdout.write("\rProgress: {:.2f}%".format((i + 1) / numResults * 100.0))
+		stdout.flush()
+
+		if len(result) == 4:
+			graphName, sample, datapoint, normalise = result
+		else:
+			graphName, sample, datapoint = result
+			normalise = False
+
+		if graphName not in graphs.keys():
+			graphs[graphName] = dict()
+
+		if sample not in graphs[graphName].keys():
+			graphs[graphName][sample] = list()
+		# print ("creating list", graphName, sample)
+
+		# print("adding", datapoint, "to", graphName, sample)
+		graphs[graphName][sample].append(datapoint)
+
+	# print()
+	# print()
+	# print('graphs', graphs)
+	# calculate means and averages
+	outputGraphs = dict()
+	for key, graph in graphs.items():
+		# turn each list into a (value, error) tuple
+		outputGraphs[key] = dict()
+		for x, ylist in graph.items():
+			# print()
+			# print(ylist)
+			outputGraphs[key][x] = ylist
+		# print(outputGraphs[key][x])
+	# print ("processed")
+	outputQueue.put(outputGraphs)
+
+
 # print ("after")
 
 # return outputGraphs
 
-def executeMulti(processes, results, finished, numResults=None):
+def executeMulti(processes, results, finished, numResults=None, assembly=assembleResults):
 	if numResults is None:
 		numResults = len(processes)
 
 	# results consumption thread:
 	outputData = multiprocessing.Queue()
-	assemble = multiprocessing.Process(target=assembleResults, args=(results, outputData, numResults,))
+	assemble = multiprocessing.Process(target=assembly, args=(results, outputData, numResults,))
 	assemble.start()
 
 	# process simulation

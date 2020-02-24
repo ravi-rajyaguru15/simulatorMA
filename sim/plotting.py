@@ -10,7 +10,7 @@ import numpy as np
 import sim.simulations.constants
 
 # print (os.environ["DISPLAY"])
-from sim.simulations import constants
+from sim.simulations import constants, localConstants
 
 if "DISPLAY" not in os.environ:
 	# os.environ["DISPLAY"] = "localhost:10.0"
@@ -35,7 +35,7 @@ def plotWithErrors(x, y=None, errors=None, results=None):
 def plotAgentHistory(history):
 	print("plotting agent")
 	assert history is not None
-	filename = "{}/{}_{}".format(constants.OUTPUT_DIRECTORY, "agentHistory", datetime.datetime.now()).replace(":", ".")
+	filename = "{}/{}_{}".format(localConstants.OUTPUT_DIRECTORY, "agentHistory", datetime.datetime.now()).replace(":", ".")
 	pickle.dump(history, open("{}.pickle".format(filename), "wb"))
 
 	fig, ax1 = pp.subplots()
@@ -89,35 +89,40 @@ def plotAgentHistory(history):
 	if constants.DRAW_GRAPH:
 		pp.show()
 
-def plotMultiWithErrors(name, results=None, ylim=None, ylabel=None, xlabel=None, separate=False): # , show=False, save=False):
+
+def plotMultiWithErrors(name, results=None, ylim=None, ylabel=None, xlabel=None,
+						separate=False):  # , show=False, save=False):
 	# print("plotting!")
-	filename = "{}/{}_{}".format(constants.OUTPUT_DIRECTORY, name, datetime.datetime.now()).replace(":", ".")
+	filename = "{}/{}_{}".format(localConstants.OUTPUT_DIRECTORY, name, datetime.datetime.now()).replace(":", ".")
 	pickle.dump((name, results, ylim, ylabel, xlabel), open("{}.pickle".format(filename), "wb"))
-	
+
 	# sort by graph key
 	orderedResults = collections.OrderedDict(sorted(results.items()))
 	legends = list()
-	for key, graph in orderedResults.items(): #, colour in zip(results, colours):
+	for key, graph in orderedResults.items():  # , colour in zip(results, colours):
 		if separate:
 			pp.figure()
-			
+
 		legends.append(key)
 		x, y = list(), list()
 		errors = list()
-		
+
 		# sort graph by x indices
+		print(graph)
 		orderedGraph = collections.OrderedDict(sorted(graph.items()))
+		print(graph)
 
 		for xIndex, value in orderedGraph.items():
 			x.append(xIndex)
 			y.append(value[0])
 			errors.append(value[1])
-	
+		print(x)
+
 		pp.errorbar(x, y, yerr=errors)
-	
+
 	pp.legend(legends)
 	pp.grid()
-	
+
 	pp.title(name)
 
 	if ylim is not None:
@@ -128,16 +133,69 @@ def plotMultiWithErrors(name, results=None, ylim=None, ylabel=None, xlabel=None,
 
 	if xlabel is not None:
 		pp.xlabel(xlabel)
-		
+
 	if constants.SAVE_GRAPH:
 		saveFig(filename)
 
 	if constants.DRAW_GRAPH:
 		pp.show()
 
+
+def plotMulti(name, results=None, ylim=None, ylabel=None, xlabel=None,
+						separate=False):  # , show=False, save=False):
+	# print("plotting!")
+	filename = "{}/{}_{}".format(localConstants.OUTPUT_DIRECTORY, name, datetime.datetime.now()).replace(":", ".")
+	pickle.dump((name, results, ylim, ylabel, xlabel), open("{}.pickle".format(filename), "wb"))
+
+	# sort by graph key
+	print(results)
+	# orderedResults = collections.OrderedDict(sorted(results.items()))
+	legends = list()
+	for key, graph in results.items():  # , colour in zip(results, colours):
+		if separate:
+			pp.figure()
+
+		legends.append(key)
+		x, y = list(), list()
+		errors = list()
+
+
+		for xIndex, value in graph.items():
+			# x.append(xIndex)
+			# y.append(value[0])
+			for val in value:
+				x.append(xIndex)
+				y.append(val)
+			# print(xIndex, value)
+		# print(x)
+		# print(y)
+
+		pp.errorbar(x, y)
+
+	pp.legend(legends)
+	pp.grid()
+
+	pp.title(name)
+
+	if ylim is not None:
+		pp.ylim(ylim)
+
+	if ylabel is not None:
+		pp.ylabel(ylabel)
+
+	if xlabel is not None:
+		pp.xlabel(xlabel)
+
+	if constants.SAVE_GRAPH:
+		saveFig(filename)
+
+	if constants.DRAW_GRAPH:
+		pp.show()
+
+
 def saveFig(filename):
 	try:
-		os.mkdir("/output")
+		os.mkdir(localConstants.OUTPUT_DIRECTORY)
 	except FileExistsError:
 		pass
 

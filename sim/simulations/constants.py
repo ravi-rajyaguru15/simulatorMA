@@ -66,9 +66,6 @@ RECONSIDER_BATCHES = False
 # experiments
 NUM_DEVICES = 2
 REPEATS = 4
-THREAD_COUNT = 1 # multiprocessing.cpu_count() - 1
+THREAD_COUNT = multiprocessing.cpu_count() - 1
 MAX_DELAY = 0.1
 EXPECTED_LIFETIME_ALPHA = 0.1
-OUTPUT_DIRECTORY = "/tmp/output"
-try: os.mkdir(OUTPUT_DIRECTORY)
-except FileExistsError: pass
