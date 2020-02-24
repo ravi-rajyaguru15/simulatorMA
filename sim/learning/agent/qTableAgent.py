@@ -2,7 +2,7 @@ import math
 import sys
 
 import numpy as np
-import tensorflow as tf
+# import tensorflow as tf
 from keras.backend import mean, max as kerasMax
 from rl.policy import EpsGreedyQPolicy
 from rl.util import huber_loss

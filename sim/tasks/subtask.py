@@ -827,7 +827,7 @@ class rxJob(rxMessage):
 			# TODO: removed this redeciding...
 			# affected = self.job.owner.agent.retarget(self.job.currentTask, self.job, self.job.owner)
 			choice = self.job.owner.agent.redecideDestination(self.job.currentTask, self.job, self.job.owner)
-			debug.learnOut("redeciding choice", choice)
+			debug.learnOut("redeciding choice %s" % choice)
 			self.job.setDecisionTarget(choice)
 			affected = self.job.activate()
 			# warnings.warn("redecision isn't affected i think")

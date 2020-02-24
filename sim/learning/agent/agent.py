@@ -5,7 +5,7 @@ import numpy as np
 import sim
 from sim import debug, counters
 from sim.learning.action import offloading, LOCAL, BATCH, action
-from sim.offloading import offloadingDecision
+# from sim.offloading import offloadingDecision
 from sim.offloading.offloadingPolicy import LOCAL_ONLY, REINFORCEMENT_LEARNING, SPECIFIC_PEER_ONLY, RANDOM_PEER_ONLY, \
 	ANNOUNCED, ANYTHING, ROUND_ROBIN
 from sim.simulations import constants

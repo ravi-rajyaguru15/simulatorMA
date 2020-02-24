@@ -2,8 +2,8 @@ import numpy as np
 
 from sim import debug
 from sim.devices.elasticNode import elasticNode
-from offloading import offloadingDecision
-from sim.learning.agent.dqnAgent import dqnAgent
+# from offloading import offloadingDecision
+# from sim.learning.agent.dqnAgent import dqnAgent
 from sim.learning.state import systemState
 from sim.offloading import offloadingPolicy
 from sim.simulations import constants

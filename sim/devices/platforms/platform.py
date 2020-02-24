@@ -63,5 +63,5 @@ class elasticNodev4(platform):
 	WIRELESS_VOLTAGE = Constant(3.3)
 
 	# energy in mAh
-	BATTERY_SIZE = 2000
+	BATTERY_SIZE = 1
 	BATTERY_VOLTAGE = 3.7
