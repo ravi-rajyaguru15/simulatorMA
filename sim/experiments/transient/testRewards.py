@@ -63,7 +63,7 @@ def run():
     constants.FPGA_IDLE_SLEEP = 5
     constants.OFFLOADING_POLICY = REINFORCEMENT_LEARNING
     # constants.TOTAL_TIME = 1e3
-    constants.DEFAULT_ELASTIC_NODE.BATTERY_SIZE = 1e1
+    constants.DEFAULT_ELASTIC_NODE.BATTERY_SIZE = 1e0
     constants.MAX_JOBS = 5
 
     processes = list()
@@ -78,7 +78,7 @@ def run():
     # for jobLikelihood in np.arange(1e-3, 1e-2, 1e-3):
     # 	for roundRobin in np.arange(1e0, 1e1, 2.5):
     numEpisodes = int(1e1)
-    agentsToTest = [minimalAgent, lazyAgent]
+    agentsToTest = [minimalAgent] # , lazyAgent]
     for agent in agentsToTest: # [minimalAgent, lazyAgent]:
         for _ in range(constants.REPEATS):
             processes.append(multiprocessing.Process(target=runThread, args=(agent, numEpisodes, results, finished, histories)))
