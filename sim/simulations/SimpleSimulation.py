@@ -74,100 +74,104 @@ class SimpleSimulation(BasicSimulation):
 	def simulateTick(self):
 		debug.out("\n" + "*" * 50 + "\ntick\n" + "*" * 50)
 
-		# update state if required
-		# if constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING:
-		# 	self.currentSystemState.updateSystem()
+		# first check if all devices are done
+		if np.all([dev.gracefulFailure for dev in self.devices]): self.stop()
+		else:
 
-		# # create new jobs
-		# for device in self.devices:
-		# 	# mcu is required for taking samples
-		# 	if not device.hasJob():
-		# 		device.maybeAddNewJob()
-		#
-		# 	# force updating td
-		# 	device.currentTd = None
+			# update state if required
+			# if constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING:
+			# 	self.currentSystemState.updateSystem()
 
-		# update the destination of the offloading if it is shared
-		if constants.OFFLOADING_POLICY == offloadingPolicy.ROUND_ROBIN:
-			offloadingDecision.updateOffloadingTarget()
+			# # create new jobs
+			# for device in self.devices:
+			# 	# mcu is required for taking samples
+			# 	if not device.hasJob():
+			# 		device.maybeAddNewJob()
+			#
+			# 	# force updating td
+			# 	device.currentTd = None
 
-		tasksBefore = np.array([dev.currentSubtask for dev in self.devices])
+			# update the destination of the offloading if it is shared
+			if constants.OFFLOADING_POLICY == offloadingPolicy.ROUND_ROBIN:
+				offloadingDecision.updateOffloadingTarget()
 
-		# process new queued task here
-		# newTime, arguments = self.queue.get()
-		assert self.queue.qsize() > 0
+			tasksBefore = np.array([dev.currentSubtask for dev in self.devices])
 
-		if debug.enabled:
-			print("before:")
-			self.printQueue()
-		debug.out("states: {0}".format([[comp.getPowerState() for comp in dev.components] for dev in self.devices]), 'y')
+			# process new queued task here
+			# newTime, arguments = self.queue.get()
+			assert self.queue.qsize() > 0
 
-		nextTask = self.queue.get()
-		newTime = nextTask.priority
-		arguments = nextTask.item
-		debug.out("new time %f %s %s" % (newTime, arguments, [dev.getNumSubtasks() for dev in self.devices]))
-		debug.out("remaining tasks: %d" % self.queue.qsize(), 'dg')
-
-		# temporarily cache tasks to print
-		if debug.enabled:
-			self.printQueue()
-
-		# device.setTime(newTime)
-		self.processQueuedTask(newTime, arguments)
-		# print("popped time", newTime, arguments)
-
-		# # should always have task lined up for each device
-		# assert self.queue.qsize() == len(self.devices)
-
-		# # update all the devices
-		# for dev in self.devices:
-		# 	if not (dev.currentJob is None and dev.currentSubtask is None):
-		# 		debug.out('\ntick device [{}] [{}] [{}]'.format(dev, dev.currentJob, dev.currentSubtask))
-		# 	dev.updateTime(self.time)
-		# 	queueLengths.append(len(dev.jobQueue))
-
-		if constants.DRAW_GRAPH_EXPECTED_LIFETIME:
-			# note energy levels for plotting
-			self.timestamps.append(self.time)
-			self.lifetimes.append(self.devicesLifetimes())
-			self.energylevels.append(self.devicesEnergyLevels())
-
-		if self.systemLifetime() <= 0:
-			self.stop()
-
-		# check if task queue is too long
-		self.taskQueueLength = [dev.getNumSubtasks() for dev in self.devices]
-		# for i in range(len(self.devices)):
-		# 	if self.taskQueueLength[i] > constants.MAXIMUM_TASK_QUEUE:
-		# 		# check distribution of job assignments
-		# 		unique, counts = np.unique(np.array(results.chosenDestinations[:-1]), return_counts=True)
-		# 		print(dict(zip(unique, counts)))
-
-		# 		warnings.warn("TaskQueue for {} too long! {} Likelihood: {}".format(self.devices[i], len(self.devices[i].taskQueue), constants.JOB_LIKELIHOOD))
-
-		self.currentDelays = [dev.currentSubtask.delay if dev.currentSubtask is not None else 0 for dev in self.devices]
-		self.delays.append(self.currentDelays)
-
-		# print all results if interesting
-		tasksAfter = np.array([dev.currentSubtask for dev in self.devices])
-		if debug.enabled:
-			# if not (np.all(tasksAfter == None) and np.all(tasksBefore == None)):
-			debug.out('tick {}'.format(self.time), 'b')
-			# 	debug.out("nothing...")
-			# else:
-			debug.out("tasks before {0}".format(tasksBefore), 'r')
-			debug.out("have jobs:\t{0}".format([dev.hasJob() for dev in self.devices]), 'b')
-			debug.out("jobQueues:\t{0}".format([dev.getNumJobs() for dev in self.devices]), 'g')
-			debug.out("batchLengths:\t{0}".format(self.batchLengths()), 'c')
-			debug.out("currentBatch:\t{0}".format([dev.currentBatch for dev in self.devices]))
-			debug.out("currentConfig:\t{0}".format([dev.getFpgaConfiguration() for dev in self.devices]))
-			debug.out("taskQueues:\t{0}".format([dev.getNumSubtasks() for dev in self.devices]), 'dg')
-			# debug.out("taskQueues:\t{0}".format([[task for task in dev.taskQueue] for dev in self.devices]), 'dg')
+			if debug.enabled:
+				print("before:")
+				self.printQueue()
 			debug.out("states: {0}".format([[comp.getPowerState() for comp in dev.components] for dev in self.devices]), 'y')
-			debug.out("tasks after {0}".format(tasksAfter), 'r')
 
-			if np.sum(self.currentDelays) > 0:
-				debug.out("delays {}".format(self.currentDelays))
+			nextTask = self.queue.get()
+			newTime = nextTask.priority
+			arguments = nextTask.item
+			debug.out("new time %f %s %s" % (newTime, arguments, [dev.getNumSubtasks() for dev in self.devices]))
+			debug.out("remaining tasks: %d" % self.queue.qsize(), 'dg')
+
+			# temporarily cache tasks to print
+			if debug.enabled:
+				self.printQueue()
+
+			# device.setTime(newTime)
+			self.processQueuedTask(newTime, arguments)
+			# print("popped time", newTime, arguments)
+
+			# # should always have task lined up for each device
+			# assert self.queue.qsize() == len(self.devices)
+
+			# # update all the devices
+			# for dev in self.devices:
+			# 	if not (dev.currentJob is None and dev.currentSubtask is None):
+			# 		debug.out('\ntick device [{}] [{}] [{}]'.format(dev, dev.currentJob, dev.currentSubtask))
+			# 	dev.updateTime(self.time)
+			# 	queueLengths.append(len(dev.jobQueue))
+
+			if constants.DRAW_GRAPH_EXPECTED_LIFETIME:
+				# note energy levels for plotting
+				self.timestamps.append(self.time)
+				self.lifetimes.append(self.devicesLifetimes())
+				self.energylevels.append(self.devicesEnergyLevels())
+
+			if self.systemLifetime() <= 0:
+				self.stop()
+
+			# check if task queue is too long
+			self.taskQueueLength = [dev.getNumSubtasks() for dev in self.devices]
+			# for i in range(len(self.devices)):
+			# 	if self.taskQueueLength[i] > constants.MAXIMUM_TASK_QUEUE:
+			# 		# check distribution of job assignments
+			# 		unique, counts = np.unique(np.array(results.chosenDestinations[:-1]), return_counts=True)
+			# 		print(dict(zip(unique, counts)))
+
+			# 		warnings.warn("TaskQueue for {} too long! {} Likelihood: {}".format(self.devices[i], len(self.devices[i].taskQueue), constants.JOB_LIKELIHOOD))
+
+			self.currentDelays = [dev.currentSubtask.delay if dev.currentSubtask is not None else 0 for dev in self.devices]
+			self.delays.append(self.currentDelays)
+
+			# print all results if interesting
+			tasksAfter = np.array([dev.currentSubtask for dev in self.devices])
+			if debug.enabled:
+				# if not (np.all(tasksAfter == None) and np.all(tasksBefore == None)):
+				debug.out('tick {}'.format(self.time), 'b')
+				# 	debug.out("nothing...")
+				# else:
+				debug.out("tasks before {0}".format(tasksBefore), 'r')
+				debug.out("have jobs:\t{0}".format([dev.hasJob() for dev in self.devices]), 'b')
+				debug.out("jobQueues:\t{0}".format([dev.getNumJobs() for dev in self.devices]), 'g')
+				debug.out("batchLengths:\t{0}".format(self.batchLengths()), 'c')
+				debug.out("currentBatch:\t{0}".format([dev.currentBatch for dev in self.devices]))
+				debug.out("currentConfig:\t{0}".format([dev.getFpgaConfiguration() for dev in self.devices]))
+				debug.out("taskQueues:\t{0}".format([dev.getNumSubtasks() for dev in self.devices]), 'dg')
+				# debug.out("taskQueues:\t{0}".format([[task for task in dev.taskQueue] for dev in self.devices]), 'dg')
+				debug.out("states: {0}".format([[comp.getPowerState() for comp in dev.components] for dev in self.devices]), 'y')
+				debug.out("tasks after {0}".format(tasksAfter), 'r')
+
+				if np.sum(self.currentDelays) > 0:
+					debug.out("delays {}".format(self.currentDelays))
 
 	# # if constants.DRAW_DEVICES:
 	# if self.frames % self.plotFrames == 0:
@@ -205,21 +209,22 @@ class SimpleSimulation(BasicSimulation):
 		if task == NEW_JOB:
 			debug.out("creating new job", 'b')
 			device = args[1]
-			self.createNewJob(device)
+			if not device.gracefulFailure:
+				self.createNewJob(device)
 
-			# immediately start created job if not busy
-			affectedDevice = device.nextJob()
-			# no devices affected if already has job
-			if affectedDevice is not None:
-				# start created subtask
-				nextdevice, nextsubtask = affectedDevice
-				debug.out("new job affected: %s %s" % (nextdevice, nextsubtask), 'b')
-				self.queueTask(scheduledTime, PROCESS_SUBTASK, nextdevice, nextsubtask)
-				#
-				# self.processAffectedDevice(affectedDevice)
+				# immediately start created job if not busy
+				affectedDevice = device.nextJob()
+				# no devices affected if already has job
+				if affectedDevice is not None:
+					# start created subtask
+					nextdevice, nextsubtask = affectedDevice
+					debug.out("new job affected: %s %s" % (nextdevice, nextsubtask), 'b')
+					self.queueTask(scheduledTime, PROCESS_SUBTASK, nextdevice, nextsubtask)
+					#
+					# self.processAffectedDevice(affectedDevice)
 
-			if self.autoJobs:
-				self.queueNextJob(device, scheduledTime)
+				if self.autoJobs:
+					self.queueNextJob(device, scheduledTime)
 		#
 		# device.updatePreviousTimestamp(self.time.current)
 		# debug.out("")
@@ -327,7 +332,10 @@ class SimpleSimulation(BasicSimulation):
 		timeBefore = device.currentTime.current
 		timeAfter = timeBefore + subtask.duration
 
-		assert affectedDevices is not None
+		# error in simulation (likely end state)
+		if affectedDevices is None:
+			return False
+		# assert affectedDevices is not None
 
 		# update device energy
 		assert duration != constants.TD

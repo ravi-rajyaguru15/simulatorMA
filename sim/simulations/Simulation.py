@@ -92,7 +92,9 @@ class BasicSimulation:
 			assert self.sharedAgent is not None
 			self.sharedAgent.setDevices(self.devices)
 		else:
-			for device in self.devices: device.decision.privateAgent.setDevices(self.devices)
+			for device in self.devices: device.agent.setDevices(self.devices)
+		# set offloading devices
+		for device in self.devices: device.setOffloadingOptions(self.devices)
 
 		# assemble expected lifetime for faster computation later
 		self.devicesExpectedLifetimeFunctions = [dev.expectedLifetime for dev in self.devices]
@@ -116,7 +118,7 @@ class BasicSimulation:
 		for device in self.devices: 
 			# choose options based on policy
 			debug.out("setting shared: %s" % self.sharedAgent)
-			device.setOffloadingDecisions(self.devices)
+			device.setOffloadingOptions(self.devices)
 
 		sim.simulations.Simulation.currentSimulation = self
 
