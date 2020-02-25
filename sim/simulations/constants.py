@@ -23,7 +23,7 @@ JOB_LIKELIHOOD = 1e-3 # used in td simulations
 JOB_INTERVAL = Gaussian(10, 1e-0) # used in simple simulations
 
 # offloading
-OFFLOADING_POLICY = sim.offloading.offloadingPolicy.REINFORCEMENT_LEARNING
+# OFFLOADING_POLICY = sim.offloading.offloadingPolicy.REINFORCEMENT_LEARNING
 OFFLOADING_PEER = 0
 ROUND_ROBIN_TIMEOUT = 2
 
@@ -64,7 +64,7 @@ SAVE_GRAPH = False
 RECONSIDER_BATCHES = False
 
 # experiments
-NUM_DEVICES = 2
+# NUM_DEVICES = 2
 REPEATS = 4
 THREAD_COUNT = multiprocessing.cpu_count() - 1
 MAX_DELAY = 0.1

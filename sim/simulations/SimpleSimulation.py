@@ -23,8 +23,8 @@ class SimpleSimulation(BasicSimulation):
 	queue = None
 	autoJobs = None
 
-	def __init__(self, systemStateClass=minimalSystemState, agentClass=minimalAgent, autoJobs=True):
-		BasicSimulation.__init__(self, systemStateClass=systemStateClass, agentClass=agentClass, globalClock=False)
+	def __init__(self, numDevices=2, systemStateClass=minimalSystemState, agentClass=minimalAgent, autoJobs=True):
+		BasicSimulation.__init__(self, numDevices=numDevices, systemStateClass=systemStateClass, agentClass=agentClass, globalClock=False)
 
 		# remove the taskqueues as tasks are queued in sim
 		for dev in self.devices: dev.taskQueue = None
@@ -91,9 +91,10 @@ class SimpleSimulation(BasicSimulation):
 			# 	# force updating td
 			# 	device.currentTd = None
 
-			# update the destination of the offloading if it is shared
-			if constants.OFFLOADING_POLICY == offloadingPolicy.ROUND_ROBIN:
-				offloadingDecision.updateOffloadingTarget()
+			if self.useSharedAgent:
+				self.sharedAgent.updateOffloadingTarget()
+			else:
+				for dev in self.devices: dev.agent.updateOffloadingTarget()
 
 			tasksBefore = np.array([dev.currentSubtask for dev in self.devices])
 
@@ -104,7 +105,7 @@ class SimpleSimulation(BasicSimulation):
 			if debug.enabled:
 				print("before:")
 				self.printQueue()
-			debug.out("states: {0}".format([[comp.getPowerState() for comp in dev.components] for dev in self.devices]), 'y')
+			debug.out("states before: {0}".format([[comp.getPowerState() for comp in dev.components] for dev in self.devices]), 'y')
 
 			nextTask = self.queue.get()
 			newTime = nextTask.priority
@@ -167,7 +168,7 @@ class SimpleSimulation(BasicSimulation):
 				debug.out("currentConfig:\t{0}".format([dev.getFpgaConfiguration() for dev in self.devices]))
 				debug.out("taskQueues:\t{0}".format([dev.getNumSubtasks() for dev in self.devices]), 'dg')
 				# debug.out("taskQueues:\t{0}".format([[task for task in dev.taskQueue] for dev in self.devices]), 'dg')
-				debug.out("states: {0}".format([[comp.getPowerState() for comp in dev.components] for dev in self.devices]), 'y')
+				debug.out("states after: {0}".format([[comp.getPowerState() for comp in dev.components] for dev in self.devices]), 'y')
 				debug.out("tasks after {0}".format(tasksAfter), 'r')
 
 				if np.sum(self.currentDelays) > 0:
@@ -403,7 +404,8 @@ class SimpleSimulation(BasicSimulation):
 			assert isinstance(target, processor)
 			if target.isIdle():
 				idleTime = target.owner.currentTime - target.latestActive
-				debug.out("%s %s %f %f %s" % (target, target.isIdle(), idleTime, target.idleTimeout, target.owner.currentTd))
+				debug.out("sleep check: %s %s %f %f %s" % (target, target.isIdle(), idleTime, target.idleTimeout, target.owner.currentTd))
+				print("sleep check: %s %s %f %f %s" % (target, target.isIdle(), idleTime, target.idleTimeout, target.owner.currentTd))
 
 				# target.idleTime += target.owner.currentTd
 				if idleTime >= target.idleTimeout:

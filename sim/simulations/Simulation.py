@@ -48,7 +48,7 @@ class BasicSimulation:
 	completedJobs = None
 	useSharedAgent = None
 
-	def __init__(self, systemStateClass, agentClass, globalClock=True):
+	def __init__(self, numDevices, systemStateClass, agentClass, globalClock=True):
 		hardwareAccelerated = True
 		self.episodeNumber = 0
 
@@ -64,8 +64,8 @@ class BasicSimulation:
 			agentClass.sharedClock = self.time
 		
 		# requires simulation to be populated
-		self.currentSystemState = systemStateClass(self)
-		self.useSharedAgent = (constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING) and (constants.CENTRALISED_LEARNING)
+		self.currentSystemState = systemStateClass(self, numDevices=numDevices)
+		self.useSharedAgent = (constants.CENTRALISED_LEARNING)
 		if self.useSharedAgent:
 			# create shared learning agent
 			print("creating shared")
@@ -73,9 +73,9 @@ class BasicSimulation:
 
 		simulationResults.learningHistory = history()
 
-		debug.out("Learning: shared: %s offloading: %s centralised: %s" % (self.useSharedAgent, constants.OFFLOADING_POLICY, constants.CENTRALISED_LEARNING), 'r')
+		debug.out("Learning: shared: %s agent: %s centralised: %s" % (self.useSharedAgent, agentClass, constants.CENTRALISED_LEARNING), 'r')
 		agentClass = self.sharedAgent
-		self.devices = [elasticNode(self.time, constants.DEFAULT_ELASTIC_NODE, self.results, i, episodeFinished=self.isEpisodeFinished, currentSystemState=self.currentSystemState, agent=agentClass, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(constants.NUM_DEVICES)]
+		self.devices = [elasticNode(self.time, constants.DEFAULT_ELASTIC_NODE, self.results, i, episodeFinished=self.isEpisodeFinished, currentSystemState=self.currentSystemState, agent=agentClass, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(numDevices)]
 
 
 			# offloadingDecision.offloadingDecision.createSharedAgent(self.currentSystemState, agentClass)
@@ -121,6 +121,13 @@ class BasicSimulation:
 			device.setOffloadingOptions(self.devices)
 
 		sim.simulations.Simulation.currentSimulation = self
+
+	def getNumDevices(self): return len(self.devices)
+
+	def setFpgaIdleSleep(self, idleTime):
+		for device in self.devices:
+			if isinstance(device, elasticNode):
+				device.fpga.idleTimeout = idleTime
 
 	def stop(self):
 		debug.out("STOP", 'r')
@@ -266,7 +273,7 @@ class BasicSimulation:
 		return np.min(devicesExpectedLifetimes)
 	
 	def devicesLifetimes(self):
-		for i in range(constants.NUM_DEVICES):
+		for i in range(self.getNumDevices()):
 			self.devicesExpectedLifetimes[i] = self.devicesExpectedLifetimeFunctions[i]()
 		return self.devicesExpectedLifetimes
 			# return [dev.expectedLifetime() for dev in self.devices]
