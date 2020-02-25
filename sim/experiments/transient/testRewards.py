@@ -19,15 +19,14 @@ from sim.simulations.SimpleSimulation import SimpleSimulation
 
 def runThread(agent, numEpisodes, results, finished, histories):
     print("before")
-    exp = SimpleSimulation(numDevices=1, agentClass=agent)
+    exp = SimpleSimulation(numDevices=1, maxJobs=6, agentClass=agent)
     exp.setFpgaIdleSleep(5)
+    exp.setBatterySize(1e0)
     print("after")
 
-    sim.simulations.constants.FPGA_IDLE_SLEEP = 5
+    # sim.simulations.constants.FPGA_IDLE_SLEEP = 5
     # sim.simulations.constants.OFFLOADING_POLICY = REINFORCEMENT_LEARNING
     # sim.simulations.constants.TOTAL_TIME = 1e3
-    sim.simulations.constants.DEFAULT_ELASTIC_NODE.BATTERY_SIZE = 1e0
-    sim.simulations.constants.MAX_JOBS = 6
     try:
         for e in range(numEpisodes):
             debug.infoEnabled = False
@@ -37,8 +36,8 @@ def runThread(agent, numEpisodes, results, finished, histories):
             # debug.infoEnabled = True
             # while not exp.finished:
             #     exp.simulateTick()
-            results.put(["Duration %s" % agent, e, exp.getCurrentTime()])
-            results.put(["Episode reward %s" % agent, e, exp.sharedAgent.episodeReward])
+            results.put(["Duration %s" % exp.sharedAgent, e, exp.getCurrentTime()])
+            results.put(["Episode reward %s" % exp.sharedAgent, e, exp.sharedAgent.episodeReward])
 
             # print("finished:")
             # print(len(exp.finishedJobsList))
@@ -71,23 +70,24 @@ def run():
 
 
     processes = list()
-    sim.simulations.constants.MINIMUM_BATCH = 1e7
+    # sim.simulations.constants.MINIMUM_BATCH = 1e7
 
     # offloadingOptions = [True, False]
     results = multiprocessing.Queue()
     finished = multiprocessing.Queue()
     histories = multiprocessing.Queue()
-    sim.simulations.constants.REPEATS = 1
+    # sim.simulations.constants.REPEATS = 1
+    REPEATS = 1
 
     # for jobLikelihood in np.arange(1e-3, 1e-2, 1e-3):
     # 	for roundRobin in np.arange(1e0, 1e1, 2.5):
     numEpisodes = int(1e1)
     agentsToTest = [minimalAgent] # , lazyAgent]
     for agent in agentsToTest: # [minimalAgent, lazyAgent]:
-        for _ in range(sim.simulations.constants.REPEATS):
+        for _ in range(REPEATS):
             processes.append(multiprocessing.Process(target=runThread, args=(agent, numEpisodes, results, finished, histories)))
 
-    results = executeMulti(processes, results, finished, numResults=len(agentsToTest) * numEpisodes * sim.simulations.constants.REPEATS * 2)
+    results = executeMulti(processes, results, finished, numResults=len(agentsToTest) * numEpisodes * REPEATS * 2)
 
     plotting.plotMultiWithErrors("Episode duration", results=results, ylabel="Reward", xlabel="Episode #")  # , save=True)
     # plotting.plotAgentHistory(histories.get())

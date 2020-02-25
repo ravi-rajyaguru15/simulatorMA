@@ -286,7 +286,7 @@ class agent:
 
 	# update decision to see if should be uploaded again
 	def redecideDestination(self, task, job, device):
-		assert constants.OFFLOADING_POLICY == REINFORCEMENT_LEARNING
+		# assert constants.OFFLOADING_POLICY == REINFORCEMENT_LEARNING
 		# print("redeciding")
 		self.train(task, job, device)
 		decision = self.forward(task, job, device)

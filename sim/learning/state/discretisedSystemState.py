@@ -102,6 +102,7 @@ class discretisedSystemState(systemState):
 				for j in range(i + 1, len(self.singles)):
 					restMultiplier *= self.singlesDiscrete[self.singles[j]]
 
+			debug.out("restmulti %d %d" % (restMultiplier, self.dictRepresentation[self.singles[i]]))
 			out += self.dictRepresentation[self.singles[i]] * restMultiplier
 			# print(self.singles[i], self.dictRepresentation[self.singles[i]], restMultiplier, out)
 		assert self.multiples == []

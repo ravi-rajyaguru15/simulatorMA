@@ -23,8 +23,8 @@ class SimpleSimulation(BasicSimulation):
 	queue = None
 	autoJobs = None
 
-	def __init__(self, numDevices=2, systemStateClass=minimalSystemState, agentClass=minimalAgent, autoJobs=True):
-		BasicSimulation.__init__(self, numDevices=numDevices, systemStateClass=systemStateClass, agentClass=agentClass, globalClock=False)
+	def __init__(self, numDevices=2, maxJobs=constants.MAX_JOBS, systemStateClass=minimalSystemState, agentClass=minimalAgent, autoJobs=True):
+		BasicSimulation.__init__(self, numDevices=numDevices, maxJobs=maxJobs, systemStateClass=systemStateClass, agentClass=agentClass, globalClock=False)
 
 		# remove the taskqueues as tasks are queued in sim
 		for dev in self.devices: dev.taskQueue = None
@@ -405,7 +405,7 @@ class SimpleSimulation(BasicSimulation):
 			if target.isIdle():
 				idleTime = target.owner.currentTime - target.latestActive
 				debug.out("sleep check: %s %s %f %f %s" % (target, target.isIdle(), idleTime, target.idleTimeout, target.owner.currentTd))
-				print("sleep check: %s %s %f %f %s" % (target, target.isIdle(), idleTime, target.idleTimeout, target.owner.currentTd))
+				# print("sleep check: %s %s %f %f %s" % (target, target.isIdle(), idleTime, target.idleTimeout, target.owner.currentTd))
 
 				# target.idleTime += target.owner.currentTd
 				if idleTime >= target.idleTimeout:

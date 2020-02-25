@@ -16,11 +16,16 @@ from sim.offloading.offloadingPolicy import REINFORCEMENT_LEARNING
 from sim.simulations import simulationResults
 from sim.simulations.SimpleSimulation import SimpleSimulation
 
-sim.simulations.constants.NUM_DEVICES = 2
-
-
 def runThread(agent, numEpisodes, results, finished, histories):
-    exp = SimpleSimulation(agentClass=agent)
+    exp = SimpleSimulation(numDevices=2, maxJobs=6, agentClass=agent)
+    exp.setFpgaIdleSleep(5)
+    exp.setBatterySize(1e0)
+
+    # sim.simulations.constants.FPGA_IDLE_SLEEP = 5
+    # sim.simulations.constants.OFFLOADING_POLICY = REINFORCEMENT_LEARNING
+    # sim.simulations.constants.TOTAL_TIME = 1e3
+    # sim.simulations.constants.DEFAULT_ELASTIC_NODE.BATTERY_SIZE = 1e-1
+    # sim.simulations.constants.MAX_JOBS = 6
 
     try:
         for e in range(numEpisodes):
@@ -51,28 +56,23 @@ def run():
     debug.learnEnabled = False
     debug.infoEnabled = False
 
-    sim.simulations.constants.FPGA_IDLE_SLEEP = 5
-    sim.simulations.constants.OFFLOADING_POLICY = REINFORCEMENT_LEARNING
-    # sim.simulations.constants.TOTAL_TIME = 1e3
-    sim.simulations.constants.DEFAULT_ELASTIC_NODE.BATTERY_SIZE = 1e-1
-    sim.simulations.constants.MAX_JOBS = 6
 
     processes = list()
-    sim.simulations.constants.MINIMUM_BATCH = 1e7
+    # sim.simulations.constants.MINIMUM_BATCH = 1e7
 
     # offloadingOptions = [True, False]
     results = multiprocessing.Queue()
     finished = multiprocessing.Queue()
     histories = multiprocessing.Queue()
-    sim.simulations.constants.REPEATS = 1
+    REPEATS = 1
 
     numEpisodes = int(1e2)
     agentsToTest = [minimalAgent, lazyAgent]
     for agent in agentsToTest: # [minimalAgent, lazyAgent]:
-        for _ in range(sim.simulations.constants.REPEATS):
+        for _ in range(REPEATS):
             processes.append(multiprocessing.Process(target=runThread, args=(agent, numEpisodes, results, finished, histories)))
 
-    results = executeMulti(processes, results, finished, numResults=len(agentsToTest) * numEpisodes * sim.simulations.constants.REPEATS)
+    results = executeMulti(processes, results, finished, numResults=len(agentsToTest) * numEpisodes * REPEATS)
 
     plotting.plotMultiWithErrors("Number of Jobs", results=results, ylabel="Job #", xlabel="Episode #")  # , save=True)
 

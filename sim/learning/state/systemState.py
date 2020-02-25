@@ -18,6 +18,8 @@ class systemState:
 	systemExpectedLifeFunction = None
 	taskBatchLengthsFunction = None
 	singles, multiples = None, None
+
+	maxJobs = None
 	numDevices = None
 	genericException = None
 
@@ -64,13 +66,6 @@ class systemState:
 		return dictRepresentation
 
 	# @classmethod
-	def fromSystemState(self, simulation):
-		second = self.__class__(simulation, self.numDevices)
-
-		second.setState(self.currentState)
-
-		# second.dictRepresentation = systemState.createDictionaryRepresentation(second.currentState)
-		return second
 
 	def __sub__(self, otherState):
 		difference = self.currentState - otherState.currentState

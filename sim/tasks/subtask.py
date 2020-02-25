@@ -295,44 +295,44 @@ class batchContinue(subtask):
 		affected = None
 		newSubtask = None
 
-		if constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING:
-			sleepMcu = False
-			if constants.RECONSIDER_BATCHES:
-				affected = self.owner.reconsiderBatch()
-				if affected is None:
-					sleepMcu = True
-			else:
-				self.job = self.processingNode.continueBatch()
-
-				if self.job is None:
-					sleepMcu = True
-				else:
-					affected = self.job.processingNode, newJob(self.job)
-
-			if sleepMcu:
-				self.owner.mcu.sleep()
+		# if constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING:
+		sleepMcu = False
+		if constants.RECONSIDER_BATCHES:
+			affected = self.owner.reconsiderBatch()
+			if affected is None:
+				sleepMcu = True
 		else:
-			# check if there's more tasks in the current batch
-			# processingMcu, processingFpga = self.processingNode.mcu, self.processingNode.fpga
-			# delete existing job to force next being loaded
-			self.processingNode.currentJob = None
-			self.job = self.processingNode.nextJobFromBatch()
+			self.job = self.processingNode.continueBatch()
 
-			debug.out("next job from batch {}".format(self.job))
-			newjob = self.job is not None
-
-			# is there a new job?
-			if not newjob:
-				# no more jobs available
-				self.processingNode.mcu.sleep()
-				# # maybe sleep FPGA
-				# debug.out(constants.FPGA_POWER_PLAN)
-
-				# if constants.FPGA_POWER_PLAN != powerPolicy.STAYS_ON:
-				# 	processingFpga.sleep()
-				# 	debug.out ("SLEEPING FPGA")
+			if self.job is None:
+				sleepMcu = True
 			else:
 				affected = self.job.processingNode, newJob(self.job)
+
+		if sleepMcu:
+			self.owner.mcu.sleep()
+		# else:
+		# 	# check if there's more tasks in the current batch
+		# 	# processingMcu, processingFpga = self.processingNode.mcu, self.processingNode.fpga
+		# 	# delete existing job to force next being loaded
+		# 	self.processingNode.currentJob = None
+		# 	self.job = self.processingNode.nextJobFromBatch()
+		#
+		# 	debug.out("next job from batch {}".format(self.job))
+		# 	newjob = self.job is not None
+		#
+		# 	# is there a new job?
+		# 	if not newjob:
+		# 		# no more jobs available
+		# 		self.processingNode.mcu.sleep()
+		# 		# # maybe sleep FPGA
+		# 		# debug.out(constants.FPGA_POWER_PLAN)
+		#
+		# 		# if constants.FPGA_POWER_PLAN != powerPolicy.STAYS_ON:
+		# 		# 	processingFpga.sleep()
+		# 		# 	debug.out ("SLEEPING FPGA")
+		# 	else:
+		# 		affected = self.job.processingNode, newJob(self.job)
 
 		return subtask.finishTask(self, [affected])
 

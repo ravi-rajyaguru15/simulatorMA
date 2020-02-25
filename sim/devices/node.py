@@ -52,6 +52,7 @@ class node:
 	batch = None
 	currentBatch = None
 	batchFull = None
+	maxJobs = None
 
 	currentTime = None
 	currentTd = None # amount of current TD that this node is busy
@@ -61,7 +62,7 @@ class node:
 	location = None
 	episodeFinished = None
 
-	def __init__(self, inputClock, platform, index, components, episodeFinished, currentSystemState=None, agent=None, alwaysHardwareAccelerate=None):
+	def __init__(self, inputClock, platform, index, components, episodeFinished, maxJobs, currentSystemState=None, agent=None, alwaysHardwareAccelerate=None):
 		self.platform = platform
 
 		# self.decision = offloadingDecisionClass(self, currentSystemState, agentClass)
@@ -80,9 +81,10 @@ class node:
 
 		# self.resultsQueue = queue
 		self.index = index
+		self.maxJobs = maxJobs
 		# self.nodeType = nodeType
 
-		self.maxEnergyLevel = node.convertEnergy(self.platform.BATTERY_SIZE, self.platform.BATTERY_VOLTAGE)
+		self.setMaxEnergyLevel()
 
 		self.drawLocation = (0,0)
 
@@ -90,6 +92,10 @@ class node:
 		self.reset()
 		self.episodeFinished = episodeFinished
 		self.alwaysHardwareAccelerate = alwaysHardwareAccelerate
+
+	def setMaxEnergyLevel(self, batterySize=constants.DEFAULT_ELASTIC_NODE.BATTERY_SIZE):
+		self.maxEnergyLevel = node.convertEnergy(batterySize, self.platform.BATTERY_VOLTAGE)
+		self.resetEnergyLevel()
 
 	def setTime(self, newTime):
 		self.currentTime.set(newTime)
@@ -564,7 +570,7 @@ class node:
 			return 0
 
 	def isQueueFull(self, task):
-		full = self.batchLength(task) >= constants.MAX_JOBS - 1
+		full = self.batchLength(task) >= self.maxJobs - 1
 		debug.out("jobs: %d full: %s" % (self.batchLength(task), full))
 		return full
 

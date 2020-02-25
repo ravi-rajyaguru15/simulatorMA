@@ -3,10 +3,10 @@ import sys
 
 import numpy as np
 # import tensorflow as tf
-from keras.backend import mean, max as kerasMax
-from rl.policy import EpsGreedyQPolicy
-from rl.util import huber_loss
-from tensorflow import keras
+# from keras.backend import mean, max as kerasMax
+# from rl.policy import EpsGreedyQPolicy
+# from rl.util import huber_loss
+# from tensorflow import keras
 
 from sim import debug
 from sim.learning.agent.agent import agent
@@ -97,6 +97,6 @@ class qTableAgent(qAgent):
 		print("%s%s" % (" " * (maxEntryWorth+1), formattedString))
 
 
-def mean_q(correctQ, predictedQ):
-	return mean(kerasMax(predictedQ, axis=-1))
+# def mean_q(correctQ, predictedQ):
+# 	return mean(kerasMax(predictedQ, axis=-1))
 

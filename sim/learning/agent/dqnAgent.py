@@ -1,5 +1,6 @@
 import numpy as np
 import tensorflow as tf
+
 from keras.backend import mean, max
 from rl.policy import EpsGreedyQPolicy
 from rl.util import huber_loss

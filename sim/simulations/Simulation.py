@@ -48,7 +48,7 @@ class BasicSimulation:
 	completedJobs = None
 	useSharedAgent = None
 
-	def __init__(self, numDevices, systemStateClass, agentClass, globalClock=True):
+	def __init__(self, numDevices, maxJobs, systemStateClass, agentClass, globalClock=True):
 		hardwareAccelerated = True
 		self.episodeNumber = 0
 
@@ -64,7 +64,7 @@ class BasicSimulation:
 			agentClass.sharedClock = self.time
 		
 		# requires simulation to be populated
-		self.currentSystemState = systemStateClass(self, numDevices=numDevices)
+		self.currentSystemState = systemStateClass(self, numDevices=numDevices, maxJobs=maxJobs)
 		self.useSharedAgent = (constants.CENTRALISED_LEARNING)
 		if self.useSharedAgent:
 			# create shared learning agent
@@ -75,7 +75,7 @@ class BasicSimulation:
 
 		debug.out("Learning: shared: %s agent: %s centralised: %s" % (self.useSharedAgent, agentClass, constants.CENTRALISED_LEARNING), 'r')
 		agentClass = self.sharedAgent
-		self.devices = [elasticNode(self.time, constants.DEFAULT_ELASTIC_NODE, self.results, i, episodeFinished=self.isEpisodeFinished, currentSystemState=self.currentSystemState, agent=agentClass, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(numDevices)]
+		self.devices = [elasticNode(self.time, constants.DEFAULT_ELASTIC_NODE, self.results, i, maxJobs=maxJobs, episodeFinished=self.isEpisodeFinished, currentSystemState=self.currentSystemState, agent=agentClass, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(numDevices)]
 
 
 			# offloadingDecision.offloadingDecision.createSharedAgent(self.currentSystemState, agentClass)
@@ -128,6 +128,10 @@ class BasicSimulation:
 		for device in self.devices:
 			if isinstance(device, elasticNode):
 				device.fpga.idleTimeout = idleTime
+
+	def setBatterySize(self, batterySize):
+		for dev in self.devices:
+			dev.setMaxEnergyLevel(batterySize)
 
 	def stop(self):
 		debug.out("STOP", 'r')
