@@ -8,8 +8,8 @@ multiples = ['expectedLife', 'batchLengths', 'allConfig']
 class originalSystemState(systemState):
 
 
-	def __init__(self, simulation):
-		systemState.__init__(self, simulation=simulation, singles=singles, multiples=multiples)
+	def __init__(self, simulation, numDevices):
+		systemState.__init__(self, simulation=simulation, numDevices=numDevices, singles=singles, multiples=multiples)
 
 	def updateState(self, task, job, device):
 		self.updateSystem()

@@ -33,8 +33,7 @@ class qTableAgent(qAgent):
 		self.gamma = constants.GAMMA
 		self.policy = Uniform(.5, 1)
 
-		print("Q TABLE AGENT")
-		debug.out("Q Table agent: %s" % constants.OFFLOADING_POLICY)
+		debug.out("Q Table agent")
 		# self.dqn = rl.agents.DQNAgent(model=self.model, policy=rl.policy.LinearAnnealedPolicy(, attr='eps', value_max=sim.constants.EPS_MAX, value_min=sim.constants.EPS_MIN, value_test=.05, nb_steps=sim.constants.EPS_STEP_COUNT), enable_double_dqn=False, gamma=.99, batch_size=1, nb_actions=self.numActions)
 
 		agent.__init__(self, systemState, owner=owner)

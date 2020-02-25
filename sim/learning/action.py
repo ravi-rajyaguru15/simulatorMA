@@ -1,5 +1,6 @@
 import sys
 import traceback
+from random import choice
 
 from sim import debug
 
@@ -12,13 +13,13 @@ class action:
 	index = None
 	immediate = None
 
-	def __init__(self, name, targetIndex=None, immediate=False):
-		if targetIndex is None:
-			self.name = name
+	def __init__(self, name, offloading=False, immediate=False):
+		self.name = name
+		if not offloading:
 			self.local = True
 		else:
-			self.name = "{} {}".format(name, targetIndex)
-			self.targetDeviceIndex = targetIndex
+			# self.name = "{} {}".format(name, targetIndex)
+			# self.targetDeviceIndex = targetIndex
 			self.local = False
 		self.immediate = immediate
 
@@ -28,25 +29,26 @@ class action:
 	def offloadingToTarget(self, targetIndex=None): return False
 
 	# update device based on latest picked device index
-	def updateTargetDevice(self, owner, devices):
+	def updateTargetDevice(self, owner, offloadingDevices):
 		if self.local:
 			assert owner is not None
 			self.targetDeviceIndex = owner.index
 			self.targetDevice = owner
 		else:
-			assert self.targetDeviceIndex is not None
-			debug.out("updating target device for action: %s [%s]" % (str(self), devices))
-			assert devices is not None
+			# assert self.targetDeviceIndex is not None
+			debug.out("updating target device for action: %s [%s]" % (str(self), offloadingDevices))
+			assert offloadingDevices is not None
 
-			self.targetDevice = None
-			# find device based on its index
-			for device in devices:
-				if device.index == self.targetDeviceIndex:
-					self.targetDevice = device
-					break
+			self.targetDevice = choice(offloadingDevices)
+			# self.targetDevice = None
+			# # find device based on its index
+			# for device in offloadingDevices:
+			# 	if device.index == self.targetDeviceIndex:
+			# 		self.targetDevice = device
+			# 		break
 
 			if self.targetDevice is None:
-				print("updateDevice failed!", self, devices, self.targetDeviceIndex)
+				print("updateDevice failed!", self, offloadingDevices, self.targetDeviceIndex)
 
 			assert self.targetDevice is not None
 	# self.targetDevice = devices[self.targetDeviceIndex]
@@ -56,11 +58,14 @@ class action:
 
 
 class offloading(action):
-	def __init__(self, destinationIndex):
-		super().__init__("Offload", targetIndex=destinationIndex)
+	# destinations = None
 
-	def offloadingToTarget(self, index):
-		return self.targetDeviceIndex == index
+	def __init__(self):
+		super().__init__("Offload", offloading=True)
+		# self.destinations = destinations
+
+	# def offloadingToTarget(self, index):
+	# 	return self.targetDeviceIndex == index
 
 
 class localAction(action):
@@ -72,6 +77,7 @@ class localAction(action):
 		super().__init__(name, immediate=immediate)
 
 
+OFFLOADING = offloading()
 BATCH = localAction(False)  # TODO: wait does nothing
 LOCAL = localAction(True)
 

@@ -113,7 +113,7 @@ class job:
 
 		# self.decision = decision
 		assert decision.targetDevice is not None
-		assert decision.targetDevice.index == decision.targetDeviceIndex
+		# assert decision.targetDevice.index == decision.targetDeviceIndex
 		# add to history
 		assert self.history is not None
 
@@ -199,9 +199,9 @@ class job:
 		self.finished = True
 		self.owner.removeJob(self)
 
-		if sim.simulations.constants.OFFLOADING_POLICY == sim.offloading.offloadingPolicy.REINFORCEMENT_LEARNING:
-			sim.debug.learnOut("training when finishing job")
-			self.owner.agent.train(self.currentTask, self, self.owner)
+		# if sim.simulations.constants.OFFLOADING_POLICY == sim.offloading.offloadingPolicy.REINFORCEMENT_LEARNING:
+		sim.debug.learnOut("training when finishing job")
+		self.owner.agent.train(self.currentTask, self, self.owner)
 
 			# agent = self.owner.decision.privateAgent
 			# self.addToHistory(self.owner.agent.latestReward, self.owner.agent.latestLoss)

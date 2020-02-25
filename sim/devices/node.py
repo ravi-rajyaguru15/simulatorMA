@@ -39,6 +39,9 @@ class node:
 	latestPower = None
 	totalSleepTime = None
 	drawLocation = None
+	gracefulFailure = False
+	offloadingOptions = None
+	defaultOffloadingOptions = None
 
 	platform = None
 	components = None
@@ -118,8 +121,12 @@ class node:
 			for com in self.components:
 				com.reset()
 
+		self.agent.reset()
+		self.offloadingOptions = self.defaultOffloadingOptions
+
 	def resetEnergyLevel(self):
 		self.energyLevel = self.maxEnergyLevel
+		self.gracefulFailure = False
 
 	# get node battery level, limited to different discrete bins if required
 	def getEnergyLevel(self):
@@ -148,11 +155,24 @@ class node:
 	def __repr__(self):
 		return "<" + str(type(self)) + " " + str(self.index) + ">"
 
+	def setOffloadingOptions(self, allDevices):
+		self.offloadingOptions = []
+		for device in allDevices:
+			if device is not self:
+				self.offloadingOptions.append(device)
+		self.defaultOffloadingOptions = self.offloadingOptions
+
+		print("set offloading options for", self, "to", self.offloadingOptions)
+
+	def removeOffloadingOption(self, device):
+		if device in self.offloadingOptions:
+			self.offloadingOptions.remove(device)
+
 	# def setOptions(self, options):
 		# self.setOffloadingDecisions(options)
 
-	def setOffloadingDecisions(self, devices):
-		self.agent.setOptions(devices)
+	# def setOffloadingDecisions(self, devices):
+	# 	self.agent.setOptions(devices)
 
 	def getCurrentConfiguration(self):
 		# default behaviour is to not have a configuration
@@ -627,8 +647,6 @@ class node:
 		# no new jobs started
 		return None
 
-
-
 	def removeJob(self, job):
 		sim.debug.out("REMOVE JOB FROM {}".format(self))
 		# sim.debug.out ('{} {}'.format(self.jobQueue, job))
@@ -641,6 +659,14 @@ class node:
 			self.currentJob = None
 
 		sim.debug.out("resulting job: %s (%s)" % (self.currentJob, str(self.getNumSubtasks())))
+
+	def performGracefulFailure(self):
+		self.gracefulFailure = True
+
+		for dev in self.offloadingOptions: dev.removeOffloadingOption(self)
+
+	def hasOffloadingOptions(self):
+		return len(self.offloadingOptions) > 0
 
 from dataclasses import dataclass, field
 from typing import Any

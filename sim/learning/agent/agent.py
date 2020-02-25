@@ -4,7 +4,7 @@ import numpy as np
 
 import sim
 from sim import debug, counters
-from sim.learning.action import offloading, LOCAL, BATCH, action
+from sim.learning.action import offloading, LOCAL, BATCH, action, OFFLOADING
 # from sim.offloading import offloadingDecision
 from sim.offloading.offloadingPolicy import LOCAL_ONLY, REINFORCEMENT_LEARNING, SPECIFIC_PEER_ONLY, RANDOM_PEER_ONLY, \
 	ANNOUNCED, ANYTHING, ROUND_ROBIN
@@ -56,17 +56,26 @@ class agent:
 	def reset(self):
 		self.episodeReward = 0
 
-	def setOptions(self, allDevices):
-		self.options = allDevices
+	# def setOptions(self, allDevices):
+	# 	self.options = allDevices
+
+	# def setOffloadingOptions(self, otherDevices):
 
 	def setDevices(self, devices):
 		# default devices is all of them
-		self.possibleActions = [offloading(i) for i in range(len(devices))] + [BATCH, LOCAL]
+		# self.possibleActions = [offloading(i) for i in range(len(devices))] + [BATCH, LOCAL]
+		self.possibleActions = [OFFLOADING, BATCH, LOCAL]
+		self._setDecisions(devices)
+
+	def getAction(self, action):
+		return self.possibleActions[self.possibleActions.index(action)]
+
+	def _setDecisions(self, devices):
 		for i in range(len(self.possibleActions)):
 			self.possibleActions[i].index = i
 		print('actions', self.possibleActions)
 
-		self.numOptions = len(self.possibleActions)
+		# self.numOptions = len(self.possibleActions)
 		self.numActions = len(self.possibleActions)
 
 		# needs numActions
@@ -233,12 +242,13 @@ class agent:
 
 		# special case if job queue is full
 		if device.isQueueFull(task):
-			actionIndex = self.numOptions - 1
+			actionIndex = self.numActions - 1
 			debug.learnOut("special case! queue is full")
-
-			# print("special case! queue is full", device, device.batchLengths())
-			# debug.enabled = True
-			# debug.learnEnabled = True
+		# check if any offloading is available
+		elif not device.hasOffloadingOptions():
+			assert self.possibleActions[0] is OFFLOADING
+			debug.out("no offloading available")
+			actionIndex = np.random.randint(1, self.numActions - 1)
 		else:
 			debug.out("getting action %s %s" % (device, device.batchLengths()))
 			# choose best action based on current state
@@ -252,9 +262,13 @@ class agent:
 		choice = self.possibleActions[actionIndex]
 		sim.debug.learnOut("choice: {} ({})".format(choice, actionIndex), 'r')
 
-		choice.updateTargetDevice(owner=device, devices=self.devices)
+		choice.updateTargetDevice(owner=device, offloadingDevices=device.offloadingOptions)
 		# choice.updateTargetDevice(devices=self.devices)
 		return choice
+
+	# only used when using static target
+	def updateOffloadingTarget(self):
+		pass
 
 	# check offloading decision on idle job
 	def rechooseDestination(self, task, job, device):
@@ -284,9 +298,5 @@ class agent:
 		decision = self.forward(task, job, device)
 		debug.out("initial decision: %s" % decision)
 		return decision
-
-	# def updateState(self, task, job, device):
-	# 	# update state
-	# 	self.systemState.updateState(task, job, device)
 
 

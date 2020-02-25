@@ -1,9 +1,10 @@
 # TX RESULT destination swap source
-
-from sim import debug
+from sim import debug, simulations
+from sim.learning.action import OFFLOADING
 from sim.offloading import offloadingPolicy
 from sim.simulations import constants
 
+enableGracefulFailure = True
 
 class subtask:
 	duration = None
@@ -61,6 +62,7 @@ class subtask:
 		subtaskPower = self.owner.getTotalPower()
 		debug.out("process {} {} {}".format(self, self.started, self.duration))
 		debug.out("power: %s" % subtaskPower, 'g')
+		debug.out("states: {0}".format([comp.getPowerState() for comp in self.owner.components]), 'y')
 		self.progress = self.duration
 
 		# update visualiser if passed in
@@ -330,9 +332,7 @@ class batchContinue(subtask):
 				# 	processingFpga.sleep()
 				# 	debug.out ("SLEEPING FPGA")
 			else:
-				# print("newjob because continuing batch")
 				affected = self.job.processingNode, newJob(self.job)
-				# print("newjob in batchcontinue")
 
 		return subtask.finishTask(self, [affected])
 
@@ -359,38 +359,37 @@ class batching(subtask):
 		# # job has been backed up in batch and will be selected in finish
 		self.job.processingNode.removeJob(self.job)
 
-		if constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING:
-			sleepMcu = False
-			if constants.RECONSIDER_BATCHES:
-				# decide which of the jobs in the batch should be started now
-				affected = self.owner.reconsiderBatch()
-				if affected is None:
-					sleepMcu = True
-			else:
+		# if constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING:
+		sleepMcu = False
+		if constants.RECONSIDER_BATCHES:
+			# decide which of the jobs in the batch should be started now
+			affected = self.owner.reconsiderBatch()
+			if affected is None:
 				sleepMcu = True
-
-			if sleepMcu:
-				self.owner.mcu.sleep()
-
 		else:
-			# special case: hardware acceleration already there
-			if self.job.hardwareAccelerated and self.job.processingNode.fpga.isConfigured(self.job.currentTask):
-				debug.out("special case batching: hw already available")
+			sleepMcu = True
 
-				# self.job.processingNode.addSubtask(newJob(self.job), appendLeft=True)
-				affected = self.job.processingNode, self.job.processingNode.setActiveJob(self.job.processingNode.nextJobFromBatch())
-			else:
-				debug.out("Batch: {0}/{1}".format(self.job.processingNode.batchLength(self.job.currentTask), constants.MINIMUM_BATCH), 'c')
+		if sleepMcu:
+			self.owner.mcu.sleep()
 
-				# see if batch is full enough to start now, or
-				# if decided to start locally
-				if self.job.processingNode.batchLength(self.job.currentTask) >= constants.MINIMUM_BATCH:
-					newSubtask = self.job.processingNode.setActiveJob(self.job.processingNode.nextJobFromBatch())
-					if self.job is not None:
-						affected = self.job.processingNode, newSubtask
-				# go to sleep until next task
-				else:
-					self.job.processingNode.mcu.sleep()
+		# else: TODO: used for rule-based systems
+		# 	# special case: hardware acceleration already there
+		# 	if self.job.hardwareAccelerated and self.job.processingNode.fpga.isConfigured(self.job.currentTask):
+		# 		debug.out("special case batching: hw already available")
+		#
+		# 		affected = self.job.processingNode, self.job.processingNode.setActiveJob(self.job.processingNode.nextJobFromBatch())
+		# 	else:
+		# 		debug.out("Batch: {0}/{1}".format(self.job.processingNode.batchLength(self.job.currentTask), constants.MINIMUM_BATCH), 'c')
+		#
+		# 		# see if batch is full enough to start now, or
+		# 		# if decided to start locally
+		# 		if self.job.processingNode.batchLength(self.job.currentTask) >= constants.MINIMUM_BATCH:
+		# 			newSubtask = self.job.processingNode.setActiveJob(self.job.processingNode.nextJobFromBatch())
+		# 			if self.job is not None:
+		# 				affected = self.job.processingNode, newSubtask
+		# 		# go to sleep until next task
+		# 		else:
+		# 			self.job.processingNode.mcu.sleep()
 
 		return subtask.finishTask(self, [affected])
 
@@ -412,17 +411,44 @@ class newJob(subtask):
 		# start first job in queue
 		self.job.processingNode.currentBatch = self.job.currentTask
 
-		if self.job.hardwareAccelerated:
-			if self.job.processingNode.fpga.isConfigured(self.job.currentTask):
-				newSubtask = mcuFpgaOffload(self.job)
+		# consider graceful failure
+		if enableGracefulFailure and not self.owner.gracefulFailure:
+			if self.owner.getEnergyLevelPercentage() < constants.GRACEFUL_FAILURE_LEVEL:
+
+				self.owner.performGracefulFailure()
+
+		# either fail or start processing new job
+		if self.owner.gracefulFailure:
+			debug.out("GRACEFUL FAILURE on %s %s %s" % (self.owner, self.owner.offloadingOptions, self.owner.batch))
+			if not self.owner.hasOffloadingOptions():
+				simulations.Simulation.currentSimulation.stop()
+				return None
 			else:
-				newSubtask = reconfigureFPGA(self.job)
+				choice = self.owner.agent.getAction(OFFLOADING)
+				debug.out("choice %s" % choice)
+				choice.updateTargetDevice(self.owner, self.owner.offloadingOptions)
+				debug.out("%s %s %s %s" % (choice.local, self.owner, self.owner.offloadingOptions, choice.targetDevice))
+
+				affectedDevice = self.owner
+				self.job.processingNode = choice.targetDevice
+				newSubtask = createMessage(self.job)
+				debug.out("spraying %s" % self.job)
+
+				# TODO: train based on failed jobs here
 		else:
-			newSubtask = processing(self.job)
+			affectedDevice = self.job.processingNode
+
+			if self.job.hardwareAccelerated:
+				if self.job.processingNode.fpga.isConfigured(self.job.currentTask):
+					newSubtask = mcuFpgaOffload(self.job)
+				else:
+					newSubtask = reconfigureFPGA(self.job)
+			else:
+				newSubtask = processing(self.job)
 
 		assert newSubtask is not None
 
-		return subtask.finishTask(self, [(self.job.processingNode, newSubtask)])
+		return subtask.finishTask(self, [(affectedDevice, newSubtask)])
 
 
 class reconfigureFPGA(subtask):
@@ -662,6 +688,7 @@ class txMessage(subtask):
 
 	def finishTask(self, affectedDevices):
 		self.source.mrf.sleep()
+
 		self.source.mcu.sleep()
 		# self.destination.mrf.sleep()
 
@@ -677,22 +704,26 @@ class txJob(txMessage):
 		assert source is not destination
 		txMessage.__init__(self, job, source, destination, jobToAdd=rxJob)
 
-	def beginTask(self):
-
-		subtask.beginTask(self)
+	# def beginTask(self):
+	#
+	# 	txMessage.beginTask(self)
 
 	def finishTask(self, affectedDevices=None):
 		# if using rl, update model
 		# must update when starting,
-		if constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING:
-			debug.learnOut("training after offloading job")
-			self.owner.agent.train(self.job.currentTask, self.job, self.owner)
+		# if constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING:
+		debug.learnOut("training after offloading job")
+		self.owner.agent.train(self.job.currentTask, self.job, self.owner)
 
 		# removing job from sender
 		self.owner.removeJob(self.job)
 
+		if self.owner.gracefulFailure:
+			debug.out("continuing graceful failure")
+			nextSubtask = batchContinue(node=self.owner)
+			affectedDevices = [(self.owner, nextSubtask)]
 
-		return txMessage.finishTask(self, None)
+		return txMessage.finishTask(self, affectedDevices)
 
 
 class txResult(txMessage):
@@ -781,7 +812,7 @@ class rxJob(rxMessage):
 		return "{} [{}]".format(self.__name__, self.job)
 
 	def finishTask(self):
-		usingReinforcementLearning = constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING
+		# usingReinforcementLearning = constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING
 
 		debug.out("adding processing task 1")
 
@@ -807,34 +838,34 @@ class rxJob(rxMessage):
 
 
 		# if using rl, reevalute decision
-		if usingReinforcementLearning:
-			# print()
-			debug.learnOut("updating decision upon reception")
-			debug.learnOut("owner: {}".format(self.job.owner))
-			# systemState.current.update(self.job.currentTask, self.job, self.job.owner)
-			# debug.out("systemstate: {}".format(systemState.current))
+		# if usingReinforcementLearning:
+		# print()
+		debug.learnOut("updating decision upon reception")
+		debug.learnOut("owner: {}".format(self.job.owner))
+		# systemState.current.update(self.job.currentTask, self.job, self.job.owner)
+		# debug.out("systemstate: {}".format(systemState.current))
 
 
 
-			# # print("systemstate: {}".format(systemState.current))
-			# choice = self.job.owner.decision.privateAgent.forward(self.job.owner)
-			# print("choice: {}".format(choice))
+		# # print("systemstate: {}".format(systemState.current))
+		# choice = self.job.owner.decision.privateAgent.forward(self.job.owner)
+		# print("choice: {}".format(choice))
 
-			# self.job.setDecisionTarget(choice)
-			# self.job.activate()
+		# self.job.setDecisionTarget(choice)
+		# self.job.activate()
 
 
-			# TODO: removed this redeciding...
-			# affected = self.job.owner.agent.retarget(self.job.currentTask, self.job, self.job.owner)
-			choice = self.job.owner.agent.redecideDestination(self.job.currentTask, self.job, self.job.owner)
-			debug.learnOut("redeciding choice %s" % choice)
-			self.job.setDecisionTarget(choice)
-			affected = self.job.activate()
-			# warnings.warn("redecision isn't affected i think")
-			# affected = choice.targetDevice
+		# TODO: removed this redeciding...
+		# affected = self.job.owner.agent.retarget(self.job.currentTask, self.job, self.job.owner)
+		choice = self.job.owner.agent.redecideDestination(self.job.currentTask, self.job, self.job.owner)
+		debug.learnOut("redeciding choice %s" % choice)
+		self.job.setDecisionTarget(choice)
+		affected = self.job.activate()
+		# warnings.warn("redecision isn't affected i think")
+		# affected = choice.targetDevice
 		# otherwise, just add it to the local batch
-		else:
-			affected = self.job.processingNode, batching(self.job)
+		# else:
+		# 	affected = self.job.processingNode, batching(self.job)
 
 		return rxMessage.finishTask(self, [affected])
 

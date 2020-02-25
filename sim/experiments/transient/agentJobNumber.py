@@ -1,3 +1,4 @@
+
 import multiprocessing
 
 import sys
@@ -19,9 +20,7 @@ sim.simulations.constants.NUM_DEVICES = 2
 
 
 def runThread(agent, numEpisodes, results, finished, histories):
-    print("before")
     exp = SimpleSimulation(agentClass=agent)
-    print("after")
 
     try:
         for e in range(numEpisodes):
@@ -30,10 +29,10 @@ def runThread(agent, numEpisodes, results, finished, histories):
 
             results.put(["Agent %s" % agent, e, exp.numFinishedJobs])
     except:
+        debug.printCache(200)
         traceback.print_exc(file=sys.stdout)
         print(agent, e)
         print("Error in experiment ̰:", exp.time)
-        debug.printCache(200)
         sys.exit(0)
 
     finished.put(True)
@@ -55,7 +54,7 @@ def run():
     sim.simulations.constants.FPGA_IDLE_SLEEP = 5
     sim.simulations.constants.OFFLOADING_POLICY = REINFORCEMENT_LEARNING
     # sim.simulations.constants.TOTAL_TIME = 1e3
-    sim.simulations.constants.DEFAULT_ELASTIC_NODE.BATTERY_SIZE = 1e0
+    sim.simulations.constants.DEFAULT_ELASTIC_NODE.BATTERY_SIZE = 1e-1
     sim.simulations.constants.MAX_JOBS = 6
 
     processes = list()
@@ -67,7 +66,7 @@ def run():
     histories = multiprocessing.Queue()
     sim.simulations.constants.REPEATS = 1
 
-    numEpisodes = int(5e1)
+    numEpisodes = int(1e2)
     agentsToTest = [minimalAgent, lazyAgent]
     for agent in agentsToTest: # [minimalAgent, lazyAgent]:
         for _ in range(sim.simulations.constants.REPEATS):

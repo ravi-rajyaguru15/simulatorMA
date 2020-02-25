@@ -14,14 +14,20 @@ from sim.offloading.offloadingPolicy import REINFORCEMENT_LEARNING
 from sim.simulations import simulationResults
 from sim.simulations.SimpleSimulation import SimpleSimulation
 
-sim.simulations.constants.NUM_DEVICES = 1
+# sim.simulations.constants.NUM_DEVICES = 1
 
 
 def runThread(agent, numEpisodes, results, finished, histories):
     print("before")
-    exp = SimpleSimulation(agentClass=agent)
+    exp = SimpleSimulation(numDevices=1, agentClass=agent)
+    exp.setFpgaIdleSleep(5)
     print("after")
 
+    sim.simulations.constants.FPGA_IDLE_SLEEP = 5
+    # sim.simulations.constants.OFFLOADING_POLICY = REINFORCEMENT_LEARNING
+    # sim.simulations.constants.TOTAL_TIME = 1e3
+    sim.simulations.constants.DEFAULT_ELASTIC_NODE.BATTERY_SIZE = 1e0
+    sim.simulations.constants.MAX_JOBS = 6
     try:
         for e in range(numEpisodes):
             debug.infoEnabled = False
@@ -41,10 +47,10 @@ def runThread(agent, numEpisodes, results, finished, histories):
             # results.put(["Overall reward", e, exp.sharedAgent.totalReward])
             # print(exp.getCurrentTime(), exp.sharedAgent.episodeReward, exp.sharedAgent.totalReward)
     except:
+        debug.printCache(200)
         traceback.print_exc(file=sys.stdout)
         print(agent, e)
         print("Error in experiment ̰:", exp.time)
-        debug.printCache(200)
         sys.exit(0)
 
     finished.put(True)
@@ -62,13 +68,7 @@ def run():
     debug.learnEnabled = False
     debug.infoEnabled = False
 
-    sim.simulations.constants.DRAW = False
-    sim.simulations.constants.FPGA_POWER_PLAN = IDLE_TIMEOUT
-    sim.simulations.constants.FPGA_IDLE_SLEEP = 5
-    sim.simulations.constants.OFFLOADING_POLICY = REINFORCEMENT_LEARNING
-    # sim.simulations.constants.TOTAL_TIME = 1e3
-    sim.simulations.constants.DEFAULT_ELASTIC_NODE.BATTERY_SIZE = 1e0
-    sim.simulations.constants.MAX_JOBS = 6
+
 
     processes = list()
     sim.simulations.constants.MINIMUM_BATCH = 1e7

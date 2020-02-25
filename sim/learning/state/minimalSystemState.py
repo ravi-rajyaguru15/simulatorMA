@@ -5,13 +5,13 @@ from sim.simulations import constants
 
 class minimalSystemState(discretisedSystemState):
 
-	def __init__(self, simulation):
+	def __init__(self, simulation, numDevices):
 		# add extra state for "full" job queue
 		singles = [discreteState('energyRemaining', 3), discreteState('jobsInQueue', constants.MAX_JOBS + 1, scalingFactor=constants.MAX_JOBS),
 				   discreteState('currentConfig', 2, scale=False)]
 		multiples = []
 
-		discretisedSystemState.__init__(self, simulation, singlesWithDiscreteNum=singles, multiplesWithDiscreteNum=multiples)
+		discretisedSystemState.__init__(self, simulation, numDevices=numDevices, singlesWithDiscreteNum=singles, multiplesWithDiscreteNum=multiples)
 
 	# def updateSystem(self):
 	# 	pass
