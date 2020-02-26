@@ -22,8 +22,10 @@ from sim.tasks.subtask import subtask
 class SimpleSimulation(BasicSimulation):
 	queue = None
 	autoJobs = None
+	jobInterval = None
 
-	def __init__(self, numDevices=2, maxJobs=constants.MAX_JOBS, systemStateClass=minimalSystemState, agentClass=minimalAgent, autoJobs=True):
+	def __init__(self, numDevices=2, jobInterval=constants.JOB_INTERVAL, maxJobs=constants.MAX_JOBS, systemStateClass=minimalSystemState, agentClass=minimalAgent, autoJobs=True):
+		print(self)
 		BasicSimulation.__init__(self, numDevices=numDevices, maxJobs=maxJobs, systemStateClass=systemStateClass, agentClass=agentClass, globalClock=False)
 
 		# remove the taskqueues as tasks are queued in sim
@@ -39,8 +41,11 @@ class SimpleSimulation(BasicSimulation):
 
 		self.queue = PriorityQueue()
 		self.autoJobs = autoJobs
+		self.jobInterval = jobInterval
+		# debug.out("job interval set to %s" self.jobInterval)
 		if self.autoJobs:
 			self.queueInitialJobs()
+
 
 		BasicSimulation.reset(self)
 
@@ -188,7 +193,7 @@ class SimpleSimulation(BasicSimulation):
 			currentTime = device.currentTime.current
 
 		# next job in:
-		nextInterval = constants.JOB_INTERVAL.gen()
+		nextInterval = self.jobInterval.gen()
 		nextJob = currentTime + nextInterval
 
 		# print("next job is at", nextJob, device)

@@ -40,7 +40,7 @@ class discretisedSystemState(systemState):
 		# # compute all indexes
 		# computeIndeces()
 
-		systemState.__init__(self, simulation=simulation, numDevices=numDevices, singles=singlesFields, multiples=multiplesFields)
+		systemState.__init__(self, numDevices=numDevices, singles=singlesFields, multiples=multiplesFields)
 
 	# def discretise(self):
 	# 	for i in range(len(self.currentState)):

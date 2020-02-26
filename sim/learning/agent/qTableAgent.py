@@ -16,7 +16,7 @@ from sim.simulations.variable import Uniform
 
 
 class qTableAgent(qAgent):
-	__name__ = "Q Table Agent"
+	# def __repr__(self): return "<Q Table Agent>"
 	# @property
 	# def metrics_names(self):
 	# 	# Throw away individual losses and replace output name since this is hidden from the user.
@@ -40,7 +40,7 @@ class qTableAgent(qAgent):
 
 	def createModel(self):
 		# create Q table
-		print("qtable:", (self.systemState.getUniqueStates(), self.numActions))
+		debug.learnOut("qtable: (%d, %d)" % (self.systemState.getUniqueStates(), self.numActions))
 		self.model = np.zeros((self.systemState.getUniqueStates(), self.numActions))
 
 	def trainModel(self, latestAction, reward, beforeState, currentState, finished):

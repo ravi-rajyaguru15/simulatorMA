@@ -25,7 +25,7 @@ class job:
 	createdTime = None
 	startTime = None
 	deadlineTime = None
-	startExpectedLifetime = None
+	# startExpectedLifetime = None
 
 	totalEnergyCost = None
 	totalLatency = None
@@ -56,18 +56,18 @@ class job:
 
 	history = None
 
-	def __init__(self, jobCreator, samples, hardwareAccelerated, taskGraph=None):
+	def __init__(self, jobCreator, samples, hardwareAccelerated, isEpisodeFinished, incrementCompletedJobs, taskGraph=None):
 		job.id += 1
 		self.id = job.id
 
 		self.creator = jobCreator
 		# self.simulation = origin.simulation
 
-		assert sim.simulations.Simulation.currentSimulation is not None
-		simulation = sim.simulations.Simulation.currentSimulation
-		self.incrementCompletedJobs = simulation.incrementCompletedJobs
-		self.systemLifetime = simulation.systemLifetime
-		self.startExpectedLifetime = self.systemLifetime()
+		# assert sim.simulations.Simulation.currentSimulation is not None
+		# simulation = sim.simulations.Simulation.currentSimulation
+		self.incrementCompletedJobs = incrementCompletedJobs
+		# self.systemLifetime = systemLifetime
+		# self.startExpectedLifetime = self.systemLifetime()
 		# self.currentTime = jobCreator.current # simulation.time
 		self.createdTime = jobCreator.currentTime.current
 
@@ -100,7 +100,7 @@ class job:
 		self.setDecisionTarget(destination)
 
 		# define episode finished function for training
-		self.episodeFinished = simulation.isEpisodeFinished
+		self.episodeFinished = isEpisodeFinished
 
 	def __repr__(self):
 		return "Job #{}".format(self.id)

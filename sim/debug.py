@@ -1,13 +1,16 @@
 import sim
+from sim.simulations import localConstants
 
 default = 37
 enabled = False
 learnEnabled = False
 infoEnabled = False
+fileOutput = False
 
 cache = []
 maxCache = 1000
-
+currentCache = 0
+outputFileName = None
 
 # print to console in a fancy colour
 # options are k r g y b p c w
@@ -25,9 +28,17 @@ def learnOut(string="", colour=None):
 
 def _push(string, colour, printImmediate=True):
     if not printImmediate:
-        sim.debug.cache.append((string, colour))
-        if len(sim.debug.cache) > maxCache:
-            sim.debug.cache = sim.debug.cache[-maxCache:]
+        if fileOutput:
+            if sim.debug.outputFileName is None:
+                print("opening log file", localConstants.OUTPUT_DIRECTORY + "debug.log")
+                sim.debug.outputFile = open(localConstants.OUTPUT_DIRECTORY + "debug.log", 'w')
+            sim.debug.outputFileName.write(str(string) + '\n')
+        else:
+            sim.debug.cache.append((string, colour))
+            sim.debug.currentCache += 1
+            if sim.debug.currentCache > maxCache:
+                sim.debug.cache = sim.debug.cache[-maxCache:]
+                sim.debug.currentCache = maxCache
     else:
         _print(string, colour)
 

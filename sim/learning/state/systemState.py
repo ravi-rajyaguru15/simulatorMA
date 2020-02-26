@@ -25,7 +25,7 @@ class systemState:
 
 
 	# singles are individual states, multiples are per device
-	def __init__(self, simulation, numDevices, singles, multiples):
+	def __init__(self, numDevices, singles, multiples):
 		self.genericException = Exception("not implemented in " + str(self.__class__.__name__))
 
 		self.singles = singles
@@ -40,7 +40,7 @@ class systemState:
 		self.setState(self.currentState)
 		# self.dictRepresentation = systemState.createDictionaryRepresentation(self.currentState)
 
-		self.setSimulation(simulation)
+		# self.setSimulation(simulation)
 
 	def setState(self, arrayState):
 		self.currentState = np.array(arrayState)
@@ -71,11 +71,11 @@ class systemState:
 		difference = self.currentState - otherState.currentState
 		return self.getDictionaryRepresentation(difference, self.singles, self.multiples)
 
-	def setSimulation(self, simulation):
-		self.devicesLifetimesFunction = simulation.devicesLifetimes
-		self.systemExpectedLifeFunction = simulation.systemLifetime
-		self.taskBatchLengthsFunction = simulation.taskBatchLengths
-		self.currentTime = simulation.time
+	# def setSimulation(self, simulation):
+	# 	self.devicesLifetimesFunction = simulation.devicesLifetimes
+	# 	self.systemExpectedLifeFunction = simulation.systemLifetime
+	# 	self.taskBatchLengthsFunction = simulation.taskBatchLengths
+	# 	self.currentTime = simulation.time
 
 	def __repr__(self):
 		return str(self.currentState)

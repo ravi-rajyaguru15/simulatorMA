@@ -190,12 +190,12 @@ def executeMulti(processes, results, finished, numResults=None, assembly=assembl
 			processes[startedThreads].start()
 			startedThreads += 1
 			currentThreads += 1
-		print('started', startedThreads)
-		print('current', currentThreads)
+		# print('started', startedThreads)
+		# print('current', currentThreads)
 
 		# wait for at least one to finish
 		finished.get()
-		print("got result")
+		# print("got result")
 		# processes[finishedThreads].join() #  is not None:	# print ('one down...')
 		finishedThreads += 1
 		currentThreads -= 1

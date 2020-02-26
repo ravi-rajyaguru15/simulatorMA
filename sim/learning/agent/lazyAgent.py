@@ -5,6 +5,8 @@ from sim.learning.agent.qTableAgent import qTableAgent
 
 
 class lazyAgent(qTableAgent):
+	def __repr__(self): return "<Lazy Agent>"
+
 	def reward(self, job):
 		debug.learnOut("energy cost %f" % job.totalEnergyCost)
 		jobReward = -log2(job.totalEnergyCost)

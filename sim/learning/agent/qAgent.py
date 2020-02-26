@@ -30,9 +30,9 @@ class qAgent(agent):
 		return jobReward + deadlineReward + expectedLifetimeReward + simulationDoneReward
 
 	# update based on resulting system state and reward
-	def backward(self, job):
+	def backward(self, job, episodeFinished):
 		reward = self.reward(job)
-		finished = job.episodeFinished()
+		finished = episodeFinished
 
 		debug.learnOut("backward {} {}".format(reward, finished), 'y')
 		debug.learnOut("\n")
@@ -87,7 +87,7 @@ class qAgent(agent):
 	def train(self, task, job, device):
 		debug.learnOut("Training: [{}] [{}] [{}]".format(task, job, device), 'y')
 		self.systemState.updateState(task, job, device)
-		self.backward(job)
+		self.backward(job, episodeFinished=job.episodeFinished())
 
 
 	genericException = Exception("Not implemented in generic Q agent")

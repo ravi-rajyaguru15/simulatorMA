@@ -2,8 +2,6 @@ import multiprocessing
 import sys
 import traceback
 
-from sim.simulation import simulation
-
 import sim.debug
 import sim.experiments.experiment
 import sim.plotting

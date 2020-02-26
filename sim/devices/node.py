@@ -60,9 +60,9 @@ class node:
 	# drawing
 	rectangle = None
 	location = None
-	episodeFinished = None
+	# episodeFinished = None
 
-	def __init__(self, inputClock, platform, index, components, episodeFinished, maxJobs, currentSystemState=None, agent=None, alwaysHardwareAccelerate=None):
+	def __init__(self, inputClock, platform, index, components, maxJobs, currentSystemState=None, agent=None, alwaysHardwareAccelerate=None):
 		self.platform = platform
 
 		# self.decision = offloadingDecisionClass(self, currentSystemState, agentClass)
@@ -90,7 +90,7 @@ class node:
 
 		self.setComponents(components)
 		self.reset()
-		self.episodeFinished = episodeFinished
+		# self.episodeFinished = episodeFinished
 		self.alwaysHardwareAccelerate = alwaysHardwareAccelerate
 
 	def setMaxEnergyLevel(self, batterySize=constants.DEFAULT_ELASTIC_NODE.BATTERY_SIZE):
@@ -168,7 +168,7 @@ class node:
 				self.offloadingOptions.append(device)
 		self.defaultOffloadingOptions = self.offloadingOptions
 
-		print("set offloading options for", self, "to", self.offloadingOptions)
+		debug.out("set offloading options for %s to %s" % (self, self.offloadingOptions))
 
 	def removeOffloadingOption(self, device):
 		if device in self.offloadingOptions:
@@ -422,6 +422,9 @@ class node:
 		# alpha
 		self.averagePower += sim.simulations.constants.EXPECTED_LIFETIME_ALPHA * (power - self.averagePower)
 		# sim.debug.out("average power: {}, {}".format(power, self.averagePower))
+
+	def getAveragePower(self):
+		return (self.maxEnergyLevel - self.energyLevel) / self.currentTime.current
 
 	def updateDevice(self, subtask=None, visualiser=None):
 		affectedDevices = None

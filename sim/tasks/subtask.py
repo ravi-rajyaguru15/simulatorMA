@@ -421,7 +421,7 @@ class newJob(subtask):
 		if self.owner.gracefulFailure:
 			debug.out("GRACEFUL FAILURE on %s %s %s" % (self.owner, self.owner.offloadingOptions, self.owner.batch))
 			if not self.owner.hasOffloadingOptions():
-				simulations.Simulation.currentSimulation.stop()
+				# simulations.Simulation.currentSimulation.stop()
 				return None
 			else:
 				choice = self.owner.agent.getAction(OFFLOADING)

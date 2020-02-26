@@ -1,4 +1,5 @@
 import random
+from copy import deepcopy
 
 import numpy as np
 
@@ -73,7 +74,7 @@ class agent:
 	def _setDecisions(self, devices):
 		for i in range(len(self.possibleActions)):
 			self.possibleActions[i].index = i
-		print('actions', self.possibleActions)
+		debug.learnOut('actions %s' % self.possibleActions)
 
 		# self.numOptions = len(self.possibleActions)
 		self.numActions = len(self.possibleActions)
@@ -235,8 +236,8 @@ class agent:
 
 		counters.NUM_FORWARD += 1
 
-		currentSim = sim.simulations.Simulation.currentSimulation
-		job.beforeState = self.systemState.fromSystemState(currentSim)
+		# currentSim = sim.simulations.Simulation.currentSimulation
+		job.beforeState = deepcopy(self.systemState)
 		sim.debug.out("beforestate {}".format(job.beforeState))
 		# print(device.batchLengths(), device.batchLength(task), device.isQueueFull(task))
 

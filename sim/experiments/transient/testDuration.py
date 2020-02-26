@@ -14,37 +14,17 @@ from sim.offloading.offloadingPolicy import REINFORCEMENT_LEARNING
 from sim.simulations import simulationResults
 from sim.simulations.SimpleSimulation import SimpleSimulation
 
-# sim.simulations.constants.NUM_DEVICES = 1
-
-
 def runThread(agent, numEpisodes, results, finished, histories):
-    print("before")
-    exp = SimpleSimulation(numDevices=1, maxJobs=6, agentClass=agent)
+    exp = SimpleSimulation(numDevices=2, maxJobs=6, agentClass=agent)
     exp.setFpgaIdleSleep(5)
     exp.setBatterySize(1e0)
-    print("after")
 
-    # sim.simulations.constants.FPGA_IDLE_SLEEP = 5
-    # sim.simulations.constants.OFFLOADING_POLICY = REINFORCEMENT_LEARNING
-    # sim.simulations.constants.TOTAL_TIME = 1e3
     try:
         for e in range(numEpisodes):
             debug.infoEnabled = False
             exp.simulateEpisode()
-            # exp.reset()
-            # exp.simulateTime(10)
-            # debug.infoEnabled = True
-            # while not exp.finished:
-            #     exp.simulateTick()
-            # results.put(["Duration %s" % exp.sharedAgent, e, exp.getCurrentTime()])
-            results.put(["Episode reward %s" % exp.sharedAgent, e, exp.sharedAgent.episodeReward])
-
-            # print("finished:")
-            # print(len(exp.finishedJobsList))
-            # print("unfinished:")
-            # print(exp.unfinishedJobsList)
-            # results.put(["Overall reward", e, exp.sharedAgent.totalReward])
-            # print(exp.getCurrentTime(), exp.sharedAgent.episodeReward, exp.sharedAgent.totalReward)
+            results.put(["Duration %s" % exp.sharedAgent, e, exp.getCurrentTime()])
+            # results.put(["Episode reward %s" % exp.sharedAgent, e, exp.sharedAgent.episodeReward])
     except:
         debug.printCache(200)
         traceback.print_exc(file=sys.stdout)
@@ -66,21 +46,15 @@ def run():
     debug.enabled = False
     debug.learnEnabled = False
     debug.infoEnabled = False
-
-
+    # debug.fileOutput = True
 
     processes = list()
-    # sim.simulations.constants.MINIMUM_BATCH = 1e7
 
-    # offloadingOptions = [True, False]
     results = multiprocessing.Queue()
     finished = multiprocessing.Queue()
     histories = multiprocessing.Queue()
-    # sim.simulations.constants.REPEATS = 1
     REPEATS = 1
 
-    # for jobLikelihood in np.arange(1e-3, 1e-2, 1e-3):
-    # 	for roundRobin in np.arange(1e0, 1e1, 2.5):
     numEpisodes = int(1e2)
     agentsToTest = [minimalAgent, lazyAgent]
     for agent in agentsToTest: # [minimalAgent, lazyAgent]:
@@ -89,9 +63,7 @@ def run():
 
     results = executeMulti(processes, results, finished, numResults=len(agentsToTest) * numEpisodes * REPEATS)
 
-    plotting.plotMultiWithErrors("Episode Rewards", results=results, ylabel="Reward", xlabel="Episode #")  # , save=True)
-    # plotting.plotAgentHistory(histories.get())
-
+    plotting.plotMultiWithErrors("Episode duration", results=results, ylabel="Duration", xlabel="Episode #")  # , save=True)
 
 if __name__ == "__main__":
     freeze_support()

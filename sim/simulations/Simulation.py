@@ -14,7 +14,7 @@ from sim.tasks.job import job
 from sim.visualiser import visualiser
 
 queueLengths = list()
-currentSimulation = None
+# currentSimulation = None
 
 class BasicSimulation:
 	sharedAgent = None
@@ -68,14 +68,14 @@ class BasicSimulation:
 		self.useSharedAgent = (constants.CENTRALISED_LEARNING)
 		if self.useSharedAgent:
 			# create shared learning agent
-			print("creating shared")
+			debug.out("creating shared agent %s" % agentClass)
 			self.sharedAgent = agentClass(self.currentSystemState)
 
 		simulationResults.learningHistory = history()
 
 		debug.out("Learning: shared: %s agent: %s centralised: %s" % (self.useSharedAgent, agentClass, constants.CENTRALISED_LEARNING), 'r')
 		agentClass = self.sharedAgent
-		self.devices = [elasticNode(self.time, constants.DEFAULT_ELASTIC_NODE, self.results, i, maxJobs=maxJobs, episodeFinished=self.isEpisodeFinished, currentSystemState=self.currentSystemState, agent=agentClass, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(numDevices)]
+		self.devices = [elasticNode(self.time, constants.DEFAULT_ELASTIC_NODE, self.results, i, maxJobs=maxJobs, currentSystemState=self.currentSystemState, agent=agentClass, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(numDevices)]
 
 
 			# offloadingDecision.offloadingDecision.createSharedAgent(self.currentSystemState, agentClass)
@@ -88,7 +88,7 @@ class BasicSimulation:
 		# self.ed2 = endDevice()
 		# if constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING:
 		if self.useSharedAgent:
-			print("shared exists")
+			# print("shared exists")
 			assert self.sharedAgent is not None
 			self.sharedAgent.setDevices(self.devices)
 		else:
@@ -120,7 +120,7 @@ class BasicSimulation:
 			debug.out("setting shared: %s" % self.sharedAgent)
 			device.setOffloadingOptions(self.devices)
 
-		sim.simulations.Simulation.currentSimulation = self
+		# sim.simulations.Simulation.currentSimulation = self
 
 	def getNumDevices(self): return len(self.devices)
 
@@ -302,7 +302,7 @@ class BasicSimulation:
 		# if still None, unknown behaviour
 		assert (hardwareAccelerated is not None)
 
-		newJob = job(device, constants.SAMPLE_SIZE.gen(), hardwareAccelerated=hardwareAccelerated, taskGraph=taskGraph)
+		newJob = job(device, constants.SAMPLE_SIZE.gen(), isEpisodeFinished=self.isEpisodeFinished, incrementCompletedJobs=self.incrementCompletedJobs, hardwareAccelerated=hardwareAccelerated, taskGraph=taskGraph)
 		self.addJob(device, newJob)
 		debug.out('creating %s on %s' % (newJob, device), 'r')
 		debug.out("added job to device queue", 'p')

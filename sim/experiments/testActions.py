@@ -2,7 +2,6 @@ import sys
 
 import sim.counters
 import sim.debug
-import offloading.offloadingDecision
 import sim.tasks.job
 from sim.devices.components import powerPolicy
 from sim.experiments import experiment
