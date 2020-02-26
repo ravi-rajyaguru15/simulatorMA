@@ -25,7 +25,6 @@ class SimpleSimulation(BasicSimulation):
 	jobInterval = None
 
 	def __init__(self, numDevices=2, jobInterval=constants.JOB_INTERVAL, maxJobs=constants.MAX_JOBS, systemStateClass=minimalSystemState, agentClass=minimalAgent, autoJobs=True):
-		print(self)
 		BasicSimulation.__init__(self, numDevices=numDevices, maxJobs=maxJobs, systemStateClass=systemStateClass, agentClass=agentClass, globalClock=False)
 
 		# remove the taskqueues as tasks are queued in sim
