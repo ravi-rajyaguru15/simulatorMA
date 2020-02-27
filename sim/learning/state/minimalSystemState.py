@@ -20,7 +20,7 @@ class minimalSystemState(discretisedSystemState):
 		multiples = []
 
 		discretisedSystemState.__init__(self, *discretisedSystemState.convertTuples(numDevices=numDevices, singlesWithDiscreteNum=singles, multiplesWithDiscreteNum=multiples))
-		print("created from tuples", self, self.__class__, self.singlesDiscrete)
+		# print("created from tuples", self, self.__class__, self.singlesDiscrete)
 
 	# def updateSystem(self):
 	# 	pass

@@ -56,7 +56,7 @@ class qTableAgent(qAgent):
 		# beforeIndex = beforeState.getIndex()
 		Qsa = self.model.getQ(beforeState, latestAction)
 		currentIndex = currentState.getIndex()
-		maxQ = np.argmax(self.model[currentIndex, :])
+		maxQ = np.argmax(self.model.getQ(currentIndex))
 		target = reward + constants.GAMMA * maxQ
 		increment = constants.LEARNING_RATE * (target - Qsa)
 		debug.learnOut("updating qtable: %d\t%d\t%f\t%f" % (beforeState.getIndex(), latestAction, increment, reward))
@@ -69,7 +69,7 @@ class qTableAgent(qAgent):
 
 	def predict(self, state):
 		# find row from q table for this state
-		return self.model[state.getIndex(), :] # TODO: figure out which row is the correct one
+		return self.model.getQ(state.getIndex()) # TODO: figure out which row is the correct one
 
 	# def predictBatch(self, stateBatch):
 	# 	return self.model.predict_on_batch(stateBatch)
@@ -115,7 +115,7 @@ class qTableAgent(qAgent):
 
 	def importQTable(self, sourceTable, sourceSystemState):
 		mapping = discretisedSystemState.convertIndexMap(sourceSystemState, self.systemState)
-		print("mapping", mapping)
+		# print("mapping", mapping)
 		for i in range(len(mapping)):
 			self.model.setQ(mapping[i], sourceTable.getQ(i))
 

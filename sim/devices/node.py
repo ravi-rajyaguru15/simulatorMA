@@ -53,6 +53,7 @@ class node:
 	currentBatch = None
 	batchFull = None
 	maxJobs = None
+	originalMaxJobs = None
 
 	currentTime = None
 	currentTd = None # amount of current TD that this node is busy
@@ -82,6 +83,7 @@ class node:
 		# self.resultsQueue = queue
 		self.index = index
 		self.maxJobs = maxJobs
+		self.originalMaxJobs = maxJobs
 		# self.nodeType = nodeType
 
 		self.setMaxEnergyLevel()
@@ -129,6 +131,7 @@ class node:
 
 		self.agent.reset()
 		self.offloadingOptions = self.defaultOffloadingOptions
+		self.maxJobs = self.originalMaxJobs
 
 	def resetEnergyLevel(self):
 		self.energyLevel = self.maxEnergyLevel

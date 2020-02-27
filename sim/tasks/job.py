@@ -7,6 +7,7 @@ import sim.simulations.history
 import sim.simulations.simulationResults
 import sim.tasks.subtask
 # from node import node
+from sim import debug
 from sim.learning.action import LOCAL
 from sim.simulations import constants, simulationResults
 
@@ -109,7 +110,7 @@ class job:
 		# initiate task by setting processing node
 		# decision.updateDevice()
 		self.immediate = decision == LOCAL
-		print("decision target", decision)
+		debug.learnOut("decision target", decision)
 		sim.debug.out("set immediate to {}".format(self.immediate))
 
 		# self.decision = decision

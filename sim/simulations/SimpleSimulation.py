@@ -130,7 +130,7 @@ class SimpleSimulation(BasicSimulation):
 				if np.max([dev.maxBatchLength() for dev in self.devices]) > self.maxJobs:
 					print("max jobs exceeded!")
 
-					print("before", self.currentSystemState.getUniqueStates())
+					beforeCount = self.currentSystemState.getUniqueStates()
 					# increase max jobs allowed
 					self.maxJobs += 1
 					for dev in self.devices: dev.maxJobs += 1
@@ -141,7 +141,7 @@ class SimpleSimulation(BasicSimulation):
 						self.sharedAgent.expandField(field)
 					else:
 						for dev in self.devices: dev.agent.expandField(field)
-					print("after", self.currentSystemState.getUniqueStates())
+					debug.out("expanded %d to %d" % (beforeCount, self.currentSystemState.getUniqueStates()))
 
 
 

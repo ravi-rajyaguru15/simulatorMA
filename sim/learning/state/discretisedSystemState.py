@@ -60,7 +60,7 @@ class discretisedSystemState(systemState):
 			multiplesScale[fieldName] = value.scale
 			multiplesScalingFactor[fieldName] = value.scalingFactor
 
-		print("init", singlesDiscrete)
+		# print("init", singlesDiscrete)
 
 		return numDevices, singlesFields, singlesDiscrete, singlesScale, singlesScalingFactor, multiplesFields, multiplesDiscrete, multiplesScale, multiplesScalingFactor
 		# # compute all indexes

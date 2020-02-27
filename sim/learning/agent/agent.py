@@ -46,7 +46,7 @@ class agent:
 
 	def __init__(self, systemState, owner=None):
 		self.systemState = systemState
-		print("set systemstate to", systemState)
+		# print("set systemstate to", systemState)
 		self.owner = owner # owner none means shared
 
 		self.totalReward = 0
