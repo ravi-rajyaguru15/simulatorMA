@@ -64,7 +64,7 @@ SAVE_GRAPH = False
 RECONSIDER_BATCHES = False
 
 # experiments
-# NUM_DEVICES = 2
+NUM_DEVICES = 2
 # REPEATS = 4
 THREAD_COUNT = multiprocessing.cpu_count() - 1
 MAX_DELAY = 0.1

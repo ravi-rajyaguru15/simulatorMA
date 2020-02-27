@@ -32,12 +32,12 @@ def run():
 	
 	results = multiprocessing.Queue()
 	finished = multiprocessing.Queue()
-	REPEATS = 2
+	REPEATS = 4
 
 	SimpleSimulation(jobInterval=Gaussian(100, 1))
 	SimpleSimulation(jobInterval=Gaussian(100, 1))
 
-	for jobInterval in np.arange(1, 2e1, 1e1):
+	for jobInterval in np.arange(1, 1e2, 1e1):
 		for _ in range(REPEATS):
 			print(SimpleSimulation())
 			processes.append(multiprocessing.Process(target=runThread, args=(SimpleSimulation(jobInterval=Gaussian(jobInterval, 1)), jobInterval, results, finished)))

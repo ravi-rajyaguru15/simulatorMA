@@ -40,9 +40,9 @@ def run():
 	finished = multiprocessing.Queue()
 	REPEATS = 2
 
-	for jobInterval in np.arange(1, 2e1, 1e1):
+	for jobInterval in np.arange(1, 1e2, 1e1):
 		for _ in range(REPEATS):
-			processes.append(multiprocessing.Process(target=runThread, args=(SimpleSimulation(jobInterval=Gaussian(jobInterval, 1)), jobInterval, results, finished)))
+			processes.append(multiprocessing.Process(target=runThread, args=(SimpleSimulation(numDevices=numDevices, jobInterval=Gaussian(jobInterval, 1)), jobInterval, results, finished)))
 	
 	results = executeMulti(processes, results, finished)
 	plotMultiWithErrors("Average Power vs Job Interval", results=results, ylabel="Average Device Power", xlabel="Job Interval") # , save=True)

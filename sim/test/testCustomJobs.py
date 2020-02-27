@@ -5,14 +5,14 @@ from sim.tasks.job import job
 from sim.tasks.subtask import reconfigureFPGA
 
 debug.enabled = True
-constants.NUM_DEVICES = 2
+# constants.NUM_DEVICES = 2
 exp = SimpleSimulation(autoJobs=False)
 exp.reset()
 dev = exp.devices[0]
 dev2 = exp.devices[1]
 
 # queue manual jobs
-firstJob = job(dev, 1, True)
+firstJob = job(dev, 1, True, exp.isEpisodeFinished, exp.incrementCompletedJobs)
 firstJob.started = True
 firstJob.active = True
 firstJob.creator = dev
@@ -27,7 +27,7 @@ reconf = reconfigureFPGA(firstJob)
 # exp.queueTask(0.999, PROCESS_SUBTASK, dev, subtask=reconf)
 
 # queue offloaded task
-secondJob = job(dev, 1, True)
+secondJob = job(dev, 1, True, exp.isEpisodeFinished, exp.incrementCompletedJobs)
 secondJob.creator = dev
 secondJob.owner = dev
 secondJob.processingNode = dev2

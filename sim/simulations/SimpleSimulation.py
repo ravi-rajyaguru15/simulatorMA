@@ -24,7 +24,7 @@ class SimpleSimulation(BasicSimulation):
 	autoJobs = None
 	jobInterval = None
 
-	def __init__(self, numDevices=2, jobInterval=constants.JOB_INTERVAL, maxJobs=constants.MAX_JOBS, systemStateClass=minimalSystemState, agentClass=minimalAgent, autoJobs=True):
+	def __init__(self, numDevices=constants.NUM_DEVICES, jobInterval=constants.JOB_INTERVAL, maxJobs=constants.MAX_JOBS, systemStateClass=minimalSystemState, agentClass=minimalAgent, autoJobs=True):
 		BasicSimulation.__init__(self, numDevices=numDevices, maxJobs=maxJobs, systemStateClass=systemStateClass, agentClass=agentClass, globalClock=False)
 
 		# remove the taskqueues as tasks are queued in sim
@@ -309,15 +309,15 @@ class SimpleSimulation(BasicSimulation):
 
 	# eoh m# 	print("device", device, "already has queued item!", self.queue)
 
-	# def processAffectedDevice(self, affectedDevice):
-	# 	device, subtask = affectedDevice
-	#
+	def processAffectedDevice(self, affectedDevice):
+		device, subtask = affectedDevice
+
 	# 	# if device already has assigned subtask and this is just to create a new task, reschedule
 	# 	if device.currentSubtask is not None and device.currentSubtask != subtask:
 	# 		debug.out("Rescheduling %s because %s is already doing %s" % (subtask, device, device.currentSubtask), 'r')
 	# 		self.queueTask(device.currentTime + device.currentSubtask.duration, PROCESS_SUBTASK, device, subtask)
 	# 	else:
-	# 		self.processDeviceSubtask(device, subtask)
+		self.processDeviceSubtask(device, subtask)
 	#
 	def processDeviceSubtask(self, device, subtask):
 		# assert affected is not None
