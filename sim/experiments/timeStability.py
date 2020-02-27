@@ -3,7 +3,6 @@ import sys
 import traceback
 
 import numpy as np
-from sim.simulation import simulation
 
 import sim.debug
 import sim.experiments.experiment

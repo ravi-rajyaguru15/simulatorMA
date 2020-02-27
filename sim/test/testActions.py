@@ -23,7 +23,7 @@ if __name__ == '__main__':
 	constants.PLOT_TD = constants.TD * 10
 	constants.DEFAULT_ELASTIC_NODE.RECONFIGURATION_TIME = variable.Constant(0.003)
 
-	exp = simulation(True)
+	exp = simulation()
 	sim.simulations.current = exp
 
 	exp.simulateTime(constants.PLOT_TD * 1)

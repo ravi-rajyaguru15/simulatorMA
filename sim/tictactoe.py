@@ -279,11 +279,11 @@ for i in range(num_episodes):
 print ("Percent of succesful episodes: {:.2f} %".format(sum(rList)/num_episodes * 100.0))
 import os
 # print (os.environ["DISPLAY"])
-if "DISPLAY" not in os.environ:
-	os.environ["DISPLAY"] = "localhost:10.0"
-	print("set display to", os.environ["DISPLAY"])
-else:
-    print ("Existing DISPLAY={}".format(os.environ["DISPLAY"]))
+# if "DISPLAY" not in os.environ:
+# 	os.environ["DISPLAY"] = "localhost:10.0"
+# 	print("set display to", os.environ["DISPLAY"])
+# else:
+#     print ("Existing DISPLAY={}".format(os.environ["DISPLAY"]))
 plt.figure(1)
 plt.title('duration')
 plt.plot(jList);

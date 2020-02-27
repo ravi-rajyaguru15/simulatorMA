@@ -49,6 +49,7 @@ class qAgent(agent):
 
 		# new metrics
 		self.latestReward = reward
+		self.latestAction = job.latestAction
 		# self.latestR = R
 
 		# debug.learnOut\

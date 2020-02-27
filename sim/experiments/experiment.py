@@ -93,6 +93,7 @@ def assembleResults(resultsQueue, outputQueue, numResults=None):
 		if not normaliseDict[name]: continue
 
 		graphDict = graphs[name]
+		print("\n\n\n\nGraphDict:", name, graphDict)
 		maxDict[name] = 0
 		for sample in graphDict:
 			# print(sample, graphDict[sample])

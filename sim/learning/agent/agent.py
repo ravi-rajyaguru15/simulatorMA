@@ -28,7 +28,7 @@ class agent:
 	policy = None
 	loss = None
 	# beforeState = None
-	# latestAction = None
+	latestAction = None
 	latestLoss = None
 	latestReward = None
 	latestR = None
