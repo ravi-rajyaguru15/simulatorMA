@@ -6,14 +6,21 @@ from sim.simulations import constants
 class minimalSystemState(discretisedSystemState):
 	maxJobs = None
 
-	def __init__(self, simulation, numDevices, maxJobs):
+	def __init__(self, numDevices, maxJobs, allowExpansion=constants.ALLOW_EXPANSION):
 		self.maxJobs = maxJobs
 		# add extra state for "full" job queue
-		singles = [discreteState('energyRemaining', 3), discreteState('jobsInQueue', maxJobs + 1, scalingFactor=maxJobs),
-				   discreteState('currentConfig', 2, scale=False)]
+		if allowExpansion:
+			singles = [discreteState('energyRemaining', 3),
+					   discreteState('jobsInQueue', maxJobs + 1),
+					   discreteState('currentConfig', 2, scale=False)]
+		else:
+			singles = [discreteState('energyRemaining', 3),
+					   discreteState('jobsInQueue', maxJobs + 2, scalingFactor=maxJobs + 1),
+					   discreteState('currentConfig', 2, scale=False)]
 		multiples = []
 
-		discretisedSystemState.__init__(self, simulation, numDevices=numDevices, singlesWithDiscreteNum=singles, multiplesWithDiscreteNum=multiples)
+		discretisedSystemState.__init__(self, *discretisedSystemState.convertTuples(numDevices=numDevices, singlesWithDiscreteNum=singles, multiplesWithDiscreteNum=multiples))
+		print("created from tuples", self, self.__class__, self.singlesDiscrete)
 
 	# def updateSystem(self):
 	# 	pass
@@ -23,9 +30,9 @@ class minimalSystemState(discretisedSystemState):
 		self.setField('currentConfig', device.fpga.getCurrentConfigIndex())
 		self.setField('energyRemaining', device.getEnergyLevelPercentage())
 
-	def fromSystemState(self, simulation):
+	def fromSystemState(self):
 		# TODO: actually should overwrite this for each subclass
-		second = self.__class__(simulation, self.numDevices, self.maxJobs)
+		second = self.__class__(self.numDevices, self.maxJobs)
 
 		second.setState(self.currentState)
 

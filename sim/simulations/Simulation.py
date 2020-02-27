@@ -47,10 +47,14 @@ class BasicSimulation:
 	energylevels = list()
 	completedJobs = None
 	useSharedAgent = None
+	allowExpansion = None
+	maxJobs = None
 
-	def __init__(self, numDevices, maxJobs, systemStateClass, agentClass, globalClock=True):
+	def __init__(self, numDevices, maxJobs, systemStateClass, agentClass, globalClock=True, allowExpansion=constants.ALLOW_EXPANSION):
 		hardwareAccelerated = True
 		self.episodeNumber = 0
+		self.allowExpansion = allowExpansion
+		self.maxJobs = maxJobs
 
 		# debug.out(numEndDevices + numElasticNodes)
 		self.results = multiprocessing.Manager().Queue()
@@ -62,14 +66,16 @@ class BasicSimulation:
 		if globalClock:
 			self.time = clock()
 			agentClass.sharedClock = self.time
-		
+
+
 		# requires simulation to be populated
-		self.currentSystemState = systemStateClass(self, numDevices=numDevices, maxJobs=maxJobs)
-		self.useSharedAgent = (constants.CENTRALISED_LEARNING)
+		self.currentSystemState = systemStateClass(numDevices=numDevices, maxJobs=maxJobs)
+		self.useSharedAgent = constants.CENTRALISED_LEARNING
 		if self.useSharedAgent:
 			# create shared learning agent
 			debug.out("creating shared agent %s" % agentClass)
 			self.sharedAgent = agentClass(self.currentSystemState)
+			# TODO: need private state for non shared agent
 
 		simulationResults.learningHistory = history()
 

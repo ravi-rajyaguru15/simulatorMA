@@ -46,6 +46,7 @@ class agent:
 
 	def __init__(self, systemState, owner=None):
 		self.systemState = systemState
+		print("set systemstate to", systemState)
 		self.owner = owner # owner none means shared
 
 		self.totalReward = 0
@@ -63,9 +64,13 @@ class agent:
 	# def setOffloadingOptions(self, otherDevices):
 
 	def setDevices(self, devices):
-		# default devices is all of them
-		# self.possibleActions = [offloading(i) for i in range(len(devices))] + [BATCH, LOCAL]
-		self.possibleActions = [OFFLOADING, BATCH, LOCAL]
+		if len(devices) == 1:
+			# offloading impossible if only one device present
+			self.possibleActions = [BATCH, LOCAL]
+		else:
+			# default devices is all of them
+			# self.possibleActions = [offloading(i) for i in range(len(devices))] + [BATCH, LOCAL]
+			self.possibleActions = [OFFLOADING, BATCH, LOCAL]
 		self._setDecisions(devices)
 
 	def getAction(self, action):

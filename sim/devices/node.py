@@ -551,6 +551,7 @@ class node:
 		
 		self.batch[task].append(job)
 
+
 	def batchLengths(self):
 		return [len(batch) for key, batch in self.batch.items()]
 

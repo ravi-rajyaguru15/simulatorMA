@@ -47,6 +47,8 @@ class TdSimulation(BasicSimulation):
 
 			queueLengths.append(dev.getNumJobs())
 
+			# TODO: check for max jobs expansion
+
 		# capture energy values
 		for dev in self.devices:
 			energy = dev.energy()

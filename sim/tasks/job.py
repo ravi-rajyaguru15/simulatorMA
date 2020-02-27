@@ -109,6 +109,7 @@ class job:
 		# initiate task by setting processing node
 		# decision.updateDevice()
 		self.immediate = decision == LOCAL
+		print("decision target", decision)
 		sim.debug.out("set immediate to {}".format(self.immediate))
 
 		# self.decision = decision

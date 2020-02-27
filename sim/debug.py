@@ -1,34 +1,37 @@
 import sim
 from sim.simulations import localConstants
 
-default = 37
-enabled = False
-learnEnabled = False
-infoEnabled = False
-fileOutput = False
-
 cache = []
 maxCache = 1000
 currentCache = 0
 outputFileName = None
 
+
+class settings:
+    default = 37
+    enabled = False
+    learnEnabled = False
+    infoEnabled = False
+    fileOutput = False
+
+
 # print to console in a fancy colour
 # options are k r g y b p c w
-def out(string, colour=None, enable=None):
-    _push(string, colour, enabled)
+def out(string, colour=None):
+    _push(string, colour, settings.enabled)
 
 
 def infoOut(string="", colour=None):
-    _push(string, colour, infoEnabled)
+    _push(string, colour, settings.infoEnabled)
 
 
 def learnOut(string="", colour=None):
-    _push(string, colour, learnEnabled)
+    _push(string, colour, settings.learnEnabled)
 
 
 def _push(string, colour, printImmediate=True):
     if not printImmediate:
-        if fileOutput:
+        if settings.fileOutput:
             if sim.debug.outputFileName is None:
                 print("opening log file", localConstants.OUTPUT_DIRECTORY + "debug.log")
                 sim.debug.outputFile = open(localConstants.OUTPUT_DIRECTORY + "debug.log", 'w')
@@ -69,7 +72,7 @@ def _print(string, colour):
         else:
             raise Exception("Colour {0} not recognised".format(colour))
 
-        print("\033[{0}m{1}\033[{2}m".format(code, string, default))
+        print("\033[{0}m{1}\033[{2}m".format(code, string, settings.default))
 
 
 def printCache(numLines=None):

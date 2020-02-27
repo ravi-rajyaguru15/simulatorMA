@@ -23,7 +23,6 @@ class systemState:
 	numDevices = None
 	genericException = None
 
-
 	# singles are individual states, multiples are per device
 	def __init__(self, numDevices, singles, multiples):
 		self.genericException = Exception("not implemented in " + str(self.__class__.__name__))

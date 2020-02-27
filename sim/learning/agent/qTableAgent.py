@@ -1,5 +1,6 @@
 import math
 import sys
+from copy import deepcopy
 
 import numpy as np
 # import tensorflow as tf
@@ -11,6 +12,8 @@ import numpy as np
 from sim import debug
 from sim.learning.agent.agent import agent
 from sim.learning.agent.qAgent import qAgent
+from sim.learning.state.discretisedSystemState import discretisedSystemState
+from sim.learning.state.systemState import systemState
 from sim.simulations import constants
 from sim.simulations.variable import Uniform
 
@@ -29,9 +32,12 @@ class qTableAgent(qAgent):
 	#
 	# 	return names
 
-	def __init__(self, systemState, owner=None):
+	allowExpansion = None
+
+	def __init__(self, systemState, allowExpansion=constants.ALLOW_EXPANSION, owner=None):
 		self.gamma = constants.GAMMA
 		self.policy = Uniform(.5, 1)
+		self.allowExpansion = allowExpansion
 
 		debug.out("Q Table agent")
 		# self.dqn = rl.agents.DQNAgent(model=self.model, policy=rl.policy.LinearAnnealedPolicy(, attr='eps', value_max=sim.constants.EPS_MAX, value_min=sim.constants.EPS_MIN, value_test=.05, nb_steps=sim.constants.EPS_STEP_COUNT), enable_double_dqn=False, gamma=.99, batch_size=1, nb_actions=self.numActions)
@@ -41,21 +47,24 @@ class qTableAgent(qAgent):
 	def createModel(self):
 		# create Q table
 		debug.learnOut("qtable: (%d, %d)" % (self.systemState.getUniqueStates(), self.numActions))
-		self.model = np.zeros((self.systemState.getUniqueStates(), self.numActions))
+		self.model = qTable(self.systemState.getUniqueStates(), self.numActions)
+
+	def expandModel(self):
+		pass
 
 	def trainModel(self, latestAction, reward, beforeState, currentState, finished):
-		beforeIndex = beforeState.getIndex()
-		Qsa = self.model[beforeIndex, latestAction]
+		# beforeIndex = beforeState.getIndex()
+		Qsa = self.model.getQ(beforeState, latestAction)
 		currentIndex = currentState.getIndex()
 		maxQ = np.argmax(self.model[currentIndex, :])
 		target = reward + constants.GAMMA * maxQ
 		increment = constants.LEARNING_RATE * (target - Qsa)
-		debug.learnOut("updating qtable: %d\t%d\t%f\t%f" % (beforeIndex, latestAction, increment, reward))
+		debug.learnOut("updating qtable: %d\t%d\t%f\t%f" % (beforeState.getIndex(), latestAction, increment, reward))
 
 		# Q learning 101:
-		self.model[beforeIndex, latestAction] = Qsa + increment
+		self.model.setQ(beforeState, action=latestAction, value=Qsa + increment)
 		self.latestLoss = (target - Qsa) ** 2.
-		self.latestMeanQ = np.mean(self.model[beforeIndex, :])
+		self.latestMeanQ = self.model.meanQ(beforeState)
 
 
 	def predict(self, state):
@@ -85,7 +94,7 @@ class qTableAgent(qAgent):
 			description = self.systemState.getStateDescription(i)
 			entry = "["
 			for j in range(self.numActions):
-				entry += "{:10.4f}".format(self.model[i, j]) + " "
+				entry += "{:10.4f}".format(self.model.getQ(i, j)) + " "
 			entry += " ]"
 			print(description, entry)
 
@@ -95,6 +104,52 @@ class qTableAgent(qAgent):
 		for formattedAction in ["%11s" % action for action in self.possibleActions]:
 			formattedString += formattedAction
 		print("%s%s" % (" " * (maxEntryWorth+1), formattedString))
+
+	def expandField(self, field):
+		originalState = deepcopy(self.systemState)
+		originalModel = deepcopy(self.model)
+		self.systemState.expandField(field)
+		print(originalState.getUniqueStates(), self.systemState.getUniqueStates())
+		self.model.expand()
+		self.importQTable(sourceTable=originalModel, sourceSystemState=originalState)
+
+	def importQTable(self, sourceTable, sourceSystemState):
+		mapping = discretisedSystemState.convertIndexMap(sourceSystemState, self.systemState)
+		print("mapping", mapping)
+		for i in range(len(mapping)):
+			self.model.setQ(mapping[i], sourceTable.getQ(i))
+
+class qTable:
+	table = None
+
+	def __init__(self, stateCount, actionCount):
+		self.table = np.zeros((stateCount, actionCount))
+
+	# increase size of existing table
+	def expand(self):
+		self.table = np.zeros((self.table.shape[0] * 2, self.table.shape[1]))
+
+	def getQ(self, state, action=None):
+		if isinstance(state, discretisedSystemState):
+			state = state.getIndex()
+
+		if action is None:
+			return self.table[state, :]
+		else:
+			return self.table[state, action]
+
+	def setQ(self, state, value, action=None):
+		if isinstance(state, discretisedSystemState):
+			state = state.getIndex()
+		if action is None:
+			self.table[state, :] = value
+		else:
+			self.table[state, action] = value
+
+	def meanQ(self, state):
+		if isinstance(state, discretisedSystemState):
+			state = state.getIndex()
+		return np.mean(self.table[state, :])
 
 
 # def mean_q(correctQ, predictedQ):

@@ -24,8 +24,8 @@ class SimpleSimulation(BasicSimulation):
 	autoJobs = None
 	jobInterval = None
 
-	def __init__(self, numDevices=constants.NUM_DEVICES, jobInterval=constants.JOB_INTERVAL, maxJobs=constants.MAX_JOBS, systemStateClass=minimalSystemState, agentClass=minimalAgent, autoJobs=True):
-		BasicSimulation.__init__(self, numDevices=numDevices, maxJobs=maxJobs, systemStateClass=systemStateClass, agentClass=agentClass, globalClock=False)
+	def __init__(self, numDevices=constants.NUM_DEVICES, jobInterval=constants.JOB_INTERVAL, maxJobs=constants.MAX_JOBS, systemStateClass=minimalSystemState, agentClass=minimalAgent, autoJobs=True, allowExpansion=constants.ALLOW_EXPANSION):
+		BasicSimulation.__init__(self, numDevices=numDevices, maxJobs=maxJobs, systemStateClass=systemStateClass, agentClass=agentClass, globalClock=False, allowExpansion=allowExpansion)
 
 		# remove the taskqueues as tasks are queued in sim
 		for dev in self.devices: dev.taskQueue = None
@@ -106,7 +106,7 @@ class SimpleSimulation(BasicSimulation):
 			# newTime, arguments = self.queue.get()
 			assert self.queue.qsize() > 0
 
-			if debug.enabled:
+			if debug.settings.enabled:
 				print("before:")
 				self.printQueue()
 			debug.out("states before: {0}".format([[comp.getPowerState() for comp in dev.components] for dev in self.devices]), 'y')
@@ -118,11 +118,33 @@ class SimpleSimulation(BasicSimulation):
 			debug.out("remaining tasks: %d" % self.queue.qsize(), 'dg')
 
 			# temporarily cache tasks to print
-			if debug.enabled:
+			if debug.settings.enabled:
 				self.printQueue()
 
 			# device.setTime(newTime)
 			self.processQueuedTask(newTime, arguments)
+
+			# check if queues are overrun
+			if self.allowExpansion:
+				# check if batch is growing too big
+				if np.max([dev.maxBatchLength() for dev in self.devices]) > self.maxJobs:
+					print("max jobs exceeded!")
+
+					print("before", self.currentSystemState.getUniqueStates())
+					# increase max jobs allowed
+					self.maxJobs += 1
+					for dev in self.devices: dev.maxJobs += 1
+					field = "jobsInQueue"
+					assert field in self.currentSystemState.singles
+					# self.currentSystemState.expandField(field)
+					if self.sharedAgent is not None:
+						self.sharedAgent.expandField(field)
+					else:
+						for dev in self.devices: dev.agent.expandField(field)
+					print("after", self.currentSystemState.getUniqueStates())
+
+
+
 			# print("popped time", newTime, arguments)
 
 			# # should always have task lined up for each device
@@ -159,7 +181,7 @@ class SimpleSimulation(BasicSimulation):
 
 			# print all results if interesting
 			tasksAfter = np.array([dev.currentSubtask for dev in self.devices])
-			if debug.enabled:
+			if debug.settings.enabled:
 				# if not (np.all(tasksAfter == None) and np.all(tasksBefore == None)):
 				debug.out('tick {}'.format(self.time), 'b')
 				# 	debug.out("nothing...")
