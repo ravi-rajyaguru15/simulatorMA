@@ -34,7 +34,11 @@ class elasticNode(node):
 		else:
 			return 0
 
-	
+	def getFpgaConfiguration(self):
+		if self.hasFpga():
+			# assuming maximum one fpga per device
+			return self.fpga.currentConfig
+
 	# def processingEnergy(self, duration):
 	# 	return self.mcu.idleEnergy(duration) + self.mrf.idleEnergy(duration) + self.fpga.activeEnergy(duration)
 

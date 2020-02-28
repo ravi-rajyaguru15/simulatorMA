@@ -60,6 +60,7 @@ class discretisedSystemState(systemState):
 			multiplesScale[fieldName] = value.scale
 			multiplesScalingFactor[fieldName] = value.scalingFactor
 
+		print("convert tuple", numDevices)
 		# print("init", singlesDiscrete)
 
 		return numDevices, singlesFields, singlesDiscrete, singlesScale, singlesScalingFactor, multiplesFields, multiplesDiscrete, multiplesScale, multiplesScalingFactor
@@ -87,6 +88,9 @@ class discretisedSystemState(systemState):
 
 	@staticmethod
 	def discretiseValue(value, bins, scalingFactor, scale):
+		# capture boolean values
+		if isinstance(value, bool):
+			value = 1 if value else 0
 		if scale:
 			# assert value <= 1
 			if value > 1:

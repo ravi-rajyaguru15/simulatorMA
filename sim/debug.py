@@ -4,7 +4,7 @@ from sim.simulations import localConstants
 cache = []
 maxCache = 1000
 currentCache = 0
-outputFileName = None
+outputFile = None
 
 
 class settings:
@@ -32,10 +32,10 @@ def learnOut(string="", colour=None):
 def _push(string, colour, printImmediate=True):
     if not printImmediate:
         if settings.fileOutput:
-            if sim.debug.outputFileName is None:
+            if sim.debug.outputFile is None:
                 print("opening log file", localConstants.OUTPUT_DIRECTORY + "debug.log")
                 sim.debug.outputFile = open(localConstants.OUTPUT_DIRECTORY + "debug.log", 'w')
-            sim.debug.outputFileName.write(str(string) + '\n')
+            sim.debug.outputFile.write(str(string) + '\n')
         else:
             sim.debug.cache.append((string, colour))
             sim.debug.currentCache += 1
@@ -78,5 +78,8 @@ def _print(string, colour):
 def printCache(numLines=None):
     print("debug log:")
     if numLines is None: numLines = 0
-    for entry in cache[-numLines:]:
-        _print(entry[0], entry[1])
+    try:
+        for entry in cache[-numLines:]:
+            _print(entry[0], entry[1])
+    except:
+        print("Error in Debug queue:", entry)

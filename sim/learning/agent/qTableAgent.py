@@ -59,7 +59,7 @@ class qTableAgent(qAgent):
 		maxQ = np.argmax(self.model.getQ(currentIndex))
 		target = reward + constants.GAMMA * maxQ
 		increment = constants.LEARNING_RATE * (target - Qsa)
-		debug.learnOut("updating qtable: %d\t%d\t%f\t%f" % (beforeState.getIndex(), latestAction, increment, reward))
+		debug.learnOut("updating qtable: %d\t%d\t%f\t%f" % (beforeState, latestAction, increment, reward))
 
 		# Q learning 101:
 		self.model.setQ(beforeState, action=latestAction, value=Qsa + increment)
@@ -69,7 +69,7 @@ class qTableAgent(qAgent):
 
 	def predict(self, state):
 		# find row from q table for this state
-		return self.model.getQ(state.getIndex()) # TODO: figure out which row is the correct one
+		return self.model.getQ(state) # TODO: figure out which row is the correct one
 
 	# def predictBatch(self, stateBatch):
 	# 	return self.model.predict_on_batch(stateBatch)
@@ -121,17 +121,24 @@ class qTableAgent(qAgent):
 
 class qTable:
 	table = None
+	stateCount = None
+	actionCount = None
 
 	def __init__(self, stateCount, actionCount):
 		self.table = np.zeros((stateCount, actionCount))
+		self.stateCount = stateCount
+		self.actionCount = actionCount
 
 	# increase size of existing table
 	def expand(self):
-		self.table = np.zeros((self.table.shape[0] * 2, self.table.shape[1]))
+		self.stateCount *= 2
+		self.table = np.zeros((self.stateCount, self.actionCount))
 
 	def getQ(self, state, action=None):
 		if isinstance(state, discretisedSystemState):
 			state = state.getIndex()
+
+		assert state < self.stateCount
 
 		if action is None:
 			return self.table[state, :]
@@ -141,6 +148,7 @@ class qTable:
 	def setQ(self, state, value, action=None):
 		if isinstance(state, discretisedSystemState):
 			state = state.getIndex()
+		assert state < self.stateCount
 		if action is None:
 			self.table[state, :] = value
 		else:

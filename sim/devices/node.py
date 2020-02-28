@@ -166,13 +166,14 @@ class node:
 		for device in allDevices:
 			if device is not self:
 				self.offloadingOptions.append(device)
-		self.defaultOffloadingOptions = self.offloadingOptions
+		self.defaultOffloadingOptions = list(self.offloadingOptions)
 
 		debug.out("set offloading options for %s to %s" % (self, self.offloadingOptions))
 
 	def removeOffloadingOption(self, device):
 		if device in self.offloadingOptions:
 			self.offloadingOptions.remove(device)
+			print("removed offloading option", device, self.offloadingOptions)
 
 	# def setOptions(self, options):
 		# self.setOffloadingDecisions(options)
@@ -186,11 +187,6 @@ class node:
 
 	def hasFpga(self):
 		return np.any([isinstance(component, fpga) for component in self.processors])
-
-	def getFpgaConfiguration(self):
-		if self.hasFpga():
-			# assuming maximum one fpga per device
-			return self.fpga.currentConfig
 
 	def hasJob(self):
 		# busy if any are busy
@@ -676,6 +672,7 @@ class node:
 		for dev in self.offloadingOptions: dev.removeOffloadingOption(self)
 
 	def hasOffloadingOptions(self):
+		# print(self.offloadingOptions, len(self.offloadingOptions))
 		return len(self.offloadingOptions) > 0
 
 from dataclasses import dataclass, field

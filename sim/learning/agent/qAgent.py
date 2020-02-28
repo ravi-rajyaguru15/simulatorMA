@@ -53,7 +53,7 @@ class qAgent(agent):
 		# self.latestR = R
 
 		# debug.learnOut\
-		diff = self.systemState - job.beforeState
+		# diff = self.systemState - job.beforeState
 		np.set_printoptions(precision=3)
 		# debug.infoOut("{}, created: {:6.3f} {:<7}: {}, deadline: {:9.5f} ({:10.5f}), action: {:<9}, expectedLife (before: {:9.5f} - after: {:9.5f}) = {:10.5f}, reward: {}".format(job.currentTime, job.createdTime, str(job), int(job.finished), job.deadlineRemaining(), (job.currentTime - job.createdTime), str(self.possibleActions[job.latestAction]), job.beforeState.	getField("selfExpectedLife")[0], self.systemState.getField("selfExpectedLife")[0], diff["selfExpectedLife"][0], reward))
 		# print("state diff: {}".format(diff).replace("array", ""), 'p')

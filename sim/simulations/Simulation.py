@@ -24,12 +24,14 @@ class BasicSimulation:
 	# finishedJobsList = None
 	latestFinishedJob = None
 	numFinishedJobs = None
+	finishedTasks = None
 	unfinishedJobsList = None
 	ed, ed2, en, gw, srv, selectedOptions = None, None, None, None, None, None
 	results = None
 	jobResults = None
 	time = None
 	devices = None
+	tasks = None
 	devicesExpectedLifetimeFunctions = None
 	devicesExpectedLifetimes = None
 	numDevices = None
@@ -50,7 +52,7 @@ class BasicSimulation:
 	allowExpansion = None
 	maxJobs = None
 
-	def __init__(self, numDevices, maxJobs, systemStateClass, agentClass, globalClock=True, allowExpansion=constants.ALLOW_EXPANSION):
+	def __init__(self, numDevices, maxJobs, systemStateClass, agentClass, tasks, globalClock=True, allowExpansion=constants.ALLOW_EXPANSION):
 		hardwareAccelerated = True
 		self.episodeNumber = 0
 		self.allowExpansion = allowExpansion
@@ -67,6 +69,7 @@ class BasicSimulation:
 			self.time = clock()
 			agentClass.sharedClock = self.time
 
+		self.tasks = tasks
 
 		# requires simulation to be populated
 		self.currentSystemState = systemStateClass(numDevices=numDevices, maxJobs=maxJobs)
@@ -183,6 +186,7 @@ class BasicSimulation:
 			self.sharedAgent.reset()
 		# self.finishedJobsList = []
 		self.latestFinishedJob = None
+		self.finishedTasks = dict()
 		self.numFinishedJobs = 0
 		self.unfinishedJobsList = []
 		job.id = 0
@@ -207,6 +211,9 @@ class BasicSimulation:
 		# self.finishedJobsList.append(job)
 		self.latestFinishedJob = job
 		self.numFinishedJobs += 1
+		if job.currentTask not in self.finishedTasks:
+			self.finishedTasks[job.currentTask] = 0
+		self.finishedTasks[job.currentTask] += 1
 
 	def getLatestFinishedJob(self):
 		# assert len(self.finishedJobsList) > 0
@@ -301,14 +308,24 @@ class BasicSimulation:
 		return [self.optionsNames[option] for option in self.selectedOptions]
 
 	# create job and add to device
-	def createNewJob(self, device, hardwareAccelerated=None, taskGraph=None):
+	def createNewJob(self, device, hardwareAccelerated=None):
 		# if not set to hardwareAccelerate, use default
 		if hardwareAccelerated is None:
 			hardwareAccelerated = self.hardwareAccelerated
 		# if still None, unknown behaviour
 		assert (hardwareAccelerated is not None)
 
-		newJob = job(device, constants.SAMPLE_SIZE.gen(), isEpisodeFinished=self.isEpisodeFinished, incrementCompletedJobs=self.incrementCompletedJobs, hardwareAccelerated=hardwareAccelerated, taskGraph=taskGraph)
+		# print("create job", self.tasks)
+		# select task for this job
+		task = self.tasks
+		if isinstance(self.tasks, list):
+			if len(self.tasks) > 1:
+				task = [np.random.choice(self.tasks)]
+				# print("chose task", task)
+
+
+
+		newJob = job(device, constants.SAMPLE_SIZE.gen(), isEpisodeFinished=self.isEpisodeFinished, incrementCompletedJobs=self.incrementCompletedJobs, hardwareAccelerated=hardwareAccelerated, taskGraph=task)
 		self.addJob(device, newJob)
 		debug.out('creating %s on %s' % (newJob, device), 'r')
 		debug.out("added job to device queue", 'p')

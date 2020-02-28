@@ -33,7 +33,7 @@ def testPerformance():
 	open(profileFilename, 'wb')
 	cProfile.run('profileTarget()', filename=profileFilename, sort='cumtime')
 
-debug.fileOutput = True
+debug.settings.fileOutput = True
 testPerformance()
 # graphviz = GraphvizOutput()
 # graphviz.output_file = localConstants.OUTPUT_DIRECTORY + 'profile.png'

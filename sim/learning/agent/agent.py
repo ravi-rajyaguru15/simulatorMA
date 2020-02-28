@@ -115,7 +115,8 @@ class agent:
 		# default behaviour is to choose a random option
 		if len(self.options) == 1:
 			debug.out("only one option for job", 'y')
-			choice = self.possibleActions[0]
+			# choice = self.possibleActions[0]
+			choice = self.getAction(OFFLOADING)
 			choice.updateTargetDevice(device, self.options)
 		else:
 			debug.out("assigning job randomly", 'y')
@@ -242,7 +243,8 @@ class agent:
 		counters.NUM_FORWARD += 1
 
 		# currentSim = sim.simulations.Simulation.currentSimulation
-		job.beforeState = deepcopy(self.systemState)
+		# job.beforeState = deepcopy(self.systemState)
+		job.beforeState = self.systemState.getIndex()
 		sim.debug.out("beforestate {}".format(job.beforeState))
 		# print(device.batchLengths(), device.batchLength(task), device.isQueueFull(task))
 
@@ -250,8 +252,10 @@ class agent:
 		if device.isQueueFull(task):
 			actionIndex = self.numActions - 1
 			debug.learnOut("special case! queue is full %s %d" % (device.batchLengths(), actionIndex))
-		# check if any offloading is available
+		# check if no offloading is available
 		elif not device.hasOffloadingOptions():
+			if self.possibleActions[0] is not OFFLOADING:
+				print(self.possibleActions)
 			assert self.possibleActions[0] is OFFLOADING
 			debug.out("no offloading available")
 			actionIndex = np.random.randint(1, self.numActions - 1)

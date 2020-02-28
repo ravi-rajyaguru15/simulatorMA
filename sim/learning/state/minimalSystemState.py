@@ -19,7 +19,8 @@ class minimalSystemState(discretisedSystemState):
 					   discreteState('currentConfig', 2, scale=False)]
 		multiples = []
 
-		discretisedSystemState.__init__(self, *discretisedSystemState.convertTuples(numDevices=numDevices, singlesWithDiscreteNum=singles, multiplesWithDiscreteNum=multiples))
+		args = discretisedSystemState.convertTuples(numDevices=numDevices, singlesWithDiscreteNum=singles, multiplesWithDiscreteNum=multiples)
+		discretisedSystemState.__init__(self, *args)
 		# print("created from tuples", self, self.__class__, self.singlesDiscrete)
 
 	# def updateSystem(self):
@@ -27,7 +28,7 @@ class minimalSystemState(discretisedSystemState):
 	def updateState(self, task, job, device):
 		debug.learnOut("update state: %s %s %d %s %s" % (device, device.batchLength(task), device.maxJobs, task, job))
 		self.setField('jobsInQueue', device.batchLength(task) / device.maxJobs)
-		self.setField('currentConfig', device.fpga.getCurrentConfigIndex())
+		self.setField('currentConfig', device.fpga.isConfigured(task))
 		self.setField('energyRemaining', device.getEnergyLevelPercentage())
 
 	def fromSystemState(self):
