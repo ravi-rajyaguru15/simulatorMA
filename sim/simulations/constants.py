@@ -43,8 +43,9 @@ FPGA_IDLE_SLEEP = 0.5
 MCU_IDLE_SLEEP = .05
 
 # batching policy
-MINIMUM_BATCH = 5
+# MINIMUM_BATCH = 5
 MAX_JOBS = 3
+ABSOLUTE_MAX_JOBS = 15
 
 # tasks
 DEFAULT_TASK_GRAPH = [sim.tasks.tasks.EASY] # TODO: single task only
