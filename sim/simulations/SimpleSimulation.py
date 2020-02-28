@@ -129,13 +129,13 @@ class SimpleSimulation(BasicSimulation):
 				# check if batch is growing too big
 				if np.max([dev.maxBatchLength() for dev in self.devices]) >= self.maxJobs - 1:
 					if self.maxJobs - 1 < constants.ABSOLUTE_MAX_JOBS:
-						print("max jobs exceeded!")
+						# print("max jobs exceeded!")
 
 						beforeCount = self.currentSystemState.getUniqueStates()
 						# increase max jobs allowed
 						self.maxJobs += 1
 						for dev in self.devices: dev.maxJobs += 1
-						print("increased maxjobs", self.devices[0].maxJobs)
+						# print("increased maxjobs", self.devices[0].maxJobs)
 						field = "jobsInQueue"
 						assert field in self.currentSystemState.singles
 						# self.currentSystemState.expandField(field)
@@ -143,7 +143,7 @@ class SimpleSimulation(BasicSimulation):
 							self.sharedAgent.expandField(field)
 						else:
 							for dev in self.devices: dev.agent.expandField(field)
-						debug.out("expanded %d to %d" % (beforeCount, self.currentSystemState.getUniqueStates()))
+						debug.out("expanded states %d to %d" % (beforeCount, self.currentSystemState.getUniqueStates()))
 
 
 

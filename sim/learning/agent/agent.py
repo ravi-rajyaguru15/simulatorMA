@@ -249,8 +249,7 @@ class agent:
 		# special case if job queue is full
 		if device.isQueueFull(task):
 			actionIndex = self.numActions - 1
-			debug.learnOut("special case! queue is full")
-			print("special case! queue is full", device.batchLengths(), actionIndex)
+			debug.learnOut("special case! queue is full %s %d" % (device.batchLengths(), actionIndex))
 		# check if any offloading is available
 		elif not device.hasOffloadingOptions():
 			assert self.possibleActions[0] is OFFLOADING

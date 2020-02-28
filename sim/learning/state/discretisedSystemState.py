@@ -90,7 +90,7 @@ class discretisedSystemState(systemState):
 		if scale:
 			# assert value <= 1
 			if value > 1:
-				print("too big!", value, bins, scalingFactor, scale)
+				# print("too big!", value, bins, scalingFactor, scale)
 				return bins - 1
 			else:
 				return round(value * (scalingFactor - 1))

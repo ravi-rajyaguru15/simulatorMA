@@ -109,7 +109,7 @@ class qTableAgent(qAgent):
 		originalState = deepcopy(self.systemState)
 		originalModel = deepcopy(self.model)
 		self.systemState.expandField(field)
-		print(originalState.getUniqueStates(), self.systemState.getUniqueStates())
+		# print(originalState.getUniqueStates(), self.systemState.getUniqueStates())
 		self.model.expand()
 		self.importQTable(sourceTable=originalModel, sourceSystemState=originalState)
 
