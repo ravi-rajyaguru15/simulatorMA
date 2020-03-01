@@ -9,7 +9,8 @@ from sim.offloading.offloadingPolicy import *
 from sim.simulations.SimpleSimulation import SimpleSimulation as Simulation
 from sim.tasks.tasks import HARD, EASY
 
-if __name__ == '__main__':
+
+def run():
 	print("testing simple simulation")
 	constants.NUM_DEVICES = 2
 	constants.DEFAULT_ELASTIC_NODE.BATTERY_SIZE = 1e2
@@ -35,19 +36,21 @@ if __name__ == '__main__':
 		# 	exp.simulateUntilJobDone()
 		# 	finishedJobs[exp.getLatestFinishedJob().currentTask] += 1
 
-
-
 		# exp.simulateUntilTime(50)
 
 		exp.simulateEpisode()
 		print("finished jobs:", exp.finishedTasks)
 
-		# try:
-		# 	exp.simulateEpisode()
-		# 	print("Experiment done!", exp.time)
-		# except Exception:
-		# 	print("number of successful episodes:", exp.episodeNumber)
-		# 	print(sys.exc_info())
+	# try:
+	# 	exp.simulateEpisode()
+	# 	print("Experiment done!", exp.time)
+	# except Exception:
+	# 	print("number of successful episodes:", exp.episodeNumber)
+	# 	print(sys.exc_info())
 	except:
 		debug.printCache()
 		traceback.print_exc(file=sys.stdout)
+
+
+if __name__ == '__main__':
+	run()

@@ -67,7 +67,7 @@ RECONSIDER_BATCHES = False
 # experiments
 NUM_DEVICES = 2
 # REPEATS = 4
-THREAD_COUNT = multiprocessing.cpu_count() - 1
+THREAD_COUNT = multiprocessing.cpu_count()
 MAX_DELAY = 0.1
 EXPECTED_LIFETIME_ALPHA = 0.1
 GRACEFUL_FAILURE_LEVEL = 0.1

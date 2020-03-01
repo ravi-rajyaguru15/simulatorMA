@@ -1,0 +1,5 @@
+import os
+
+OUTPUT_DIRECTORY = "/output"
+try: os.mkdir(OUTPUT_DIRECTORY)
+except FileExistsError: pass

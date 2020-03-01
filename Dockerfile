@@ -4,7 +4,8 @@ FROM git.uni-due.de:6666/embedded-systems/elastic-node/simulator/base:latest
 
 #ENV PYTHONPATH "/app/src"
 
-#COPY ./sim ./sim
+COPY sim /sim
+COPY localConstants.py.server /sim/simulations/localConstants.py
 
 # install the dependencies
 #RUN apt-get update # ;
@@ -12,11 +13,13 @@ FROM git.uni-due.de:6666/embedded-systems/elastic-node/simulator/base:latest
 
 #RUN apt-get install gcc
 
-COPY ../base/requirements.txt ./requirements.txt
-RUN pip3 install -r ./requirements.txt --disable-pip-version-check
-#ENTRYPOINT ["./sim/entrypoint.py"]
+#COPY ../base/requirements.txt ./requirements.txt
+#RUN pip3 install -r ./requirements.txt --disable-pip-version-check
+#ENTRYPOINT ["/sim/entrypoint.py"]
+ENTRYPOINT ["python3", "/sim/entrypoint.py"]
+#ENTRYPOINT["/usr/bin/python3", "/sim/entrypoint.py"]
 # ENTRYPOINT ["/usr/bin/python3", "/app/elasticNode.py", "loadann"]
 # CMD ["sh", "-c", "/usr/bin/python /app/src/training.py.old"]
 # CMD ["sh", "-c", "/usr/bin/python /app/src/training.py.old /cpu:0 10 10 100 128"]
 
-WORKDIR /app
+#WORKDIR /app
