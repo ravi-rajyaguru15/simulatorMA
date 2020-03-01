@@ -133,6 +133,8 @@ class discretisedSystemState(systemState):
 
 	# convert currentState to an integer index
 	def getIndex(self):
+		debug.out("getting index: %s %s" % (self.currentState, self.multipliers))
+		debug.out("%s" % self.dictRepresentation)
 		return np.dot(self.currentState, self.multipliers)
 		# return discretisedSystemState._getIndex(self.singlesDiscrete, self.singles, self.multiplesDiscrete, self.multiples, self.dictRepresentation)
 

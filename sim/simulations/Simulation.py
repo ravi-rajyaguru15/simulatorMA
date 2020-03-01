@@ -178,6 +178,7 @@ class BasicSimulation:
 			# debug.out("%s" % [dev.getEnergyLevelPercentage() for dev in self.devices])
 			i += 1
 			self.simulateTick()
+			debug.out("%s" % [dev.energyLevel for dev in self.devices])
 		self.episodeNumber += 1
 		# debug.enabled = True
 

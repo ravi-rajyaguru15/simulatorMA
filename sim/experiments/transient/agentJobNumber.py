@@ -13,7 +13,7 @@ from sim.experiments.experiment import executeMulti
 from sim.learning.agent.lazyAgent import lazyAgent
 from sim.learning.agent.minimalAgent import minimalAgent
 from sim.offloading.offloadingPolicy import REINFORCEMENT_LEARNING
-from sim.simulations import simulationResults
+from sim.simulations import simulationResults, localConstants
 from sim.simulations.SimpleSimulation import SimpleSimulation
 
 def runThread(agent, numEpisodes, results, finished, histories):
@@ -64,15 +64,15 @@ def run():
     results = multiprocessing.Queue()
     finished = multiprocessing.Queue()
     histories = multiprocessing.Queue()
-    REPEATS = 1
+    # REPEATS = 1
 
-    numEpisodes = int(1e2)
+    numEpisodes = int(1e3)
     agentsToTest = [minimalAgent, lazyAgent]
     for agent in agentsToTest: # [minimalAgent, lazyAgent]:
-        for _ in range(REPEATS):
+        for _ in range(localConstants.REPEATS):
             processes.append(multiprocessing.Process(target=runThread, args=(agent, numEpisodes, results, finished, histories)))
 
-    results = executeMulti(processes, results, finished, numResults=len(agentsToTest) * numEpisodes * REPEATS)
+    results = executeMulti(processes, results, finished, numResults=len(agentsToTest) * numEpisodes * localConstants.REPEATS)
 
     plotting.plotMultiWithErrors("Number of Jobs", results=results, ylabel="Job #", xlabel="Episode #")  # , save=True)
 

@@ -1,0 +1,16 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: simulator-test
+spec:
+  parallelism: 2
+  template:
+    metadata:
+      name: job-wq-2
+    spec:
+      imagePullSecrets:
+      - name: myregistrykey
+      containers:
+      - name: c
+        image: jonalv/job-wq-2
+      restartPolicy: OnFailure

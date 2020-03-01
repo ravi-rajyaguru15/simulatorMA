@@ -1,5 +1,8 @@
 import os
 
-OUTPUT_DIRECTORY = "/output"
+REPEATS = 6
+DRAW_GRAPH = False
+SAVE_GRAPH = True
+OUTPUT_DIRECTORY = "/output/simulator/"
 try: os.mkdir(OUTPUT_DIRECTORY)
 except FileExistsError: pass

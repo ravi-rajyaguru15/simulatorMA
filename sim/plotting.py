@@ -83,10 +83,10 @@ def plotAgentHistory(history):
 	
 	fig.tight_layout()
 		
-	if constants.SAVE_GRAPH:
+	if localConstants.SAVE_GRAPH:
 		saveFig(filename)
 
-	if constants.DRAW_GRAPH:
+	if localConstants.DRAW_GRAPH:
 		pp.show()
 
 
@@ -134,10 +134,10 @@ def plotMultiWithErrors(name, results=None, ylim=None, ylabel=None, xlabel=None,
 	if xlabel is not None:
 		pp.xlabel(xlabel)
 
-	if constants.SAVE_GRAPH:
+	if localConstants.SAVE_GRAPH:
 		saveFig(filename)
 
-	if constants.DRAW_GRAPH:
+	if localConstants.DRAW_GRAPH:
 		pp.show()
 
 
@@ -186,10 +186,10 @@ def plotMulti(name, results=None, ylim=None, ylabel=None, xlabel=None,
 	if xlabel is not None:
 		pp.xlabel(xlabel)
 
-	if constants.SAVE_GRAPH:
+	if localConstants.SAVE_GRAPH:
 		saveFig(filename)
 
-	if constants.DRAW_GRAPH:
+	if localConstants.DRAW_GRAPH:
 		pp.show()
 
 

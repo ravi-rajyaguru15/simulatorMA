@@ -1,6 +1,8 @@
 import os
 
-
+REPEATS = 6
+DRAW_GRAPH = True
+SAVE_GRAPH = False
 OUTPUT_DIRECTORY = "/tmp/output"
 try: os.mkdir(OUTPUT_DIRECTORY)
 except FileExistsError: pass
