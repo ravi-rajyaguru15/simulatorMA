@@ -66,8 +66,8 @@ def run():
     histories = multiprocessing.Queue()
     # REPEATS = 1
 
-    localConstants.REPEATS = 10
-    numEpisodes = int(1e3)
+    # localConstants.REPEATS = 10
+    numEpisodes = int(1e1)
     agentsToTest = [minimalAgent, lazyAgent]
     for agent in agentsToTest: # [minimalAgent, lazyAgent]:
         for _ in range(localConstants.REPEATS):

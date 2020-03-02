@@ -78,7 +78,7 @@ class qTableAgent(qAgent):
 		# EPS greedy
 		if self.policy.evaluate(constants.EPS):
 			# return random
-			action = np.random.randint(0, self.numActions - 1)
+			action = np.random.randint(0, self.numActions)
 			# print('selecting random in', qValues, action)
 			return action
 		else:
@@ -125,14 +125,14 @@ class qTable:
 	actionCount = None
 
 	def __init__(self, stateCount, actionCount):
-		self.table = np.zeros((stateCount, actionCount))
+		self.table = np.zeros((stateCount, actionCount)) + constants.INITIAL_Q
 		self.stateCount = stateCount
 		self.actionCount = actionCount
 
 	# increase size of existing table
 	def expand(self):
 		self.stateCount *= 2
-		self.table = np.zeros((self.stateCount, self.actionCount))
+		self.table = np.zeros((self.stateCount, self.actionCount)) + constants.INITIAL_Q
 
 	def getQ(self, state, action=None):
 		if isinstance(state, discretisedSystemState):

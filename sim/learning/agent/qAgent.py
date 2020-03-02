@@ -13,7 +13,7 @@ class qAgent(agent):
 		agent.__init__(self)
 		constants.OFFLOADING_POLICY = REINFORCEMENT_LEARNING
 
-	def reward(self, job):
+	def reward(self, job, task=None, device=None):
 		# default reward behaviour
 		jobReward = 1 if job.finished else 0
 		deadlineReward = 0 if job.deadlineMet() else -0.5
@@ -32,6 +32,7 @@ class qAgent(agent):
 	# update based on resulting system state and reward
 	def backward(self, job, episodeFinished):
 		reward = self.reward(job)
+		# reward = self.reward(job, task, device)
 		finished = episodeFinished
 
 		debug.learnOut("backward {} {}".format(reward, finished), 'y')

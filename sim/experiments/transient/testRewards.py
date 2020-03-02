@@ -18,7 +18,7 @@ from sim.simulations.SimpleSimulation import SimpleSimulation
 
 
 def runThread(agent, numEpisodes, results, finished, histories):
-    exp = SimpleSimulation(numDevices=1, maxJobs=6, agentClass=agent)
+    exp = SimpleSimulation(numDevices=1, maxJobs=3, agentClass=agent)
     exp.setFpgaIdleSleep(5)
     exp.setBatterySize(1e0)
 
@@ -66,8 +66,8 @@ def run():
 
     # for jobLikelihood in np.arange(1e-3, 1e-2, 1e-3):
     # 	for roundRobin in np.arange(1e0, 1e1, 2.5):
-    numEpisodes = int(1e2)
-    agentsToTest = [minimalAgent, lazyAgent]
+    numEpisodes = int(1e4)
+    agentsToTest = [lazyAgent] #     agentsToTest = [lazyAgent] #
     for agent in agentsToTest: # [minimalAgent, lazyAgent]:
         for _ in range(localConstants.REPEATS):
             processes.append(multiprocessing.Process(target=runThread, args=(agent, numEpisodes, results, finished, histories)))
