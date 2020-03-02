@@ -253,12 +253,16 @@ class agent:
 			actionIndex = self.numActions - 1
 			debug.learnOut("special case! queue is full %s %d" % (device.batchLengths(), actionIndex))
 		# check if no offloading is available
-		elif not device.hasOffloadingOptions():
-			if self.possibleActions[0] is not OFFLOADING:
-				print(self.possibleActions)
+		elif not device.hasOffloadingOptions() and OFFLOADING in self.possibleActions:
+			# if self.possibleActions[0] is not OFFLOADING:
+			# 	print(self.possibleActions)
+			# debug.out(self.possibleActions)
+			# if self.possibleActions[0] is OFFLOADING:
+			# elif len(self.devices):
+			# 	actionIndex = np.random.randint(0, )
 			assert self.possibleActions[0] is OFFLOADING
-			debug.out("no offloading available")
 			actionIndex = np.random.randint(1, self.numActions - 1)
+			debug.out("no offloading available")
 		else:
 			debug.out("getting action %s %s" % (device, device.batchLengths()))
 			# choose best action based on current state

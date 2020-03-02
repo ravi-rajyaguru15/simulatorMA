@@ -284,6 +284,11 @@ class BasicSimulation:
 	def currentDevicesEnergy(self):
 		return [dev.energy() for dev in self.devices]
 
+	def stopIfEpisodeDone(self):
+		if self.systemLifetime() <= 0:
+			self.stop()
+		return self.finished
+
 	def systemLifetime(self, devicesExpectedLifetimes=None):
 		if devicesExpectedLifetimes is None:
 			devicesExpectedLifetimes = self.devicesLifetimes()

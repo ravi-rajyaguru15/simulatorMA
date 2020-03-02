@@ -60,7 +60,7 @@ class discretisedSystemState(systemState):
 			multiplesScale[fieldName] = value.scale
 			multiplesScalingFactor[fieldName] = value.scalingFactor
 
-		print("convert tuple", numDevices)
+		# print("convert tuple", numDevices)
 		# print("init", singlesDiscrete)
 
 		return numDevices, singlesFields, singlesDiscrete, singlesScale, singlesScalingFactor, multiplesFields, multiplesDiscrete, multiplesScale, multiplesScalingFactor
@@ -104,6 +104,7 @@ class discretisedSystemState(systemState):
 
 	def setField(self, field, value):
 		assert field in self.dictRepresentation
+		assert value >= 0
 		# debug.out("set %s to %s: %s" % (field, value, self.dictRepresentation[field][:]))
 		if isinstance(value, list):
 			for i in range(len(value)):

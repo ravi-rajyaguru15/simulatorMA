@@ -384,7 +384,6 @@ class node:
 	def updateDeviceEnergy(self, totalPower):
 		self.updateAveragePower(totalPower)
 		assert self.currentTd is not None
-		debug.out("updating device energy %f" % self.currentTd)
 		incrementalEnergy = totalPower * self.currentTd
 		# ensure only using each time diff once
 		self.totalEnergyCost += incrementalEnergy
@@ -392,6 +391,7 @@ class node:
 		# print (incrementalEnergy)
 		self.energyLevel -= incrementalEnergy
 		self.latestPower = totalPower
+		debug.out("updating device energy %f %f %f %f" % (self.currentTd, incrementalEnergy, self.totalEnergyCost, self.energyLevel))
 
 		# update device time if local time used
 		if self.currentTime is not None:

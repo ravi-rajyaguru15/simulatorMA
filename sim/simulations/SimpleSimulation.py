@@ -121,6 +121,9 @@ class SimpleSimulation(BasicSimulation):
 			if debug.settings.enabled:
 				self.printQueue()
 
+			if self.stopIfEpisodeDone():
+				debug.out("EPISODE ALREADY OVER", 'r')
+				return False
 			# device.setTime(newTime)
 			self.processQueuedTask(newTime, arguments)
 
@@ -145,9 +148,6 @@ class SimpleSimulation(BasicSimulation):
 							for dev in self.devices: dev.agent.expandField(field)
 						debug.out("expanded states %d to %d" % (beforeCount, self.currentSystemState.getUniqueStates()))
 
-
-
-
 			# print("popped time", newTime, arguments)
 
 			# # should always have task lined up for each device
@@ -166,8 +166,9 @@ class SimpleSimulation(BasicSimulation):
 				self.lifetimes.append(self.devicesLifetimes())
 				self.energylevels.append(self.devicesEnergyLevels())
 
-			if self.systemLifetime() <= 0:
-				self.stop()
+			self.stopIfEpisodeDone()
+			# if self.systemLifetime() <= 0:
+			# 	self.stop()
 
 			# check if task queue is too long
 			self.taskQueueLength = [dev.getNumSubtasks() for dev in self.devices]
@@ -279,6 +280,12 @@ class SimpleSimulation(BasicSimulation):
 			device.currentTd = idlePeriod
 			device.updateDeviceEnergy(device.getTotalPower())
 			debug.out("idle %s time handled to %f (%f)" % (device, device.currentTime.current, device.previousTimestamp), 'p')
+
+			# check if idle killed device
+			if device.energyLevel < 0:
+				debug.out("DEVICE DEAD", 'r')
+				return
+
 			# else:
 			# 	warnings.warn("going back in time!")
 			# 	print()

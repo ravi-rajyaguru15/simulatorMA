@@ -7,9 +7,10 @@ import numpy as np
 from sim import debug
 from sim.devices.components import powerPolicy
 from sim.experiments.experiment import executeMulti
+from sim.learning.agent.lazyAgent import lazyAgent
 from sim.offloading import offloadingPolicy
 from sim.plotting import plotMultiWithErrors
-from sim.simulations import constants
+from sim.simulations import constants, localConstants
 from sim.simulations.SimpleSimulation import SimpleSimulation
 from sim.simulations.variable import Gaussian
 
@@ -38,11 +39,10 @@ def run():
 	
 	results = multiprocessing.Queue()
 	finished = multiprocessing.Queue()
-	REPEATS = 2
 
-	for jobInterval in np.arange(1, 1e2, 1e1):
-		for _ in range(REPEATS):
-			processes.append(multiprocessing.Process(target=runThread, args=(SimpleSimulation(numDevices=numDevices, jobInterval=Gaussian(jobInterval, 1)), jobInterval, results, finished)))
+	for jobInterval in np.arange(1, 1e2, 1e0):
+		for _ in range(localConstants.REPEATS):
+			processes.append(multiprocessing.Process(target=runThread, args=(SimpleSimulation(numDevices=numDevices, jobInterval=Gaussian(jobInterval, 1), agentClass=lazyAgent), jobInterval, results, finished)))
 	
 	results = executeMulti(processes, results, finished)
 	plotMultiWithErrors("Average Power vs Job Interval", results=results, ylabel="Average Device Power", xlabel="Job Interval") # , save=True)

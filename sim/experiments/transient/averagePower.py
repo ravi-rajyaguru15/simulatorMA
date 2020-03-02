@@ -7,6 +7,7 @@ import sim.experiments.experiment
 import sim.plotting
 import sim.simulations.constants
 import sim.simulations.variable
+from sim.simulations import localConstants
 
 numDevices = 1
 jump = 1
@@ -42,12 +43,11 @@ def run():
 	# offloadingOptions = [True, False]
 	results = multiprocessing.Queue()
 	finished = multiprocessing.Queue()
-	sim.simulations.constants.REPEATS = 1
 
 	# for alpha in np.logspace(-4, -3, num=2, endpoint=True):
 	alpha = 1e-3
 	if True:
-		for _ in range(sim.simulations.constants.REPEATS):
+		for _ in range(localConstants.REPEATS):
 			processes.append(multiprocessing.Process(target=runThread, args=(alpha, results, finished)))
 	
 	results = sim.experiments.experiment.executeMulti(processes, results, finished, numResults=int(totalTime/jump * len(processes)))
