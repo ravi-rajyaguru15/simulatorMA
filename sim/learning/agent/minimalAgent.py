@@ -8,10 +8,10 @@ class minimalAgent(qTableAgent):
 	# __name__ = "Minimal Agent"
 	def __repr__(self): return "<Minimal Agent>"
 
-	def reward(self, job, task=None, device=None):
+	def reward(self, job, task, device):
 		# default reward behaviour
-		jobReward = 1. if job.finished else -.5
+		jobReward = 1. * device.numJobsDone if job.finished else -.5
 		energyReward = -log2(job.totalEnergyCost)
-		# print(self, jobReward + energyReward)
+		# print(self, device.numJobsDone, jobReward + energyReward)
 		return jobReward + energyReward
 

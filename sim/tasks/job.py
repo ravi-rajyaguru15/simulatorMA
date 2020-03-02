@@ -199,6 +199,7 @@ class job:
 	def finish(self):
 		sim.debug.out("%s %s %s (%f) %s" % ("-"*50, self, "finished", self.totalEnergyCost, "-"*50))
 		self.finished = True
+		self.owner.numJobsDone += 1
 		self.owner.removeJob(self)
 
 		# if sim.simulations.constants.OFFLOADING_POLICY == sim.offloading.offloadingPolicy.REINFORCEMENT_LEARNING:

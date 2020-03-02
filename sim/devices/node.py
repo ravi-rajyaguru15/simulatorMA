@@ -28,6 +28,7 @@ class node:
 	hasJobScheduled = None # used in simple simulation
 	previousTimestamp = None
 	numJobs = None
+	numJobsDone = None
 	currentSubtask = None
 	index = None
 
@@ -119,6 +120,7 @@ class node:
 		self.totalSleepTime = 0
 		self.jobActive = False
 		self.numJobs = 0
+		self.numJobsDone = 0
 		self.batch = dict()
 		self.currentTime.reset()
 

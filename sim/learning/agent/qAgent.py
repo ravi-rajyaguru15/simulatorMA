@@ -13,7 +13,7 @@ class qAgent(agent):
 		agent.__init__(self)
 		constants.OFFLOADING_POLICY = REINFORCEMENT_LEARNING
 
-	def reward(self, job, task=None, device=None):
+	def reward(self, job, task, device):
 		# default reward behaviour
 		jobReward = 1 if job.finished else 0
 		deadlineReward = 0 if job.deadlineMet() else -0.5
@@ -30,8 +30,8 @@ class qAgent(agent):
 		return jobReward + deadlineReward + expectedLifetimeReward + simulationDoneReward
 
 	# update based on resulting system state and reward
-	def backward(self, job, episodeFinished):
-		reward = self.reward(job)
+	def backward(self, job, task, device, episodeFinished):
+		reward = self.reward(job=job, task=task, device=device)
 		# reward = self.reward(job, task, device)
 		finished = episodeFinished
 
@@ -89,7 +89,7 @@ class qAgent(agent):
 	def train(self, task, job, device):
 		debug.learnOut("Training: [{}] [{}] [{}]".format(task, job, device), 'y')
 		self.systemState.updateState(task, job, device)
-		self.backward(job, episodeFinished=job.episodeFinished())
+		self.backward(job, episodeFinished=job.episodeFinished(), task=task, device=device)
 
 
 	genericException = Exception("Not implemented in generic Q agent")

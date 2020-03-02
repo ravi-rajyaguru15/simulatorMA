@@ -66,7 +66,7 @@ def run():
     # REPEATS = 1
 
     # localConstants.REPEATS = 10
-    numEpisodes = int(1e1)
+    numEpisodes = int(1e4)
     agentsToTest = [minimalAgent, lazyAgent]
     for agent in agentsToTest: # [minimalAgent, lazyAgent]:
         for _ in range(localConstants.REPEATS):
