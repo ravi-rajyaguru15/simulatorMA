@@ -12,12 +12,12 @@ import sim.simulations.constants
 # print (os.environ["DISPLAY"])
 from sim.simulations import constants, localConstants
 
-if "DISPLAY" not in os.environ:
-	# os.environ["DISPLAY"] = "localhost:10.0"
-	os.environ["DISPLAY"] = "/private/tmp/com.apple.launchd.HheW1tn9qY/org.macosforge.xquartz:0"
-	print("set display to", os.environ["DISPLAY"])
-else:
-    print ("Existing DISPLAY={}".format(os.environ["DISPLAY"]))
+# if "DISPLAY" not in os.environ:
+# 	# os.environ["DISPLAY"] = "localhost:10.0"
+# 	os.environ["DISPLAY"] = "/private/tmp/com.apple.launchd.HheW1tn9qY/org.macosforge.xquartz:0"
+# 	print("set display to", os.environ["DISPLAY"])
+# else:
+#     print ("Existing DISPLAY={}".format(os.environ["DISPLAY"]))
 
 # time.sleep(1)
 colours = ['b', 'r']
@@ -35,7 +35,7 @@ def plotWithErrors(x, y=None, errors=None, results=None):
 def plotAgentHistory(history):
 	print("plotting agent")
 	assert history is not None
-	filename = "{}/{}_{}".format(localConstants.OUTPUT_DIRECTORY, "agentHistory", datetime.datetime.now()).replace(":", ".")
+	filename = "{}{}_{}".format(localConstants.OUTPUT_DIRECTORY, "agentHistory", datetime.datetime.now()).replace(":", ".")
 	pickle.dump(history, open("{}.pickle".format(filename), "wb"))
 
 	fig, ax1 = pp.subplots()
@@ -93,7 +93,7 @@ def plotAgentHistory(history):
 def plotMultiWithErrors(name, results=None, ylim=None, ylabel=None, xlabel=None,
 						separate=False):  # , show=False, save=False):
 	# print("plotting!")
-	filename = "{}/{}_{}".format(localConstants.OUTPUT_DIRECTORY, name, datetime.datetime.now()).replace(":", ".")
+	filename = "{}{}_{}".format(localConstants.OUTPUT_DIRECTORY, name, datetime.datetime.now()).replace(":", ".")
 	pickle.dump((name, results, ylim, ylabel, xlabel), open("{}.pickle".format(filename), "wb"))
 
 	# sort by graph key
@@ -144,7 +144,7 @@ def plotMultiWithErrors(name, results=None, ylim=None, ylabel=None, xlabel=None,
 def plotMulti(name, results=None, ylim=None, ylabel=None, xlabel=None,
 						separate=False):  # , show=False, save=False):
 	# print("plotting!")
-	filename = "{}/{}_{}".format(localConstants.OUTPUT_DIRECTORY, name, datetime.datetime.now()).replace(":", ".")
+	filename = "{}{}_{}".format(localConstants.OUTPUT_DIRECTORY, name, datetime.datetime.now()).replace(":", ".")
 	pickle.dump((name, results, ylim, ylabel, xlabel), open("{}.pickle".format(filename), "wb"))
 
 	# sort by graph key
