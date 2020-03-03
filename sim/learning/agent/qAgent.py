@@ -90,9 +90,10 @@ class qAgent(agent):
 		return []
 
 	def train(self, task, job, device):
-		debug.learnOut("Training: [{}] [{}] [{}]".format(task, job, device), 'y')
-		self.systemState.updateState(task, job, device)
-		self.backward(job, episodeFinished=job.episodeFinished(), task=task, device=device)
+		if not self.productionMode:
+			debug.learnOut("Training: [{}] [{}] [{}]".format(task, job, device), 'y')
+			self.systemState.updateState(task, job, device)
+			self.backward(job, episodeFinished=job.episodeFinished(), task=task, device=device)
 
 
 	genericException = Exception("Not implemented in generic Q agent")

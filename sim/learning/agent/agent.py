@@ -43,6 +43,7 @@ class agent:
 
 	totalReward = None
 	episodeReward = None
+	productionMode = None
 
 	def __init__(self, systemState, owner=None):
 		self.systemState = systemState
@@ -50,6 +51,7 @@ class agent:
 		self.owner = owner # owner none means shared
 
 		self.totalReward = 0
+		self.productionMode = False
 		self.reset()
 
 	def __repr__(self): return "<" + self.__name__ + ">"
@@ -57,6 +59,10 @@ class agent:
 
 	def reset(self):
 		self.episodeReward = 0
+
+	def setProductionMode(self, value=True):
+		debug.learnOut("switching to production mode!", 'y')
+		self.productionMode = value
 
 	# def setOptions(self, allDevices):
 	# 	self.options = allDevices

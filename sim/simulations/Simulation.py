@@ -187,8 +187,6 @@ class BasicSimulation:
 		if self.offPolicy:
 			if self.useSharedAgent:
 				self.sharedAgent.updateTargetModel()
-				self.sharedAgent.printModel()
-				self.sharedAgent.printTargetModel()
 			else:
 				for dev in self.devices:
 					dev.agent.updateTargetModel()

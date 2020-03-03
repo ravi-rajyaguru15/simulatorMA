@@ -136,7 +136,8 @@ class qTableAgent(qAgent):
 			qTable.copyModel(self.model, self.targetModel)
 
 	def updateTargetModel(self):
-		qTable.copyModel(self.targetModel, self.model)
+		if not self.productionMode:
+			qTable.copyModel(self.targetModel, self.model)
 
 class qTable:
 	table = None
