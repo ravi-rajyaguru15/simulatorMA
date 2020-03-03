@@ -51,12 +51,14 @@ class BasicSimulation:
 	useSharedAgent = None
 	allowExpansion = None
 	maxJobs = None
+	offPolicy = None
 
-	def __init__(self, numDevices, maxJobs, systemStateClass, agentClass, tasks, globalClock=True, allowExpansion=constants.ALLOW_EXPANSION):
+	def __init__(self, numDevices, maxJobs, systemStateClass, agentClass, tasks, globalClock=True, allowExpansion=constants.ALLOW_EXPANSION, offPolicy=constants.OFF_POLICY):
 		hardwareAccelerated = True
 		self.episodeNumber = 0
 		self.allowExpansion = allowExpansion
 		self.maxJobs = maxJobs
+		self.offPolicy = offPolicy
 
 		# debug.out(numEndDevices + numElasticNodes)
 		self.results = multiprocessing.Manager().Queue()
@@ -77,14 +79,14 @@ class BasicSimulation:
 		if self.useSharedAgent:
 			# create shared learning agent
 			debug.out("creating shared agent %s" % agentClass)
-			self.sharedAgent = agentClass(self.currentSystemState)
+			self.sharedAgent = agentClass(systemState=self.currentSystemState, owner=None, offPolicy=offPolicy)
 			# TODO: need private state for non shared agent
 
 		simulationResults.learningHistory = history()
 
 		debug.out("Learning: shared: %s agent: %s centralised: %s" % (self.useSharedAgent, agentClass, constants.CENTRALISED_LEARNING), 'r')
 		agentClass = self.sharedAgent
-		self.devices = [elasticNode(self.time, constants.DEFAULT_ELASTIC_NODE, self.results, i, maxJobs=maxJobs, currentSystemState=self.currentSystemState, agent=agentClass, alwaysHardwareAccelerate=hardwareAccelerated) for i in range(numDevices)]
+		self.devices = [elasticNode(self.time, constants.DEFAULT_ELASTIC_NODE, self.results, i, maxJobs=maxJobs, currentSystemState=self.currentSystemState, agent=agentClass, alwaysHardwareAccelerate=hardwareAccelerated, usingTargetModel=offPolicy) for i in range(numDevices)]
 
 
 			# offloadingDecision.offloadingDecision.createSharedAgent(self.currentSystemState, agentClass)
@@ -180,6 +182,21 @@ class BasicSimulation:
 			self.simulateTick()
 			debug.out("%s" % [dev.energyLevel for dev in self.devices])
 		self.episodeNumber += 1
+
+		self.sharedAgent.printModel()
+		self.sharedAgent.printTargetModel()
+
+		print("BEFORE")
+
+		# update target model if required
+		if self.offPolicy:
+			if self.useSharedAgent:
+				self.sharedAgent.updateTargetModel()
+				self.sharedAgent.printModel()
+				self.sharedAgent.printTargetModel()
+			else:
+				for dev in self.devices:
+					dev.agent.updateTargetModel()
 		# debug.enabled = True
 
 	def reset(self):

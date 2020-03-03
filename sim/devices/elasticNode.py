@@ -15,8 +15,8 @@ class elasticNode(node):
 	mrf = None
 	fpga = None
 
-	def __init__(self, inputClock, platform, queue, index, maxJobs, currentSystemState, agent, alwaysHardwareAccelerate):
-		node.__init__(self, inputClock, platform, index, maxJobs=maxJobs, currentSystemState=currentSystemState, components=None, agent=agent, alwaysHardwareAccelerate=alwaysHardwareAccelerate)
+	def __init__(self, inputClock, platform, queue, index, maxJobs, currentSystemState, agent, alwaysHardwareAccelerate, usingTargetModel):
+		node.__init__(self, inputClock, platform, index, maxJobs=maxJobs, currentSystemState=currentSystemState, components=None, agent=agent, alwaysHardwareAccelerate=alwaysHardwareAccelerate, usingTargetModel=usingTargetModel)
 		
 		self.mcu = mcu(self)
 		self.mrf = mrf(self)
