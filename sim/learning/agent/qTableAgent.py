@@ -93,7 +93,7 @@ class qTableAgent(qAgent):
 		self._printModel(self.model)
 
 	def printTargetModel(self):
-		if self.target is not None:
+		if self.targetModel is not None:
 			self._printModel(self.targetModel)
 		else:
 			print("No target model available...")

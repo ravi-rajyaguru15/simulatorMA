@@ -21,8 +21,8 @@ if __name__ == '__main__':
 
 	# for i in range(10):
 	# 	exp.simulateTick()
-	exp.sharedAgent.printModel()
-	exp.sharedAgent.printTargetModel()
+	# exp.sharedAgent.printModel()
+	# exp.sharedAgent.printTargetModel()
 
 	print("EPISODE")
 	exp.simulateEpisode()
