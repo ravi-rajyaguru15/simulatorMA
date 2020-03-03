@@ -51,7 +51,7 @@ def runThread(agent, numEpisodes, results, finished, histories):
     exp.sharedAgent.printModel()
 
 
-def run():
+def run(numEpisodes):
     print("starting experiment")
     debug.enabled = False
     debug.learnEnabled = False
@@ -68,7 +68,7 @@ def run():
     # REPEATS = 1
 
     # localConstants.REPEATS = 10
-    numEpisodes = int(1e2)
+    numEpisodes = int(numEpisodes)
     agentsToTest = [minimalAgent, lazyAgent]
     for agent in agentsToTest: # [minimalAgent, lazyAgent]:
         for _ in range(localConstants.REPEATS):
@@ -82,7 +82,7 @@ def run():
 if __name__ == "__main__":
     freeze_support()
     try:
-        run()
+        run(1e2)
     except:
         traceback.print_exc(file=sys.stdout)
 
