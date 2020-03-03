@@ -183,10 +183,10 @@ class BasicSimulation:
 			debug.out("%s" % [dev.energyLevel for dev in self.devices])
 		self.episodeNumber += 1
 
-		self.sharedAgent.printModel()
-		self.sharedAgent.printTargetModel()
-
-		print("BEFORE")
+		# self.sharedAgent.printModel()
+		# self.sharedAgent.printTargetModel()
+		#
+		# print("BEFORE")
 
 		# update target model if required
 		if self.offPolicy:

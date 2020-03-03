@@ -64,7 +64,8 @@ class qTableAgent(qAgent):
 		debug.learnOut("updating qtable: %d\t%d\t%f\t%f" % (beforeState, latestAction, increment, reward))
 
 		# Q learning 101:
-		self.model.setQ(beforeState, action=latestAction, value=Qsa + increment)
+		trainModel = self.targetModel if self.offPolicy else self.model
+		trainModel.setQ(beforeState, action=latestAction, value=Qsa + increment)
 		self.latestLoss = (target - Qsa) ** 2.
 		self.latestMeanQ = self.model.meanQ(beforeState)
 
@@ -92,7 +93,10 @@ class qTableAgent(qAgent):
 		self._printModel(self.model)
 
 	def printTargetModel(self):
-		self._printModel(self.targetModel)
+		if self.target is not None:
+			self._printModel(self.targetModel)
+		else:
+			print("No target model available...")
 
 	def _printModel(self, model):
 		print()
