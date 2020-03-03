@@ -8,10 +8,13 @@ from sim.simulations import constants
 
 class qAgent(agent):
 	__name__ = "Q Agent"
+	targetModel = None
+	offPolicy = None
 
-	def __init__(self):
-		agent.__init__(self)
-		constants.OFFLOADING_POLICY = REINFORCEMENT_LEARNING
+	def __init__(self, systemState, owner, offPolicy=constants.OFF_POLICY):
+		agent.__init__(self, systemState=systemState, owner=owner)
+		# constants.OFFLOADING_POLICY = REINFORCEMENT_LEARNING
+		self.offPolicy = offPolicy
 
 	def reward(self, job, task, device):
 		# default reward behaviour

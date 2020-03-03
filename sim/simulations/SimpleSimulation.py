@@ -24,8 +24,8 @@ class SimpleSimulation(BasicSimulation):
 	autoJobs = None
 	jobInterval = None
 
-	def __init__(self, numDevices=constants.NUM_DEVICES, jobInterval=constants.JOB_INTERVAL, maxJobs=constants.MAX_JOBS, systemStateClass=minimalSystemState, agentClass=minimalAgent, autoJobs=True, allowExpansion=constants.ALLOW_EXPANSION, tasks=constants.DEFAULT_TASK_GRAPH):
-		BasicSimulation.__init__(self, numDevices=numDevices, maxJobs=maxJobs, systemStateClass=systemStateClass, agentClass=agentClass, globalClock=False, allowExpansion=allowExpansion, tasks=tasks)
+	def __init__(self, numDevices=constants.NUM_DEVICES, jobInterval=constants.JOB_INTERVAL, maxJobs=constants.MAX_JOBS, systemStateClass=minimalSystemState, agentClass=minimalAgent, autoJobs=True, allowExpansion=constants.ALLOW_EXPANSION, tasks=constants.DEFAULT_TASK_GRAPH, offPolicy=constants.OFF_POLICY):
+		BasicSimulation.__init__(self, numDevices=numDevices, maxJobs=maxJobs, systemStateClass=systemStateClass, agentClass=agentClass, globalClock=False, allowExpansion=allowExpansion, tasks=tasks, offPolicy=offPolicy)
 
 		# remove the taskqueues as tasks are queued in sim
 		for dev in self.devices: dev.taskQueue = None

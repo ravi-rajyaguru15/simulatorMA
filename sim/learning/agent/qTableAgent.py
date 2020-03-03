@@ -34,7 +34,7 @@ class qTableAgent(qAgent):
 
 	allowExpansion = None
 
-	def __init__(self, systemState, allowExpansion=constants.ALLOW_EXPANSION, owner=None):
+	def __init__(self, systemState, allowExpansion=constants.ALLOW_EXPANSION, owner=None, offPolicy=constants.OFF_POLICY):
 		self.gamma = constants.GAMMA
 		self.policy = Uniform(.5, 1)
 		self.allowExpansion = allowExpansion
@@ -42,12 +42,14 @@ class qTableAgent(qAgent):
 		debug.out("Q Table agent")
 		# self.dqn = rl.agents.DQNAgent(model=self.model, policy=rl.policy.LinearAnnealedPolicy(, attr='eps', value_max=sim.constants.EPS_MAX, value_min=sim.constants.EPS_MIN, value_test=.05, nb_steps=sim.constants.EPS_STEP_COUNT), enable_double_dqn=False, gamma=.99, batch_size=1, nb_actions=self.numActions)
 
-		agent.__init__(self, systemState, owner=owner)
+		qAgent.__init__(self, systemState, owner=owner, offPolicy=offPolicy)
 
 	def createModel(self):
 		# create Q table
 		debug.learnOut("qtable: (%d, %d)" % (self.systemState.getUniqueStates(), self.numActions))
-		self.model = qTable(self.systemState.getUniqueStates(), self.numActions)
+		self.model = qTable(self.systemState.getUniqueStates(), self.numActions, "Model")
+		if self.offPolicy:
+			self.targetModel = qTable(self.systemState.getUniqueStates(), self.numActions, "Target Model")
 
 	def expandModel(self):
 		pass
@@ -62,7 +64,8 @@ class qTableAgent(qAgent):
 		debug.learnOut("updating qtable: %d\t%d\t%f\t%f" % (beforeState, latestAction, increment, reward))
 
 		# Q learning 101:
-		self.model.setQ(beforeState, action=latestAction, value=Qsa + increment)
+		trainModel = self.targetModel if self.offPolicy else self.model
+		trainModel.setQ(beforeState, action=latestAction, value=Qsa + increment)
 		self.latestLoss = (target - Qsa) ** 2.
 		self.latestMeanQ = self.model.meanQ(beforeState)
 
@@ -87,14 +90,23 @@ class qTableAgent(qAgent):
 			return np.argmax(qValues)
 
 	def printModel(self):
+		self._printModel(self.model)
+
+	def printTargetModel(self):
+		if self.targetModel is not None:
+			self._printModel(self.targetModel)
+		else:
+			print("No target model available...")
+
+	def _printModel(self, model):
 		print()
-		print("%s Model" % self)
+		print("%s %s" % (self, model))
 		maxEntryWorth = 0
-		for i in range(self.systemState.getUniqueStates()):
+		for i in range(model.stateCount):
 			description = self.systemState.getStateDescription(i)
 			entry = "["
-			for j in range(self.numActions):
-				entry += "{:10.4f}".format(self.model.getQ(i, j)) + " "
+			for j in range(model.actionCount):
+				entry += "{:10.4f}".format(model.getQ(i, j)) + " "
 			entry += " ]"
 			print(description, entry)
 
@@ -111,6 +123,8 @@ class qTableAgent(qAgent):
 		self.systemState.expandField(field)
 		# print(originalState.getUniqueStates(), self.systemState.getUniqueStates())
 		self.model.expand()
+		if self.offPolicy:
+			self.targetModel.expand()
 		self.importQTable(sourceTable=originalModel, sourceSystemState=originalState)
 
 	def importQTable(self, sourceTable, sourceSystemState):
@@ -118,16 +132,25 @@ class qTableAgent(qAgent):
 		# print("mapping", mapping)
 		for i in range(len(mapping)):
 			self.model.setQ(mapping[i], sourceTable.getQ(i))
+		if self.offPolicy:
+			qTable.copyModel(self.model, self.targetModel)
+
+	def updateTargetModel(self):
+		qTable.copyModel(self.targetModel, self.model)
 
 class qTable:
 	table = None
 	stateCount = None
 	actionCount = None
+	name = None
 
-	def __init__(self, stateCount, actionCount):
+	def __init__(self, stateCount, actionCount, name):
 		self.table = np.zeros((stateCount, actionCount)) + constants.INITIAL_Q
 		self.stateCount = stateCount
 		self.actionCount = actionCount
+		self.name = name
+
+	def __repr__(self): return self.name
 
 	# increase size of existing table
 	def expand(self):
@@ -158,6 +181,11 @@ class qTable:
 		if isinstance(state, discretisedSystemState):
 			state = state.getIndex()
 		return np.mean(self.table[state, :])
+
+	@staticmethod
+	def copyModel(source, destination):
+		assert source.stateCount == destination.stateCount and source.actionCount == destination.actionCount
+		destination.table[:, :] = source.table[:, :]
 
 
 # def mean_q(correctQ, predictedQ):
