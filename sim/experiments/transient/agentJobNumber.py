@@ -16,7 +16,9 @@ from sim.offloading.offloadingPolicy import REINFORCEMENT_LEARNING
 from sim.simulations import simulationResults, localConstants
 from sim.simulations.SimpleSimulation import SimpleSimulation
 
-def runThread(exp, agent, numEpisodes, results, finished, histories):
+def runThread(agent, numEpisodes, results, finished, histories):
+    exp = SimpleSimulation(numDevices=2, maxJobs=6, agentClass=agent)
+
     exp.setFpgaIdleSleep(5)
     exp.setBatterySize(1e0)
 
@@ -70,7 +72,7 @@ def run():
     agentsToTest = [minimalAgent, lazyAgent]
     for agent in agentsToTest: # [minimalAgent, lazyAgent]:
         for _ in range(localConstants.REPEATS):
-            processes.append(multiprocessing.Process(target=runThread, args=(SimpleSimulation(numDevices=2, maxJobs=6, agentClass=agent), agent, numEpisodes, results, finished, histories)))
+            processes.append(multiprocessing.Process(target=runThread, args=(agent, numEpisodes, results, finished, histories)))
 
     results = executeMulti(processes, results, finished, numResults=len(agentsToTest) * numEpisodes * localConstants.REPEATS)
 
