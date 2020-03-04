@@ -1,8 +1,8 @@
 import os
 
-REPEATS = 6
+REPEATS = 1
 DRAW_GRAPH = True
 SAVE_GRAPH = False
 OUTPUT_DIRECTORY = "/tmp/output"
-try: os.mkdir(OUTPUT_DIRECTORY)
+try: os.makedirs(OUTPUT_DIRECTORY, exist_ok=True)
 except FileExistsError: pass

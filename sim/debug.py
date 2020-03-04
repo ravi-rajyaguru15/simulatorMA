@@ -12,7 +12,7 @@ class settings:
     enabled = False
     learnEnabled = False
     infoEnabled = False
-    fileOutput = False
+    # fileOutput = False
 
 
 # print to console in a fancy colour
@@ -31,12 +31,12 @@ def learnOut(string="", colour=None):
 
 def _push(string, colour, printImmediate=True):
     if not printImmediate:
-        if settings.fileOutput:
+        if localConstants.DEBUG_FILE:
             if sim.debug.outputFile is None:
                 print("opening log file", localConstants.OUTPUT_DIRECTORY + "debug.log")
                 sim.debug.outputFile = open(localConstants.OUTPUT_DIRECTORY + "debug.log", 'w')
             sim.debug.outputFile.write(str(string) + '\n')
-        else:
+        elif localConstants.DEBUG_HISTORY:
             sim.debug.cache.append((string, colour))
             sim.debug.currentCache += 1
             if sim.debug.currentCache > maxCache:
@@ -78,6 +78,7 @@ def _print(string, colour):
 def printCache(numLines=None):
     print("debug log:")
     if numLines is None: numLines = 0
+    entry = ""
     try:
         for entry in cache[-numLines:]:
             _print(entry[0], entry[1])

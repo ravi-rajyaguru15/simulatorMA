@@ -63,8 +63,8 @@ class BasicSimulation:
 		# debug.out(numEndDevices + numElasticNodes)
 		self.results = multiprocessing.Manager().Queue()
 		# self.jobResults = multiprocessing.Manager().Queue()
-		job.jobResultsQueue = multiprocessing.Manager().Queue()
-		self.delays = list()
+		# job.jobResultsQueue = multiprocessing.Manager().Queue()
+		# self.delays = list()
 		self.completedJobs = 0
 
 		if globalClock:
@@ -82,7 +82,7 @@ class BasicSimulation:
 			self.sharedAgent = agentClass(systemState=self.currentSystemState, owner=None, offPolicy=offPolicy)
 			# TODO: need private state for non shared agent
 
-		simulationResults.learningHistory = history()
+		# simulationResults.learningHistory = history()
 
 		debug.out("Learning: shared: %s agent: %s centralised: %s" % (self.useSharedAgent, agentClass, constants.CENTRALISED_LEARNING), 'r')
 		agentClass = self.sharedAgent

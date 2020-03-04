@@ -180,8 +180,8 @@ class SimpleSimulation(BasicSimulation):
 
 			# 		warnings.warn("TaskQueue for {} too long! {} Likelihood: {}".format(self.devices[i], len(self.devices[i].taskQueue), constants.JOB_LIKELIHOOD))
 
-			self.currentDelays = [dev.currentSubtask.delay if dev.currentSubtask is not None else 0 for dev in self.devices]
-			self.delays.append(self.currentDelays)
+			# self.currentDelays = [dev.currentSubtask.delay if dev.currentSubtask is not None else 0 for dev in self.devices]
+			# self.delays.append(self.currentDelays)
 
 			# print all results if interesting
 			tasksAfter = np.array([dev.currentSubtask for dev in self.devices])

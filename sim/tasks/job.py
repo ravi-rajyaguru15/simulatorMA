@@ -212,14 +212,14 @@ class job:
 		self.incrementCompletedJobs(self)
 
 		# save this job's history to communal history
-		simulationResults.learningHistory.combine(self.history)
+		# simulationResults.learningHistory.combine(self.history)
 
 		# print("finished job", self.simulation.completedJobs)
 		# add results to overall results
 		# job.jobResultsQueue.put(self.totalLatency, self.totalEnergyCost))
 		# print ("pushing", self.batchSize)
 		# job.jobResultsQueue.put((self.currentTime - self.startTime,))
-		job.jobResultsQueue.put((self.batchSize,))
+		# job.jobResultsQueue.put((self.batchSize,))
 
 	def offloaded(self):
 		# in the beginning owner is creator, later may be offloaded again

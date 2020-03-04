@@ -50,7 +50,7 @@ def runThread(agent, numEpisodes, results, finished, histories):
 
     exp.sharedAgent.printModel()
 
-
+# @profile
 def run(numEpisodes):
     print("starting experiment")
     debug.enabled = False
