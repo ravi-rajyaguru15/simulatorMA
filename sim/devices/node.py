@@ -1,4 +1,3 @@
-import sys
 import time
 import warnings
 from queue import PriorityQueue
@@ -8,7 +7,6 @@ import numpy as np
 import sim.debug
 import sim.devices.components.processor
 import sim.simulations.constants
-# from sim.job import job
 import sim.tasks.job
 import sim.tasks.subtask
 from sim import debug

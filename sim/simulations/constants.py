@@ -20,7 +20,8 @@ TD = 1e-3
 PLOT_SKIP = 1e1
 uni = Uniform(0.5, 1)
 JOB_LIKELIHOOD = 1e-3 # used in td simulations
-JOB_INTERVAL = Gaussian(10, 1e-0) # used in simple simulations
+DEFAULT_TIME_INTERVAL = 10
+JOB_INTERVAL = Gaussian(DEFAULT_TIME_INTERVAL, 1e-0) # used in simple simulations
 
 # offloading
 # OFFLOADING_POLICY = sim.offloading.offloadingPolicy.REINFORCEMENT_LEARNING
@@ -35,6 +36,11 @@ EPS = 0.1
 EPS_MIN = 0.1
 EPS_MAX = 1.
 EPS_STEP_COUNT = 1000
+EXPECTED_LIFETIME_ALPHA = 0.1
+GRACEFUL_FAILURE_LEVEL = 0.1
+ALLOW_EXPANSION = False
+INITIAL_Q = 25.
+OFF_POLICY = False
 
 # energy management
 FPGA_POWER_PLAN = sim.devices.components.powerPolicy.IDLE_TIMEOUT
@@ -69,8 +75,4 @@ NUM_DEVICES = 2
 # REPEATS = 4
 THREAD_COUNT = multiprocessing.cpu_count()
 MAX_DELAY = 0.1
-EXPECTED_LIFETIME_ALPHA = 0.1
-GRACEFUL_FAILURE_LEVEL = 0.1
-ALLOW_EXPANSION = False
-INITIAL_Q = 25.
-OFF_POLICY = False
+

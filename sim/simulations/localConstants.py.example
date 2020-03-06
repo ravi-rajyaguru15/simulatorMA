@@ -1,8 +1,12 @@
 import os
+from datetime import datetime
 
 REPEATS = 1
 DRAW_GRAPH = True
 SAVE_GRAPH = False
-OUTPUT_DIRECTORY = "/tmp/output"
+OUTPUT_DIRECTORY = "/tmp/output/simulator/" + str(datetime.now()).replace(":", ".") + "/"
+DEBUG_FILE = False
+DEBUG_HISTORY = False
+
 try: os.makedirs(OUTPUT_DIRECTORY, exist_ok=True)
 except FileExistsError: pass

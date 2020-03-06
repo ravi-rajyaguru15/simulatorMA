@@ -23,10 +23,10 @@ class SimpleSimulation(BasicSimulation):
 	queue = None
 	autoJobs = None
 	jobInterval = None
+	scenario = None
 
-	def __init__(self, numDevices=constants.NUM_DEVICES, jobInterval=constants.JOB_INTERVAL, maxJobs=constants.MAX_JOBS, systemStateClass=minimalSystemState, agentClass=minimalAgent, autoJobs=True, allowExpansion=constants.ALLOW_EXPANSION, tasks=constants.DEFAULT_TASK_GRAPH, offPolicy=constants.OFF_POLICY):
+	def __init__(self, numDevices=constants.NUM_DEVICES, jobInterval=constants.JOB_INTERVAL, maxJobs=constants.MAX_JOBS, systemStateClass=minimalSystemState, agentClass=minimalAgent, autoJobs=True, allowExpansion=constants.ALLOW_EXPANSION, tasks=constants.DEFAULT_TASK_GRAPH, offPolicy=constants.OFF_POLICY, scenarioTemplate=None):
 		BasicSimulation.__init__(self, numDevices=numDevices, maxJobs=maxJobs, systemStateClass=systemStateClass, agentClass=agentClass, globalClock=False, allowExpansion=allowExpansion, tasks=tasks, offPolicy=offPolicy)
-
 		# remove the taskqueues as tasks are queued in sim
 		for dev in self.devices: dev.taskQueue = None
 
@@ -39,19 +39,24 @@ class SimpleSimulation(BasicSimulation):
 		subtask.update = subtask.perform
 
 		self.queue = PriorityQueue()
-		self.autoJobs = autoJobs
+		# self.autoJobs = autoJobs
 		self.jobInterval = jobInterval
 		# debug.out("job interval set to %s" self.jobInterval)
-		if self.autoJobs:
-			self.queueInitialJobs()
+		# if self.autoJobs:
+		# 	self.queueInitialJobs()
 
+		assert not (autoJobs and scenarioTemplate is not None)
+
+		self.scenario = scenarioTemplate
+		self.queueTasks(self.scenario.setDevices(self.devices))
 
 		BasicSimulation.reset(self)
 
 	def queueInitialJobs(self):
+		self.queueTasks(self.scenario.setDevices(self.devices))
 		# need to initially check when each device's first task is
-		for dev in self.devices:
-			self.queueNextJob(dev)
+		# for dev in self.devices:
+		# 	self.queueNextJob(dev)
 
 	def reset(self):
 		# remove remaining tasks from queue
@@ -63,7 +68,17 @@ class SimpleSimulation(BasicSimulation):
 			self.queue.task_done()
 
 		BasicSimulation.reset(self)
-		if self.autoJobs: self.queueInitialJobs()
+		self.queueInitialJobs()
+
+
+		# if self.autoJobs: self.queueInitialJobs()
+
+	def performScenario(self, targetScenario):
+		print("Performing scenario", targetScenario)
+		for task in targetScenario.getTasks(self.devices):
+			# time, taskType, device, subtask = task
+
+			self.queueTask(*task)
 
 	# reset energy levels of all devices and run entire simulation
 	def simulateQueuedTasks(self, reset=True):
@@ -111,6 +126,7 @@ class SimpleSimulation(BasicSimulation):
 				self.printQueue()
 			debug.out("states before: {0}".format([[comp.getPowerState() for comp in dev.components] for dev in self.devices]), 'y')
 
+			assert self.queue.qsize() > 0
 			nextTask = self.queue.get()
 			newTime = nextTask.priority
 			arguments = nextTask.item
@@ -211,23 +227,30 @@ class SimpleSimulation(BasicSimulation):
 	# progress += constants.TD
 
 	# add next job to be created for this device to backlog
-	def queueNextJob(self, device, currentTime=None):
-		assert device is not None
+	def queueNextJob(self, device):
+		nextTime, nextDevice = self.scenario.nextJob(device)
+		self.queueTask(nextTime, NEW_JOB, nextDevice)
+	# def queueNextJob(self, device, currentTime=None):
+	# 	assert device is not None
+	#
+	# 	if currentTime is None:
+	# 		currentTime = device.currentTime.current
+	#
+	# 	# next job in:
+	# 	nextInterval = self.jobInterval.gen()
+	# 	nextJob = currentTime + nextInterval
+	#
+	# 	# print("next job is at", nextJob, device)
+	# 	# add task to queue
+	# 	self.queueTask(nextJob, NEW_JOB, device)
 
-		if currentTime is None:
-			currentTime = device.currentTime.current
-
-		# next job in:
-		nextInterval = self.jobInterval.gen()
-		nextJob = currentTime + nextInterval
-
-		# print("next job is at", nextJob, device)
-		# add task to queue
-		self.queueTask(nextJob, NEW_JOB, device)
+	# def continueScenario(self):
+	# 	self.queueTask(self.scenario.nextJob())
 
 	# print("new", self.time, nextJob)
 
 	previous = None
+	latestDevice = None
 
 	# do next queued task
 	def processQueuedTask(self, scheduledTime, args):
@@ -235,6 +258,7 @@ class SimpleSimulation(BasicSimulation):
 		device = args[1]
 		debug.out("%f: task is %s %s" % (scheduledTime, task, device), 'g')
 		device.queuedTask = None
+		self.latestDevice = device
 
 		# perform queued task
 		if task == NEW_JOB:
@@ -242,6 +266,7 @@ class SimpleSimulation(BasicSimulation):
 			device = args[1]
 			if not device.gracefulFailure:
 				self.createNewJob(device)
+				self.queueNextJob(device)
 
 				# immediately start created job if not busy
 				affectedDevice = device.nextJob()
@@ -254,8 +279,8 @@ class SimpleSimulation(BasicSimulation):
 					#
 					# self.processAffectedDevice(affectedDevice)
 
-				if self.autoJobs:
-					self.queueNextJob(device, scheduledTime)
+				# if self.autoJobs:
+				# 	self.queueNextJob(device, scheduledTime)
 		#
 		# device.updatePreviousTimestamp(self.time.current)
 		# debug.out("")
@@ -329,6 +354,10 @@ class SimpleSimulation(BasicSimulation):
 
 	# # only allow one queued task per device
 	# assert self.queue.qsize() <= len(self.devices)
+
+	def queueTasks(self, tasks):
+		for task in tasks:
+			self.queueTask(*task)
 
 	def queueTask(self, time, taskType, device, subtask=None):
 		# check if this device has a task lined up already:
