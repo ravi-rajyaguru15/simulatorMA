@@ -1,6 +1,7 @@
 import time
 import warnings
 from queue import PriorityQueue
+from sys import stdout
 
 import numpy as np
 
@@ -173,7 +174,7 @@ class node:
 	def removeOffloadingOption(self, device):
 		if device in self.offloadingOptions:
 			self.offloadingOptions.remove(device)
-			print("removed offloading option", device, self.offloadingOptions)
+			debug.learnOut("removed offloading option %s %s" % (device, self.offloadingOptions))
 
 	# def setOptions(self, options):
 		# self.setOffloadingDecisions(options)
@@ -391,6 +392,7 @@ class node:
 		# print (incrementalEnergy)
 		self.energyLevel -= incrementalEnergy
 		self.latestPower = totalPower
+		# print(self.currentTd, "@", totalPower)
 		debug.out("updating device energy %f %f %f %f" % (self.currentTd, incrementalEnergy, self.totalEnergyCost, self.energyLevel))
 
 		# update device time if local time used
@@ -408,6 +410,10 @@ class node:
 		for component in self.components:
 			# print("component", component, component.getPowerState())
 			totalPower += component.power()
+		# 	stdout.write("%f " % component.power())
+		# stdout.write("\n")
+		# stdout.flush()
+
 
 		return totalPower
 

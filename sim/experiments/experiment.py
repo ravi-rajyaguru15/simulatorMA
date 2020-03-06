@@ -133,8 +133,8 @@ def assembleResultsBasic(resultsQueue, outputQueue, numResults=None):
 	for i in range(numResults):
 		result = resultsQueue.get()
 
-		stdout.write("\rProgress: {:.2f}%".format((i + 1) / numResults * 100.0))
-		stdout.flush()
+		# stdout.write("\rProgress: {:.2f}%".format((i + 1) / numResults * 100.0))
+		# stdout.flush()
 
 		if len(result) == 4:
 			graphName, sample, datapoint, normalise = result

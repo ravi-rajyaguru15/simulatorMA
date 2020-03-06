@@ -26,6 +26,7 @@ def runThread(exp, results, finished):
 	finished.put(True)
 
 def run():
+	multiprocessing.set_start_method('spawn')
 	print ("starting experiment")
 	processes = list()
 	results = multiprocessing.Queue()

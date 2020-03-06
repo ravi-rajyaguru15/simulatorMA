@@ -31,6 +31,7 @@ def runThread(exp, jobInterval, results, finished):
 	finished.put(True)
 
 def run():
+	multiprocessing.set_start_method('spawn')
 	print("starting experiment")
 	debug.enabled = False
 

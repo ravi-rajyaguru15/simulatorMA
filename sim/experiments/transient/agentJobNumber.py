@@ -2,32 +2,35 @@
 import multiprocessing
 
 import sys
+import time
 import traceback
 from multiprocessing import freeze_support
-import numpy as np
 
-import sim
 from sim import debug, counters, plotting
-from sim.devices.components.powerPolicy import IDLE_TIMEOUT
 from sim.experiments.experiment import executeMulti
 from sim.learning.agent.lazyAgent import lazyAgent
 from sim.learning.agent.minimalAgent import minimalAgent
-from sim.offloading.offloadingPolicy import REINFORCEMENT_LEARNING
-from sim.simulations import simulationResults, localConstants
+from sim.simulations import localConstants
 from sim.simulations.SimpleSimulation import SimpleSimulation
+import os
 
-def runThread(agent, numEpisodes, results, finished, histories):
-    exp = SimpleSimulation(numDevices=2, maxJobs=6, agentClass=agent)
+from sim.simulations.variable import Constant
+
+experiments = dict()
+
+
+def runThread(agent, numEpisodes, results, finished):
+    experiments[os.getpid()] = SimpleSimulation(numDevices=2, maxJobs=6, agentClass=agent)
+    # print(id(experiments[os.getpid()]))
+    exp = experiments[os.getpid()]
+    # print("exp", id(exp))
+    time.sleep(os.getpid()/1e4)
+    print(os.getpid(), id(Constant(0)))
 
     exp.setFpgaIdleSleep(5)
     exp.setBatterySize(1e0)
 
-    # sim.simulations.constants.FPGA_IDLE_SLEEP = 5
-    # sim.simulations.constants.OFFLOADING_POLICY = REINFORCEMENT_LEARNING
-    # sim.simulations.constants.TOTAL_TIME = 1e3
-    # sim.simulations.constants.DEFAULT_ELASTIC_NODE.BATTERY_SIZE = 1e-1
-    # sim.simulations.constants.MAX_JOBS = 6
-
+    e = None
     try:
         for e in range(numEpisodes):
             debug.infoEnabled = False
@@ -35,7 +38,7 @@ def runThread(agent, numEpisodes, results, finished, histories):
 
             results.put(["Agent %s" % agent.__name__, e, exp.numFinishedJobs])
     except:
-        debug.printCache(200)
+        debug.printCache()
         traceback.print_exc(file=sys.stdout)
         print(agent, e)
         print("Error in experiment ̰:", exp.time)
@@ -48,10 +51,11 @@ def runThread(agent, numEpisodes, results, finished, histories):
 
     print("forward", counters.NUM_FORWARD, "backward", counters.NUM_BACKWARD)
 
-    exp.sharedAgent.printModel()
+    # exp.sharedAgent.printModel()
 
-# @profile
+
 def run(numEpisodes):
+    multiprocessing.set_start_method('spawn')
     print("starting experiment")
     debug.enabled = False
     debug.learnEnabled = False
@@ -61,10 +65,11 @@ def run(numEpisodes):
     processes = list()
     # sim.simulations.constants.MINIMUM_BATCH = 1e7
 
+    localConstants.REPEATS = 3
     # offloadingOptions = [True, False]
     results = multiprocessing.Queue()
     finished = multiprocessing.Queue()
-    histories = multiprocessing.Queue()
+    # experiments = multiprocessing.Queue()
     # REPEATS = 1
 
     # localConstants.REPEATS = 10
@@ -72,7 +77,7 @@ def run(numEpisodes):
     agentsToTest = [minimalAgent, lazyAgent]
     for agent in agentsToTest: # [minimalAgent, lazyAgent]:
         for _ in range(localConstants.REPEATS):
-            processes.append(multiprocessing.Process(target=runThread, args=(agent, numEpisodes, results, finished, histories)))
+            processes.append(multiprocessing.Process(target=runThread, args=(agent, numEpisodes, results, finished)))
 
     results = executeMulti(processes, results, finished, numResults=len(agentsToTest) * numEpisodes * localConstants.REPEATS)
 
@@ -80,9 +85,8 @@ def run(numEpisodes):
 
 
 if __name__ == "__main__":
-    freeze_support()
     try:
-        run(1e2)
+        run(1e1)
     except:
         traceback.print_exc(file=sys.stdout)
 

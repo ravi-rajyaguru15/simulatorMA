@@ -2,16 +2,19 @@ import traceback
 
 import numpy as np
 
+from sim import debug
 from sim.clock import clock
 from sim.devices.node import node
 from sim.simulations import constants
-from sim.simulations.SimpleSimulation import NEW_JOB
+# from sim.simulations.SimpleSimulation import NEW_JOB
+# from sim.simulations.variable import Constant
 
 
 class scenario:
 	name = None
 	devicePolicy = None
 	devices = None
+	defaultDevices = None
 	previousDevice = None
 
 	def __init__(self, devicePolicyClass, devices=None):
@@ -24,15 +27,23 @@ class scenario:
 		return "<%s Scenario: %s>" % (self.name, self.devicePolicy.name)
 
 	def setDevices(self, devices):
-		self.devices = devices
+		# print("set devices to", devices)
+		self.devices = list(devices)
+		self.defaultDevices = devices
 
 		# queue initial jobs
 		return self.queueInitialJobs()
+
+	def removeDevice(self, device):
+		# print("removing", device, "from", self.devices)
+		if device in self.devices:
+			self.devices.remove(device)
 
 	def nextTime(self, currentTime):
 		raise Exception("Not implemented")
 
 	def queueInitialJobs(self):
+		self.devices = list(self.defaultDevices)
 		return self.addJob(self.nextTime(0), self.devices)
 	# def getTasks(self):
 	# 	return self.tasks
@@ -55,18 +66,23 @@ class scenario:
 
 	def addJob(self, time, devices):
 		chosenDevices = self.devicePolicy.chooseDevice(devices)
-		print("add job:", time, chosenDevices)
+		debug.out("add job: %f %s" % (time, chosenDevices))
 		# traceback.print_stack()
-		return scenario._addTask(time, NEW_JOB, chosenDevices)
+		# return scenario._addTask(time, NEW_JOB, chosenDevices)
+		return [(time, device) for device in chosenDevices]
 
-	def nextJob(self, device=None):
+	def nextJob(self, device=None, time=None):
 		if device is None:
 			device = self.previousDevice
 		nextDevice = self.devicePolicy.nextDevice(device, self.devices)
-		nextTime = self.nextTime(self.previousDevice)
-		print("next job:", nextTime, nextDevice)
+		nextTime = self.nextTime(time)
 		self.previousDevice = nextDevice
+		debug.out("next job: %f %s" % (nextTime, nextDevice))
 		return nextTime, nextDevice
+
+	def reassignJob(self, device):
+		return self.devicePolicy.nextDevice(device, self.devices)
+
 
 
 class devicePolicy:
@@ -80,6 +96,17 @@ class devicePolicy:
 	@staticmethod
 	def nextDevice(currentDevice, devices):
 		raise Exception("Not implemented")
+
+
+def convertCurrentTime(currentTime):
+	if isinstance(currentTime, clock):
+		return currentTime.current
+	elif isinstance(currentTime, node):
+		return currentTime.currentTime.current
+	elif currentTime is None:
+		return 0
+	else:
+		return currentTime
 
 
 class allDevices(devicePolicy):
@@ -152,18 +179,29 @@ class regularScenario(scenario):
 		return tasks
 
 	def nextTime(self, currentTime):
-		if isinstance(currentTime, clock):
-			currentTime = currentTime.current
-		elif isinstance(currentTime, node):
-			currentTime = currentTime.currentTime.current
-		elif currentTime is None:
-			currentTime = 0
+		return convertCurrentTime(currentTime) + self.timeInterval
 
-		return currentTime + self.timeInterval
 
+class randomScenario(scenario):
+	timeIntervalVariable = None
+
+	totalTime = None
+	name = "Random"
+
+	def __init__(self, devicePolicyClass, timeInterval=constants.JOB_INTERVAL):
+		super().__init__(devicePolicyClass=devicePolicyClass)
+		self.timeIntervalVariable = timeInterval
+
+	def nextTime(self, currentTime):
+		return convertCurrentTime(currentTime) + self.timeIntervalVariable.gen()
 
 
 REGULAR_SCENARIO_RANDOM = regularScenario(devicePolicyClass=randomDevice)
 REGULAR_SCENARIO_ALL = regularScenario(devicePolicyClass=allDevices)
 REGULAR_SCENARIO_ROUND_ROBIN = regularScenario(devicePolicyClass=roundRobin)
 
+RANDOM_SCENARIO_RANDOM = randomScenario(devicePolicyClass=randomDevice)
+RANDOM_SCENARIO_ALL = randomScenario(devicePolicyClass=allDevices)
+RANDOM_SCENARIO_ROUND_ROBIN = randomScenario(devicePolicyClass=roundRobin)
+
+ALL_SCENARIOS = [REGULAR_SCENARIO_ALL, REGULAR_SCENARIO_RANDOM, REGULAR_SCENARIO_ROUND_ROBIN, RANDOM_SCENARIO_ALL, RANDOM_SCENARIO_RANDOM, RANDOM_SCENARIO_ROUND_ROBIN]

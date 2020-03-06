@@ -22,8 +22,9 @@ def profileTarget():
 	debug.enabled = False
 
 	exp = Simulation(numDevices=1, systemStateClass=minimalSystemState, agentClass=minimalAgent)
-	exp.setBatterySize(1e1)
-	exp.simulateEpisode()
+	exp.setBatterySize(1e-1)
+	for i in range(100):
+		exp.simulateEpisode()
 
 def testPerformance():
 	# import os
@@ -33,8 +34,11 @@ def testPerformance():
 	open(profileFilename, 'wb')
 	cProfile.run('profileTarget()', filename=profileFilename, sort='cumtime')
 
-debug.settings.fileOutput = True
+
+debug.settings.fileOutput = False
+localConstants.DEBUG_HISTORY = False
 testPerformance()
+print("done")
 # graphviz = GraphvizOutput()
 # graphviz.output_file = localConstants.OUTPUT_DIRECTORY + 'profile.png'
 #

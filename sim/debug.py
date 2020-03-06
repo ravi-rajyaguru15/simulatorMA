@@ -2,12 +2,12 @@ import sim
 from sim.simulations import localConstants
 
 cache = []
-maxCache = 1000
 currentCache = 0
 outputFile = None
 
 
 class settings:
+    maxCache = 1000
     default = 37
     enabled = False
     learnEnabled = False
@@ -39,9 +39,9 @@ def _push(string, colour, printImmediate=True):
         elif localConstants.DEBUG_HISTORY:
             sim.debug.cache.append((string, colour))
             sim.debug.currentCache += 1
-            if sim.debug.currentCache > maxCache:
-                sim.debug.cache = sim.debug.cache[-maxCache:]
-                sim.debug.currentCache = maxCache
+            if sim.debug.currentCache > settings.maxCache:
+                sim.debug.cache = sim.debug.cache[-settings.maxCache:]
+                sim.debug.currentCache = settings.maxCache
     else:
         _print(string, colour)
 

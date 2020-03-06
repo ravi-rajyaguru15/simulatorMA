@@ -48,6 +48,7 @@ def runThread(agent, numEpisodes, results, finished, histories):
     exp.sharedAgent.printModel()
 
 def run():
+    multiprocessing.set_start_method('spawn')
     print("starting experiment")
     debug.enabled = False
     debug.learnEnabled = False

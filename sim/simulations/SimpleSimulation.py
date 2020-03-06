@@ -11,6 +11,7 @@ from sim.devices.components import powerPolicy
 from sim.devices.components.processor import processor
 from sim.devices.components.fpga import fpga
 from sim.devices.node import node
+from sim.experiments.scenario import RANDOM_SCENARIO_RANDOM
 from sim.learning.agent.minimalAgent import minimalAgent
 from sim.learning.state.minimalSystemState import minimalSystemState
 from sim.offloading import offloadingPolicy, offloadingDecision
@@ -21,11 +22,11 @@ from sim.tasks.subtask import subtask
 
 class SimpleSimulation(BasicSimulation):
 	queue = None
-	autoJobs = None
+	# autoJobs = None
 	jobInterval = None
 	scenario = None
 
-	def __init__(self, numDevices=constants.NUM_DEVICES, jobInterval=constants.JOB_INTERVAL, maxJobs=constants.MAX_JOBS, systemStateClass=minimalSystemState, agentClass=minimalAgent, autoJobs=True, allowExpansion=constants.ALLOW_EXPANSION, tasks=constants.DEFAULT_TASK_GRAPH, offPolicy=constants.OFF_POLICY, scenarioTemplate=None):
+	def __init__(self, numDevices=constants.NUM_DEVICES, jobInterval=constants.JOB_INTERVAL, maxJobs=constants.MAX_JOBS, systemStateClass=minimalSystemState, agentClass=minimalAgent, allowExpansion=constants.ALLOW_EXPANSION, tasks=constants.DEFAULT_TASK_GRAPH, offPolicy=constants.OFF_POLICY, scenarioTemplate=RANDOM_SCENARIO_RANDOM):
 		BasicSimulation.__init__(self, numDevices=numDevices, maxJobs=maxJobs, systemStateClass=systemStateClass, agentClass=agentClass, globalClock=False, allowExpansion=allowExpansion, tasks=tasks, offPolicy=offPolicy)
 		# remove the taskqueues as tasks are queued in sim
 		for dev in self.devices: dev.taskQueue = None
@@ -45,15 +46,15 @@ class SimpleSimulation(BasicSimulation):
 		# if self.autoJobs:
 		# 	self.queueInitialJobs()
 
-		assert not (autoJobs and scenarioTemplate is not None)
+		# assert not (autoJobs and scenarioTemplate is not None)
 
 		self.scenario = scenarioTemplate
-		self.queueTasks(self.scenario.setDevices(self.devices))
+		self.queueNewJobs(self.scenario.setDevices(self.devices))
 
 		BasicSimulation.reset(self)
 
 	def queueInitialJobs(self):
-		self.queueTasks(self.scenario.setDevices(self.devices))
+		self.queueNewJobs(self.scenario.setDevices(self.devices))
 		# need to initially check when each device's first task is
 		# for dev in self.devices:
 		# 	self.queueNextJob(dev)
@@ -92,24 +93,12 @@ class SimpleSimulation(BasicSimulation):
 
 	def simulateTick(self):
 		debug.out("\n" + "*" * 50 + "\ntick\n" + "*" * 50)
+		usages = None
 
 		# first check if all devices are done
-		if np.all([dev.gracefulFailure for dev in self.devices]): self.stop()
+		if all([dev.gracefulFailure for dev in self.devices]): self.stop()
 		else:
-
-			# update state if required
-			# if constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING:
-			# 	self.currentSystemState.updateSystem()
-
-			# # create new jobs
-			# for device in self.devices:
-			# 	# mcu is required for taking samples
-			# 	if not device.hasJob():
-			# 		device.maybeAddNewJob()
-			#
-			# 	# force updating td
-			# 	device.currentTd = None
-
+			# update offloading target for e.g. roundrobin
 			if self.useSharedAgent:
 				self.sharedAgent.updateOffloadingTarget()
 			else:
@@ -119,6 +108,7 @@ class SimpleSimulation(BasicSimulation):
 
 			# process new queued task here
 			# newTime, arguments = self.queue.get()
+			debug.out("graceful failure: %s" % [dev.gracefulFailure for dev in self.devices])
 			assert self.queue.qsize() > 0
 
 			if debug.settings.enabled:
@@ -141,7 +131,7 @@ class SimpleSimulation(BasicSimulation):
 				debug.out("EPISODE ALREADY OVER", 'r')
 				return False
 			# device.setTime(newTime)
-			self.processQueuedTask(newTime, arguments)
+			usages = self.processQueuedTask(newTime, arguments)
 
 			# check if queues are overrun
 			if self.allowExpansion:
@@ -217,9 +207,9 @@ class SimpleSimulation(BasicSimulation):
 				debug.out("states after: {0}".format([[comp.getPowerState() for comp in dev.components] for dev in self.devices]), 'y')
 				debug.out("tasks after {0}".format(tasksAfter), 'r')
 
-				if np.sum(self.currentDelays) > 0:
-					debug.out("delays {}".format(self.currentDelays))
-
+				# if np.sum(self.currentDelays) > 0:
+				# 	debug.out("delays {}".format(self.currentDelays))
+		return usages
 	# # if constants.DRAW_DEVICES:
 	# if self.frames % self.plotFrames == 0:
 	# 	self.visualiser.update()
@@ -227,8 +217,9 @@ class SimpleSimulation(BasicSimulation):
 	# progress += constants.TD
 
 	# add next job to be created for this device to backlog
-	def queueNextJob(self, device):
-		nextTime, nextDevice = self.scenario.nextJob(device)
+	def queueNextJob(self, device, currentJobTime):
+		# print("queue next job", currentJobTime)
+		nextTime, nextDevice = self.scenario.nextJob(device, currentJobTime)
 		self.queueTask(nextTime, NEW_JOB, nextDevice)
 	# def queueNextJob(self, device, currentTime=None):
 	# 	assert device is not None
@@ -259,14 +250,22 @@ class SimpleSimulation(BasicSimulation):
 		debug.out("%f: task is %s %s" % (scheduledTime, task, device), 'g')
 		device.queuedTask = None
 		self.latestDevice = device
+		usages = []
 
 		# perform queued task
 		if task == NEW_JOB:
 			debug.out("creating new job", 'b')
 			device = args[1]
+
+			# check job needs to be reassigned
+			if device.gracefulFailure:
+				olddevice = device
+				device = self.scenario.reassignJob(device)
+				debug.out("reassigned job from %s to %s" % (olddevice, device))
+
 			if not device.gracefulFailure:
 				self.createNewJob(device)
-				self.queueNextJob(device)
+				self.queueNextJob(device, scheduledTime)
 
 				# immediately start created job if not busy
 				affectedDevice = device.nextJob()
@@ -276,11 +275,11 @@ class SimpleSimulation(BasicSimulation):
 					nextdevice, nextsubtask = affectedDevice
 					debug.out("new job affected: %s %s" % (nextdevice, nextsubtask), 'b')
 					self.queueTask(scheduledTime, PROCESS_SUBTASK, nextdevice, nextsubtask)
-					#
+
 					# self.processAffectedDevice(affectedDevice)
 
-				# if self.autoJobs:
-				# 	self.queueNextJob(device, scheduledTime)
+			else:
+				debug.out("not creating new job because %s in graceful failure" % args[1])
 		#
 		# device.updatePreviousTimestamp(self.time.current)
 		# debug.out("")
@@ -303,7 +302,9 @@ class SimpleSimulation(BasicSimulation):
 			# idlePower = device.getTotalPower()
 			debug.out("%s idle %f" % (device, idlePeriod), 'r')
 			device.currentTd = idlePeriod
-			device.updateDeviceEnergy(device.getTotalPower())
+			devicePower = device.getTotalPower()
+			device.updateDeviceEnergy(devicePower)
+			usages.append([idlePeriod, devicePower])
 			debug.out("idle %s time handled to %f (%f)" % (device, device.currentTime.current, device.previousTimestamp), 'p')
 
 			# check if idle killed device
@@ -311,32 +312,18 @@ class SimpleSimulation(BasicSimulation):
 				debug.out("DEVICE DEAD", 'r')
 				return
 
-			# else:
-			# 	warnings.warn("going back in time!")
-			# 	print()
-			# 	print()
-			# 	print(device.currentTime.current, device.previousTimestamp, device.currentTime - device.previousTimestamp, device)
-			# 	print("args", args, self.queue.qsize())
-			# 	print("previous", self.previous)
-			# 	print(device.__dict__)
-			# 	print()
-			# 	print()
-			# 	# traceback.print_stack()
-			# 	raise Exception("This doesn't make sense")
-
 			debug.out("continue existing job", 'b')
 			subtask = args[2]  # none for new_job
 			self.processDeviceSubtask(device, subtask)
+			usages.append((subtask.duration, device.latestPower))
 
 		elif task == SLEEP_COMPONENT:
 			# check if device should be sleeping
 			debug.out("CHECKING DEVICE SLEEP")
-			# print([com.isSleeping() for com in device.components])
 			self.timeOutSleep(device)
-			# print([com.isSleeping() for com in device.components])
 
 		self.previous = (device.currentTime.current, args, self.queue.qsize())
-
+		return usages
 	# # capture energy values
 	# for dev in self.devices:
 	# 	energy = dev.energy()
@@ -355,9 +342,9 @@ class SimpleSimulation(BasicSimulation):
 	# # only allow one queued task per device
 	# assert self.queue.qsize() <= len(self.devices)
 
-	def queueTasks(self, tasks):
-		for task in tasks:
-			self.queueTask(*task)
+	def queueNewJobs(self, jobs):
+		for time, device in jobs:
+			self.queueTask(time, NEW_JOB, device)
 
 	def queueTask(self, time, taskType, device, subtask=None):
 		# check if this device has a task lined up already:
@@ -379,7 +366,7 @@ class SimpleSimulation(BasicSimulation):
 	# 		self.queueTask(device.currentTime + device.currentSubtask.duration, PROCESS_SUBTASK, device, subtask)
 	# 	else:
 		self.processDeviceSubtask(device, subtask)
-	#
+
 	def processDeviceSubtask(self, device, subtask):
 		# assert affected is not None
 
@@ -395,6 +382,9 @@ class SimpleSimulation(BasicSimulation):
 		# perform subtask here
 		debug.out("processing device subtask: %s %s" % (device, subtask))
 		affectedDevices, duration, devicePower = device.updateDevice(subtask, visualiser=visualiser)
+		# do not assign new jobs to this device
+		if device.gracefulFailure:
+			self.scenario.removeDevice(device)
 		timeBefore = device.currentTime.current
 		timeAfter = timeBefore + subtask.duration
 
@@ -469,7 +459,7 @@ class SimpleSimulation(BasicSimulation):
 			assert isinstance(target, processor)
 			if target.isIdle():
 				idleTime = target.owner.currentTime - target.latestActive
-				debug.out("sleep check: %s %s %f %f %s" % (target, target.isIdle(), idleTime, target.idleTimeout, target.owner.currentTd))
+				# debug.out("sleep check: %s %s %f %f %s" % (target, target.isIdle(), idleTime, target.idleTimeout, target.owner.currentTd))
 				# print("sleep check: %s %s %f %f %s" % (target, target.isIdle(), idleTime, target.idleTimeout, target.owner.currentTd))
 
 				# target.idleTime += target.owner.currentTd

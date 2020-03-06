@@ -4,28 +4,28 @@ import sys
 import traceback
 from multiprocessing import freeze_support
 
-import sim
 from sim import debug, counters, plotting
-from sim.devices.components.powerPolicy import IDLE_TIMEOUT
 from sim.experiments.experiment import executeMulti, assembleResultsBasic
-from sim.learning.agent.lazyAgent import lazyAgent
 from sim.learning.agent.minimalAgent import minimalAgent
-from sim.offloading.offloadingPolicy import REINFORCEMENT_LEARNING
-from sim.simulations import simulationResults
+from sim.simulations import localConstants
 from sim.simulations.SimpleSimulation import SimpleSimulation
 
-sim.simulations.constants.NUM_DEVICES = 1
 
-
-def runThread(agent, numTicks, results, finished, histories):
-	exp = SimpleSimulation(agentClass=agent)
+def runThread(agent, numTicks, numDevices, results, finished, histories):
+	exp = SimpleSimulation(numDevices=numDevices, agentClass=agent)
+	exp.setBatterySize(1e4)
 	exp.reset()
 	timeOffsets = dict()
 	previousTime = dict()
+	currentEnergy = dict()
 	for dev in exp.devices:
 		timeOffsets[dev] = 0
+		currentEnergy[dev] = dev.energyLevel
 		previousTime[dev] = 0
+		dev.latestPower = None
 
+
+	i = None
 	try:
 		for i in range(numTicks):
 			if exp.finished:
@@ -33,15 +33,14 @@ def runThread(agent, numTicks, results, finished, histories):
 					timeOffsets[dev] += dev.currentTime.current
 				exp.reset()
 			# for i in range():
-			exp.simulateTick()
-
-			for dev in exp.devices:
-				currentTime = timeOffsets[dev] + dev.currentTime.current
-				results.put(["%s Power" % dev, previousTime[dev], dev.latestPower])
-				print('\n', previousTime[dev], dev.latestPower)
-				previousTime[dev] = currentTime
-				print('\n', currentTime, dev.latestPower)
-				results.put(["%s Power" % dev, currentTime, dev.latestPower])
+			usages = exp.simulateTick()
+			if usages is None:
+				usages = [(0,0),(0,0)]
+			for duration, power in usages:
+				currentTime = previousTime[exp.latestDevice] + duration
+				results.put(["%s Power" % exp.latestDevice, previousTime[exp.latestDevice], power * 1e3])
+				previousTime[exp.latestDevice] = currentTime
+				results.put(["%s Power" % exp.latestDevice, currentTime, power * 1e3])
 	except:
 		traceback.print_exc(file=sys.stdout)
 		print(agent, i)
@@ -50,48 +49,38 @@ def runThread(agent, numTicks, results, finished, histories):
 		sys.exit(0)
 
 	finished.put(True)
-	assert simulationResults.learningHistory is not None
-	histories.put(simulationResults.learningHistory)
-	print("\nsaving history", simulationResults.learningHistory, '\nr')
+	# assert simulationResults.learningHistory is not None
+	# histories.put(simulationResults.learningHistory)
+	# print("\nsaving history", simulationResults.learningHistory, '\nr')
 
 	print("forward", counters.NUM_FORWARD, "backward", counters.NUM_BACKWARD)
 
-	exp.sharedAgent.printModel()
+	# exp.sharedAgent.printModel()
 
 def run():
+	multiprocessing.set_start_method('spawn')
 	print("starting experiment")
-	debug.enabled = False
-	debug.learnEnabled = False
-	debug.infoEnabled = False
-
-	sim.simulations.constants.DRAW = False
-	sim.simulations.constants.FPGA_POWER_PLAN = IDLE_TIMEOUT
-	sim.simulations.constants.FPGA_IDLE_SLEEP = 5
-	sim.simulations.constants.OFFLOADING_POLICY = REINFORCEMENT_LEARNING
-	# sim.simulations.constants.TOTAL_TIME = 1e3
-	sim.simulations.constants.DEFAULT_ELASTIC_NODE.BATTERY_SIZE = 1e0
-	sim.simulations.constants.MAX_JOBS = 3
+	debug.settings.enabled = False
+	debug.settings.learnEnabled = False
+	debug.settings.infoEnabled = False
 
 	processes = list()
-	sim.simulations.constants.MINIMUM_BATCH = 1e7
-
-	# offloadingOptions = [True, False]
 	results = multiprocessing.Queue()
 	finished = multiprocessing.Queue()
 	histories = multiprocessing.Queue()
-	sim.simulations.constants.REPEATS = 1
 
 	# for jobLikelihood in np.arange(1e-3, 1e-2, 1e-3):
 	# 	for roundRobin in np.arange(1e0, 1e1, 2.5):
-	numTicks = int(1e3)
+	numDevices = 2
+	numTicks = int(1e2)
 	agentsToTest = [minimalAgent] # , lazyAgent]
 	for agent in agentsToTest: # [minimalAgent, lazyAgent]:
-		for _ in range(sim.simulations.constants.REPEATS):
-			processes.append(multiprocessing.Process(target=runThread, args=(agent, numTicks, results, finished, histories)))
+		for _ in range(localConstants.REPEATS):
+			processes.append(multiprocessing.Process(target=runThread, args=(agent, numTicks, numDevices, results, finished, histories)))
 
-	results = executeMulti(processes, results, finished, assembly=assembleResultsBasic, numResults=sim.simulations.constants.NUM_DEVICES * sim.simulations.constants.REPEATS * numTicks * 2)
+	results = executeMulti(processes, results, finished, assembly=assembleResultsBasic, numResults=localConstants.REPEATS * numTicks * 2)
 
-	plotting.plotMulti("Device Power", results=results, ylabel="Reward", xlabel="Episode #")  # , save=True)
+	plotting.plotMulti("Device Power", results=results, ylabel="Power (in mW)", xlabel="Tick #") #, ylim=[0, 0.1])  # , save=True)
 	# plotting.plotAgentHistory(histories.get())
 
 

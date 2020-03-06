@@ -414,7 +414,6 @@ class newJob(subtask):
 		# consider graceful failure
 		if enableGracefulFailure and not self.owner.gracefulFailure:
 			if self.owner.getEnergyLevelPercentage() < constants.GRACEFUL_FAILURE_LEVEL:
-
 				self.owner.performGracefulFailure()
 
 		# either fail or start processing new job
