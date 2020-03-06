@@ -16,16 +16,10 @@ import os
 
 from sim.simulations.variable import Constant
 
-experiments = dict()
 
 
 def runThread(agent, numEpisodes, results, finished):
-    experiments[os.getpid()] = SimpleSimulation(numDevices=2, maxJobs=6, agentClass=agent)
-    # print(id(experiments[os.getpid()]))
-    exp = experiments[os.getpid()]
-    # print("exp", id(exp))
-    time.sleep(os.getpid()/1e4)
-    print(os.getpid(), id(Constant(0)))
+    exp = SimpleSimulation(numDevices=2, maxJobs=6, agentClass=agent)
 
     exp.setFpgaIdleSleep(5)
     exp.setBatterySize(1e0)
@@ -65,7 +59,6 @@ def run(numEpisodes):
     processes = list()
     # sim.simulations.constants.MINIMUM_BATCH = 1e7
 
-    localConstants.REPEATS = 3
     # offloadingOptions = [True, False]
     results = multiprocessing.Queue()
     finished = multiprocessing.Queue()
@@ -81,12 +74,13 @@ def run(numEpisodes):
 
     results = executeMulti(processes, results, finished, numResults=len(agentsToTest) * numEpisodes * localConstants.REPEATS)
 
-    plotting.plotMultiWithErrors("Number of Jobs", results=results, ylabel="Job #", xlabel="Episode #")  # , save=True)
+    # plotting.plotMultiWithErrors("Number of Jobs", results=results, ylabel="Job #", xlabel="Episode #")  # , save=True)
+    plotting.plotMulti("Number of Jobs", results=results, ylabel="Job #", xlabel="Episode #")  # , save=True)
 
 
 if __name__ == "__main__":
     try:
-        run(1e1)
+        run(1e2)
     except:
         traceback.print_exc(file=sys.stdout)
 

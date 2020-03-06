@@ -92,6 +92,16 @@ def plotAgentHistory(history):
 
 def plotMultiWithErrors(name, results=None, ylim=None, ylabel=None, xlabel=None,
 						separate=False):  # , show=False, save=False):
+	_plotMulti(name, results, ylim, ylabel, xlabel, separate, True)
+
+
+def plotMulti(name, results=None, ylim=None, ylabel=None, xlabel=None,
+						separate=False):  # , show=False, save=False):
+	_plotMulti(name, results, ylim, ylabel, xlabel, separate, False)
+
+
+def _plotMulti(name, results=None, ylim=None, ylabel=None, xlabel=None,
+						separate=False, plotErrors=True):
 	# print("plotting!")
 	filename = "{}{}_{}".format(localConstants.OUTPUT_DIRECTORY, name, str(datetime.datetime.now()).replace(":", "."))
 	pickle.dump((name, results, ylim, ylabel, xlabel), open("{}.pickle".format(filename), "wb"))
@@ -118,59 +128,10 @@ def plotMultiWithErrors(name, results=None, ylim=None, ylabel=None, xlabel=None,
 			errors.append(value[1])
 		print(x)
 
-		pp.errorbar(x, y, yerr=errors)
-
-	pp.legend(legends)
-	pp.grid()
-
-	pp.title(name)
-
-	if ylim is not None:
-		pp.ylim(ylim)
-
-	if ylabel is not None:
-		pp.ylabel(ylabel)
-
-	if xlabel is not None:
-		pp.xlabel(xlabel)
-
-	if localConstants.SAVE_GRAPH:
-		saveFig(filename)
-
-	if localConstants.DRAW_GRAPH:
-		pp.show()
-
-
-def plotMulti(name, results=None, ylim=None, ylabel=None, xlabel=None,
-						separate=False):  # , show=False, save=False):
-	# print("plotting!")
-	filename = "{}{}_{}".format(localConstants.OUTPUT_DIRECTORY, name, str(datetime.datetime.now()).replace(":", "."))
-	pickle.dump((name, results, ylim, ylabel, xlabel), open("{}.pickle".format(filename), "wb"))
-
-	# sort by graph key
-	print(results)
-	# orderedResults = collections.OrderedDict(sorted(results.items()))
-	legends = list()
-	for key, graph in results.items():  # , colour in zip(results, colours):
-		if separate:
-			pp.figure()
-
-		legends.append(key)
-		x, y = list(), list()
-		errors = list()
-
-
-		for xIndex, value in graph.items():
-			# x.append(xIndex)
-			# y.append(value[0])
-			for val in value:
-				x.append(xIndex)
-				y.append(val)
-			# print(xIndex, value)
-		# print(x)
-		# print(y)
-
-		pp.errorbar(x, y)
+		if plotErrors:
+			pp.errorbar(x, y, yerr=errors)
+		else:
+			pp.errorbar(x, y)
 
 	pp.legend(legends)
 	pp.grid()
