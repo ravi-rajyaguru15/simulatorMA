@@ -47,7 +47,6 @@ def runThread(results, finished, histories):
 
 
 def run():
-	multiprocessing.set_start_method('spawn')
 	print ("starting experiment")
 
 	# sim.constants.TOTAL_TIME = 1e3

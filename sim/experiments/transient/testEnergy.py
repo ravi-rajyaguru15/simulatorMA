@@ -1,18 +1,20 @@
 import multiprocessing
 
 import sys
+import time
 import traceback
 from multiprocessing import freeze_support
 
 from sim import debug, counters, plotting
 from sim.experiments.experiment import executeMulti, assembleResultsBasic
+from sim.experiments.scenario import REGULAR_SCENARIO_RANDOM
 from sim.learning.agent.minimalAgent import minimalAgent
 from sim.simulations import localConstants
 from sim.simulations.SimpleSimulation import SimpleSimulation
 
 
 def runThread(agent, numTicks, numDevices, results, finished, histories):
-	exp = SimpleSimulation(numDevices=numDevices, agentClass=agent)
+	exp = SimpleSimulation(numDevices=numDevices, scenarioTemplate=REGULAR_SCENARIO_RANDOM, jobInterval=10, agentClass=agent)
 	exp.setBatterySize(1e4)
 	exp.reset()
 	timeOffsets = dict()
@@ -34,13 +36,14 @@ def runThread(agent, numTicks, numDevices, results, finished, histories):
 				exp.reset()
 			# for i in range():
 			usages = exp.simulateTick()
-			if usages is None:
+			if usages == []:
 				usages = [(0,0),(0,0)]
 			for duration, power in usages:
 				currentTime = previousTime[exp.latestDevice] + duration
 				results.put(["%s Power" % exp.latestDevice, previousTime[exp.latestDevice], power * 1e3])
 				previousTime[exp.latestDevice] = currentTime
 				results.put(["%s Power" % exp.latestDevice, currentTime, power * 1e3])
+			time.sleep(0.2)
 	except:
 		traceback.print_exc(file=sys.stdout)
 		print(agent, i)
@@ -58,7 +61,6 @@ def runThread(agent, numTicks, numDevices, results, finished, histories):
 	# exp.sharedAgent.printModel()
 
 def run():
-	multiprocessing.set_start_method('spawn')
 	print("starting experiment")
 	debug.settings.enabled = False
 	debug.settings.learnEnabled = False
@@ -69,10 +71,8 @@ def run():
 	finished = multiprocessing.Queue()
 	histories = multiprocessing.Queue()
 
-	# for jobLikelihood in np.arange(1e-3, 1e-2, 1e-3):
-	# 	for roundRobin in np.arange(1e0, 1e1, 2.5):
 	numDevices = 2
-	numTicks = int(1e2)
+	numTicks = int(1e1)
 	agentsToTest = [minimalAgent] # , lazyAgent]
 	for agent in agentsToTest: # [minimalAgent, lazyAgent]:
 		for _ in range(localConstants.REPEATS):

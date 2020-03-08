@@ -1,5 +1,6 @@
 import sim.debug
 import sim.simulations.constants
+from sim import debug
 from sim.devices.components.fpga import fpga
 from sim.devices.components.mcu import mcu
 from sim.devices.components.mrf import mrf
@@ -54,7 +55,27 @@ class elasticNode(node):
 		sim.debug.out ("offloading latency: {}".format(latency))
 		return latency
 
-	# def mcuToFpgaEnergy(self, time):
+	def timeOutSleepFpga(self):
+		# call on any contained FPGAs
+		# if isinstance(target, node):
+		# 	for targetProcessor in target.processors:
+		# 		# mcu sleeping is managed in subtask finish
+		# 		if isinstance(targetProcessor, fpga):
+		# 			self.timeOutSleep(targetProcessor)
+
+		# else:
+		# assert isinstance(target, processor)
+		if self.fpga.isIdle():
+			idleTime = self.currentTime - self.fpga.latestActive
+
+			# target.idleTime += target.owner.currentTd
+			if idleTime >= self.fpga.idleTimeout:
+				self.fpga.sleep()
+				debug.out("target SLEEP")
+		# else:
+		else:
+			self.fpga.idleTime = 0
+# def mcuToFpgaEnergy(self, time):
 	# 	mcuEnergy = self.mcu.activeEnergy(time)
 	# 	fpgaEnergy = self.fpga.activeEnergy(time)
 	# 	return mcuEnergy + fpgaEnergy

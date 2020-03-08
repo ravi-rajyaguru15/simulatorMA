@@ -16,6 +16,7 @@ class scenario:
 	devices = None
 	defaultDevices = None
 	previousDevice = None
+	timeInterval = None
 
 	def __init__(self, devicePolicyClass, devices=None):
 		# self.name = name
@@ -25,6 +26,9 @@ class scenario:
 
 	def __repr__(self):
 		return "<%s Scenario: %s>" % (self.name, self.devicePolicy.name)
+
+	def setInterval(self, interval):
+		raise Exception("Not implemented")
 
 	def setDevices(self, devices):
 		# print("set devices to", devices)
@@ -161,7 +165,6 @@ class roundRobin(devicePolicy):
 
 
 class regularScenario(scenario):
-	timeInterval = None
 	totalTime = None
 	name = "Regular"
 
@@ -181,19 +184,23 @@ class regularScenario(scenario):
 	def nextTime(self, currentTime):
 		return convertCurrentTime(currentTime) + self.timeInterval
 
+	def setInterval(self, interval):
+		self.timeInterval = interval
+
 
 class randomScenario(scenario):
-	timeIntervalVariable = None
-
 	totalTime = None
 	name = "Random"
 
 	def __init__(self, devicePolicyClass, timeInterval=constants.JOB_INTERVAL):
 		super().__init__(devicePolicyClass=devicePolicyClass)
-		self.timeIntervalVariable = timeInterval
+		self.timeInterval = timeInterval
 
 	def nextTime(self, currentTime):
-		return convertCurrentTime(currentTime) + self.timeIntervalVariable.gen()
+		return convertCurrentTime(currentTime) + self.timeInterval.gen()
+
+	def setInterval(self, interval):
+		self.timeInterval.mean = interval
 
 
 REGULAR_SCENARIO_RANDOM = regularScenario(devicePolicyClass=randomDevice)

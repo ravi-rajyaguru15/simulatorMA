@@ -1,4 +1,6 @@
 # TX RESULT destination swap source
+import sys
+
 from sim import debug, simulations
 from sim.learning.action import OFFLOADING
 from sim.offloading import offloadingPolicy
@@ -413,18 +415,24 @@ class newJob(subtask):
 
 		# consider graceful failure
 		if enableGracefulFailure and not self.owner.gracefulFailure:
-			if self.owner.getEnergyLevelPercentage() < constants.GRACEFUL_FAILURE_LEVEL:
-				self.owner.performGracefulFailure()
+			# self.owner.performGracefulFailure()
+			self.owner.checkGracefulFailure()
 
 		# either fail or start processing new job
 		if self.owner.gracefulFailure:
 			debug.out("GRACEFUL FAILURE on %s %s %s" % (self.owner, self.owner.offloadingOptions, self.owner.batch))
+			debug.infoOut("training from %s" % self.owner.agent.systemState.getStateDescription(self.job.beforeState))
+			self.owner.agent.train(self.job.currentTask, self.job, self.owner)
+			debug.infoOut("training to   %s" % self.owner.agent.systemState.getStateDescription(self.owner.agent.systemState.getIndex()))
+
 			if not self.owner.hasOffloadingOptions():
-				# simulations.Simulation.currentSimulation.stop()
+				# cannot offload to anything and dying
 				return None
 			else:
 				choice = self.owner.agent.getAction(OFFLOADING)
-				debug.out("choice %s" % choice)
+				self.job.latestAction = self.owner.agent.getActionIndex(choice)
+
+				debug.out("choice %s %s" % (choice, self.owner.agent.latestAction))
 				choice.updateTargetDevice(self.owner, self.owner.offloadingOptions)
 				debug.out("%s %s %s %s" % (choice.local, self.owner, self.owner.offloadingOptions, choice.targetDevice))
 
@@ -657,13 +665,13 @@ class txMessage(subtask):
 		if isinstance(self.destination.currentSubtask, txMessage) or isinstance(self.destination.currentSubtask, rxMessage):
 			# is it not started
 			if not self.started and not self.destination.currentSubtask.started:
-				# is it also trying to send 
+				# is it also trying to send
 
 
 				# is it trying to send to me?
 				# if (self.destination is self.destination.currentSubtask.source) and (self.source is self.destination.currentSubtask.destination):
 				return True
-		# any other case is 
+		# any other case is
 		return False
 
 		# # return not self.job.creator.mrf.busy and not self.job.processingNode.mrf.busy
@@ -723,6 +731,7 @@ class txJob(txMessage):
 			affectedDevices = [(self.owner, nextSubtask)]
 
 		return txMessage.finishTask(self, affectedDevices)
+
 
 
 class txResult(txMessage):
@@ -800,7 +809,7 @@ class rxMessage(subtask):
 			# is it not started
 			if not self.started and not self.source.currentSubtask.started:
 				return True
-		# any other case is 
+		# any other case is
 		return False
 
 
@@ -819,7 +828,7 @@ class rxJob(rxMessage):
 		# if not self.job.processed:
 		# move job to new owner
 		debug.out ("moving job to processingNode")
-		# move job to the processing from the creator 
+		# move job to the processing from the creator
 		newOwner = self.job.processingNode
 		# self.job.creator.waiting = True
 

@@ -118,15 +118,19 @@ def _plotMulti(name, results=None, ylim=None, ylabel=None, xlabel=None,
 		errors = list()
 
 		# sort graph by x indices
-		print(graph)
-		orderedGraph = collections.OrderedDict(sorted(graph.items()))
-		print(graph)
+		# orderedGraph = collections.OrderedDict(sorted(graph.items()))
+		# print(graph)
 
-		for xIndex, value in orderedGraph.items():
-			x.append(xIndex)
-			y.append(value[0])
-			errors.append(value[1])
-		print(x)
+		for xIndex, value in graph.items():
+			if isinstance(value, list):
+				for yi in value:
+					x.append(xIndex)
+					y.append(yi)
+			else:
+				x.append(xIndex)
+				y.append(value[0])
+				if plotErrors:
+					errors.append(value[1])
 
 		if plotErrors:
 			pp.errorbar(x, y, yerr=errors)

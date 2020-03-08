@@ -40,6 +40,7 @@ class node:
 	totalSleepTime = None
 	drawLocation = None
 	gracefulFailure = False
+	gracefulFailureLevel = None
 	offloadingOptions = None
 	defaultOffloadingOptions = None
 
@@ -85,6 +86,7 @@ class node:
 		# self.nodeType = nodeType
 
 		self.setMaxEnergyLevel()
+		self.gracefulFailureLevel = currentSystemState.getGracefulFailureLevel()
 
 		self.drawLocation = (0,0)
 
@@ -404,6 +406,9 @@ class node:
 
 		return incrementalEnergy
 
+	def getComponentStates(self):
+		return [component.getPowerState() for component in self.components]
+
 	def getTotalPower(self):
 		# calculate total power for all components
 		totalPower = 0
@@ -455,23 +460,6 @@ class node:
 			if self.currentSubtask != subtask:
 				if self.currentSubtask is None or self.taskQueue is None:
 					self.currentSubtask = subtask
-					# remove this subtask from device taskqueue
-					# print("taskQueue:", self.taskQueue.queue)
-					# print(self.taskQueue.qsize())
-					# print(subtask)
-					# print("set currentsubtask to subtask")
-					# check that this subtask was not queued
-					# tmp = []
-					# while not self.taskQueue.empty():
-					# 	tmptask = self.taskQueue.get()
-					# 	print("tmptask", tmptask, tmptask.item)
-					# 	if tmptask.item != subtask:
-					# 		tmp.append(tmptask)
-					#
-					# for tmptask in tmp:
-					# 	self.taskQueue.put(tmptask)
-
-					# print(self.taskQueue.qsize())
 
 				else:
 					print("current:", self.currentSubtask, "subtask:", subtask)
@@ -508,21 +496,23 @@ class node:
 			self.previousTimestamp = newTimestamp
 		debug.out("%s time handled to %f" % (self, self.previousTimestamp), 'p')
 
+
+
 	# def timeOutSleep(self):
 	# 	# check for idle sleep trigger
 	# 	for component in self.components:
 	# 		if isinstance(component, sim.devices.components.processor.processor):
 	# 			component.timeOutSleep()
 
-	def updateSleepStatus(self, asleepBefore):
-		raise Exception("deprecated")
-		self.timeOutSleep()
-
-		asleepAfter = self.asleep()
-
-		if asleepBefore and asleepAfter:
-			warnings.warn("don't think this is correct")
-			self.totalSleepTime += self.currentTd
+	# def updateSleepStatus(self, asleepBefore):
+	# 	raise Exception("deprecated")
+	# 	self.timeOutSleep()
+	#
+	# 	asleepAfter = self.asleep()
+	#
+	# 	if asleepBefore and asleepAfter:
+	# 		warnings.warn("don't think this is correct")
+	# 		self.totalSleepTime += self.currentTd
 
 	def expectedLifetime(self):
 		# estimate total life time based on previous use
@@ -671,6 +661,12 @@ class node:
 			self.currentJob = None
 
 		sim.debug.out("resulting job: %s (%s)" % (self.currentJob, str(self.getNumSubtasks())))
+
+	def checkGracefulFailure(self):
+		if not self.gracefulFailure:
+			if self.getEnergyLevelPercentage() <= self.gracefulFailureLevel:
+				# print(self, "graceful failure", self.getEnergyLevelPercentage(), self.gracefulFailureLevel)
+				self.performGracefulFailure()
 
 	def performGracefulFailure(self):
 		self.gracefulFailure = True

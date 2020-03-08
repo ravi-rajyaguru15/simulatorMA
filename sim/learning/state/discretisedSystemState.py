@@ -88,6 +88,7 @@ class discretisedSystemState(systemState):
 
 	@staticmethod
 	def discretiseValue(value, bins, scalingFactor, scale):
+		# print("scale", value, bins, scalingFactor, scale)
 		# capture boolean values
 		if isinstance(value, bool):
 			value = 1 if value else 0
@@ -97,7 +98,8 @@ class discretisedSystemState(systemState):
 				# print("too big!", value, bins, scalingFactor, scale)
 				return bins - 1
 			else:
-				return round(value * (scalingFactor - 1))
+				# return round(value * (scalingFactor - 1))
+				return int(value * (scalingFactor - 1))
 		else:
 			assert value < bins
 			return value
@@ -139,30 +141,17 @@ class discretisedSystemState(systemState):
 		return np.dot(self.currentState, self.multipliers)
 		# return discretisedSystemState._getIndex(self.singlesDiscrete, self.singles, self.multiplesDiscrete, self.multiples, self.dictRepresentation)
 
-	# # convert currentState to an integer index
-	# @staticmethod
-	# def _getIndex(singlesDiscrete, singles, multiplesDiscrete, multiples, dictRepresentation):
-	# 	out = 0
-	# 	debug.out("getting index for %s" % (dictRepresentation))
-	# 	debug.out("numStates for %s" % (singlesDiscrete))
-	#
-	# 	# print()
-	# 	# TODO: use self.multipliers
-	# 	multipleOverallStates = 1  # placeholder until i add multiple states again
-	# 	for i in range(len(singles)):
-	# 		# calculate multiplication factor based on remaining states' options
-	# 		restMultiplier = 1
-	# 		if i < len(singles) - 1:
-	# 			for j in range(i + 1, len(singles)):
-	# 				restMultiplier *= singlesDiscrete[singles[j]]
-	#
-	# 		debug.out("restmulti %d %d" % (restMultiplier, dictRepresentation[singles[i]]))
-	# 		out += dictRepresentation[singles[i]] * restMultiplier
-	# 	# print(self.singles[i], self.dictRepresentation[self.singles[i]], restMultiplier, out)
-	# 	assert multiples == []
-	# 	return out
+	def getGracefulFailureLevel(self):
+		energyField = 'energyRemaining'
+		if energyField in self.singles:
+			return 1. / self.singlesDiscrete[energyField]
+		else:
+			return systemState.getGracefulFailureLevel(self)
 
-	def getStateDescription(self, index):
+	def getStateDescription(self, index=None):
+		if index is None:
+			index = self.getIndex()
+
 		description = ""
 		for i in range(len(self.singles)):
 			# calculate multiplication factor based on remaining states' options

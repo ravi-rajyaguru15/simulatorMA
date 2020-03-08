@@ -1,4 +1,5 @@
 import multiprocessing
+from multiprocessing import freeze_support
 
 import numpy as np
 
@@ -15,6 +16,8 @@ from sim.visualiser import visualiser
 
 queueLengths = list()
 # currentSimulation = None
+
+
 
 class BasicSimulation:
 	sharedAgent = None

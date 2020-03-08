@@ -19,8 +19,8 @@ from sim.simulations.variable import Constant
 
 
 def runThread(agent, numEpisodes, results, finished):
-    exp = SimpleSimulation(numDevices=2, maxJobs=6, agentClass=agent)
-
+    exp = SimpleSimulation(numDevices=4, maxJobs=6, agentClass=agent)
+    exp.scenario.setInterval(1)
     exp.setFpgaIdleSleep(5)
     exp.setBatterySize(1e0)
 
@@ -49,12 +49,7 @@ def runThread(agent, numEpisodes, results, finished):
 
 
 def run(numEpisodes):
-    multiprocessing.set_start_method('spawn')
     print("starting experiment")
-    debug.enabled = False
-    debug.learnEnabled = False
-    debug.infoEnabled = False
-
 
     processes = list()
     # sim.simulations.constants.MINIMUM_BATCH = 1e7
@@ -80,7 +75,7 @@ def run(numEpisodes):
 
 if __name__ == "__main__":
     try:
-        run(1e2)
+        run(1e3)
     except:
         traceback.print_exc(file=sys.stdout)
 
