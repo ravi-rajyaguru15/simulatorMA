@@ -19,7 +19,7 @@ def run():
 	debug.learnEnabled = True
 	constants.DRAW_DEVICES = False
 	taskOptions = [EASY, HARD]
-	exp = Simulation(systemStateClass=minimalSystemState, agentClass=minimalAgent, tasks=taskOptions, autoJobs=True)
+	exp = Simulation(systemStateClass=minimalSystemState, agentClass=minimalAgent, tasks=taskOptions)
 
 	numjobs = int(1e5)
 
