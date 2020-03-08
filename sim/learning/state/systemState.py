@@ -3,6 +3,7 @@ import numpy as np
 import sim.debug
 import sim.simulations.constants
 from sim import debug
+from sim.simulations import constants
 
 
 class systemState:
@@ -82,14 +83,8 @@ class systemState:
 	def updateState(self, device, job, task):
 		raise self.genericException
 
-	# def updateSystem(self):
-	# 	raise self.genericException
-	# def updateTask(self, task):
-	# 	raise self.genericException
-	# def updateJob(self, job):
-	# 	raise self.genericException
-	# def updateDevice(self, device):
-	# 	raise self.genericException
+	def getGracefulFailureLevel(self):
+		return constants.GRACEFUL_FAILURE_LEVEL
 
 	def setField(self, field, value):
 		assert field in self.dictRepresentation

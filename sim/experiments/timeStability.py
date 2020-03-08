@@ -27,7 +27,6 @@ def runThread(jobLikelihood, totalTime, results, finished):
 	finished.put(True)
 
 def run():
-	multiprocessing.set_start_method('spawn')
 	print ("starting experiment")
 	sim.debug.enabled = False
 	sim.simulations.constants.DRAW = False

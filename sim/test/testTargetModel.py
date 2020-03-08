@@ -6,7 +6,8 @@ from multiprocessing import freeze_support
 import sim.debug as debug
 import sim.simulations.constants as constants
 from sim import plotting
-from sim.experiments.experiment import executeMulti
+from sim.experiments.experiment import executeMulti, setupMultithreading
+from sim.experiments.scenario import RANDOM_SCENARIO_ALL, RANDOM_SCENARIO_RANDOM
 from sim.learning.agent.lazyAgent import lazyAgent
 from sim.learning.agent.localAgent import localAgent
 from sim.learning.agent.minimalAgent import minimalAgent
@@ -18,7 +19,8 @@ from sim.simulations.SimpleSimulation import SimpleSimulation as Simulation, Sim
 
 
 def runThread(agent, numEpisodes, results, finished, histories):
-	exp = SimpleSimulation(numDevices=2, maxJobs=6, agentClass=agent)
+	exp = SimpleSimulation(numDevices=2, maxJobs=6, agentClass=agent, scenarioTemplate=RANDOM_SCENARIO_RANDOM)
+	exp.setBatterySize(1e0)
 
 	try:
 		for e in range(int(numEpisodes/2)):
@@ -32,7 +34,7 @@ def runThread(agent, numEpisodes, results, finished, histories):
 
 			results.put(["Agent %s" % agent.__name__, e, exp.numFinishedJobs])
 	except:
-		debug.printCache(200)
+		debug.printCache()
 		traceback.print_exc(file=sys.stdout)
 		print(agent)
 		print("Error in experiment ̰:", exp.time)
@@ -48,6 +50,7 @@ def run():
 	debug.enabled = False
 	debug.learnEnabled = False
 	debug.infoEnabled = False
+	localConstants.DEBUG_HISTORY = False
 
 
 	processes = list()
@@ -72,7 +75,7 @@ def run():
 
 
 if __name__ == "__main__":
-	freeze_support()
+	setupMultithreading()
 	try:
 		run()
 	except:

@@ -94,6 +94,9 @@ class qAgent(agent):
 			debug.learnOut("Training: [{}] [{}] [{}]".format(task, job, device), 'y')
 			self.systemState.updateState(task, job, device)
 			self.backward(job, episodeFinished=job.episodeFinished(), task=task, device=device)
+			debug.infoOut("train: %s %s %s A %s R %.2f" % (task, job, device, self.possibleActions[job.latestAction], self.latestReward))
+			debug.infoOut("to     %s %d" % (self.systemState.getStateDescription(), self.systemState.getIndex()))
+			debug.infoOut("from   %s" % self.systemState.getStateDescription(job.beforeState))
 
 
 	genericException = Exception("Not implemented in generic Q agent")

@@ -2,6 +2,7 @@
 
 # TODO: initial sleep mcu!
 # TODO: sleep mcu during reconfiguration!
+import time
 from sys import stdout
 
 from sim import debug, counters
@@ -125,16 +126,18 @@ def assembleResults(resultsQueue, outputQueue, numResults=None):
 # takes results as input,
 def assembleResultsBasic(resultsQueue, outputQueue, numResults=None):
 	# process results into dict
+	time.sleep(1)
 	if numResults is None:
 		numResults = resultsQueue.qsize()
-	print("assembling results", numResults)
+	# print("assembling results", numResults)
 	graphs = dict()
 	# print("")
 	for i in range(numResults):
 		result = resultsQueue.get()
+		# print('result', result)
 
-		# stdout.write("\rProgress: {:.2f}%".format((i + 1) / numResults * 100.0))
-		# stdout.flush()
+		stdout.write("\rProgress: {:.2f}%".format((i + 1) / numResults * 100.0))
+		stdout.flush()
 
 		if len(result) == 4:
 			graphName, sample, datapoint, normalise = result
@@ -152,8 +155,7 @@ def assembleResultsBasic(resultsQueue, outputQueue, numResults=None):
 		# print("adding", datapoint, "to", graphName, sample)
 		graphs[graphName][sample].append(datapoint)
 
-	# print()
-	# print()
+
 	# print('graphs', graphs)
 	# calculate means and averages
 	outputGraphs = dict()
@@ -167,6 +169,7 @@ def assembleResultsBasic(resultsQueue, outputQueue, numResults=None):
 		# print(outputGraphs[key][x])
 	# print ("processed")
 	outputQueue.put(outputGraphs)
+	# print(outputGraphs)
 
 
 # print ("after")
@@ -263,6 +266,12 @@ def doOffloadJob(experiment, source, destination):
 	# assert offloadJob.immediate is False
 	assert destination.currentJob is None
 
+def setupMultithreading():
+	print(multiprocessing.get_start_method(allow_none=False))
+	if multiprocessing.get_start_method(allow_none=False) != 'spawn':
+		print("SETTING CONTEXT")
+		multiprocessing.freeze_support()
+		multiprocessing.set_start_method('spawn', force=True)
 
 # time.sleep(1)
 # batch 1

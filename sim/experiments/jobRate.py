@@ -4,15 +4,19 @@ import traceback
 import os
 import numpy as np
 
-from sim import debug
-from sim.experiments.experiment import executeMulti
-from sim.plotting import plotMultiWithErrors
 from sim.simulations.SimpleSimulation import SimpleSimulation
+from sim import debug
+from sim.experiments.experiment import executeMulti, setupMultithreading
+from sim.plotting import plotMultiWithErrors
 from sim.simulations.variable import Gaussian
 
+
 numDevices = 4
+
+
 def runThread(exp, jobInterval, results, finished):
 	try:
+		exp = SimpleSimulation(jobInterval=Gaussian(jobInterval, 1))
 		# exp.simulateTime(10)
 		exp.simulateEpisode()
 	except:
@@ -23,8 +27,8 @@ def runThread(exp, jobInterval, results, finished):
 	# results.put(["", jobInterval, np.average([dev.numJobs for dev in exp.devices]) / exp.getCompletedJobs()])
 	finished.put(True)
 
+
 def run():
-	multiprocessing.set_start_method('spawn')
 	print("starting experiment")
 	debug.enabled = False
 
@@ -35,17 +39,16 @@ def run():
 	finished = multiprocessing.Queue()
 	REPEATS = 4
 
-	SimpleSimulation(jobInterval=Gaussian(100, 1))
-	SimpleSimulation(jobInterval=Gaussian(100, 1))
-
 	for jobInterval in np.arange(1, 1e2, 1e1):
 		for _ in range(REPEATS):
 			print(SimpleSimulation())
-			processes.append(multiprocessing.Process(target=runThread, args=(SimpleSimulation(jobInterval=Gaussian(jobInterval, 1)), jobInterval, results, finished)))
+			processes.append(multiprocessing.Process(target=runThread, args=(jobInterval, results, finished)))
 	
 	results = executeMulti(processes, results, finished)
 	plotMultiWithErrors("Job Interval", results=results, ylabel="Total Jobs", xlabel="Job Interval") # , save=True)
 
+if __name__ == "__main__":
+	setupMultithreading()
 try:
 	run()
 except:

@@ -6,7 +6,6 @@ from queue import PriorityQueue, Empty
 import numpy as np
 
 from sim import debug
-from sim.clock import clock
 from sim.devices.components import powerPolicy
 from sim.devices.components.processor import processor
 from sim.devices.components.fpga import fpga
@@ -14,7 +13,6 @@ from sim.devices.node import node
 from sim.experiments.scenario import RANDOM_SCENARIO_RANDOM
 from sim.learning.agent.minimalAgent import minimalAgent
 from sim.learning.state.minimalSystemState import minimalSystemState
-from sim.offloading import offloadingPolicy, offloadingDecision
 from sim.simulations import constants
 from sim.simulations.Simulation import BasicSimulation
 from sim.tasks.subtask import subtask
@@ -26,7 +24,7 @@ class SimpleSimulation(BasicSimulation):
 	jobInterval = None
 	scenario = None
 
-	def __init__(self, numDevices=constants.NUM_DEVICES, jobInterval=constants.JOB_INTERVAL, maxJobs=constants.MAX_JOBS, systemStateClass=minimalSystemState, agentClass=minimalAgent, allowExpansion=constants.ALLOW_EXPANSION, tasks=constants.DEFAULT_TASK_GRAPH, offPolicy=constants.OFF_POLICY, scenarioTemplate=RANDOM_SCENARIO_RANDOM):
+	def __init__(self, numDevices=constants.NUM_DEVICES, jobInterval=constants.DEFAULT_TIME_INTERVAL, maxJobs=constants.MAX_JOBS, systemStateClass=minimalSystemState, agentClass=minimalAgent, allowExpansion=constants.ALLOW_EXPANSION, tasks=constants.DEFAULT_TASK_GRAPH, offPolicy=constants.OFF_POLICY, scenarioTemplate=RANDOM_SCENARIO_RANDOM):
 		BasicSimulation.__init__(self, numDevices=numDevices, maxJobs=maxJobs, systemStateClass=systemStateClass, agentClass=agentClass, globalClock=False, allowExpansion=allowExpansion, tasks=tasks, offPolicy=offPolicy)
 		# remove the taskqueues as tasks are queued in sim
 		for dev in self.devices: dev.taskQueue = None
@@ -41,7 +39,6 @@ class SimpleSimulation(BasicSimulation):
 
 		self.queue = PriorityQueue()
 		# self.autoJobs = autoJobs
-		self.jobInterval = jobInterval
 		# debug.out("job interval set to %s" self.jobInterval)
 		# if self.autoJobs:
 		# 	self.queueInitialJobs()
@@ -49,6 +46,7 @@ class SimpleSimulation(BasicSimulation):
 		# assert not (autoJobs and scenarioTemplate is not None)
 
 		self.scenario = scenarioTemplate
+		self.scenario.setInterval(jobInterval)
 		self.queueNewJobs(self.scenario.setDevices(self.devices))
 
 		BasicSimulation.reset(self)
@@ -306,6 +304,8 @@ class SimpleSimulation(BasicSimulation):
 			device.updateDeviceEnergy(devicePower)
 			usages.append([idlePeriod, devicePower])
 			debug.out("idle %s time handled to %f (%f)" % (device, device.currentTime.current, device.previousTimestamp), 'p')
+			if idlePeriod > 0:
+				debug.infoOut('idle energy %.2f %.2f %.2f%% %s' % (idlePeriod, devicePower, idlePeriod * devicePower / device.maxEnergyLevel * 100., device.getComponentStates()))
 
 			# check if idle killed device
 			if device.energyLevel < 0:
@@ -320,7 +320,8 @@ class SimpleSimulation(BasicSimulation):
 		elif task == SLEEP_COMPONENT:
 			# check if device should be sleeping
 			debug.out("CHECKING DEVICE SLEEP")
-			self.timeOutSleep(device)
+			# self.timeOutSleep(device)
+			device.timeOutSleepFpga()
 
 		self.previous = (device.currentTime.current, args, self.queue.qsize())
 		return usages
@@ -447,28 +448,28 @@ class SimpleSimulation(BasicSimulation):
 
 		assert self.queue.qsize() == beforeTasks
 
-	def timeOutSleep(self, target):
-		# call on any contained FPGAs
-		if isinstance(target, node):
-			for targetProcessor in target.processors:
-				# mcu sleeping is managed in subtask finish
-				if isinstance(targetProcessor, fpga):
-					self.timeOutSleep(targetProcessor)
-
-		else:
-			assert isinstance(target, processor)
-			if target.isIdle():
-				idleTime = target.owner.currentTime - target.latestActive
-				# debug.out("sleep check: %s %s %f %f %s" % (target, target.isIdle(), idleTime, target.idleTimeout, target.owner.currentTd))
-				# print("sleep check: %s %s %f %f %s" % (target, target.isIdle(), idleTime, target.idleTimeout, target.owner.currentTd))
-
-				# target.idleTime += target.owner.currentTd
-				if idleTime >= target.idleTimeout:
-					target.sleep()
-					debug.out("target SLEEP")
-			# else:
-			else:
-				target.idleTime = 0
+	# def timeOutSleep(self, target):
+	# 	# call on any contained FPGAs
+	# 	if isinstance(target, node):
+	# 		for targetProcessor in target.processors:
+	# 			# mcu sleeping is managed in subtask finish
+	# 			if isinstance(targetProcessor, fpga):
+	# 				self.timeOutSleep(targetProcessor)
+	#
+	# 	else:
+	# 		assert isinstance(target, processor)
+	# 		if target.isIdle():
+	# 			idleTime = target.owner.currentTime - target.latestActive
+	# 			# debug.out("sleep check: %s %s %f %f %s" % (target, target.isIdle(), idleTime, target.idleTimeout, target.owner.currentTd))
+	# 			# print("sleep check: %s %s %f %f %s" % (target, target.isIdle(), idleTime, target.idleTimeout, target.owner.currentTd))
+	#
+	# 			# target.idleTime += target.owner.currentTd
+	# 			if idleTime >= target.idleTimeout:
+	# 				target.sleep()
+	# 				debug.out("target SLEEP")
+	# 		# else:
+	# 		else:
+	# 			target.idleTime = 0
 
 
 class QueueTask:

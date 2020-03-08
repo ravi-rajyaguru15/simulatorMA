@@ -5,7 +5,7 @@ import traceback
 from multiprocessing import freeze_support
 
 from sim import debug, counters, plotting
-from sim.experiments.experiment import executeMulti
+from sim.experiments.experiment import executeMulti, setupMultithreading
 from sim.experiments.scenario import ALL_SCENARIOS, RANDOM_SCENARIO_RANDOM
 from sim.simulations import localConstants
 from sim.simulations.SimpleSimulation import SimpleSimulation
@@ -38,7 +38,6 @@ def runThread(scenario, numEpisodes, results, finished):
 
 
 def run(numEpisodes):
-	multiprocessing.set_start_method('spawn')
 	print("starting experiment")
 	debug.enabled = False
 	debug.learnEnabled = False
@@ -64,7 +63,7 @@ def run(numEpisodes):
 
 
 if __name__ == "__main__":
-	freeze_support()
+	setupMultithreading()
 	try:
 		run(1e2)
 	except:

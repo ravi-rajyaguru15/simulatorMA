@@ -80,7 +80,10 @@ class agent:
 		self._setDecisions(devices)
 
 	def getAction(self, action):
-		return self.possibleActions[self.possibleActions.index(action)]
+		return self.possibleActions[self.getActionIndex(action)]
+
+	def getActionIndex(self, action):
+		return self.possibleActions.index(action)
 
 	def _setDecisions(self, devices):
 		for i in range(len(self.possibleActions)):
@@ -290,17 +293,17 @@ class agent:
 	def updateOffloadingTarget(self):
 		pass
 
-	# check offloading decision on idle job
-	def rechooseDestination(self, task, job, device):
-		raise Exception("deprecated")
-		# self.updateState(task, job, device)
-		# self.privateAgent.backward(job.reward(), sim.simulations.current.finished)
-		self.train(task, job, device)
-		# choice = self.decideDestination(task, job, device)
-		choice = self.forward(task, job, device)
-
-		job.setDecisionTarget(choice)
-		return job.activate()
+	# # check offloading decision on idle job
+	# def rechooseDestination(self, task, job, device):
+	# 	raise Exception("deprecated")
+	# 	# self.updateState(task, job, device)
+	# 	# self.privateAgent.backward(job.reward(), sim.simulations.current.finished)
+	# 	self.train(task, job, device)
+	# 	# choice = self.decideDestination(task, job, device)
+	# 	choice = self.forward(task, job, device)
+	#
+	# 	job.setDecisionTarget(choice)
+	# 	return job.activate()
 
 		# return choice
 
