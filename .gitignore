@@ -1,5 +1,6 @@
 sim/simulations/localConstants.py
 *__pycache__*
+base/authorized_keys
 .idea/
 .venv*
 #.clwb/*

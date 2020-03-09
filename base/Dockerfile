@@ -3,3 +3,7 @@ FROM python:3.7
 
 COPY requirements.txt ./requirements.txt
 RUN pip3 install -r ./requirements.txt --disable-pip-version-check
+
+RUN apt-get update
+RUN apt-get install -y openssh-server
+COPY authorized_keys /root/.ssh/authorized_keys

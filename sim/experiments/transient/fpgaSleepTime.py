@@ -12,7 +12,7 @@ from sim.simulations.SimpleSimulation import SimpleSimulation
 
 def runThread(jobInterval, fpgaSleepTime, numEpisodes, results, finished):
 	exp = SimpleSimulation(numDevices=4)
-	exp.scenario.setInterval(1)
+	exp.scenario.setInterval(jobInterval)
 	exp.setFpgaIdleSleep(fpgaSleepTime)
 	exp.setBatterySize(1e1)
 
@@ -20,33 +20,33 @@ def runThread(jobInterval, fpgaSleepTime, numEpisodes, results, finished):
 		for i in range(numEpisodes):
 			# exp.simulateTime(10)
 			exp.simulateEpisode()
+			results.put(["FPGA Idle Sleep {} Interval {}".format(fpgaSleepTime, jobInterval), i, exp.numFinishedJobs])
 	except:
 		traceback.print_exc(file=sys.stdout)
 		print(jobInterval, fpgaSleepTime, )
 		print("Error in experiment:", jobInterval, fpgaSleepTime, exp.getCurrentTime())
 
-	results.put(["FPGA Idle Sleep {}".format(fpgaSleepTime), jobInterval, np.sum(exp.totalDevicesEnergy()) / exp.getNumDevices()])
 	finished.put(True)
 
 
 def run():
-	print ("starting experiment")
+	print("starting experiment")
 
 	processes = list()
 
 	# offloadingOptions = [True, False]
 	results = multiprocessing.Queue()
 	finished = multiprocessing.Queue()
-	numEpisodes = int(1e2)
+	numEpisodes = int(1e1)
 
-	for jobInterval in np.arange(1, 1e1, 1):
-		for fpgaSleepTime in np.arange(0, 1e-0, 2.5e-1):
+	for jobInterval in [0.1, 1]: #, 10]: #np.arange(0.1, 1., 0.3):
+		for fpgaSleepTime in [1e-6, 1e-3, 2e-3, 1e-2]: #, 1]:# np.arange(0, 1e-0, 5e-1):
 			for _ in range(localConstants.REPEATS):
 				processes.append(multiprocessing.Process(target=runThread, args=(jobInterval, fpgaSleepTime, numEpisodes, results, finished)))
 
 	results = executeMulti(processes, results, finished, numResults=numEpisodes * len(processes))
 
-	plotMultiWithErrors("Average Energy", results=results) # , save=True)
+	plotMultiWithErrors("Total Jobs Done", results=results) # , save=True)
 
 
 if __name__ == '__main__':

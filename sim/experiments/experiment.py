@@ -268,9 +268,9 @@ def doOffloadJob(experiment, source, destination):
 
 def setupMultithreading():
 	print(multiprocessing.get_start_method(allow_none=False))
+	multiprocessing.freeze_support()
 	if multiprocessing.get_start_method(allow_none=False) != 'spawn':
 		print("SETTING CONTEXT")
-		multiprocessing.freeze_support()
 		multiprocessing.set_start_method('spawn', force=True)
 
 # time.sleep(1)
