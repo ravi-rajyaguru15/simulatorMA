@@ -3,13 +3,12 @@ import numpy as np
 MEASUREMENT_NOISE = True
 CACHE_SIZE = int(1e5)
 class Variable:
-	genFunction = genArgs = integer = None
+	genFunction = integer = None
 	mean = std = None
 	cache = []
 
-	def __init__(self, function, args, integer=False):
+	def __init__(self, function, integer=False):
 		self.genFunction = function
-		self.genArgs = args
 		self.integer = integer
 
 	def gen(self):
@@ -25,16 +24,22 @@ class Variable:
 			# if self.integer: value = np.round(value)
 			return value
 
+	def clearCache(self):
+		self.cache = []
+
 	def sample(self):
 		if len(self.cache) == 0:
 			# generate a new set of samples
-			arr = self.genFunction(*self.genArgs, CACHE_SIZE)
+			arr = self.genFunction(*self.args(), CACHE_SIZE)
 			arr[np.where(arr < 0)] = 0
 			if self.integer:
 				arr = np.round(arr)
 			self.cache = arr.tolist()
 		
 		return self.cache.pop()
+
+	def args(self):
+		raise Exception("Defaults args not available")
 
 	def evaluate(self, value):
 		return self.gen() <= value
@@ -48,24 +53,37 @@ class Uniform(Variable):
 	def __init__(self, mean, limit, integer=False):
 		self.limit = limit
 		self.mean = mean
-		Variable.__init__(self, np.random.uniform, (self.mean - self.limit/2, self.mean + self.limit/2, ), integer=integer)
+		Variable.__init__(self, np.random.uniform, integer=integer)
+
+	def args(self):
+		return (self.mean - self.limit / 2, self.mean + self.limit / 2,)
 
 class Constant(Variable):
 	def __init__(self, mean, std=0, integer=False):
 		self.mean = mean
-		Variable.__init__(self, Constant.genConstant, (self.mean, ), integer=integer)
+		Variable.__init__(self, Constant.genConstant, integer=integer)
 
 	@staticmethod
 	def genConstant(mean, numSamples=CACHE_SIZE):
 		return np.array([mean] * numSamples)
 
+	def args(self):
+		return (self.mean, )
 
 class Gaussian(Variable):
 	def __init__(self, mean, std, integer=False):
 		self.mean = mean
 		self.std = std
 
-		Variable.__init__(self, np.random.normal, (self.mean, self.std, ), integer=integer)
+		Variable.__init__(self, np.random.normal, integer=integer)
+
+	def setMean(self, mean):
+		self.mean = mean
+		self.genArgs = [self.mean, self.std]
+		self.clearCache()
+
+	def args(self):
+		return (self.mean, self.std, )
 
 	# def gen(self):
 		# return random.gauss(self.mean, self.std)

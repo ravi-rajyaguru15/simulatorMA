@@ -1,5 +1,6 @@
 import random
 from copy import deepcopy
+from random import choice
 
 import numpy as np
 
@@ -17,7 +18,7 @@ class agent:
 	options = None
 	target = None
 	possibleActions = None  # TODO: offloading to self
-	numOptions = None
+	# numOptions = None
 	numActions = None
 	metrics_names = None
 	owner = None
@@ -44,11 +45,14 @@ class agent:
 	totalReward = None
 	episodeReward = None
 	productionMode = None
+	offPolicy = None
 
-	def __init__(self, systemState, owner=None):
+	def __init__(self, systemState, owner=None, offPolicy=constants.OFF_POLICY):
 		self.systemState = systemState
 		# print("set systemstate to", systemState)
 		self.owner = owner # owner none means shared
+
+		self.offPolicy = offPolicy
 
 		self.totalReward = 0
 		self.productionMode = False
@@ -68,6 +72,9 @@ class agent:
 	# 	self.options = allDevices
 
 	# def setOffloadingOptions(self, otherDevices):
+
+	def getOffloadingTargets(self, devices):
+		return devices
 
 	def setDevices(self, devices):
 		if len(devices) == 1:
@@ -122,16 +129,23 @@ class agent:
 
 	def chooseDestination(self, task, job, device):
 		# default behaviour is to choose a random option
-		if len(self.options) == 1:
+		if len(self.possibleActions) == 1:
 			debug.out("only one option for job", 'y')
 			# choice = self.possibleActions[0]
-			choice = self.getAction(OFFLOADING)
-			choice.updateTargetDevice(device, self.options)
+			decision = self.getAction(OFFLOADING)
+		elif not device.hasOffloadingOptions():
+			debug.out("only option is local")
+			if self.possibleActions[0] is OFFLOADING:
+			# assert self.possibleActions[0] is OFFLOADING
+				decision = choice(self.possibleActions[1:])
+			else:
+				decision = choice(self.possibleActions)
 		else:
 			debug.out("assigning job randomly", 'y')
-			choice = action("Random", targetIndex=random.choice(self.options).index)
-			choice.updateTargetDevice(self.owner, self.options)
-		return choice
+			# choice = action("Random", targetIndex=random.choice(self.options).index)
+			decision = choice(self.possibleActions)
+		decision.updateTargetDevice(device, device.offloadingOptions)
+		return decision
 
 		# # if specified fixed target, return it
 		# if self.target is not None:
@@ -240,7 +254,7 @@ class agent:
 
 	# default behaviour is just random choice
 	def selectAction(self, systemState):
-		action = np.random.randint(0, self.numOptions - 1)
+		action = random.randint(0, self.numActions - 1)
 		return action
 
 	# predict best action using values

@@ -8,7 +8,6 @@ from multiprocessing import freeze_support
 
 from sim import debug, counters, plotting
 from sim.experiments.experiment import executeMulti
-from sim.learning.agent.deathwishAgent import deathwishAgent
 from sim.learning.agent.lazyAgent import lazyAgent
 from sim.learning.agent.localAgent import localAgent
 from sim.learning.agent.minimalAgent import minimalAgent
@@ -22,7 +21,7 @@ from sim.tasks.tasks import HARD
 
 
 def runThread(agent, numEpisodes, results, finished):
-    exp = SimpleSimulation(numDevices=16, maxJobs=15, agentClass=agent, tasks=[HARD])
+    exp = SimpleSimulation(numDevices=16, maxJobs=25, agentClass=agent, tasks=[HARD])
     exp.scenario.setInterval(1)
     exp.setBatterySize(1e-1)
 
@@ -32,7 +31,13 @@ def runThread(agent, numEpisodes, results, finished):
             debug.infoEnabled = False
             exp.simulateEpisode()
 
-            results.put(["Agent %s" % agent.__name__, e, exp.numFinishedJobs])
+            try:
+                averageLifetime = exp.totalFinishedJobsLifetime / exp.numFinishedJobs
+            except ZeroDivisionError:
+                print("no jobs done!")
+                print(agent, numEpisodes, e)
+                averageLifetime = 0
+            results.put(["Agent %s" % agent.__name__, e, averageLifetime])
     except:
         debug.printCache()
         traceback.print_exc(file=sys.stdout)
@@ -64,7 +69,7 @@ def run(numEpisodes):
 
     # localConstants.REPEATS = 10
     numEpisodes = int(numEpisodes)
-    agentsToTest = [minimalAgent, lazyAgent] # , localAgent] # , randomAgent]
+    agentsToTest = [minimalAgent, lazyAgent, randomAgent] # localAgent]
     for agent in agentsToTest: # [minimalAgent, lazyAgent]:
         for _ in range(localConstants.REPEATS):
             processes.append(multiprocessing.Process(target=runThread, args=(agent, numEpisodes, results, finished)))
@@ -72,7 +77,7 @@ def run(numEpisodes):
     results = executeMulti(processes, results, finished, numResults=len(agentsToTest) * numEpisodes * localConstants.REPEATS)
 
     # plotting.plotMultiWithErrors("Number of Jobs", results=results, ylabel="Job #", xlabel="Episode #")  # , save=True)
-    plotting.plotMulti("Number of Jobs", results=results, ylabel="Job #", xlabel="Episode #")  # , save=True)
+    plotting.plotMulti("Episode Duration", results=results, ylabel="Average Job lifetime (in s)", xlabel="Episode #")  # , save=True)
 
 
 if __name__ == "__main__":

@@ -5,6 +5,7 @@ from sim.learning.agent.qTableAgent import qTableAgent
 
 
 class lazyAgent(qTableAgent):
+	__name__ = "Lazy Agent"
 	def __repr__(self): return "<Lazy Agent>"
 
 	def reward(self, job, task, device):

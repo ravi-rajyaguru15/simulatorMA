@@ -16,12 +16,13 @@ if __name__ == "__main__":
 	# debug.settings.learnEnabled = True
 	debug.settings.infoEnabled = True
 
+	# debug.settings.enabled = True
+	# debug.settings.learnEnabled = True
 	exp = SimpleSimulation(numDevices=2, maxJobs=1, agentClass=lazyAgent)
 	exp.scenario.setInterval(1)
 	exp.setBatterySize(1e-2)
 	exp.setFpgaIdleSleep(1e-3)
 	exp.simulateEpisode()
-
 
 	debug.settings.infoEnabled = False
 	exp.sharedAgent.printModel()

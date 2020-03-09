@@ -27,6 +27,7 @@ class BasicSimulation:
 	# finishedJobsList = None
 	latestFinishedJob = None
 	numFinishedJobs = None
+	totalFinishedJobsLifetime = None
 	finishedTasks = None
 	unfinishedJobsList = None
 	ed, ed2, en, gw, srv, selectedOptions = None, None, None, None, None, None
@@ -84,12 +85,13 @@ class BasicSimulation:
 			debug.out("creating shared agent %s" % agentClass)
 			self.sharedAgent = agentClass(systemState=self.currentSystemState, owner=None, offPolicy=offPolicy)
 			# TODO: need private state for non shared agent
+			agentClass = self.sharedAgent
+
 
 		# simulationResults.learningHistory = history()
 
 		debug.out("Learning: shared: %s agent: %s centralised: %s" % (self.useSharedAgent, agentClass, constants.CENTRALISED_LEARNING), 'r')
-		agentClass = self.sharedAgent
-		self.devices = [elasticNode(self.time, constants.DEFAULT_ELASTIC_NODE, self.results, i, maxJobs=maxJobs, currentSystemState=self.currentSystemState, agent=agentClass, alwaysHardwareAccelerate=hardwareAccelerated, usingTargetModel=offPolicy) for i in range(numDevices)]
+		self.devices = [elasticNode(self.time, constants.DEFAULT_ELASTIC_NODE, self.results, i, maxJobs=maxJobs, currentSystemState=self.currentSystemState, agent=agentClass, alwaysHardwareAccelerate=hardwareAccelerated, offPolicy=offPolicy) for i in range(numDevices)]
 
 
 			# offloadingDecision.offloadingDecision.createSharedAgent(self.currentSystemState, agentClass)
@@ -129,10 +131,10 @@ class BasicSimulation:
 			
 		# set all device options correctly
 		# needs simulation and system state to be populated
-		for device in self.devices: 
-			# choose options based on policy
-			debug.out("setting shared: %s" % self.sharedAgent)
-			device.setOffloadingOptions(self.devices)
+		# for device in self.devices:
+		# 	# choose options based on policy
+		# 	debug.out("setting shared: %s" % self.sharedAgent)
+		# 	device.setOffloadingOptions(self.devices, )
 
 		# sim.simulations.Simulation.currentSimulation = self
 
@@ -202,6 +204,7 @@ class BasicSimulation:
 		self.latestFinishedJob = None
 		self.finishedTasks = dict()
 		self.numFinishedJobs = 0
+		self.totalFinishedJobsLifetime = 0
 		self.unfinishedJobsList = []
 		job.id = 0
 
@@ -228,6 +231,11 @@ class BasicSimulation:
 		if job.currentTask not in self.finishedTasks:
 			self.finishedTasks[job.currentTask] = 0
 		self.finishedTasks[job.currentTask] += 1
+
+		if job.owner.currentTime is not None:
+			self.totalFinishedJobsLifetime += job.owner.currentTime - job.createdTime
+		else:
+			self.totalFinishedJobsLifetime += self.time.current - job.createdTime
 
 	def getLatestFinishedJob(self):
 		# assert len(self.finishedJobsList) > 0

@@ -8,6 +8,7 @@ from sim.simulations import constants
 
 enableGracefulFailure = True
 
+
 class subtask:
 	duration = None
 	totalDuration = 0
@@ -32,7 +33,8 @@ class subtask:
 	# stub for incremental updating
 	update = None
 
-	def __init__(self, job, duration, owner=None, addsLatency=True): #, energyCost): # , device): # , origin, destination):
+	def __init__(self, job, duration, owner=None,
+				 addsLatency=True):  # , energyCost): # , device): # , origin, destination):
 		# self.startTime = currentTime
 
 		# defined subtasks must first set duration and energy
@@ -89,75 +91,75 @@ class subtask:
 	def tick(self):
 		# only proceed if already started 
 		if not self.started:
-			debug.out ("{} possible? {}".format(self, self.possible()))
+			debug.out("{} possible? {}".format(self, self.possible()))
 			if self.possible():
 				self.beginTask()
-				debug.out ("begin {} {}".format(self, self.started))
-			# else:
-			# 	self.delay += sim.constants.TD
-			# 	# check for deadlock
-			# 	if isinstance(self, txMessage):
-			# 		if self.deadlock():
-			# 			# raise Exception("DEADLOCK", self.job.creator, self.job.processingNode, sim.constants.OFFLOADING_POLICY, sim.constants.JOB_LIKELIHOOD)
-			# 			debug.out("TX DEADLOCK!\n\n\n")
-			# 			# time.sleep(1.5)
-			# 			debug.out ("removing task {} from {}".format(self.correspondingRx, self.destination))
-			# 			# TODO: move this to private functions
-			# 			# resolve deadlock by making destination prioritise reception
-			# 			# move current task to queue to be done later
-			# 			try:
-			# 				self.destination.currentSubtask.delay = 0
-			# 				self.destination.addSubtask(self.destination.currentSubtask) # current task not None so nextTask won't start this task again
-			# 				self.destination.removeTask(self.correspondingRx)
-			# 				self.destination.currentSubtask = self.correspondingRx # must remove task before setting as current
-			# 				# self.destination.currentSubtask.start() # start to ensure it doesn't get removed
-			# 				# forced to be ready now
-			# 				self.beginTask()
-			#
-			# 			except ValueError:
-			# 				print()
-			# 				print("Cannot resolve deadlock!")
-			# 				print("current", self.destination.currentSubtask)
-			# 				print("duration", self.duration, self.correspondingRx.duration)
-			# 				print("rx", self.correspondingRx, self.correspondingRx.started)
-			# 				print("queue", self.destination.taskQueue)
-			# 				traceback.print_exc()
-			# 				sys.exit(0)
-			# 	elif isinstance(self, rxMessage):
-			# 		if self.deadlock():
-			# 			# raise Exception("DEADLOCK", self.job.creator, self.job.processingNode, sim.constants.OFFLOADING_POLICY, sim.constants.JOB_LIKELIHOOD)
-			# 			debug.out("RX DEADLOCK!\n\n\n")
-			# 			if debug.enabled:
-			# 				time.sleep(1.5)
-			# 			# debug.out ("removing task {} from {}".format(self.correspondingRx, self.destination))
-			# 			# resolve deadlock by making destination prioritise reception
-			# 			# move current task to queue to be done later
-			# 			try:
-			# 				self.source.currentSubtask.delay = 0
-			# 				self.source.addSubtask(self.source.currentSubtask) # current task not None so nextTask won't start this task again
-			# 				self.source.removeTask(self.correspondingTx)
-			# 				self.source.currentSubtask = self.correspondingTx # must remove task before setting as current
-			# 			except ValueError:
-			# 				print()
-			# 				print("Cannot resolve deadlock!")
-			# 				print("current", self.destination.currentSubtask)
-			# 				print("duration", self.duration, self.correspondingTx.duration)
-			# 				print("rx", self.correspondingTx, self.correspondingTx.started)
-			# 				print("queue", self.destination.taskQueue)
-			# 				traceback.print_exc()
-			# 				sys.exit(0)
-			#
-			# 		# # is it delayed?
-			# 		# elif self.delay >= sim.constants.MAX_DELAY:
-			# 		# 	print("task delayed!\n\n")
-			# 		# 	time.sleep(.1)
-			# 		# 	self.owner.swapTask()
-			# 		# 	# see if it's been swapped
-			# 		# 	if self.owner.currentSubtask != self:
-			# 		# 		self.delay = 0
-			#
-			#
-			# 	debug.out("try again...")
+				debug.out("begin {} {}".format(self, self.started))
+		# else:
+		# 	self.delay += sim.constants.TD
+		# 	# check for deadlock
+		# 	if isinstance(self, txMessage):
+		# 		if self.deadlock():
+		# 			# raise Exception("DEADLOCK", self.job.creator, self.job.processingNode, sim.constants.OFFLOADING_POLICY, sim.constants.JOB_LIKELIHOOD)
+		# 			debug.out("TX DEADLOCK!\n\n\n")
+		# 			# time.sleep(1.5)
+		# 			debug.out ("removing task {} from {}".format(self.correspondingRx, self.destination))
+		# 			# TODO: move this to private functions
+		# 			# resolve deadlock by making destination prioritise reception
+		# 			# move current task to queue to be done later
+		# 			try:
+		# 				self.destination.currentSubtask.delay = 0
+		# 				self.destination.addSubtask(self.destination.currentSubtask) # current task not None so nextTask won't start this task again
+		# 				self.destination.removeTask(self.correspondingRx)
+		# 				self.destination.currentSubtask = self.correspondingRx # must remove task before setting as current
+		# 				# self.destination.currentSubtask.start() # start to ensure it doesn't get removed
+		# 				# forced to be ready now
+		# 				self.beginTask()
+		#
+		# 			except ValueError:
+		# 				print()
+		# 				print("Cannot resolve deadlock!")
+		# 				print("current", self.destination.currentSubtask)
+		# 				print("duration", self.duration, self.correspondingRx.duration)
+		# 				print("rx", self.correspondingRx, self.correspondingRx.started)
+		# 				print("queue", self.destination.taskQueue)
+		# 				traceback.print_exc()
+		# 				sys.exit(0)
+		# 	elif isinstance(self, rxMessage):
+		# 		if self.deadlock():
+		# 			# raise Exception("DEADLOCK", self.job.creator, self.job.processingNode, sim.constants.OFFLOADING_POLICY, sim.constants.JOB_LIKELIHOOD)
+		# 			debug.out("RX DEADLOCK!\n\n\n")
+		# 			if debug.enabled:
+		# 				time.sleep(1.5)
+		# 			# debug.out ("removing task {} from {}".format(self.correspondingRx, self.destination))
+		# 			# resolve deadlock by making destination prioritise reception
+		# 			# move current task to queue to be done later
+		# 			try:
+		# 				self.source.currentSubtask.delay = 0
+		# 				self.source.addSubtask(self.source.currentSubtask) # current task not None so nextTask won't start this task again
+		# 				self.source.removeTask(self.correspondingTx)
+		# 				self.source.currentSubtask = self.correspondingTx # must remove task before setting as current
+		# 			except ValueError:
+		# 				print()
+		# 				print("Cannot resolve deadlock!")
+		# 				print("current", self.destination.currentSubtask)
+		# 				print("duration", self.duration, self.correspondingTx.duration)
+		# 				print("rx", self.correspondingTx, self.correspondingTx.started)
+		# 				print("queue", self.destination.taskQueue)
+		# 				traceback.print_exc()
+		# 				sys.exit(0)
+		#
+		# 		# # is it delayed?
+		# 		# elif self.delay >= sim.constants.MAX_DELAY:
+		# 		# 	print("task delayed!\n\n")
+		# 		# 	time.sleep(.1)
+		# 		# 	self.owner.swapTask()
+		# 		# 	# see if it's been swapped
+		# 		# 	if self.owner.currentSubtask != self:
+		# 		# 		self.delay = 0
+		#
+		#
+		# 	debug.out("try again...")
 
 		totalDevicePower = self.owner.getTotalPower()
 
@@ -191,14 +193,13 @@ class subtask:
 	def __str__(self):
 		return self.__repr__()
 
-
 	def __repr__(self):
 		return "{} [{}] ({:.3f})".format(self.__name__, self.job, self.duration - self.progress)
-
 
 	# default possible function is always available
 	def possible(self):
 		return True
+
 	def deadlock(self):
 		return False
 
@@ -235,14 +236,16 @@ class subtask:
 	def start(self):
 		self.started = True
 
+
 class createMessage(subtask):
 	wirelessDuration = None
 	__name__ = "Create Message"
+
 	# destination = None
 	# samples = None
 
 	def __init__(self, job):
-		debug.out ("created createMessage")
+		debug.out("created createMessage")
 		# self.destination = job.destination
 		# self.samples = job.samples
 
@@ -262,7 +265,9 @@ class createMessage(subtask):
 		self.owner.mcu.idle()
 
 		newSubtask = txJob(self.job, self.job.owner, self.job.processingNode)
-		return subtask.finishTask(self, [(self.owner, newSubtask), (self.job.processingNode, newSubtask.correspondingRx)])
+		return subtask.finishTask(self,
+								  [(self.owner, newSubtask), (self.job.processingNode, newSubtask.correspondingRx)])
+
 
 # class idle(subtask):
 # 	__name__ = "Idle"
@@ -338,6 +343,7 @@ class batchContinue(subtask):
 
 		return subtask.finishTask(self, [affected])
 
+
 class batching(subtask):
 	__name__ = "Batching"
 
@@ -395,11 +401,12 @@ class batching(subtask):
 
 		return subtask.finishTask(self, [affected])
 
+
 class newJob(subtask):
 	__name__ = "New Job"
 
 	def __init__(self, job):
-		duration = job.processingNode.platform.MCU_BATCHING_LATENCY.gen() # immediately move on (if possible)
+		duration = job.processingNode.platform.MCU_BATCHING_LATENCY.gen()  # immediately move on (if possible)
 
 		subtask.__init__(self, job, duration)
 
@@ -423,12 +430,14 @@ class newJob(subtask):
 			debug.out("GRACEFUL FAILURE on %s %s %s" % (self.owner, self.owner.offloadingOptions, self.owner.batch))
 			debug.infoOut("training from %s" % self.owner.agent.systemState.getStateDescription(self.job.beforeState))
 			self.owner.agent.train(self.job.currentTask, self.job, self.owner)
-			debug.infoOut("training to   %s" % self.owner.agent.systemState.getStateDescription(self.owner.agent.systemState.getIndex()))
+			debug.infoOut("training to   %s" % self.owner.agent.systemState.getStateDescription(
+				self.owner.agent.systemState.getIndex()))
 
 			if not self.owner.hasOffloadingOptions():
 				# cannot offload to anything and dying
 				return None
 			else:
+				self.job.beforeState = self.owner.agent.systemState.getIndex()
 				choice = self.owner.agent.getAction(OFFLOADING)
 				self.job.latestAction = self.owner.agent.getActionIndex(choice)
 
@@ -441,7 +450,7 @@ class newJob(subtask):
 				newSubtask = createMessage(self.job)
 				debug.out("spraying %s" % self.job)
 
-				# TODO: train based on failed jobs here
+			# TODO: train based on failed jobs here
 		else:
 			affectedDevice = self.job.processingNode
 
@@ -461,7 +470,7 @@ class newJob(subtask):
 class reconfigureFPGA(subtask):
 	__name__ = "Reconfigure FPGA"
 
-	def __init__(self, job): #  device, samples, processor=None):
+	def __init__(self, job):  # device, samples, processor=None):
 		duration = job.processingNode.platform.reconfigurationTime(job.currentTask)
 		# energyCost = job.processingNode.reconfigurationEnergy(duration)
 
@@ -483,8 +492,8 @@ class reconfigureFPGA(subtask):
 class xmem(subtask):
 	# __name__ = "MCU FPGA Offload"
 
-	def __init__(self, job): #  device, samples, processor=None):
-		debug.out ("created mcu fpga offloading task")
+	def __init__(self, job):  # device, samples, processor=None):
+		debug.out("created mcu fpga offloading task")
 
 		duration = job.processingNode.mcuToFpgaLatency(job.datasize)
 		# energyCost = job.processingNode.mcuToFpgaEnergy(duration)
@@ -502,22 +511,24 @@ class xmem(subtask):
 
 		return subtask.finishTask(self, affectedDevices)
 
-		# if self.job.processed:
-		# 		# check if offloaded
-		# 	if self.job.offloaded():
-		# 		self.job.processingNode.switchTask(txMessage(self.job, self.job.processingNode, self.job.creator))
-		# 	else:
-		# 		self.job.finish()
-		# 		# self.job.creator.jobActive = False
+	# if self.job.processed:
+	# 		# check if offloaded
+	# 	if self.job.offloaded():
+	# 		self.job.processingNode.switchTask(txMessage(self.job, self.job.processingNode, self.job.creator))
+	# 	else:
+	# 		self.job.finish()
+	# 		# self.job.creator.jobActive = False
 
-		# else:
-		# 	# always follow up with processing
-		# 	self.job.processingNode.switchTask(processing(self.job))
+	# else:
+	# 	# always follow up with processing
+	# 	self.job.processingNode.switchTask(processing(self.job))
 
-	# def possible(self):
-	# 	if
-	# 	# TODO: when offloaded, possible only if host not busy,
-	# 	# TODO: also only possible to start reconfigure if fpga and mcu isn't busy
+# def possible(self):
+# 	if
+# 	# TODO: when offloaded, possible only if host not busy,
+# 	# TODO: also only possible to start reconfigure if fpga and mcu isn't busy
+
+
 class mcuFpgaOffload(xmem):
 	__name__ = "MCU->FPGA Offload"
 
@@ -526,6 +537,7 @@ class mcuFpgaOffload(xmem):
 		# self.job.processingNode.addSubtask(, appendLeft=True)
 
 		return xmem.finishTask(self, (self.job.processingNode, processing(self.job)))
+
 
 class fpgaMcuOffload(xmem):
 	__name__ = "FPGA->MCU Offload"
@@ -542,10 +554,11 @@ class fpgaMcuOffload(xmem):
 
 		return xmem.finishTask(self, [(self.job.processingNode, newSubtask)])
 
-	# def possible(self):
-	# 	if
-	# 	# TODO: when offloaded, possible only if host not busy,
-	# 	# TODO: also only possible to start reconfigure if fpga and mcu isn't busy
+# def possible(self):
+# 	if
+# 	# TODO: when offloaded, possible only if host not busy,
+# 	# TODO: also only possible to start reconfigure if fpga and mcu isn't busy
+
 
 class processing(subtask):
 	# TODO: test local processing without HW acceleration?
@@ -554,12 +567,11 @@ class processing(subtask):
 	def __repr__(self):
 		return "{} [{}]".format(subtask.__repr__(self), self.job.currentTask)
 
-
 	# processor = None
-	def __init__(self, job): #  device, samples, processor=None):
+	def __init__(self, job):  # device, samples, processor=None):
 		# self.processor = processor
 
-		debug.out ("created processing task")
+		debug.out("created processing task")
 
 		duration = job.processor.processingTime(job.samples, job.currentTask)
 
@@ -596,19 +608,21 @@ class processing(subtask):
 			else:
 				newSubtask = batchContinue(self.job)
 
-
-				# self.job.creator.jobActive = False
+			# self.job.creator.jobActive = False
 		return subtask.finishTask(self, [(self.job.processingNode, newSubtask)])
+
 
 class txMessage(subtask):
 	destination = None
 	source = None
 	waitingForRX = None
+
 	# messageSize = None
 	# __name__ = "TX Message"
 
 	def __repr__(self):
-		return "{} [{}] (waiting for {})".format(self.__name__, self.job, self.destination) if not self.started else subtask.__repr__(self)
+		return "{} [{}] (waiting for {})".format(self.__name__, self.job,
+												 self.destination) if not self.started else subtask.__repr__(self)
 
 	def __init__(self, job, source, destination, jobToAdd):
 		debug.out("created txMessage")
@@ -623,7 +637,7 @@ class txMessage(subtask):
 		# energyCost = job.creator.mrf.txEnergy(duration)
 
 		# create receiving task
-		rx = jobToAdd(job, duration, self, source, destination) #, owner=destination)
+		rx = jobToAdd(job, duration, self, source, destination)  # , owner=destination)
 		# # destination.addSubtask(rx)
 		self.correspondingRx = rx
 		self.waitingForRX = False
@@ -655,18 +669,18 @@ class txMessage(subtask):
 		# 	print ("check2 {}".format(self.destination.currentSubtask.correspondingTx))
 		# 	print ("RX side: {} {}".foramt(self.destination, self.destination.currentSubtask.correspondingTx))
 		# except:
-			# print ("COULDN'T FIND DESTINATION TX")
+		# print ("COULDN'T FIND DESTINATION TX")
 
 		return isPossible
 
 	# check if this task is being deadlocked
 	def deadlock(self):
 		# is destination also trying to send or receive?
-		if isinstance(self.destination.currentSubtask, txMessage) or isinstance(self.destination.currentSubtask, rxMessage):
+		if isinstance(self.destination.currentSubtask, txMessage) or isinstance(self.destination.currentSubtask,
+																				rxMessage):
 			# is it not started
 			if not self.started and not self.destination.currentSubtask.started:
 				# is it also trying to send
-
 
 				# is it trying to send to me?
 				# if (self.destination is self.destination.currentSubtask.source) and (self.source is self.destination.currentSubtask.destination):
@@ -674,12 +688,12 @@ class txMessage(subtask):
 		# any other case is
 		return False
 
-		# # return not self.job.creator.mrf.busy and not self.job.processingNode.mrf.busy
-		# debug.out ("possible? {} {} {}".format(self.source.mrf.busy(), self.destination.mrf.busy(), self.destination.mcu.isIdle()))
-		# # when checking if possible, already switch to idle
-		# possible = not self.source.mrf.busy() and not self.destination.mrf.busy() and not self.destination.mcu.isIdle()
-		# if not possible: self.source.mrf.idle()
-		# return possible
+	# # return not self.job.creator.mrf.busy and not self.job.processingNode.mrf.busy
+	# debug.out ("possible? {} {} {}".format(self.source.mrf.busy(), self.destination.mrf.busy(), self.destination.mcu.isIdle()))
+	# # when checking if possible, already switch to idle
+	# possible = not self.source.mrf.busy() and not self.destination.mrf.busy() and not self.destination.mcu.isIdle()
+	# if not possible: self.source.mrf.idle()
+	# return possible
 
 	# start new job
 	def beginTask(self):
@@ -701,6 +715,7 @@ class txMessage(subtask):
 
 		# return subtask.finishTask(self, [self.source, self.destination])
 		return subtask.finishTask(self, affectedDevices)
+
 
 class txJob(txMessage):
 	__name__ = "TX Job"
@@ -733,7 +748,6 @@ class txJob(txMessage):
 		return txMessage.finishTask(self, affectedDevices)
 
 
-
 class txResult(txMessage):
 	__name__ = "TX Result"
 
@@ -751,9 +765,11 @@ class txResult(txMessage):
 		# move result of job back to the creator
 		return txMessage.finishTask(self, (self.job.processingNode, batchContinue(node=self.owner)))
 
+
 class rxMessage(subtask):
 	correspondingTx = None
 	source, destination = None, None
+
 	# __name__ = "RX Message"
 
 	def __repr__(self):
@@ -762,34 +778,35 @@ class rxMessage(subtask):
 	def __init__(self, job, duration, correspondingTx, source, destination):
 		self.source = source
 		self.destination = destination
-	# 	debug.out ("created rxMessage")
+		# 	debug.out ("created rxMessage")
 
-	# 	# energyCost = job.processingNode.mrf.rxEnergy(duration)
+		# 	# energyCost = job.processingNode.mrf.rxEnergy(duration)
 		self.correspondingTx = correspondingTx
 
 		subtask.__init__(self, job, duration, owner=destination)
 
-
 	# only possible if the tx is waiting for it
 	def possible(self):
-		debug.out("{} possible? corresponding TX: {} source task: {} current? {}".format(self, self.correspondingTx, self.source.currentSubtask, self.correspondingTx == self.source.currentSubtask))
+		debug.out("{} possible? corresponding TX: {} source task: {} current? {}".format(self, self.correspondingTx,
+																						 self.source.currentSubtask,
+																						 self.correspondingTx == self.source.currentSubtask))
 		# start if tx is also waiting, otherwise if tx has started already
 		return self.correspondingTx == self.source.currentSubtask or self.correspondingTx.started
 
 	# WHAT?
 	def beginTask(self):
 		self.owner.mrf.rx()
-	# 	self.
-	# 	subtask.beginTask(self)
-	# 	# receiving offloaded task
-	# 	if self.job.o"f"floaded():
-	# 		self.job.processingNode.jobActive = True
-	# 	# else:
+		# 	self.
+		# 	subtask.beginTask(self)
+		# 	# receiving offloaded task
+		# 	if self.job.o"f"floaded():
+		# 		self.job.processingNode.jobActive = True
+		# 	# else:
 
 		subtask.beginTask(self)
 
 	def finishTask(self, affectedDevices):
-		debug.out ("mrf not busy anymore")
+		debug.out("mrf not busy anymore")
 		# self.job.creator.mrf.sleep()
 		self.owner.mrf.sleep()
 		# self.job.processingNode.mrf.sleep()
@@ -797,10 +814,10 @@ class rxMessage(subtask):
 
 		return subtask.finishTask(self, affectedDevices)
 
-		# # destination receives
-		# receiveEnergyCost = destination.mcu.activeEnergy(this.mrf.rxtxLatency(this.message.size) destination.mrf.rxEnergy(messageSize)
+	# # destination receives
+	# receiveEnergyCost = destination.mcu.activeEnergy(this.mrf.rxtxLatency(this.message.size) destination.mrf.rxEnergy(messageSize)
 
-		# subtask.__init__(self, duration, energyCost, source) # , device, device)
+	# subtask.__init__(self, duration, energyCost, source) # , device, device)
 
 	# check if this task is being deadlocked
 	def deadlock(self):
@@ -827,7 +844,7 @@ class rxJob(rxMessage):
 		# if offloading, this is before processing
 		# if not self.job.processed:
 		# move job to new owner
-		debug.out ("moving job to processingNode")
+		debug.out("moving job to processingNode")
 		# move job to the processing from the creator
 		newOwner = self.job.processingNode
 		# self.job.creator.waiting = True
@@ -840,10 +857,8 @@ class rxJob(rxMessage):
 		# 	# systemState.current.update(self.job.currentTask, self.job, self.owner) # still old owner
 		# 	# self.job.creator.decision.privateAgent.backward(self.job.reward(), self.job.finished)
 
-
 		# TODO: rx job in tdsimulation likely broken because not adding received job to backlog (assuming subtask is created)
 		self.job.moveTo(newOwner)
-
 
 		# if using rl, reevalute decision
 		# if usingReinforcementLearning:
@@ -853,15 +868,12 @@ class rxJob(rxMessage):
 		# systemState.current.update(self.job.currentTask, self.job, self.job.owner)
 		# debug.out("systemstate: {}".format(systemState.current))
 
-
-
 		# # print("systemstate: {}".format(systemState.current))
 		# choice = self.job.owner.decision.privateAgent.forward(self.job.owner)
 		# print("choice: {}".format(choice))
 
 		# self.job.setDecisionTarget(choice)
 		# self.job.activate()
-
 
 		# TODO: removed this redeciding...
 		# affected = self.job.owner.agent.retarget(self.job.currentTask, self.job, self.job.owner)
@@ -877,6 +889,7 @@ class rxJob(rxMessage):
 
 		return rxMessage.finishTask(self, [affected])
 
+
 class rxResult(rxMessage):
 	__name__ = "RX Result"
 
@@ -889,6 +902,7 @@ class rxResult(rxMessage):
 		debug.out("finishing rxresult!", 'b')
 
 		return rxMessage.finishTask(self, None)
+
 
 class dummy(subtask):
 	# only used for testing

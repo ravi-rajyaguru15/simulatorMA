@@ -63,7 +63,7 @@ class node:
 	location = None
 	# episodeFinished = None
 
-	def __init__(self, inputClock, platform, index, components, maxJobs, currentSystemState=None, agent=None, alwaysHardwareAccelerate=None, usingTargetModel=constants.OFF_POLICY):
+	def __init__(self, inputClock, platform, index, components, maxJobs, currentSystemState=None, agent=None, alwaysHardwareAccelerate=None, offPolicy=constants.OFF_POLICY):
 		self.platform = platform
 
 		# self.decision = offloadingDecisionClass(self, currentSystemState, agentClass)
@@ -71,7 +71,7 @@ class node:
 		# if agentClass is a class, create private
 		if type(agent) is type(__class__):
 			print("agent class", agent)
-			self.agent = agent(systemState=currentSystemState, owner=self, usingTargetModel=usingTargetModel)
+			self.agent = agent(systemState=currentSystemState, owner=self, offPolicy=offPolicy)
 		else:
 			self.agent = agent
 
@@ -160,13 +160,12 @@ class node:
 	def convertEnergy(mah, voltage):
 		return mah * voltage * 3.6
 
-
 	def __repr__(self):
 		return "<" + str(type(self)) + " " + str(self.index) + ">"
 
 	def setOffloadingOptions(self, allDevices):
 		self.offloadingOptions = []
-		for device in allDevices:
+		for device in self.agent.getOffloadingTargets(allDevices):
 			if device is not self:
 				self.offloadingOptions.append(device)
 		self.defaultOffloadingOptions = list(self.offloadingOptions)

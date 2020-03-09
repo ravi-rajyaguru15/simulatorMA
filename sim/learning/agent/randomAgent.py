@@ -3,5 +3,5 @@ from sim.learning.agent.staticAgent import staticAgent
 
 
 class randomAgent(staticAgent):
+	__name__ = "Random Agent"
 	pass
-

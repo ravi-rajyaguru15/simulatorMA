@@ -3,13 +3,17 @@ from sim.learning.agent.staticAgent import staticAgent
 
 
 class localAgent(staticAgent):
-	def setOptions(self, allDevices):
-		self.options = [self.owner]
+	__name__ = "Local Agent"
+	# def setOptions(self, allDevices):
+	# 	self.options = [self.owner]
 	#
 	# def chooseDestination(self, task, job, device):
 	# 	choice = LOCAL
 	# 	choice.updateTargetDevice(self.owner, [self.owner])
 	# 	return choice
+
+	def getOffloadingTargets(self, devices):
+		return []
 
 	def setDevices(self, devices):
 		# local options are only available
@@ -19,7 +23,7 @@ class localAgent(staticAgent):
 		print('actions', self.possibleActions)
 		# self.numActionsPerDevice = len(self.possibleActions)
 
-		self.numOptions = len(self.possibleActions)
+		# self.numOptions = len(self.possibleActions)
 
 		# needs numActions
 		self.createModel()

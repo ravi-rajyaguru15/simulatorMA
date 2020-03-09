@@ -200,7 +200,8 @@ class randomScenario(scenario):
 		return convertCurrentTime(currentTime) + self.timeInterval.gen()
 
 	def setInterval(self, interval):
-		self.timeInterval.mean = interval
+		# print("set interval", interval)
+		self.timeInterval.setMean(interval)
 
 
 REGULAR_SCENARIO_RANDOM = regularScenario(devicePolicyClass=randomDevice)
