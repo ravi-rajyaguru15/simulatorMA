@@ -22,7 +22,7 @@ from sim.tasks.tasks import HARD
 
 
 def runThread(agent, numEpisodes, results, finished):
-    exp = SimpleSimulation(numDevices=16, maxJobs=15, agentClass=agent, tasks=[HARD])
+    exp = SimpleSimulation(numDevices=2, maxJobs=1, agentClass=agent, tasks=[HARD])
     exp.scenario.setInterval(1)
     exp.setBatterySize(1e-1)
 
@@ -77,7 +77,7 @@ def run(numEpisodes):
 
 if __name__ == "__main__":
     try:
-        run(1e3)
+        run(1e4)
     except:
         traceback.print_exc(file=sys.stdout)
 

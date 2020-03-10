@@ -254,8 +254,11 @@ class job:
 
 	# 	return output
 
-	def addEnergyCost(self, incrementalPower):
+	def addEnergyCost(self, incrementalPower, device):
 		self.totalEnergyCost += incrementalPower
+		if device not in self.devicesEnergyCost:
+			self.devicesEnergyCost[device] = 0
+		self.devicesEnergyCost[device] += incrementalPower
 
 	def rawMessageSize(self):
 		return self.samples * self.currentTask.rawSize

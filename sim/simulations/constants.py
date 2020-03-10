@@ -20,7 +20,7 @@ TD = 1e-3
 PLOT_SKIP = 1e1
 uni = Uniform(0.5, 1)
 JOB_LIKELIHOOD = 1e-3 # used in td simulations
-DEFAULT_TIME_INTERVAL = 10
+DEFAULT_TIME_INTERVAL = 1
 JOB_INTERVAL = Gaussian(DEFAULT_TIME_INTERVAL, 1e-0) # used in simple simulations
 
 # offloading

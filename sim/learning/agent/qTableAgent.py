@@ -79,7 +79,7 @@ class qTableAgent(qAgent):
 
 	def selectAction(self, systemState):
 		# EPS greedy
-		if self.policy.evaluate(constants.EPS):
+		if self.policy.evaluate(constants.EPS) and not self.productionMode:
 			# return random
 			action = np.random.randint(0, self.numActions)
 			# print('selecting random in', qValues, action)

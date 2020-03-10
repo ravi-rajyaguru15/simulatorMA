@@ -402,7 +402,7 @@ class SimpleSimulation(BasicSimulation):
 
 		# if not associated with job, nothing to increment energy cost of
 		if currentJob is not None:
-			currentJob.addEnergyCost(incrementalEnergy)
+			currentJob.addEnergyCost(incrementalEnergy, device)
 
 		try:
 			# create follow up task in queue

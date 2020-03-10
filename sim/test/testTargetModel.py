@@ -9,13 +9,9 @@ from sim import plotting
 from sim.experiments.experiment import executeMulti, setupMultithreading
 from sim.experiments.scenario import RANDOM_SCENARIO_ALL, RANDOM_SCENARIO_RANDOM
 from sim.learning.agent.lazyAgent import lazyAgent
-from sim.learning.agent.localAgent import localAgent
 from sim.learning.agent.minimalAgent import minimalAgent
-from sim.learning.agent.randomAgent import randomAgent
-from sim.learning.state.minimalSystemState import minimalSystemState
-from sim.offloading.offloadingPolicy import *
 from sim.simulations import localConstants
-from sim.simulations.SimpleSimulation import SimpleSimulation as Simulation, SimpleSimulation
+from sim.simulations.SimpleSimulation import SimpleSimulation
 
 
 def runThread(agent, numEpisodes, results, finished, histories):
@@ -42,7 +38,7 @@ def runThread(agent, numEpisodes, results, finished, histories):
 
 	finished.put(True)
 
-	exp.sharedAgent.printModel()
+	# exp.sharedAgent.printModel()
 
 
 def run():
