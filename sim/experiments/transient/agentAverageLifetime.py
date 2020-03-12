@@ -8,9 +8,6 @@ from multiprocessing import freeze_support
 
 from sim import debug, counters, plotting
 from sim.experiments.experiment import executeMulti
-from sim.learning.agent.lazyAgent import lazyAgent
-from sim.learning.agent.localAgent import localAgent
-from sim.learning.agent.minimalAgent import minimalAgent
 from sim.learning.agent.randomAgent import randomAgent
 from sim.simulations import localConstants
 from sim.simulations.SimpleSimulation import SimpleSimulation

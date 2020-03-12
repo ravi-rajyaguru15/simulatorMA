@@ -4,17 +4,11 @@ import sys
 import traceback
 from multiprocessing import freeze_support
 
-import sim
 from sim import debug, counters, plotting
-from sim.devices.components.powerPolicy import IDLE_TIMEOUT
 from sim.experiments.experiment import executeMulti, assembleResultsBasic
-from sim.learning.agent.lazyAgent import lazyAgent
-from sim.learning.agent.minimalAgent import minimalAgent
-from sim.offloading.offloadingPolicy import REINFORCEMENT_LEARNING
+from sim.learning.agent.lazyTableAgent import lazyTableAgent
 from sim.simulations import simulationResults, localConstants
 from sim.simulations.SimpleSimulation import SimpleSimulation
-
-# sim.simulations.constants.NUM_DEVICES = 1
 
 
 def runThread(agent, numEpisodes, results, finished, histories):
@@ -67,7 +61,7 @@ def run():
     # for jobLikelihood in np.arange(1e-3, 1e-2, 1e-3):
     # 	for roundRobin in np.arange(1e0, 1e1, 2.5):
     numEpisodes = int(1e4)
-    agentsToTest = [lazyAgent] #     agentsToTest = [lazyAgent] #
+    agentsToTest = [lazyTableAgent] #     agentsToTest = [lazyAgent] #
     for agent in agentsToTest: # [minimalAgent, lazyAgent]:
         for _ in range(localConstants.REPEATS):
             processes.append(multiprocessing.Process(target=runThread, args=(agent, numEpisodes, results, finished, histories)))

@@ -35,7 +35,7 @@ EASY = task(
 	rawSize=5,
 	processedSize=1,
 	deadline=Gaussian(5, 0.1),
-	configSize=.01
+	configSize=.1
 	)
 
 HARD = task(

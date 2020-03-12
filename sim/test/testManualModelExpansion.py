@@ -1,11 +1,11 @@
 import numpy as np
 
-from sim.learning.agent.qTableAgent import qTableAgent
+from sim.learning.agent.minimalTableAgent import minimalTableAgent
 from sim.learning.state.minimalSystemState import minimalSystemState
 from sim.simulations.SimpleSimulation import SimpleSimulation
 from sim.learning.state.discretisedSystemState import discretisedSystemState
 
-exp = SimpleSimulation(numDevices=1, maxJobs=1, agentClass=qTableAgent, systemStateClass=minimalSystemState)
+exp = SimpleSimulation(numDevices=1, maxJobs=1, agentClass=minimalTableAgent, systemStateClass=minimalSystemState)
 state = exp.currentSystemState
 testAgent = exp.sharedAgent
 
@@ -16,7 +16,7 @@ testAgent.model.table = np.random.standard_normal(testAgent.model.table.shape)
 testAgent.printModel()
 
 newState = minimalSystemState(numDevices=1, maxJobs=2)
-newAgent = qTableAgent(newState)
+newAgent = minimalTableAgent(newState)
 newAgent.setDevices(exp.devices)
 newAgent.importQTable(testAgent)
 # newAgent.printModel()

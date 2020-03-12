@@ -1,3 +1,6 @@
+import os
+import pickle
+
 import numpy as np
 import tensorflow as tf
 
@@ -9,7 +12,7 @@ from tensorflow import keras
 from sim import debug
 from sim.learning.agent.agent import agent
 from sim.learning.agent.qAgent import qAgent
-from sim.simulations import constants
+from sim.simulations import constants, localConstants
 
 
 class dqnAgent(qAgent):
@@ -32,23 +35,23 @@ class dqnAgent(qAgent):
 
 		return names
 
-	def __init__(self, systemState):
+	def __init__(self, systemState, owner, offPolicy):
 		self.gamma = constants.GAMMA
 
-		debug.out("DQN agent: %s" % constants.OFFLOADING_POLICY)
+		debug.out("DQN agent created")
 		self.policy = EpsGreedyQPolicy(eps=constants.EPS)
 		# self.dqn = rl.agents.DQNAgent(model=self.model, policy=rl.policy.LinearAnnealedPolicy(, attr='eps', value_max=sim.constants.EPS_MAX, value_min=sim.constants.EPS_MIN, value_test=.05, nb_steps=sim.constants.EPS_STEP_COUNT), enable_double_dqn=False, gamma=.99, batch_size=1, nb_actions=self.numActions)
 		self.optimizer = keras.optimizers.Adam(lr=constants.LEARNING_RATE)
 
-		agent.__init__(self, systemState)
+		agent.__init__(self, systemState=systemState, owner=owner, offPolicy=offPolicy)
 
 	def createModel(self):
 		# create basic model
 		self.model = keras.models.Sequential()
 		self.model.add(keras.layers.Flatten(input_shape=(1,) + (self.systemState.stateCount,)))
 		# print('input shape', (1,) + env.observation_space.shape)
-		self.model.add(keras.layers.Dense(4))
-		self.model.add(keras.layers.Activation('relu'))
+		# self.model.add(keras.layers.Dense(4))
+		# self.model.add(keras.layers.Activation('relu'))
 		# self.model.add(keras.layers.Dense(16))
 		# self.model.add(keras.layers.Activation('relu'))
 
@@ -59,10 +62,17 @@ class dqnAgent(qAgent):
 
 		self.createTrainableModel()
 
+
+
 	def createTrainableModel(self):
 		# COPIED FROM KERAS-RL LIBRARY
 		metrics = ['mae']
 		metrics += [mean_q]  # register default metrics
+
+		if self.offPolicy:
+			self.targetModel = clone_model(self.model, custom_objects={})
+			self.targetModel.compile(optimizer=self.optimizer, loss='mse')
+		self.model.compile(optimizer=self.optimizer, loss='mse')
 
 		def clipped_masked_error(args):
 			correctQ, predictedQ, mask = args
@@ -91,14 +101,16 @@ class dqnAgent(qAgent):
 		]
 		self.trainable_model.compile(optimizer=self.optimizer, loss=losses, metrics=combined_metrics)
 
-	def predict(self, state):
-		return self.model.predict(state.currentState.reshape((1, 1, state.stateCount)))[0]
+	def predict(self, model, state):
+		# print("state", state, state.shape)
+		return model.predict(state.reshape((1, 1, state.shape[0])))[0]
+		# return self.model.predict(state.currentState.reshape((1, 1, state.stateCount)))[0]
 
 	# def predictBatch(self, stateBatch):
 	# 	return self.model.predict_on_batch(stateBatch)
 
-	def selectAction(self, qValues):
-		raise Exception("not getting qvalues")
+	def selectAction(self, systemState):
+		qValues = self.predict(self.model, systemState)
 		return self.policy.select_action(q_values=qValues)
 
 	def trainModel(self, latestAction, reward, beforeState, afterState, finished):
@@ -111,9 +123,17 @@ class dqnAgent(qAgent):
 		# outlined in Mnih (2015). In short: it makes the algorithm more stable.
 		# target_q_values =  self.model.predict_on_batch(
 		# 	np.array([np.array([np.array(self.systemState.currentState)])]))  # TODO: target_model
-		target_q_values = self.predict(self.systemState)
-		# print(self.predict(self.systemState), target_q_values)
-		q_batch = np.max(target_q_values).flatten()
+
+		# model = self.model if self.offPolicy else self.targetModel
+
+		target_q_values = self.predict(self.targetModel, self.systemState.currentState)
+		if self.offPolicy:
+			q_values = self.predict(self.model, self.systemState.currentState)
+			actions = np.argmax(q_values, axis=0)
+			q_batch = np.array([target_q_values[actions]])
+		else:
+			# print(self.predict(self.systemState), target_q_values)
+			q_batch = np.max(target_q_values).flatten()
 		# print(q_batch)
 		# sys.exit(0)
 
@@ -139,8 +159,10 @@ class dqnAgent(qAgent):
 		# Finally, perform a single update on the entire batch. We use a dummy target since
 		# the actual loss is computed in a Lambda layer that needs more complex input. However,
 		# it is still useful to know the actual target to compute metrics properly.
-		x = [np.array([[beforeState.currentState]])] + [targets, masks]
+		x = [np.array([[beforeState]])] + [targets, masks]
 		y = [dummy_targets, targets]
+
+		# print(x, "state:", beforeState, y)
 
 		self.trainable_model._make_train_function()
 		metrics = self.trainable_model.train_on_batch(x, y)
@@ -153,7 +175,31 @@ class dqnAgent(qAgent):
 		self.latestMAE = metrics[1]
 		self.latestMeanQ = metrics[2]
 
+	def updateTargetModel(self):
+		self.targetModel.set_weights(self.model.get_weights())
 
+	def saveModel(self):
+		keras.models.save_model(self.model, localConstants.OUTPUT_DIRECTORY + "/dqnmodel.pickle")
+		if self.targetModel is not None:
+			keras.models.save_model(self.targetModel, localConstants.OUTPUT_DIRECTORY + "/dqntargetModel.pickle")
+
+	def loadModel(self):
+		if os.path.exists(localConstants.OUTPUT_DIRECTORY + "/dqnmodel.pickle"):
+			self.model = keras.models.load_model(localConstants.OUTPUT_DIRECTORY + "/dqnmodel.pickle")
+			if self.offPolicy:
+				self.targetModel = keras.models.load_model(localConstants.OUTPUT_DIRECTORY + "/dqntargetModel.pickle")
+			return True
+		else:
+			return False
 def mean_q(correctQ, predictedQ):
 	return mean(max(predictedQ, axis=-1))
 
+def clone_model(model, custom_objects={}):
+	# Requires Keras 1.0.7 since get_config has breaking changes.
+	config = {
+		'class_name': model.__class__.__name__,
+		'config': model.get_config(),
+	}
+	clone = keras.models.model_from_config(config, custom_objects=custom_objects)
+	clone.set_weights(model.get_weights())
+	return clone

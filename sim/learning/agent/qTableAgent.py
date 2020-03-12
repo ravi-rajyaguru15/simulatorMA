@@ -1,4 +1,6 @@
 import math
+import os
+import pickle
 import sys
 from copy import deepcopy
 
@@ -8,13 +10,14 @@ import numpy as np
 # from rl.policy import EpsGreedyQPolicy
 # from rl.util import huber_loss
 # from tensorflow import keras
+from numpy.core.multiarray import ndarray
 
 from sim import debug
 from sim.learning.agent.agent import agent
 from sim.learning.agent.qAgent import qAgent
 from sim.learning.state.discretisedSystemState import discretisedSystemState
 from sim.learning.state.systemState import systemState
-from sim.simulations import constants
+from sim.simulations import constants, localConstants
 from sim.simulations.variable import Uniform
 
 
@@ -55,17 +58,17 @@ class qTableAgent(qAgent):
 		pass
 
 	def trainModel(self, latestAction, reward, beforeState, currentState, finished):
-		# beforeIndex = beforeState.getIndex()
-		Qsa = self.model.getQ(beforeState, latestAction)
+		beforeIndex = self.systemState.getIndex(beforeState)
+		Qsa = self.model.getQ(beforeIndex, latestAction)
 		currentIndex = currentState.getIndex()
 		maxQ = np.argmax(self.model.getQ(currentIndex))
 		target = reward + constants.GAMMA * maxQ
 		increment = constants.LEARNING_RATE * (target - Qsa)
-		debug.learnOut("updating qtable: %d\t%d\t%f\t%f" % (beforeState, latestAction, increment, reward))
+		debug.learnOut("updating qtable: %d\t%d\t%f\t%f" % (beforeIndex, latestAction, increment, reward))
 
 		# Q learning 101:
 		trainModel = self.targetModel if self.offPolicy else self.model
-		trainModel.setQ(beforeState, action=latestAction, value=Qsa + increment)
+		trainModel.setQ(beforeIndex, action=latestAction, value=Qsa + increment)
 		self.latestLoss = (target - Qsa) ** 2.
 		self.latestMeanQ = self.model.meanQ(beforeState)
 
@@ -78,6 +81,7 @@ class qTableAgent(qAgent):
 	# 	return self.model.predict_on_batch(stateBatch)
 
 	def selectAction(self, systemState):
+		index = self.systemState.getIndex(systemState)
 		# EPS greedy
 		if self.policy.evaluate(constants.EPS) and not self.productionMode:
 			# return random
@@ -85,7 +89,7 @@ class qTableAgent(qAgent):
 			# print('selecting random in', qValues, action)
 			return action
 		else:
-			qValues = self.predict(systemState)
+			qValues = self.predict(index)
 			# print('selecting max from', qValues, np.argmax(qValues))
 			return np.argmax(qValues)
 
@@ -139,6 +143,20 @@ class qTableAgent(qAgent):
 		if not self.productionMode:
 			qTable.copyModel(self.targetModel, self.model)
 
+	def saveModel(self):
+		pickle.dump(self.model, open(localConstants.OUTPUT_DIRECTORY + "/model.pickle", 'wb'))
+		if self.targetModel is not None:
+			pickle.dump(self.targetModel, open(localConstants.OUTPUT_DIRECTORY + "/targetModel.pickle", 'wb'))
+
+	def loadModel(self):
+		if os.path.exists(localConstants.OUTPUT_DIRECTORY + "/model.pickle"):
+			self.model = pickle.load(open(localConstants.OUTPUT_DIRECTORY + "/model.pickle", 'rb'))
+			if self.offPolicy:
+				self.targetModel = pickle.load(open(localConstants.OUTPUT_DIRECTORY + "/targetModel.pickle", 'rb'))
+			return True
+		else:
+			return False
+
 class qTable:
 	table = None
 	stateCount = None
@@ -162,6 +180,7 @@ class qTable:
 		if isinstance(state, discretisedSystemState):
 			state = state.getIndex()
 
+		# print("getq", state)
 		assert state < self.stateCount
 
 		if action is None:

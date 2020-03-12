@@ -437,7 +437,7 @@ class newJob(subtask):
 				# cannot offload to anything and dying
 				return None
 			else:
-				self.job.beforeState = self.owner.agent.systemState.getIndex()
+				self.job.beforeState = self.owner.agent.systemState.currentState # .getIndex()
 				choice = self.owner.agent.getAction(OFFLOADING)
 				self.job.latestAction = self.owner.agent.getActionIndex(choice)
 

@@ -6,15 +6,15 @@ import sim.debug as debug
 import sim.simulations.constants as constants
 # from sim.learning.state.binarySystemState import binarySystemState
 from sim.experiments.experiment import executeMulti
+from sim.learning.agent.minimalTableAgent import minimalTableAgent
 from sim.plotting import plotMultiWithErrors
-from sim.learning.agent.minimalAgent import minimalAgent
 from offloading.offloadingDecision import offloadingDecision
 from sim.learning.state.minimalSystemState import minimalSystemState
 from sim.offloading.offloadingPolicy import *
 from sim.simulations.SimpleSimulation import SimpleSimulation as Simulation
 
 def runThread(index, results, finished):
-	exp = Simulation(minimalSystemState, offloadingDecision, minimalAgent)
+	exp = Simulation(minimalSystemState, offloadingDecision, minimalTableAgent)
 
 	# just run each thread to see if it crashes
 	# while True:

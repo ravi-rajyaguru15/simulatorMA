@@ -8,8 +8,8 @@ import sim.simulations.constants as constants
 from sim import plotting
 from sim.experiments.experiment import executeMulti, setupMultithreading
 from sim.experiments.scenario import RANDOM_SCENARIO_ALL, RANDOM_SCENARIO_RANDOM
-from sim.learning.agent.lazyAgent import lazyAgent
-from sim.learning.agent.minimalAgent import minimalAgent
+from sim.learning.agent.lazyTableAgent import lazyTableAgent
+from sim.learning.agent.minimalTableAgent import minimalTableAgent
 from sim.simulations import localConstants
 from sim.simulations.SimpleSimulation import SimpleSimulation
 
@@ -60,7 +60,7 @@ def run():
 
 	# localConstants.REPEATS = 10
 	numEpisodes = int(1e2)
-	agentsToTest = [minimalAgent, lazyAgent]
+	agentsToTest = [minimalTableAgent, lazyTableAgent]
 	for agent in agentsToTest: # [minimalAgent, lazyAgent]:
 		for _ in range(localConstants.REPEATS):
 			processes.append(multiprocessing.Process(target=runThread, args=(agent, numEpisodes, results, finished, histories)))

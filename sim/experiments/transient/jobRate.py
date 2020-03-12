@@ -7,12 +7,11 @@ import numpy as np
 from sim import debug
 from sim.experiments.experiment import executeMulti, setupMultithreading
 from sim.experiments.scenario import REGULAR_SCENARIO_RANDOM
-from sim.learning.agent.lazyAgent import lazyAgent
-from sim.learning.agent.minimalAgent import minimalAgent
+from sim.learning.agent.lazyTableAgent import lazyTableAgent
+from sim.learning.agent.minimalTableAgent import minimalTableAgent
 from sim.plotting import plotMultiWithErrors
 from sim.simulations import localConstants
 from sim.simulations.SimpleSimulation import SimpleSimulation
-from sim.simulations.variable import Gaussian
 
 
 def runThread(numEpisodes, jobInterval, agent, results, finished):
@@ -45,7 +44,7 @@ def run():
 	print(intervals)
 
 	for jobInterval in intervals:
-		for agent in [minimalAgent, lazyAgent]:
+		for agent in [minimalTableAgent, lazyTableAgent]:
 			for _ in range(localConstants.REPEATS):
 				processes.append(multiprocessing.Process(target=runThread, args=(numEpisodes, jobInterval, agent, results, finished)))
 	

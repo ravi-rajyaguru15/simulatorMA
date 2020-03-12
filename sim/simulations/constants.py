@@ -40,7 +40,7 @@ EXPECTED_LIFETIME_ALPHA = 0.1
 GRACEFUL_FAILURE_LEVEL = 0.1
 ALLOW_EXPANSION = False
 INITIAL_Q = 25.
-OFF_POLICY = False
+OFF_POLICY = True
 
 # energy management
 FPGA_POWER_PLAN = sim.devices.components.powerPolicy.IDLE_TIMEOUT

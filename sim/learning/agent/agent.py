@@ -267,7 +267,7 @@ class agent:
 
 		# currentSim = sim.simulations.Simulation.currentSimulation
 		# job.beforeState = deepcopy(self.systemState)
-		job.beforeState = self.systemState.getIndex()
+		job.beforeState = self.systemState.currentState
 		sim.debug.out("beforestate {}".format(job.beforeState))
 		# print(device.batchLengths(), device.batchLength(task), device.isQueueFull(task))
 

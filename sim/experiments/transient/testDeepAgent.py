@@ -8,11 +8,10 @@ from multiprocessing import freeze_support
 
 from sim import debug, counters, plotting
 from sim.experiments.experiment import executeMulti
-from sim.learning.agent.deathwishAgent import deathwishAgent
-from sim.learning.agent.lazyAgent import lazyAgent
-from sim.learning.agent.localAgent import localAgent
-from sim.learning.agent.minimalAgent import minimalAgent
-from sim.learning.agent.randomAgent import randomAgent
+from sim.learning.agent.lazyDeepAgent import lazyDeepAgent
+from sim.learning.agent.lazyTableAgent import lazyTableAgent
+from sim.learning.agent.minimalDeepAgent import minimalDeepAgent
+from sim.learning.agent.minimalTableAgent import minimalTableAgent
 from sim.simulations import localConstants, constants
 from sim.simulations.SimpleSimulation import SimpleSimulation
 import os
@@ -55,17 +54,11 @@ def run(numEpisodes):
     print("starting experiment")
 
     processes = list()
-    # sim.simulations.constants.MINIMUM_BATCH = 1e7
-
-    # offloadingOptions = [True, False]
     results = multiprocessing.Queue()
     finished = multiprocessing.Queue()
-    # experiments = multiprocessing.Queue()
-    # REPEATS = 1
 
-    # localConstants.REPEATS = 10
     numEpisodes = int(numEpisodes)
-    agentsToTest = [minimalAgent, lazyAgent] # , localAgent] # , randomAgent]
+    agentsToTest = [minimalDeepAgent, minimalTableAgent, lazyDeepAgent, lazyTableAgent] # ,  , localAgent] # , randomAgent]
     for agent in agentsToTest: # [minimalAgent, lazyAgent]:
         for _ in range(localConstants.REPEATS):
             processes.append(multiprocessing.Process(target=runThread, args=(agent, numEpisodes, results, finished)))
@@ -78,7 +71,7 @@ def run(numEpisodes):
 
 if __name__ == "__main__":
     try:
-        run(1e3)
+        run(1e2)
     except:
         traceback.print_exc(file=sys.stdout)
 

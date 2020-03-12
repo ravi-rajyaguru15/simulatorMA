@@ -4,8 +4,8 @@ import sys
 
 from sim import plotting
 from sim.experiments.experiment import setupMultithreading, executeMulti
-from sim.learning.agent.lazyAgent import lazyAgent
-from sim.learning.agent.minimalAgent import minimalAgent
+from sim.learning.agent.lazyTableAgent import lazyTableAgent
+from sim.learning.agent.minimalTableAgent import minimalTableAgent
 from sim.simulations import constants
 from sim.simulations.SimpleSimulation import SimpleSimulation
 from sim.tasks.tasks import HARD, EASY
@@ -21,7 +21,7 @@ def run(results, finished):
     # replace agents in devices
     # for dev in exp.devices:
     #     print(dev.agent, dev.agent.model)
-    for agent, device in zip([lazyAgent, minimalAgent], exp.devices):
+    for agent, device in zip([lazyTableAgent, minimalTableAgent], exp.devices):
         device.agent = agent(systemState=exp.currentSystemState, owner=device, offPolicy=constants.OFF_POLICY)
         device.agent.setDevices(exp.devices)
         # device.agent.reset()

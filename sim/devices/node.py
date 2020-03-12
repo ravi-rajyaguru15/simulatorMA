@@ -82,7 +82,7 @@ class node:
 
 		# self.resultsQueue = queue
 		self.index = index
-		print("created index", index)
+		# print("created index", index)
 		self.maxJobs = maxJobs
 		# self.nodeType = nodeType
 

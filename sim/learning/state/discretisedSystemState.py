@@ -104,16 +104,26 @@ class discretisedSystemState(systemState):
 			assert value < bins
 			return value
 
-	def setField(self, field, value):
+	# overrideScaling used to manually setup state based on index
+	def setField(self, field, value, overrideScaling=False):
 		assert field in self.dictRepresentation
 		assert value >= 0
+		# print("before", self.dictRepresentation)
 		# debug.out("set %s to %s: %s" % (field, value, self.dictRepresentation[field][:]))
 		if isinstance(value, list):
 			for i in range(len(value)):
-				self.dictRepresentation[field][i] = discretisedSystemState.discretiseValue(value[i], self.multiplesDiscrete[field], self.multiplesScalingFactor[field], self.multiplesScale[field])
+				if overrideScaling:
+					self.dictRepresentation[field][i] = value[i]
+				else:
+					self.dictRepresentation[field][i] = discretisedSystemState.discretiseValue(value[i], self.multiplesDiscrete[field], self.multiplesScalingFactor[field], self.multiplesScale[field])
 		else:
-			self.dictRepresentation[field][:] = discretisedSystemState.discretiseValue(value, self.singlesDiscrete[field], self.singlesScalingFactor[field], self.singlesScale[field])
+			if overrideScaling:
+				self.dictRepresentation[field][:] = value
+			else:
+				self.dictRepresentation[field][:] = discretisedSystemState.discretiseValue(value, self.singlesDiscrete[field], self.singlesScalingFactor[field], self.singlesScale[field])
 
+		# print("after", self.dictRepresentation)
+		# print("set", field, value, self.dictRepresentation[field][:])
 		# debug.out("set %s to %s: %s" % (field, value, self.dictRepresentation[field][:]))
 
 	def getUniqueStates(self):
@@ -135,10 +145,13 @@ class discretisedSystemState(systemState):
 		return (currentIndex << width) + value
 
 	# convert currentState to an integer index
-	def getIndex(self):
+	def getIndex(self, state=None):
+		if state is None:
+			state = self.currentState
 		# debug.out("getting index: %s %s" % (self.currentState, self.multipliers))
 		# debug.out("%s" % self.dictRepresentation)
-		return np.dot(self.currentState, self.multipliers)
+		# print(state, self.multipliers, np.dot(state, self.multipliers))
+		return np.dot(state, self.multipliers)
 		# return discretisedSystemState._getIndex(self.singlesDiscrete, self.singles, self.multiplesDiscrete, self.multiples, self.dictRepresentation)
 
 	def getGracefulFailureLevel(self):
@@ -151,6 +164,9 @@ class discretisedSystemState(systemState):
 	def getStateDescription(self, index=None):
 		if index is None:
 			index = self.getIndex()
+		elif isinstance(index, np.ndarray):
+			index = self.getIndex(index)
+		# print("index", index)
 
 		description = ""
 		for i in range(len(self.singles)):
@@ -171,16 +187,21 @@ class discretisedSystemState(systemState):
 	# create a clone form the index
 	def fromIndex(self, index):
 		duplicate = deepcopy(self)
+		duplicate.createDictionaryRepresentation()
+		# duplicate.currentState[0] = 5
+		# print("duplicate:", duplicate.dictRepresentation, duplicate.currentState)
 
-		for i in range(len(self.singles)):
-			restMultiplier = discretisedSystemState.getRestMultiplier(self.singles, self.singlesDiscrete, i)
+		for i in range(len(duplicate.singles)):
+			restMultiplier = discretisedSystemState.getRestMultiplier(duplicate.singles, duplicate.singlesDiscrete, i)
 
 			# field is value of this field in the singles set
-			field = int(index / restMultiplier)
-			if index >= restMultiplier:
+			field = int(float(index) / restMultiplier)
+			# print(restMultiplier, field, index)
+			# last index
+			if index >= restMultiplier: #  restMultiplier > 1 and
 				index -= restMultiplier * field
 			# description += "{} ={:2d} ".format(self.singles[i], field)
-			self.setField(self.singles[i], field)
+			duplicate.setField(duplicate.singles[i], field, overrideScaling=True)
 				# print(index)
 		return duplicate
 

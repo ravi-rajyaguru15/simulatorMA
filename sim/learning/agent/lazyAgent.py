@@ -1,10 +1,11 @@
 from math import log2, log
 
 from sim import debug
+from sim.learning.agent.qAgent import qAgent
 from sim.learning.agent.qTableAgent import qTableAgent
 
 
-class lazyAgent(qTableAgent):
+class lazyAgent(qAgent):
 	__name__ = "Lazy Agent"
 	def __repr__(self): return "<Lazy Agent>"
 

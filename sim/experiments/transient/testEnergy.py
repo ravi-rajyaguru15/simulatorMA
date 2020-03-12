@@ -8,7 +8,7 @@ from multiprocessing import freeze_support
 from sim import debug, counters, plotting
 from sim.experiments.experiment import executeMulti, assembleResultsBasic
 from sim.experiments.scenario import REGULAR_SCENARIO_RANDOM
-from sim.learning.agent.minimalAgent import minimalAgent
+from sim.learning.agent.minimalTableAgent import minimalTableAgent
 from sim.simulations import localConstants
 from sim.simulations.SimpleSimulation import SimpleSimulation
 
@@ -73,7 +73,7 @@ def run():
 
 	numDevices = 2
 	numTicks = int(1e1)
-	agentsToTest = [minimalAgent] # , lazyAgent]
+	agentsToTest = [minimalTableAgent] # , lazyAgent]
 	for agent in agentsToTest: # [minimalAgent, lazyAgent]:
 		for _ in range(localConstants.REPEATS):
 			processes.append(multiprocessing.Process(target=runThread, args=(agent, numTicks, numDevices, results, finished, histories)))

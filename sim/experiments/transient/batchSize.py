@@ -5,7 +5,7 @@ import traceback
 from sim import debug, counters
 from sim.devices.components.powerPolicy import IDLE_TIMEOUT
 from sim.experiments.experiment import executeMulti
-from sim.learning.agent.minimalAgent import minimalAgent
+from sim.learning.agent.minimalTableAgent import minimalTableAgent
 from sim.offloading.offloadingPolicy import REINFORCEMENT_LEARNING
 from sim.plotting import plotAgentHistory, plotMultiWithErrors
 from sim.simulations import constants, simulationResults
@@ -23,7 +23,7 @@ def runThread(results, finished, histories):
 	constants.FPGA_POWER_PLAN = IDLE_TIMEOUT
 	constants.OFFLOADING_POLICY = REINFORCEMENT_LEARNING
 
-	exp = simulation(agentClass=minimalAgent)
+	exp = simulation(agentClass=minimalTableAgent)
 	current = exp
 
 	try:

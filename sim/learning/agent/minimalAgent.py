@@ -1,10 +1,8 @@
-from math import log2
 
-from sim import debug
-from sim.learning.agent.qTableAgent import qTableAgent
+from sim.learning.agent.qAgent import qAgent
 
 
-class minimalAgent(qTableAgent):
+class minimalAgent(qAgent):
 	__name__ = "Minimal Agent"
 	def __repr__(self): return "<Minimal Agent>"
 

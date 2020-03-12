@@ -6,11 +6,9 @@ from multiprocessing import freeze_support
 
 import sim
 from sim import debug, counters, plotting
-from sim.devices.components.powerPolicy import IDLE_TIMEOUT
 from sim.experiments.experiment import executeMulti, assembleResultsBasic
-from sim.learning.agent.lazyAgent import lazyAgent
-from sim.learning.agent.minimalAgent import minimalAgent
-from sim.offloading.offloadingPolicy import REINFORCEMENT_LEARNING
+from sim.learning.agent.lazyTableAgent import lazyTableAgent
+from sim.learning.agent.minimalTableAgent import minimalTableAgent
 from sim.simulations import simulationResults
 from sim.simulations.SimpleSimulation import SimpleSimulation
 
@@ -56,7 +54,7 @@ def run():
     REPEATS = 1
 
     numEpisodes = int(1e2)
-    agentsToTest = [minimalAgent, lazyAgent]
+    agentsToTest = [minimalTableAgent, lazyTableAgent]
     for agent in agentsToTest: # [minimalAgent, lazyAgent]:
         for _ in range(REPEATS):
             processes.append(multiprocessing.Process(target=runThread, args=(agent, numEpisodes, results, finished, histories)))
