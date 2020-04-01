@@ -1,3 +1,4 @@
+sim/venv
 sim/simulations/localConstants.py
 *__pycache__*
 base/authorized_keys

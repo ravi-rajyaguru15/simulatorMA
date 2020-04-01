@@ -1,4 +1,3 @@
-from sim.learning.agent.dqnAgent import dqnAgent
 from sim.learning.agent.minimalAgent import minimalAgent
 from sim.learning.agent.qTableAgent import qTableAgent
 

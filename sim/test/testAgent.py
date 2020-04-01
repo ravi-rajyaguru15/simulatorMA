@@ -3,6 +3,7 @@ import sys
 import sim.debug as debug
 import sim.simulations.constants as constants
 from sim.learning.agent.lazyAgent import lazyAgent
+from sim.learning.agent.lazyTableAgent import lazyTableAgent
 from sim.learning.agent.localAgent import localAgent
 from sim.learning.agent.minimalAgent import minimalAgent
 from sim.learning.agent.randomAgent import randomAgent
@@ -18,7 +19,7 @@ if __name__ == '__main__':
 	debug.enabled = True
 	debug.learnEnabled = True
 	constants.DRAW_DEVICES = False
-	exp = Simulation(minimalSystemState, lazyAgent)
+	exp = Simulation(numDevices=1, systemStateClass=minimalSystemState, agentClass=lazyTableAgent)
 
 	# for i in range(10):
 	# 	exp.simulateTick()

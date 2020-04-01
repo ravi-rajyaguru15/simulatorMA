@@ -20,6 +20,7 @@ class minimalSystemState(discretisedSystemState):
 		multiples = []
 
 		args = discretisedSystemState.convertTuples(numDevices=numDevices, singlesWithDiscreteNum=singles, multiplesWithDiscreteNum=multiples)
+		# print("discrete:", args)
 		discretisedSystemState.__init__(self, *args)
 
 	def updateState(self, task, job, device):

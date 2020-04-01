@@ -10,13 +10,13 @@ from sim.simulations import constants
 from sim.simulations.SimpleSimulation import SimpleSimulation
 from sim.tasks.tasks import HARD, EASY
 
-numEpisodes = int(1e3)
+numEpisodes = int(1e2)
 
 numDevices = 2
 def run(results, finished):
     constants.CENTRALISED_LEARNING = False
-    exp = SimpleSimulation(numDevices=numDevices, maxJobs=2, tasks=[HARD])
-    exp.setBatterySize(1e-1)
+    exp = SimpleSimulation(numDevices=numDevices, maxJobs=100, tasks=[HARD])
+    exp.setBatterySize(1e0)
     # exp.setBatterySize(1e-5)
     # replace agents in devices
     # for dev in exp.devices:
@@ -24,14 +24,16 @@ def run(results, finished):
     for agent, device in zip([lazyTableAgent, minimalTableAgent], exp.devices):
         device.agent = agent(systemState=exp.currentSystemState, owner=device, offPolicy=constants.OFF_POLICY)
         device.agent.setDevices(exp.devices)
+        print("set agent", agent, agent.__name__, device.agent, device.agent.__name__)
         # device.agent.reset()
         # device.reset()
 
 
+    print([device.agent.__name__ for device in exp.devices])
     for e in range(int(numEpisodes)):
         exp.simulateEpisode()
         for device in exp.devices:
-            # print("putting results", device.agent.__name__, device.numJobsDone)
+            print("putting results", device.agent.__name__, device.numJobsDone)
             # results.put(["Agent %s" % device.agent.__name__, e, device.currentTime.current])
             results.put(["Agent %s" % device.agent.__name__, e, device.numJobsDone])
 
@@ -41,8 +43,8 @@ def run(results, finished):
     #     # device.agent.printModel()
     #     device.agent.setProductionMode()
 
-    for device in exp.devices:
-        device.agent.printModel()
+    # for device in exp.devices:
+    #     device.agent.printModel()
     finished.put(True)
 
 if __name__ == "__main__":

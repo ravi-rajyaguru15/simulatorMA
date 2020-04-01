@@ -65,8 +65,8 @@ def run(numEpisodes):
 
     # localConstants.REPEATS = 10
     numEpisodes = int(numEpisodes)
-    # agentsToTest = [minimalTableAgent, minimalDeepAgent, lazyTableAgent, lazyDeepAgent] # , localAgent] # , randomAgent]
-    agentsToTest = [minimalTableAgent, lazyTableAgent] # , localAgent] # , randomAgent]
+    agentsToTest = [minimalTableAgent, minimalDeepAgent] #, lazyTableAgent, lazyDeepAgent] # , localAgent] # , randomAgent]
+    # agentsToTest = [minimalTableAgent, lazyTableAgent] # , localAgent] # , randomAgent]
     for agent in agentsToTest: # [minimalAgent, lazyAgent]:
         for _ in range(localConstants.REPEATS):
             processes.append(multiprocessing.Process(target=runThread, args=(agent, numEpisodes, results, finished)))

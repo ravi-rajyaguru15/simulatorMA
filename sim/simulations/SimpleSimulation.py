@@ -7,11 +7,8 @@ import numpy as np
 
 from sim import debug
 from sim.devices.components import powerPolicy
-from sim.devices.components.processor import processor
-from sim.devices.components.fpga import fpga
-from sim.devices.node import node
 from sim.experiments.scenario import RANDOM_SCENARIO_RANDOM
-from sim.learning.agent.minimalAgent import minimalAgent
+from sim.learning.agent.minimalTableAgent import minimalTableAgent
 from sim.learning.state.minimalSystemState import minimalSystemState
 from sim.simulations import constants
 from sim.simulations.Simulation import BasicSimulation
@@ -24,7 +21,7 @@ class SimpleSimulation(BasicSimulation):
 	jobInterval = None
 	scenario = None
 
-	def __init__(self, numDevices=constants.NUM_DEVICES, jobInterval=constants.DEFAULT_TIME_INTERVAL, maxJobs=constants.MAX_JOBS, systemStateClass=minimalSystemState, agentClass=minimalAgent, allowExpansion=constants.ALLOW_EXPANSION, tasks=constants.DEFAULT_TASK_GRAPH, offPolicy=constants.OFF_POLICY, scenarioTemplate=RANDOM_SCENARIO_RANDOM):
+	def __init__(self, numDevices=constants.NUM_DEVICES, jobInterval=constants.DEFAULT_TIME_INTERVAL, maxJobs=constants.MAX_JOBS, systemStateClass=minimalSystemState, agentClass=minimalTableAgent, allowExpansion=constants.ALLOW_EXPANSION, tasks=constants.DEFAULT_TASK_GRAPH, offPolicy=constants.OFF_POLICY, scenarioTemplate=RANDOM_SCENARIO_RANDOM):
 		BasicSimulation.__init__(self, numDevices=numDevices, maxJobs=maxJobs, systemStateClass=systemStateClass, agentClass=agentClass, globalClock=False, allowExpansion=allowExpansion, tasks=tasks, offPolicy=offPolicy)
 		# remove the taskqueues as tasks are queued in sim
 		for dev in self.devices: dev.taskQueue = None

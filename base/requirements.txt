@@ -6,3 +6,4 @@ keras-rl
 pillow
 pyyaml
 memory-profiler
+gym

@@ -4,7 +4,7 @@ import gym
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
-%matplotlib inline
+# %matplotlib inline
 
 env = gym.make('FrozenLake-v0')
 tf.reset_default_graph()

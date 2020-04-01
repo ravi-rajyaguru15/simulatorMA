@@ -1,5 +1,4 @@
 import multiprocessing
-from multiprocessing import freeze_support
 
 import numpy as np
 
@@ -7,11 +6,8 @@ import sim
 from sim import debug
 from sim.clock import clock
 from sim.devices.elasticNode import elasticNode
-from sim.offloading import offloadingPolicy #, offloadingDecision
-from sim.simulations import constants, simulationResults
-from sim.simulations.history import history
+from sim.simulations import constants
 from sim.tasks.job import job
-# from message import message
 from sim.visualiser import visualiser
 
 queueLengths = list()
@@ -176,6 +172,10 @@ class BasicSimulation:
 
 	def simulateTick(self):
 		raise NotImplementedError("Implemented in subclass")
+
+	def simulateEpisodes(self, numEpisodes):
+		for i in range(numEpisodes):
+			self.simulateEpisode()
 
 	# reset energy levels of all devices and run entire simulation
 	def simulateEpisode(self):
