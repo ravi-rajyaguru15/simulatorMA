@@ -51,7 +51,7 @@ def run():
 				processes.append(multiprocessing.Process(target=runThread, args=(agent, int(maxJobs), results, finished)))
 	
 	results = executeMulti(processes, results, finished)
-	plotMultiWithErrors("Job Interval", results=results, ylabel="Total Jobs", xlabel="Job Interval") # , save=True)
+	plotMultiWithErrors("Max Jobs in Queue", results=results, ylabel="Total Jobs", xlabel="Max Queue") # , save=True)
 
 if __name__ == "__main__":
 	setupMultithreading()

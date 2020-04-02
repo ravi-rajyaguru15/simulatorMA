@@ -104,8 +104,7 @@ class qAgent(agent):
 	def trainModel(self, latestAction, R, beforeState, afterState, finished):
 		raise self.genericException
 
-	def updateTargetModel(self):
-		raise self.genericException
+
 
 	def saveModel(self):
 		raise self.genericException

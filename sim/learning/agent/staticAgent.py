@@ -15,3 +15,5 @@ class staticAgent(agent):
 	def train(self, task, job, device):
 		pass
 
+	def updateTargetModel(self):
+		pass

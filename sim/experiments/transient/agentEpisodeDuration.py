@@ -8,6 +8,8 @@ from multiprocessing import freeze_support
 
 from sim import debug, counters, plotting
 from sim.experiments.experiment import executeMulti
+from sim.learning.agent.lazyTableAgent import lazyTableAgent
+from sim.learning.agent.minimalTableAgent import minimalTableAgent
 from sim.learning.agent.randomAgent import randomAgent
 from sim.simulations import localConstants
 from sim.simulations.SimpleSimulation import SimpleSimulation
@@ -18,9 +20,9 @@ from sim.tasks.tasks import HARD
 
 
 def runThread(agent, numEpisodes, results, finished):
-    exp = SimpleSimulation(numDevices=16, maxJobs=15, agentClass=agent, tasks=[HARD])
+    exp = SimpleSimulation(numDevices=16, maxJobs=150, agentClass=agent, tasks=[HARD])
     exp.scenario.setInterval(1)
-    exp.setBatterySize(1e-1)
+    exp.setBatterySize(1e0)
 
     e = None
     try:
@@ -60,7 +62,7 @@ def run(numEpisodes):
 
     # localConstants.REPEATS = 10
     numEpisodes = int(numEpisodes)
-    agentsToTest = [minimalAgent, lazyAgent, randomAgent] # localAgent]
+    agentsToTest = [minimalTableAgent, lazyTableAgent, randomAgent] # localAgent]
     for agent in agentsToTest: # [minimalAgent, lazyAgent]:
         for _ in range(localConstants.REPEATS):
             processes.append(multiprocessing.Process(target=runThread, args=(agent, numEpisodes, results, finished)))

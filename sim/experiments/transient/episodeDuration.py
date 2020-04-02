@@ -11,7 +11,7 @@ from sim.simulations.SimpleSimulation import SimpleSimulation
 
 
 def runThread(jobInterval, fpgaSleepTime, numEpisodes, results, finished):
-	exp = SimpleSimulation(numDevices=4)
+	exp = SimpleSimulation(numDevices=4, maxJobs=maxJobs)
 	exp.setFpgaIdleSleep(fpgaSleepTime)
 	exp.scenario.setInterval(jobInterval)
 	print('interval', exp.scenario.timeInterval.mean)

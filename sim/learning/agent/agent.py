@@ -108,6 +108,9 @@ class agent:
 	def createModel(self):
 		pass
 
+	def updateTargetModel(self):
+		raise self.genericException
+
 	# self.history = sim.history.history()
 	# def setDevices(self, devices):
 	# 	raise self.genericException

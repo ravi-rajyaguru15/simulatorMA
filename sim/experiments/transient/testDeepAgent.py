@@ -22,7 +22,7 @@ from sim.tasks.tasks import HARD
 
 def runThread(agent, numEpisodes, results, finished):
     constants.CENTRALISED_LEARNING = False
-    exp = SimpleSimulation(numDevices=2, maxJobs=1, agentClass=agent, tasks=[HARD])
+    exp = SimpleSimulation(numDevices=2, maxJobs=100, agentClass=agent, tasks=[HARD])
     exp.scenario.setInterval(1)
     exp.setBatterySize(1e-1)
 
