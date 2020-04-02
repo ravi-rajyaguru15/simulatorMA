@@ -28,5 +28,6 @@ class lazyAgent(qAgent):
 		# jobReward = energyReward + deathReward # -log2(job.totalEnergyCost * 1e3)
 		# print(job.totalEnergyCost, device.maxEnergyLevel, jobReward)
 		# print(self, jobReward, )
+		debug.learnOut("Reward: %s (%s) e: %.2f d: %.2f" % (self.__name__, self.possibleActions[job.latestAction], energyReward, deathReward))
 
 		return energyReward + deathReward

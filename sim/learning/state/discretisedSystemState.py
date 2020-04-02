@@ -99,7 +99,7 @@ class discretisedSystemState(systemState):
 				return bins - 1
 			else:
 				# return round(value * (scalingFactor - 1))
-				return int(value * (scalingFactor - 1))
+				return round(value * (scalingFactor - 1))
 		else:
 			assert value < bins
 			return value

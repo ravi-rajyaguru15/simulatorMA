@@ -204,7 +204,7 @@ class job:
 
 		# if sim.simulations.constants.OFFLOADING_POLICY == sim.offloading.offloadingPolicy.REINFORCEMENT_LEARNING:
 		sim.debug.learnOut("training when finishing job")
-		self.owner.agent.train(self.currentTask, self, self.owner)
+		self.owner.agent.train(self.currentTask, self, self.owner, cause="job finish")
 
 			# agent = self.owner.decision.privateAgent
 			# self.addToHistory(self.owner.agent.latestReward, self.owner.agent.latestLoss)

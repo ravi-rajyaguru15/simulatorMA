@@ -1,4 +1,4 @@
-
+from sim import debug
 from sim.learning.agent.qAgent import qAgent
 
 
@@ -18,6 +18,8 @@ class minimalAgent(qAgent):
 			energyReward = 0
 
 		deathReward = -1000. if device.gracefulFailure else 0
+
+		debug.learnOut("Reward: %s (%s) j: %.2f e: %.2f d: %.2f" % (self.__name__, self.possibleActions[job.latestAction], jobReward, energyReward, deathReward))
 
 		# print(self, device.numJobsDone, jobReward + energyReward)
 		return jobReward + energyReward + deathReward

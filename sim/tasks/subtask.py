@@ -359,7 +359,7 @@ class batching(subtask):
 		subtask.beginTask(self)
 
 	def finishTask(self):
-		# which devices have additinal tasks added?
+		# which devices have additional tasks added?
 		affected = None
 		nextSubtask = None
 		# add current job to node's batch
@@ -375,6 +375,7 @@ class batching(subtask):
 			if affected is None:
 				sleepMcu = True
 		else:
+			self.owner.agent.train(self.job.currentTask, self.job, self.owner, cause=self.__name__)
 			sleepMcu = True
 
 		if sleepMcu:
@@ -429,7 +430,7 @@ class newJob(subtask):
 		if self.owner.gracefulFailure:
 			debug.out("GRACEFUL FAILURE on %s %s %s" % (self.owner, self.owner.offloadingOptions, self.owner.batch))
 			debug.infoOut("training from %s" % self.owner.agent.systemState.getStateDescription(self.job.beforeState))
-			self.owner.agent.train(self.job.currentTask, self.job, self.owner)
+			self.owner.agent.train(self.job.currentTask, self.job, self.owner, cause=self.__name__)
 			debug.infoOut("training to   %s" % self.owner.agent.systemState.getStateDescription(
 				self.owner.agent.systemState.getIndex()))
 
@@ -548,7 +549,7 @@ class fpgaMcuOffload(xmem):
 			# self.job.processingNode.addSubtask(, appendLeft=True)
 			newSubtask = txResult(self.job, self.job.processingNode, self.job.creator)
 		else:
-			self.job.finish()
+			self.job.finish() # training in job finish
 			# self.job.processingNode.addSubtask(, appendLeft=True)
 			newSubtask = batchContinue(node=self.owner)
 
@@ -606,6 +607,7 @@ class processing(subtask):
 			if self.job.offloaded():
 				newSubtask = txResult(self.job, self.job.processingNode, self.job.creator)
 			else:
+				self.owner.agent.train(self.job.currentTask, self.job, self.owner, cause=self.__name__)
 				newSubtask = batchContinue(self.job)
 
 			# self.job.creator.jobActive = False
@@ -735,7 +737,7 @@ class txJob(txMessage):
 		# must update when starting,
 		# if constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING:
 		debug.learnOut("training after offloading job")
-		self.owner.agent.train(self.job.currentTask, self.job, self.owner)
+		self.owner.agent.train(self.job.currentTask, self.job, self.owner, cause=self.__name__)
 
 		# removing job from sender
 		self.owner.removeJob(self.job)
@@ -763,6 +765,7 @@ class txResult(txMessage):
 		# self.job.processingNode.addSubtask(, appendLeft=True)
 
 		# move result of job back to the creator
+		self.owner.agent.train(self.job.currentTask, self.job, self.owner, cause=self.__name__)
 		return txMessage.finishTask(self, (self.job.processingNode, batchContinue(node=self.owner)))
 
 

@@ -65,6 +65,8 @@ class qTableAgent(qAgent):
 		target = reward + constants.GAMMA * maxQ
 		increment = constants.LEARNING_RATE * (target - Qsa)
 		debug.learnOut("updating qtable: %d\t%d\t%f\t%f" % (beforeIndex, latestAction, increment, reward))
+		if beforeState[0] == 4 and beforeState[1] == 0:
+			print("training", latestAction, beforeState, reward)
 
 		# Q learning 101:
 		trainModel = self.targetModel if self.offPolicy else self.model
@@ -86,12 +88,18 @@ class qTableAgent(qAgent):
 		if self.policy.evaluate(constants.EPS) and not self.productionMode:
 			# return random
 			action = np.random.randint(0, self.numActions)
+			# if systemState[0] == 4:
+			# 	print("random", action, systemState)
 			# print('selecting random in', qValues, action)
 			return action
 		else:
 			qValues = self.predict(index)
+			best = np.argmax(qValues)
+			if systemState[0] == 4 and systemState[1] == 0:
+				print("chose", best, systemState, np.array(qValues))
+
 			# print('selecting max from', qValues, np.argmax(qValues))
-			return np.argmax(qValues)
+			return best
 
 	def printModel(self):
 		self._printModel(self.model)

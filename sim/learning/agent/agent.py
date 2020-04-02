@@ -272,12 +272,17 @@ class agent:
 		# job.beforeState = deepcopy(self.systemState)
 		job.beforeState = self.systemState.currentState
 		sim.debug.out("beforestate {}".format(job.beforeState))
+
+		if job.beforeState[0] == 4 and job.beforeState[1] == 0:
+			print("choosing for", job)
+
 		# print(device.batchLengths(), device.batchLength(task), device.isQueueFull(task))
 
 		# special case if job queue is full
 		if device.isQueueFull(task):
 			actionIndex = self.numActions - 1
 			debug.learnOut("special case! queue is full %s %d" % (device.batchLengths(), actionIndex))
+			# print("queue full")
 		# check if no offloading is available
 		elif not device.hasOffloadingOptions() and OFFLOADING in self.possibleActions:
 			# if self.possibleActions[0] is not OFFLOADING:
@@ -289,12 +294,14 @@ class agent:
 			assert self.possibleActions[0] is OFFLOADING
 			actionIndex = np.random.randint(1, self.numActions - 1)
 			debug.out("no offloading available")
+			# print("random")
 		else:
 			debug.out("getting action %s %s" % (device, device.batchLengths()))
 			# choose best action based on current state
 			actionIndex = self.selectAction(job.beforeState)
 			# qValues = self.predict(job.beforeState)
 			# actionIndex = self.selectAction(qValues)
+			# print("chose")
 		job.latestAction = actionIndex
 		job.history.add("action", actionIndex)
 
@@ -328,7 +335,7 @@ class agent:
 	def redecideDestination(self, task, job, device):
 		# assert constants.OFFLOADING_POLICY == REINFORCEMENT_LEARNING
 		# print("redeciding")
-		self.train(task, job, device)
+		# self.train(task, job, device)
 		decision = self.forward(task, job, device)
 		debug.out("redecided decision: %s" % decision)
 		return decision

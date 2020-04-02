@@ -286,6 +286,7 @@ class SimpleSimulation(BasicSimulation):
 			# idlePeriod = device.currentTime.current - device.previousTimestamp
 			idlePeriod = scheduledTime - device.currentTime.current
 
+
 			# scheduled time wasn't available
 			if idlePeriod < 0:
 				debug.out("scheduled time wasn't available: %f (%f)" % (scheduledTime, idlePeriod), 'r')
@@ -295,6 +296,10 @@ class SimpleSimulation(BasicSimulation):
 
 			# if idlePeriod >= 0:
 			# idlePower = device.getTotalPower()
+
+			if device.asleep():
+				device.incremementTotalSleepTime(idlePeriod)
+
 			debug.out("%s idle %f" % (device, idlePeriod), 'r')
 			device.currentTd = idlePeriod
 			devicePower = device.getTotalPower()

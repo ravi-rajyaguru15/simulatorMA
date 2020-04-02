@@ -514,6 +514,9 @@ class node:
 	# 		warnings.warn("don't think this is correct")
 	# 		self.totalSleepTime += self.currentTd
 
+	def incremementTotalSleepTime(self, increment):
+		self.totalSleepTime += increment
+
 	def expectedLifetime(self):
 		# estimate total life time based on previous use
 		if self.averagePower == 0:

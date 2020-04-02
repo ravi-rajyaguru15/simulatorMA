@@ -1,3 +1,5 @@
+import traceback
+
 import numpy as np
 
 from sim import debug, counters
@@ -10,21 +12,21 @@ class qAgent(agent):
 	__name__ = "Q Agent"
 	targetModel = None
 
-	def reward(self, job, task, device):
-		# default reward behaviour
-		jobReward = 1 if job.finished else 0
-		deadlineReward = 0 if job.deadlineMet() else -0.5
-		expectedLifetimeReward = -.5 if (job.startExpectedLifetime - job.systemLifetime()) > (
-					job.currentTime - job.createdTime) else 0  # reward if not reducing lifetime more than actual duration
-		simulationDoneReward = -100 if job.episodeFinished() else 0
-
-		debug.learnOut(
-			'reward: job {} deadline {} expectedLife {} simulationDone {}'.format(jobReward, deadlineReward,
-																				  expectedLifetimeReward,
-																				  simulationDoneReward), 'b')
-		# traceback.print_stack()
-
-		return jobReward + deadlineReward + expectedLifetimeReward + simulationDoneReward
+	# def reward(self, job, task, device):
+	# 	# default reward behaviour
+	# 	jobReward = 1 if job.finished else 0
+	# 	deadlineReward = 0 if job.deadlineMet() else -0.5
+	# 	expectedLifetimeReward = -.5 if (job.startExpectedLifetime - job.systemLifetime()) > (
+	# 				job.currentTime - job.createdTime) else 0  # reward if not reducing lifetime more than actual duration
+	# 	simulationDoneReward = -100 if job.episodeFinished() else 0
+	#
+	# 	debug.learnOut(
+	# 		'reward: job {} deadline {} expectedLife {} simulationDone {}'.format(jobReward, deadlineReward,
+	# 																			  expectedLifetimeReward,
+	# 																			  simulationDoneReward), 'b')
+	# 	# traceback.print_stack()
+	#
+	# 	return jobReward + deadlineReward + expectedLifetimeReward + simulationDoneReward
 
 	# update based on resulting system state and reward
 	def backward(self, job, task, device, episodeFinished):
@@ -43,6 +45,9 @@ class qAgent(agent):
 		counters.NUM_BACKWARD += 1
 
 		# update model here
+		# if job.beforeState[0] == 4 and job.beforeState[1] == 0:
+		# 	print("training", job, "from", cause)
+
 		self.trainModel(job.latestAction, reward, job.beforeState, self.systemState, finished)
 
 		# new metrics
@@ -78,15 +83,22 @@ class qAgent(agent):
 		debug.learnOut("deciding how to offload new job", 'y')
 		debug.learnOut("owner: {}".format(self.owner), 'r')
 		choice = self.firstDecideDestination(task, job, device)
+		# print("destination chosen", choice)
 		return choice
 
 	def getPolicyMetrics(self):
 		return []
 
-	def train(self, task, job, device):
+	def train(self, task, job, device, cause=None):
 		if not self.productionMode:
 			debug.learnOut("Training: [{}] [{}] [{}]".format(task, job, device), 'y')
 			self.systemState.updateState(task, job, device)
+
+			if job.beforeState[0] == 4 and job.beforeState[1] == 0:
+				print("training for", job, cause)
+			if cause is None:
+				traceback.print_stack()
+
 			self.backward(job, episodeFinished=job.episodeFinished(), task=task, device=device)
 			debug.infoOut("train: %s %s %s A %s R %.2f" % (task, job, device, self.possibleActions[job.latestAction], self.latestReward))
 			debug.infoOut("to     %s %d" % (self.systemState.getStateDescription(), self.systemState.getIndex()))
