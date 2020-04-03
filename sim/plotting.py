@@ -157,6 +157,48 @@ def _plotMulti(name, results=None, ylim=None, ylabel=None, xlabel=None,
 	if localConstants.DRAW_GRAPH:
 		pp.show()
 
+def plotModel(agent):
+	outputTable = np.zeros((agent.model.stateCount, agent.model.actionCount))
+	yticks = []
+	for i in range(agent.model.stateCount):
+		text = agent.systemState.getStateDescription(i)
+		for j in range(agent.model.actionCount):
+			outputTable[i, j] = agent.model.getQ(i, j)
+
+		yticks.append(text)
+		# pp.text(-2, i, text, horizontalalignment='right', fontsize=5)
+
+	pp.figure()
+	pp.title(agent.__name__)
+
+	# normalise:
+	outputTable -= constants.INITIAL_Q
+	picture = np.zeros((agent.model.stateCount, agent.model.actionCount, 3), dtype=np.float)
+
+	# fig, axes = pp.subplot()
+	small, large = np.min(outputTable), np.max(outputTable)
+	limit = max(abs(small), abs(large))
+	outputTable /= limit
+
+
+	for i in range(agent.model.stateCount):
+		for j in range(agent.model.actionCount):
+			current = outputTable[i, j]
+			if current < 0:
+				picture[i, j] = [-current, 0, 0]
+			elif current > 0:
+				picture[i, j] = [0, 0, current]
+
+	# print(axes.)
+	pp.imshow(picture, aspect=0.5)
+	pp.yticks(range(agent.model.stateCount), yticks, fontsize=8)
+	pp.xticks(range(agent.model.actionCount), agent.possibleActions, rotation='vertical')
+	pp.tight_layout()
+
+	# biggest = max(abs(np.min(outputTable)), abs(np.max(outputTable)))
+	# pp.imshow(outputTable, cmap=pp.get_cmap('bwr'))
+	pp.show()
+
 
 def saveFig(filename):
 	try:

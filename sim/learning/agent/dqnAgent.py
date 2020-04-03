@@ -52,8 +52,8 @@ class dqnAgent(qAgent):
 		# print('input shape', (1,) + env.observation_space.shape)
 		# self.model.add(keras.layers.Dense(4))
 		# self.model.add(keras.layers.Activation('relu'))
-		# self.model.add(keras.layers.Dense(16))
-		# self.model.add(keras.layers.Activation('relu'))
+		self.model.add(keras.layers.Dense(16))
+		self.model.add(keras.layers.Activation('relu'))
 
 		self.model.add(keras.layers.Dense(self.numActions))
 		self.model.add(keras.layers.Activation('linear'))

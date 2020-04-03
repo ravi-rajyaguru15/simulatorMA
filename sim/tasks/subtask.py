@@ -736,7 +736,7 @@ class txJob(txMessage):
 		# if using rl, update model
 		# must update when starting,
 		# if constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING:
-		debug.learnOut("training after offloading job")
+		debug.out("training after offloading job")
 		self.owner.agent.train(self.job.currentTask, self.job, self.owner, cause=self.__name__)
 
 		# removing job from sender
@@ -866,8 +866,8 @@ class rxJob(rxMessage):
 		# if using rl, reevalute decision
 		# if usingReinforcementLearning:
 		# print()
-		debug.learnOut("updating decision upon reception")
-		debug.learnOut("owner: {}".format(self.job.owner))
+		debug.out("updating decision upon reception")
+		debug.out("owner: {}".format(self.job.owner))
 		# systemState.current.update(self.job.currentTask, self.job, self.job.owner)
 		# debug.out("systemstate: {}".format(systemState.current))
 

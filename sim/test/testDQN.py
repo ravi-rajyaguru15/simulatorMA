@@ -32,17 +32,10 @@ def compareModels(correct, uut):
 		uutAction = uut.sharedAgent.selectAction(currentState)
 
 		correctQ = correct.sharedAgent.model.getQ(state)
-		# print("correctQ", correctQ)
 		uutQ = uut.sharedAgent.predict(uut.sharedAgent.model, currentState)
-		# print("uutQ", uutQ)
 
 		error = uutQ - correctQ
-		# print("error", error)
-		# print(np.mean(error))
 		errors.append(error)
-
-		# print(correct.sharedAgent.model.getQ(index), uut.sharedAgent.predict(uut.sharedAgent.model, currentState))
-		# print(correctAction, uutAction)
 
 		if not all(correct.sharedAgent.model.getQ(index) == 25.):
 			if correctAction == uutAction:

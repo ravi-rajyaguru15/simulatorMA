@@ -264,24 +264,24 @@ class agent:
 	def forward(self, task, job, device):
 		self.systemState.updateState(task, job, device)
 
-		debug.learnOut("forward", 'y')
+		# debug.learnOut("forward", 'y')
 
 		counters.NUM_FORWARD += 1
 
 		# currentSim = sim.simulations.Simulation.currentSimulation
 		# job.beforeState = deepcopy(self.systemState)
-		job.beforeState = self.systemState.currentState
+		job.beforeState = np.array(self.systemState.currentState)
 		sim.debug.out("beforestate {}".format(job.beforeState))
 
-		if job.beforeState[0] == 4 and job.beforeState[1] == 0:
-			print("choosing for", job)
+		# if job.beforeState[0] == 4 and job.beforeState[1] == 0:
+		# debug.learnOut("%s choosing for %s" % (device, job))
 
 		# print(device.batchLengths(), device.batchLength(task), device.isQueueFull(task))
 
 		# special case if job queue is full
 		if device.isQueueFull(task):
 			actionIndex = self.numActions - 1
-			debug.learnOut("special case! queue is full %s %d" % (device.batchLengths(), actionIndex))
+			debug.learnOut("special case! queue is full %s %d" % (device.batchLengths(), actionIndex), 'r')
 			# print("queue full")
 		# check if no offloading is available
 		elif not device.hasOffloadingOptions() and OFFLOADING in self.possibleActions:
@@ -307,7 +307,7 @@ class agent:
 
 		assert self.possibleActions is not None
 		choice = self.possibleActions[actionIndex]
-		sim.debug.learnOut("choice: {} ({})".format(choice, actionIndex), 'r')
+		# sim.debug.learnOut("choice: {} ({})".format(choice, actionIndex), 'r')
 
 		choice.updateTargetDevice(owner=device, offloadingDevices=device.offloadingOptions)
 		# choice.updateTargetDevice(devices=self.devices)

@@ -60,13 +60,12 @@ class qTableAgent(qAgent):
 	def trainModel(self, latestAction, reward, beforeState, currentState, finished):
 		beforeIndex = self.systemState.getIndex(beforeState)
 		Qsa = self.model.getQ(beforeIndex, latestAction)
+		beforeQ = np.array(self.model.getQ(beforeIndex))
 		currentIndex = currentState.getIndex()
 		maxQ = np.argmax(self.model.getQ(currentIndex))
 		target = reward + constants.GAMMA * maxQ
 		increment = constants.LEARNING_RATE * (target - Qsa)
-		debug.learnOut("updating qtable: %d\t%d\t%f\t%f" % (beforeIndex, latestAction, increment, reward))
-		if beforeState[0] == 4 and beforeState[1] == 0:
-			print("training", latestAction, beforeState, reward)
+		# debug.learnOut("updating qtable: %d\t%d\t%f\t%f" % (beforeIndex, latestAction, increment, reward))
 
 		# Q learning 101:
 		trainModel = self.targetModel if self.offPolicy else self.model
@@ -74,6 +73,8 @@ class qTableAgent(qAgent):
 		self.latestLoss = (target - Qsa) ** 2.
 		self.latestMeanQ = self.model.meanQ(beforeState)
 
+		# if beforeState[0] == 4 and beforeState[1] == 0:
+		debug.learnOut("training %d %s %s %.2f %s %s" % (latestAction, beforeState, currentState, reward, beforeQ, trainModel.getQ(beforeIndex)))
 
 	def predict(self, state):
 		# find row from q table for this state
@@ -95,10 +96,9 @@ class qTableAgent(qAgent):
 		else:
 			qValues = self.predict(index)
 			best = np.argmax(qValues)
-			if systemState[0] == 4 and systemState[1] == 0:
-				print("chose", best, systemState, np.array(qValues))
+			# if systemState[0] == 4 and systemState[1] == 0:
+			debug.learnOut("chose: {} ({}) {} {}".format(best, self.possibleActions[best], systemState, np.array(qValues)), 'r')
 
-			# print('selecting max from', qValues, np.argmax(qValues))
 			return best
 
 	def printModel(self):

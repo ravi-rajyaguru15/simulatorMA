@@ -34,8 +34,8 @@ class qAgent(agent):
 		# reward = self.reward(job, task, device)
 		finished = episodeFinished
 
-		debug.learnOut("backward {} {}".format(reward, finished), 'y')
-		debug.learnOut("\n")
+		debug.out("backward {} {}".format(reward, finished), 'y')
+		debug.out("\n")
 		# traceback.print_stack()
 		# debug.learnOut("\n")
 
@@ -45,7 +45,7 @@ class qAgent(agent):
 		counters.NUM_BACKWARD += 1
 
 		# update model here
-		# if job.beforeState[0] == 4 and job.beforeState[1] == 0:
+		# if job.beforeState 4 and job.beforeState[1] == 0:
 		# 	print("training", job, "from", cause)
 
 		self.trainModel(job.latestAction, reward, job.beforeState, self.systemState, finished)
@@ -80,8 +80,8 @@ class qAgent(agent):
 	# return metrics
 
 	def chooseDestination(self, task, job, device):
-		debug.learnOut("deciding how to offload new job", 'y')
-		debug.learnOut("owner: {}".format(self.owner), 'r')
+		debug.out("deciding how to offload new job", 'y')
+		debug.out("owner: {}".format(self.owner), 'r')
 		choice = self.firstDecideDestination(task, job, device)
 		# print("destination chosen", choice)
 		return choice
@@ -91,11 +91,10 @@ class qAgent(agent):
 
 	def train(self, task, job, device, cause=None):
 		if not self.productionMode:
-			debug.learnOut("Training: [{}] [{}] [{}]".format(task, job, device), 'y')
+			# debug.learnOut("Training: [{}] [{}] [{}]".format(task, job, device), 'y')
+			debug.learnOut("Training for %s %d %s" % (job, job.latestAction, cause), 'g')
 			self.systemState.updateState(task, job, device)
 
-			if job.beforeState[0] == 4 and job.beforeState[1] == 0:
-				print("training for", job, cause)
 			if cause is None:
 				traceback.print_stack()
 

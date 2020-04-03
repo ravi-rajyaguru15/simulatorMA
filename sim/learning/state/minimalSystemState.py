@@ -24,7 +24,7 @@ class minimalSystemState(discretisedSystemState):
 		discretisedSystemState.__init__(self, *args)
 
 	def updateState(self, task, job, device):
-		debug.learnOut("update state: %s %s %d %s %s" % (device, device.batchLength(task), device.maxJobs, task, job))
+		debug.out("update state: %s %s %d %s %s" % (device, device.batchLength(task), device.maxJobs, task, job))
 		self.setField('jobsInQueue', device.batchLength(task) / device.maxJobs)
 		self.setField('currentConfig', device.fpga.isConfigured(task))
 		self.setField('energyRemaining', device.getEnergyLevelPercentage())

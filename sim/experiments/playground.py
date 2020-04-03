@@ -1,7 +1,7 @@
 import multiprocessing
 
 import sim
-from sim import debug
+from sim import debug, plotting
 from sim.devices.components import powerPolicy
 from sim.experiments.experiment import setupMultithreading
 import numpy as np
@@ -16,17 +16,20 @@ from sim.simulations.SimpleSimulation import SimpleSimulation
 if __name__ == "__main__":
 	setupMultithreading()
 
-	np.set_printoptions(suppress=True)
-	# debug.settings.enabled = True
-	# debug.settings.learnEnabled = True
+	np.set_printoptions(suppress=True, precision=2)
+	debug.settings.learnEnabled = True # change this to see debug on how it learns
+
 	for agent in [lazyTableAgent]: # minimalTableAgent
 		exp = SimpleSimulation(numDevices=2, maxJobs=2, agentClass=agent)
 		exp.scenario.setInterval(1)
 		exp.setBatterySize(1e-2)
 		print("pretraining...")
-		for i in range(int(1)):
+		for i in range(int(1)): # change this to train longer (i'm using 1e3 to get a decent view)
+			debug.learnOut('\n')
 			exp.simulateEpisode()
-		print("testing")
+			debug.learnOut('\n')
+
+		# print("testing")
 
 		localConstants.DEBUG_HISTORY = False
 		# debug.settings.learnEnabled = True
@@ -43,7 +46,8 @@ if __name__ == "__main__":
 		# print(exp.numFinishedJobs)
 
 		# debug.settings.infoEnabled = False
-		exp.sharedAgent.printModel()
+		# exp.sharedAgent.printModel()
+		plotting.plotModel(exp.sharedAgent)
 		#
 		# for i in range(10):
 		# 	for j in range(int(1e3)):

@@ -10,7 +10,7 @@ class lazyAgent(qAgent):
 	def __repr__(self): return "<Lazy Agent>"
 
 	def reward(self, job, task, device):
-		debug.learnOut("energy cost %f" % job.totalEnergyCost)
+		debug.out("energy cost %f" % job.totalEnergyCost)
 		jobReward = 100. if job.finished else -50 # * device.numJobsDone
 
 		if job.totalEnergyCost != 0 and device in job.devicesEnergyCost:
@@ -28,6 +28,6 @@ class lazyAgent(qAgent):
 		# jobReward = energyReward + deathReward # -log2(job.totalEnergyCost * 1e3)
 		# print(job.totalEnergyCost, device.maxEnergyLevel, jobReward)
 		# print(self, jobReward, )
-		debug.learnOut("Reward: %s (%s) e: %.2f d: %.2f" % (self.__name__, self.possibleActions[job.latestAction], energyReward, deathReward))
+		debug.learnOut("Reward: %s (%s) e: %.2f d: %.2f" % (self.__name__, self.possibleActions[job.latestAction], energyReward, deathReward), 'y')
 
 		return energyReward + deathReward
