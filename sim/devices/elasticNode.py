@@ -16,8 +16,8 @@ class elasticNode(node):
 	mrf = None
 	fpga = None
 
-	def __init__(self, inputClock, platform, queue, index, maxJobs, currentSystemState, agent, alwaysHardwareAccelerate, offPolicy):
-		node.__init__(self, inputClock, platform, index, maxJobs=maxJobs, currentSystemState=currentSystemState, components=None, agent=agent, alwaysHardwareAccelerate=alwaysHardwareAccelerate, offPolicy=offPolicy)
+	def __init__(self, inputClock, platform, queue, index, maxJobs, reconsiderBatches, currentSystemState, agent, alwaysHardwareAccelerate, offPolicy):
+		node.__init__(self, inputClock, platform, index, reconsiderBatches=reconsiderBatches, maxJobs=maxJobs, currentSystemState=currentSystemState, components=None, agent=agent, alwaysHardwareAccelerate=alwaysHardwareAccelerate, offPolicy=offPolicy)
 		
 		self.mcu = mcu(self)
 		self.mrf = mrf(self)
@@ -39,6 +39,8 @@ class elasticNode(node):
 		if self.hasFpga():
 			# assuming maximum one fpga per device
 			return self.fpga.currentConfig
+		else:
+			return None
 
 	# def processingEnergy(self, duration):
 	# 	return self.mcu.idleEnergy(duration) + self.mrf.idleEnergy(duration) + self.fpga.activeEnergy(duration)

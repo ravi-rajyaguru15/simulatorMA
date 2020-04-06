@@ -13,7 +13,7 @@ import sim.tasks.subtask
 from sim import debug
 from sim.clock import clock
 from sim.devices.components.fpga import fpga
-from sim.learning.action import BATCH
+from sim.learning.action import BATCH, LOCAL
 from sim.simulations import constants
 
 
@@ -53,6 +53,7 @@ class node:
 	batch = None
 	currentBatch = None
 	batchFull = None
+	reconsiderBatches = None
 	maxJobs = None
 
 	currentTime = None
@@ -63,7 +64,7 @@ class node:
 	location = None
 	# episodeFinished = None
 
-	def __init__(self, inputClock, platform, index, components, maxJobs, currentSystemState=None, agent=None, alwaysHardwareAccelerate=None, offPolicy=constants.OFF_POLICY):
+	def __init__(self, inputClock, platform, index, components, reconsiderBatches, maxJobs, currentSystemState=None, agent=None, alwaysHardwareAccelerate=None, offPolicy=constants.OFF_POLICY):
 		self.platform = platform
 
 		# self.decision = offloadingDecisionClass(self, currentSystemState, agentClass)
@@ -85,6 +86,7 @@ class node:
 		# print("created index", index)
 		self.maxJobs = maxJobs
 		# self.nodeType = nodeType
+		self.reconsiderBatches = reconsiderBatches
 
 		self.setMaxEnergyLevel()
 		self.gracefulFailureLevel = currentSystemState.getGracefulFailureLevel()
@@ -354,18 +356,52 @@ class node:
 		return None
 		# sim.debug.out("Batch after: {0}/{1}".format(self.currentJob.processingNode.batchLength(self.job.currentTask), sim.constants.MINIMUM_BATCH), 'c')
 
-	def continueBatch(self):
+	def continueBatch(self, previousJob):
 		# assert task in self.batch
 		assert self.currentBatch is not None
 
+		if self.batchLength(self.currentBatch) == 0:
+			debug.learnOut("no more in batch %s for %s" % (self.currentBatch, self))
+			self.currentJob = None
+			return None
 		debug.learnOut("continue batch for %s (%d)" % (self.currentBatch, self.batchLength(self.currentBatch)))
+		# for name in self.batch:
+		# 	print("name", name)
+		# 	for j in self.batch[name]:
+		# 		print(j)
 		# assert task == self.currentBatch
 
-		if self.batchLength(self.currentBatch) > 0:
-			self.currentJob = self.batch[self.currentBatch][0]
-			self.removeJobFromBatch(self.currentJob)
+		# decide whether to continue with batch or not
+		possibleNextJob = self.batch[self.currentBatch][0]
+		if self.reconsiderBatches:
+			newChoice = self.agent.redecideDestination(possibleNextJob.currentTask, possibleNextJob, self)
+			debug.learnOut("decided to continue batch at %s?: %s" % (possibleNextJob, newChoice))
 
-			return self.currentJob
+			proceed = newChoice != BATCH
+
+		else:
+			# always continue batch
+			newChoice = self.agent.getAction(LOCAL)
+			# possibleNextJob.latestAction = self.agent.getActionIndex(newChoice)
+			debug.learnOut("default to continue batch: %s" % newChoice)
+			proceed = True
+
+		if proceed:
+			possibleNextJob.setDecisionTarget(newChoice)
+
+		# if decided to continue with this batch
+		if proceed:
+			if self.batchLength(self.currentBatch) > 0:
+				self.currentJob = self.batch[self.currentBatch][0]
+				self.currentJob.combineEnergyCosts(previousJob)
+				self.removeJobFromBatch(self.currentJob)
+
+				return self.currentJob.activate()
+
+			else:
+				raise Exception("wanted to continue with batch but nothing available")
+		else:
+			self.currentJob = None
 
 		return None
 
@@ -634,6 +670,7 @@ class node:
 		self.jobQueue.put((job.id, job))
 
 	def nextJob(self):
+		# print("nextjob", self.currentJob, self.getNumJobs(), )
 		if self.currentJob is None:
 			if self.getNumJobs() > 0:
 				index, self.currentJob = self.jobQueue.get()

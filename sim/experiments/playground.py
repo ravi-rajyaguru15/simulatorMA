@@ -9,6 +9,8 @@ from sim.learning.agent.lazyAgent import lazyAgent
 from sim.learning.agent.lazyTableAgent import lazyTableAgent
 from sim.learning.agent.minimalAgent import minimalAgent
 from sim.learning.agent.minimalTableAgent import minimalTableAgent
+from sim.learning.state.extendedSystemState import extendedSystemState
+from sim.learning.state.minimalSystemState import minimalSystemState
 from sim.offloading import offloadingPolicy
 from sim.simulations import constants, variable, localConstants
 from sim.simulations.SimpleSimulation import SimpleSimulation
@@ -16,15 +18,20 @@ from sim.simulations.SimpleSimulation import SimpleSimulation
 if __name__ == "__main__":
 	setupMultithreading()
 
-	np.set_printoptions(suppress=True, precision=2)
-	debug.settings.learnEnabled = True # change this to see debug on how it learns
+	basic = False
 
-	for agent in [lazyTableAgent]: # minimalTableAgent
-		exp = SimpleSimulation(numDevices=2, maxJobs=2, agentClass=agent)
+	np.set_printoptions(suppress=True, precision=2)
+	debug.settings.learnEnabled = False # change this to see debug on how it learns
+
+	systemStateClass = minimalSystemState if basic else extendedSystemState
+
+	for agent in [minimalTableAgent]: # lazyTableAgent
+		exp = SimpleSimulation(numDevices=1, maxJobs=2, reconsiderBatches=not basic
+							   , agentClass=agent, systemStateClass=systemStateClass)
 		exp.scenario.setInterval(1)
-		exp.setBatterySize(1e-2)
+		exp.setBatterySize(1e-1)
 		print("pretraining...")
-		for i in range(int(1)): # change this to train longer (i'm using 1e3 to get a decent view)
+		for i in range(int(1e3)): # change this to train longer (i'm using 1e3 to get a decent view)
 			debug.learnOut('\n')
 			exp.simulateEpisode()
 			debug.learnOut('\n')
@@ -47,7 +54,7 @@ if __name__ == "__main__":
 
 		# debug.settings.infoEnabled = False
 		# exp.sharedAgent.printModel()
-		plotting.plotModel(exp.sharedAgent)
+		plotting.plotModel(exp.sharedAgent, drawLabels=True)
 		#
 		# for i in range(10):
 		# 	for j in range(int(1e3)):

@@ -71,7 +71,7 @@ class qAgent(agent):
 
 		# print('reward', reward)
 
-		debug.learnOut("loss: {} reward: {}".format(self.latestLoss, self.latestReward), 'r')
+		debug.infoOut("loss: {} reward: {}".format(self.latestLoss, self.latestReward), 'r')
 		# debug.learnOut("loss: {} reward: {} R: {}".format(self.latestLoss, self.latestReward, self.latestR), 'r')
 	#
 	# agent.step += 1
@@ -83,7 +83,6 @@ class qAgent(agent):
 		debug.out("deciding how to offload new job", 'y')
 		debug.out("owner: {}".format(self.owner), 'r')
 		choice = self.firstDecideDestination(task, job, device)
-		# print("destination chosen", choice)
 		return choice
 
 	def getPolicyMetrics(self):
@@ -92,7 +91,7 @@ class qAgent(agent):
 	def train(self, task, job, device, cause=None):
 		if not self.productionMode:
 			# debug.learnOut("Training: [{}] [{}] [{}]".format(task, job, device), 'y')
-			debug.learnOut("Training for %s %d %s" % (job, job.latestAction, cause), 'g')
+			debug.learnOut("Training for %s %d %s %s" % (job, job.latestAction, cause, job.beforeState), 'y')
 			self.systemState.updateState(task, job, device)
 
 			if cause is None:

@@ -45,7 +45,7 @@ OFF_POLICY = False
 # energy management
 FPGA_POWER_PLAN = sim.devices.components.powerPolicy.IDLE_TIMEOUT
 MCU_POWER_PLAN = sim.devices.components.powerPolicy.IMMEDIATELY_OFF
-FPGA_IDLE_SLEEP = 1e-3
+FPGA_IDLE_SLEEP = 1e-1
 MCU_IDLE_SLEEP = .05
 
 # batching policy
@@ -68,7 +68,7 @@ DRAW_GRAPH_EXPECTED_LIFETIME = False
 # DRAW_GRAPH = True
 # SAVE_GRAPH = False
 
-RECONSIDER_BATCHES = False
+# RECONSIDER_BATCHES = False
 
 # experiments
 NUM_DEVICES = 2

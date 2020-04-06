@@ -281,7 +281,8 @@ class agent:
 		# special case if job queue is full
 		if device.isQueueFull(task):
 			actionIndex = self.numActions - 1
-			debug.learnOut("special case! queue is full %s %d" % (device.batchLengths(), actionIndex), 'r')
+			debug.learnOut("\nSpecial case! %s queue is full %s %d %s %s" % (job, device.batchLengths(), actionIndex, self.possibleActions[actionIndex], job.beforeState), 'r')
+
 			# print("queue full")
 		# check if no offloading is available
 		elif not device.hasOffloadingOptions() and OFFLOADING in self.possibleActions:
@@ -299,6 +300,7 @@ class agent:
 			debug.out("getting action %s %s" % (device, device.batchLengths()))
 			# choose best action based on current state
 			actionIndex = self.selectAction(job.beforeState)
+			debug.learnOut("\nChoose for %s: %d %s %s" % (job, actionIndex, self.possibleActions[actionIndex], job.beforeState), 'g')
 			# qValues = self.predict(job.beforeState)
 			# actionIndex = self.selectAction(qValues)
 			# print("chose")

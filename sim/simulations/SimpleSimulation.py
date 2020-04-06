@@ -9,7 +9,7 @@ from sim import debug
 from sim.devices.components import powerPolicy
 from sim.experiments.scenario import RANDOM_SCENARIO_RANDOM
 from sim.learning.agent.minimalTableAgent import minimalTableAgent
-from sim.learning.state.minimalSystemState import minimalSystemState
+from sim.learning.state.extendedSystemState import extendedSystemState
 from sim.simulations import constants
 from sim.simulations.Simulation import BasicSimulation
 from sim.tasks.subtask import subtask
@@ -21,8 +21,8 @@ class SimpleSimulation(BasicSimulation):
 	jobInterval = None
 	scenario = None
 
-	def __init__(self, numDevices=constants.NUM_DEVICES, jobInterval=constants.DEFAULT_TIME_INTERVAL, maxJobs=constants.MAX_JOBS, systemStateClass=minimalSystemState, agentClass=minimalTableAgent, allowExpansion=constants.ALLOW_EXPANSION, tasks=constants.DEFAULT_TASK_GRAPH, offPolicy=constants.OFF_POLICY, scenarioTemplate=RANDOM_SCENARIO_RANDOM):
-		BasicSimulation.__init__(self, numDevices=numDevices, maxJobs=maxJobs, systemStateClass=systemStateClass, agentClass=agentClass, globalClock=False, allowExpansion=allowExpansion, tasks=tasks, offPolicy=offPolicy)
+	def __init__(self, numDevices=constants.NUM_DEVICES, jobInterval=constants.DEFAULT_TIME_INTERVAL, maxJobs=constants.MAX_JOBS, systemStateClass=extendedSystemState, agentClass=minimalTableAgent, allowExpansion=constants.ALLOW_EXPANSION, reconsiderBatches=False, tasks=constants.DEFAULT_TASK_GRAPH, offPolicy=constants.OFF_POLICY, scenarioTemplate=RANDOM_SCENARIO_RANDOM):
+		BasicSimulation.__init__(self, numDevices=numDevices, maxJobs=maxJobs, reconsiderBatches=reconsiderBatches, systemStateClass=systemStateClass, agentClass=agentClass, globalClock=False, allowExpansion=allowExpansion, tasks=tasks, offPolicy=offPolicy)
 		# remove the taskqueues as tasks are queued in sim
 		for dev in self.devices: dev.taskQueue = None
 
@@ -215,6 +215,7 @@ class SimpleSimulation(BasicSimulation):
 	def queueNextJob(self, device, currentJobTime):
 		# print("queue next job", currentJobTime)
 		nextTime, nextDevice = self.scenario.nextJob(device, currentJobTime)
+		# print("current:", currentJobTime, "nextTime:", nextTime)
 		self.queueTask(nextTime, NEW_JOB, nextDevice)
 	# def queueNextJob(self, device, currentTime=None):
 	# 	assert device is not None
@@ -242,6 +243,7 @@ class SimpleSimulation(BasicSimulation):
 	def processQueuedTask(self, scheduledTime, args):
 		task = args[0]
 		device = args[1]
+		# print("simple:", task, device, scheduledTime)
 		debug.out("%f: task is %s %s" % (scheduledTime, task, device), 'g')
 		device.queuedTask = None
 		self.latestDevice = device
@@ -264,13 +266,14 @@ class SimpleSimulation(BasicSimulation):
 
 				# immediately start created job if not busy
 				affectedDevice = device.nextJob()
+				# print("affecteddevice", affectedDevice)
 				# no devices affected if already has job
 				if affectedDevice is not None:
 					# start created subtask
 					nextdevice, nextsubtask = affectedDevice
 					debug.out("new job affected: %s %s" % (nextdevice, nextsubtask), 'b')
 					self.queueTask(scheduledTime, PROCESS_SUBTASK, nextdevice, nextsubtask)
-
+					# print("queueing initial subtask", scheduledTime, nextdevice, nextsubtask)
 					# self.processAffectedDevice(affectedDevice)
 
 			else:
@@ -300,6 +303,7 @@ class SimpleSimulation(BasicSimulation):
 			if device.asleep():
 				device.incremementTotalSleepTime(idlePeriod)
 
+			# idle power
 			debug.out("%s idle %f" % (device, idlePeriod), 'r')
 			device.currentTd = idlePeriod
 			devicePower = device.getTotalPower()
@@ -374,7 +378,7 @@ class SimpleSimulation(BasicSimulation):
 		# assert affected is not None
 
 		# device, subtask = affected
-
+		# print("sim:", device, subtask)
 		hasOffspring = False
 		visualiser = None
 		# decide whether to pass in visualiser or not

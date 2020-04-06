@@ -96,12 +96,15 @@ class job:
 		# private history to be used by rl
 		self.history = sim.simulations.history.history()
 
-		# initiate task by setting processing node
-		destination = jobCreator.agent.chooseDestination(self.currentTask, self, jobCreator)
-		self.setDecisionTarget(destination)
+		self.assign()
 
 		# define episode finished function for training
 		self.episodeFinished = isEpisodeFinished
+
+	def assign(self):
+		# initiate task by setting processing node
+		destination = self.creator.agent.chooseDestination(self.currentTask, self, self.creator)
+		self.setDecisionTarget(destination)
 
 	def __repr__(self):
 		return "Job #{}".format(self.id)
@@ -203,8 +206,8 @@ class job:
 		self.owner.removeJob(self)
 
 		# if sim.simulations.constants.OFFLOADING_POLICY == sim.offloading.offloadingPolicy.REINFORCEMENT_LEARNING:
-		sim.debug.learnOut("training when finishing job")
-		self.owner.agent.train(self.currentTask, self, self.owner, cause="job finish")
+		# sim.debug.learnOut("training when finishing job")
+		# self.owner.agent.train(self.currentTask, self, self.owner, cause="job finish")
 
 			# agent = self.owner.decision.privateAgent
 			# self.addToHistory(self.owner.agent.latestReward, self.owner.agent.latestLoss)
@@ -259,6 +262,12 @@ class job:
 		if device not in self.devicesEnergyCost:
 			self.devicesEnergyCost[device] = 0
 		self.devicesEnergyCost[device] += incrementalPower
+
+	def combineEnergyCosts(self, otherJob):
+		# print("combining costs from", otherJob.totalEnergyCost, "with", self.totalEnergyCost)
+
+		for dev in otherJob.devicesEnergyCost:
+			self.addEnergyCost(otherJob.devicesEnergyCost[dev], dev)
 
 	def rawMessageSize(self):
 		return self.samples * self.currentTask.rawSize

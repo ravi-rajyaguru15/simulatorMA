@@ -157,7 +157,7 @@ def _plotMulti(name, results=None, ylim=None, ylabel=None, xlabel=None,
 	if localConstants.DRAW_GRAPH:
 		pp.show()
 
-def plotModel(agent):
+def plotModel(agent, drawLabels=True):
 	outputTable = np.zeros((agent.model.stateCount, agent.model.actionCount))
 	yticks = []
 	for i in range(agent.model.stateCount):
@@ -165,7 +165,8 @@ def plotModel(agent):
 		for j in range(agent.model.actionCount):
 			outputTable[i, j] = agent.model.getQ(i, j)
 
-		yticks.append(text)
+		if drawLabels:
+			yticks.append(text)
 		# pp.text(-2, i, text, horizontalalignment='right', fontsize=5)
 
 	pp.figure()

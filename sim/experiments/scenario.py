@@ -197,7 +197,9 @@ class randomScenario(scenario):
 		self.timeInterval = timeInterval
 
 	def nextTime(self, currentTime):
-		return convertCurrentTime(currentTime) + self.timeInterval.gen()
+		next = convertCurrentTime(currentTime) + self.timeInterval.gen()
+		# print("random next time:", currentTime, next)
+		return next
 
 	def setInterval(self, interval):
 		# print("set interval", interval)

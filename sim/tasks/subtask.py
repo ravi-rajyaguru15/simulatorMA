@@ -279,6 +279,7 @@ class batchContinue(subtask):
 	__name__ = "Batch Continue"
 	processingNode = None
 
+	# job in parameter so
 	def __init__(self, job=None, node=None):
 
 		if job is not None:
@@ -299,25 +300,38 @@ class batchContinue(subtask):
 	def finishTask(self):
 		# # remove existing task from processing batch
 		# self.job.processingNode.removeJobFromBatch(self.job)
-		affected = None
-		newSubtask = None
+		# affected = None
+		# newSubtask = None
+		#
+		# # if constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING:
+		# sleepMcu = False
+		# if self.owner.reconsiderBatches:
+		# 	affected = self.owner.reconsiderBatch()
+		# 	if affected is None:
+		# 		sleepMcu = True
+		# else:
+			# if doing entire
 
-		# if constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING:
-		sleepMcu = False
-		if constants.RECONSIDER_BATCHES:
-			affected = self.owner.reconsiderBatch()
-			if affected is None:
-				sleepMcu = True
-		else:
-			self.job = self.processingNode.continueBatch()
 
-			if self.job is None:
-				sleepMcu = True
-			else:
-				affected = self.job.processingNode, newJob(self.job)
+		if self.owner.reconsiderBatches:
+			# always trains once you decide
+			self.owner.agent.train(self.job.currentTask, self.job, self.owner, cause=self.__name__)
 
-		if sleepMcu:
+		# reconsider batch inside continue function
+		affected = self.processingNode.continueBatch(self.job)
+		# print("batch continue:", affected, self.owner.currentJob)
+
+		if not self.owner.reconsiderBatches and affected is None:
+			# end of batch, train
+			self.owner.agent.train(self.job.currentTask, self.job, self.owner, cause=self.__name__)
+
+		if affected is None:
+			# sleepMcu = True
 			self.owner.mcu.sleep()
+		# else:
+		# 	affected = self.job.processingNode, newJob(self.job)
+
+		# if sleepMcu:
 		# else:
 		# 	# check if there's more tasks in the current batch
 		# 	# processingMcu, processingFpga = self.processingNode.mcu, self.processingNode.fpga
@@ -369,14 +383,15 @@ class batching(subtask):
 
 		# if constants.OFFLOADING_POLICY == offloadingPolicy.REINFORCEMENT_LEARNING:
 		sleepMcu = False
-		if constants.RECONSIDER_BATCHES:
-			# decide which of the jobs in the batch should be started now
-			affected = self.owner.reconsiderBatch()
-			if affected is None:
-				sleepMcu = True
-		else:
-			self.owner.agent.train(self.job.currentTask, self.job, self.owner, cause=self.__name__)
-			sleepMcu = True
+		# if constants.RECONSIDER_BATCHES:
+		# 	# decide which of the jobs in the batch should be started now
+		# 	affected = self.owner.reconsiderBatch()
+		# 	if affected is None:
+		# 		sleepMcu = True
+		# else:
+		self.owner.agent.train(self.job.currentTask, self.job, self.owner, cause=self.__name__)
+		# TODO: this makes it train before energy costs from batching subtask are considered
+		sleepMcu = True
 
 		if sleepMcu:
 			self.owner.mcu.sleep()
@@ -428,11 +443,11 @@ class newJob(subtask):
 
 		# either fail or start processing new job
 		if self.owner.gracefulFailure:
+			print("GRACEFUL FAILURE")
 			debug.out("GRACEFUL FAILURE on %s %s %s" % (self.owner, self.owner.offloadingOptions, self.owner.batch))
-			debug.infoOut("training from %s" % self.owner.agent.systemState.getStateDescription(self.job.beforeState))
-			self.owner.agent.train(self.job.currentTask, self.job, self.owner, cause=self.__name__)
-			debug.infoOut("training to   %s" % self.owner.agent.systemState.getStateDescription(
-				self.owner.agent.systemState.getIndex()))
+			# debug.infoOut("training from %s" % self.owner.agent.systemState.getStateDescription(self.job.beforeState))
+			# debug.infoOut("training to   %s" % self.owner.agent.systemState.getStateDescription(
+			# 	self.owner.agent.systemState.getIndex()))
 
 			if not self.owner.hasOffloadingOptions():
 				# cannot offload to anything and dying
@@ -450,6 +465,7 @@ class newJob(subtask):
 				self.job.processingNode = choice.targetDevice
 				newSubtask = createMessage(self.job)
 				debug.out("spraying %s" % self.job)
+				self.owner.agent.train(self.job.currentTask, self.job, self.owner, cause="Graceful Failure")
 
 			# TODO: train based on failed jobs here
 		else:
@@ -549,9 +565,9 @@ class fpgaMcuOffload(xmem):
 			# self.job.processingNode.addSubtask(, appendLeft=True)
 			newSubtask = txResult(self.job, self.job.processingNode, self.job.creator)
 		else:
-			self.job.finish() # training in job finish
+			self.job.finish() # not training in job finish
 			# self.job.processingNode.addSubtask(, appendLeft=True)
-			newSubtask = batchContinue(node=self.owner)
+			newSubtask = batchContinue(node=self.owner, job=self.job)
 
 		return xmem.finishTask(self, [(self.job.processingNode, newSubtask)])
 

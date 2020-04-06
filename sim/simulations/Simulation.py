@@ -53,7 +53,7 @@ class BasicSimulation:
 	maxJobs = None
 	offPolicy = None
 
-	def __init__(self, numDevices, maxJobs, systemStateClass, agentClass, tasks, globalClock=True, allowExpansion=constants.ALLOW_EXPANSION, offPolicy=constants.OFF_POLICY):
+	def __init__(self, numDevices, maxJobs, systemStateClass, reconsiderBatches, agentClass, tasks, globalClock=True, allowExpansion=constants.ALLOW_EXPANSION, offPolicy=constants.OFF_POLICY):
 		hardwareAccelerated = True
 		self.episodeNumber = 0
 		self.allowExpansion = allowExpansion
@@ -87,7 +87,7 @@ class BasicSimulation:
 		# simulationResults.learningHistory = history()
 
 		debug.out("Learning: shared: %s agent: %s centralised: %s" % (self.useSharedAgent, agentClass, constants.CENTRALISED_LEARNING), 'r')
-		self.devices = [elasticNode(self.time, constants.DEFAULT_ELASTIC_NODE, self.results, i, maxJobs=maxJobs, currentSystemState=self.currentSystemState, agent=agentClass, alwaysHardwareAccelerate=hardwareAccelerated, offPolicy=offPolicy) for i in range(numDevices)]
+		self.devices = [elasticNode(self.time, constants.DEFAULT_ELASTIC_NODE, self.results, i, maxJobs=maxJobs, reconsiderBatches=reconsiderBatches, currentSystemState=self.currentSystemState, agent=agentClass, alwaysHardwareAccelerate=hardwareAccelerated, offPolicy=offPolicy) for i in range(numDevices)]
 
 
 			# offloadingDecision.offloadingDecision.createSharedAgent(self.currentSystemState, agentClass)

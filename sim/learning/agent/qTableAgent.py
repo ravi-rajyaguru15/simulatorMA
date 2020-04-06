@@ -97,7 +97,7 @@ class qTableAgent(qAgent):
 			qValues = self.predict(index)
 			best = np.argmax(qValues)
 			# if systemState[0] == 4 and systemState[1] == 0:
-			debug.learnOut("chose: {} ({}) {} {}".format(best, self.possibleActions[best], systemState, np.array(qValues)), 'r')
+			# debug.learnOut("chose: {} ({}) {} {}".format(best, self.possibleActions[best], systemState, np.array(qValues)), 'r')
 
 			return best
 
