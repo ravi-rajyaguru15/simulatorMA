@@ -3,20 +3,22 @@ from sim.learning.state.discretisedSystemState import discretisedSystemState, di
 from sim.simulations import constants
 
 
-class extendedSystemState(discretisedSystemState):
+class targetedSystemState(discretisedSystemState):
 	maxJobs = None
 
-	def __init__(self, numDevices, maxJobs, allowExpansion=constants.ALLOW_EXPANSION):
+	def __init__(self, numDevices, maxJobs, numTasks, allowExpansion=constants.ALLOW_EXPANSION):
 		self.maxJobs = maxJobs
 		# add extra state for "full" job queue
 		if allowExpansion:
 			singles = [discreteState('energyRemaining', 5),
 					   discreteState('jobsInQueue', maxJobs + 1),
-					   discreteState('currentConfig', 2, scale=False)]
+					   discreteState('currentConfig', 2, scale=False),
+					   discreteState('taskId', numTasks)]
 		else:
 			singles = [ discreteState('currentConfig', 2, scale=False),
 						discreteState('energyRemaining', 5),
-					   	discreteState('jobsInQueue', maxJobs + 1)]
+					   	discreteState('jobsInQueue', maxJobs + 1),
+						discreteState('taskId', numTasks)]
 		multiples = []
 
 		args = discretisedSystemState.convertTuples(numDevices=numDevices, singlesWithDiscreteNum=singles, multiplesWithDiscreteNum=multiples)
@@ -28,6 +30,10 @@ class extendedSystemState(discretisedSystemState):
 		self.setField('currentConfig', device.fpga.isConfigured(task))
 		# print("set currentconfig", device.fpga.isConfigured(task), task, device.getFpgaConfiguration())
 		self.setField('energyRemaining', device.getEnergyLevelPercentage())
+		self.setField('taskId', task.identifier)
+
+		# print(self.currentState)
+		# print("taskId", self.getField('taskId'))
 		# print("energy", device.getEnergyLevelPercentage(), self.getField('energyRemaining'))
 
 	def fromSystemState(self):

@@ -30,7 +30,7 @@ class task:
 
 EASY = task(
 	"Easy",
-	colour=(1, 1, 0, 1), 
+	colour=(1, 1, 0, 1),
 	complexity=8e3,
 	rawSize=5,
 	processedSize=1,
@@ -41,6 +41,17 @@ EASY = task(
 HARD = task(
 	"Hard",
 	colour=(1, 0, 1, 1), 
+	complexity=10e6,
+	rawSize=1e3,
+	processedSize=10,
+	deadline=Gaussian(5, 0.5),
+	configSize=1.0
+	)
+
+
+ALTERNATIVE = task(
+	"Alternative",
+	colour=(1, 0, 1, 1),
 	complexity=10e6,
 	rawSize=1e3,
 	processedSize=10,

@@ -107,7 +107,9 @@ def _plotMulti(name, results=None, ylim=None, ylabel=None, xlabel=None,
 	pickle.dump((name, results, ylim, ylabel, xlabel), open("{}.pickle".format(filename), "wb"))
 
 	# sort by graph key
+	print("results", results)
 	orderedResults = collections.OrderedDict(sorted(results.items()))
+	print("orderedResults", orderedResults)
 	legends = list()
 	for key, graph in orderedResults.items():  # , colour in zip(results, colours):
 		if separate:

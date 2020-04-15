@@ -74,7 +74,7 @@ class BasicSimulation:
 		self.tasks = tasks
 
 		# requires simulation to be populated
-		self.currentSystemState = systemStateClass(numDevices=numDevices, maxJobs=maxJobs)
+		self.currentSystemState = systemStateClass(numDevices=numDevices, maxJobs=maxJobs, numTasks=len(tasks))
 		self.useSharedAgent = constants.CENTRALISED_LEARNING
 		if self.useSharedAgent:
 			# create shared learning agent

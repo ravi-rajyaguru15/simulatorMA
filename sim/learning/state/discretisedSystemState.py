@@ -1,3 +1,4 @@
+import traceback
 from copy import deepcopy
 
 import numpy as np
@@ -87,19 +88,19 @@ class discretisedSystemState(systemState):
 			raise Exception("not implemented")
 
 	@staticmethod
-	def discretiseValue(value, bins, scalingFactor, scale):
+	def discretiseValue(value, bins, scalingFactor, scale, field=None):
 		# print("scale", value, bins, scalingFactor, scale)
 		# capture boolean values
 		if isinstance(value, bool):
 			value = 1 if value else 0
 		if scale:
 			# assert value <= 1
-			if value > 1:
-				# print("too big!", value, bins, scalingFactor, scale)
+			if value >= 1:
+				# print("too big!", field, value, bins, scalingFactor, scale)
 				return bins - 1
 			else:
-				# return round(value * (scalingFactor - 1))
-				return round(value * (scalingFactor - 1))
+				return value * (scalingFactor)
+				# return round(value * (scalingFactor - 1)) # do not round, because graceful failure doesn't
 		else:
 			assert value < bins
 			return value
@@ -108,6 +109,7 @@ class discretisedSystemState(systemState):
 	def setField(self, field, value, overrideScaling=False):
 		assert field in self.dictRepresentation
 		assert value >= 0
+
 		# print("before", self.dictRepresentation)
 		# debug.out("set %s to %s: %s" % (field, value, self.dictRepresentation[field][:]))
 		if isinstance(value, list):
@@ -115,12 +117,14 @@ class discretisedSystemState(systemState):
 				if overrideScaling:
 					self.dictRepresentation[field][i] = value[i]
 				else:
-					self.dictRepresentation[field][i] = discretisedSystemState.discretiseValue(value[i], self.multiplesDiscrete[field], self.multiplesScalingFactor[field], self.multiplesScale[field])
+					self.dictRepresentation[field][i] = discretisedSystemState.discretiseValue(value[i], self.multiplesDiscrete[field], self.multiplesScalingFactor[field], self.multiplesScale[field], field=field)
 		else:
 			if overrideScaling:
 				self.dictRepresentation[field][:] = value
 			else:
-				self.dictRepresentation[field][:] = discretisedSystemState.discretiseValue(value, self.singlesDiscrete[field], self.singlesScalingFactor[field], self.singlesScale[field])
+				self.dictRepresentation[field][:] = discretisedSystemState.discretiseValue(value, self.singlesDiscrete[field], self.singlesScalingFactor[field], self.singlesScale[field], field=field)
+			# if field == self.energyField:
+			# 	print("energy:", self.dictRepresentation[field][:], value, self.singlesDiscrete[field], self.singlesScalingFactor[field], self.singlesScale[field])
 
 		# print("after", self.dictRepresentation)
 		# print("set", field, value, self.dictRepresentation[field][:])
@@ -154,11 +158,12 @@ class discretisedSystemState(systemState):
 		return np.dot(state, self.multipliers)
 		# return discretisedSystemState._getIndex(self.singlesDiscrete, self.singles, self.multiplesDiscrete, self.multiples, self.dictRepresentation)
 
+	energyField = 'energyRemaining'
 	def getGracefulFailureLevel(self):
-		energyField = 'energyRemaining'
-		if energyField in self.singles:
-			return 1. / self.singlesDiscrete[energyField]
+		if self.energyField in self.singles:
+			return 1. / self.singlesDiscrete[self.energyField]
 		else:
+			raise Exception("energyField not found")
 			return systemState.getGracefulFailureLevel(self)
 
 	def getStateDescription(self, index=None):

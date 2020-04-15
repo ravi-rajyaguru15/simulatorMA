@@ -82,6 +82,7 @@ class qAgent(agent):
 	def chooseDestination(self, task, job, device):
 		debug.out("deciding how to offload new job", 'y')
 		debug.out("owner: {}".format(self.owner), 'r')
+		# print("choose", task, job, device)
 		choice = self.firstDecideDestination(task, job, device)
 		return choice
 
@@ -91,7 +92,8 @@ class qAgent(agent):
 	def train(self, task, job, device, cause=None):
 		if not self.productionMode:
 			# debug.learnOut("Training: [{}] [{}] [{}]".format(task, job, device), 'y')
-			debug.learnOut("Training for %s %d %s %s" % (job, job.latestAction, cause, job.beforeState), 'y')
+			debug.learnOut("Training %s for %s %d %s %s" % (device, job, job.latestAction, cause, job.beforeState), 'y')
+			if device.gracefulFailure: debug.learnOut("graceful failure %s" % job.beforeState, 'y')
 			self.systemState.updateState(task, job, device)
 
 			if cause is None:

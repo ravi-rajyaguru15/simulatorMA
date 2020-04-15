@@ -215,6 +215,7 @@ class SimpleSimulation(BasicSimulation):
 	def queueNextJob(self, device, currentJobTime):
 		# print("queue next job", currentJobTime)
 		nextTime, nextDevice = self.scenario.nextJob(device, currentJobTime)
+		# print("queue", nextTime, nextDevice)
 		# print("current:", currentJobTime, "nextTime:", nextTime)
 		self.queueTask(nextTime, NEW_JOB, nextDevice)
 	# def queueNextJob(self, device, currentTime=None):

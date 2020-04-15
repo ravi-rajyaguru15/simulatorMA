@@ -46,6 +46,10 @@ class systemState:
 		self.currentState = np.array(arrayState)
 		self.createDictionaryRepresentation()
 
+	def getCurrentState(self, task, job, device):
+		self.updateState(task, job, device)
+		return np.array(self.currentState)
+
 	# @staticmethod
 	def createDictionaryRepresentation(self):
 		# self.dictRepresentation = systemState.createDictionaryRepresentation(self.currentState)

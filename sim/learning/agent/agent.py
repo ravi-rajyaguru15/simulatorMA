@@ -262,7 +262,7 @@ class agent:
 
 	# predict best action using values
 	def forward(self, task, job, device):
-		self.systemState.updateState(task, job, device)
+		# self.systemState.updateState(task, job, device)
 
 		# debug.learnOut("forward", 'y')
 
@@ -270,7 +270,8 @@ class agent:
 
 		# currentSim = sim.simulations.Simulation.currentSimulation
 		# job.beforeState = deepcopy(self.systemState)
-		job.beforeState = np.array(self.systemState.currentState)
+		job.beforeState = self.systemState.getCurrentState(task, job, device)
+
 		sim.debug.out("beforestate {}".format(job.beforeState))
 
 		# if job.beforeState[0] == 4 and job.beforeState[1] == 0:
@@ -300,7 +301,7 @@ class agent:
 			debug.out("getting action %s %s" % (device, device.batchLengths()))
 			# choose best action based on current state
 			actionIndex = self.selectAction(job.beforeState)
-			debug.learnOut("\nChoose for %s: %d %s %s" % (job, actionIndex, self.possibleActions[actionIndex], job.beforeState), 'g')
+			debug.learnOut("\nChoose %s for %s: %d %s %s" % (device, job, actionIndex, self.possibleActions[actionIndex], job.beforeState), 'g')
 			# qValues = self.predict(job.beforeState)
 			# actionIndex = self.selectAction(qValues)
 			# print("chose")

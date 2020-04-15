@@ -1,3 +1,4 @@
+import sys
 import time
 import warnings
 from queue import PriorityQueue
@@ -28,6 +29,7 @@ class node:
 	previousTimestamp = None
 	numJobs = None
 	numJobsDone = None
+	numTasksDone = None
 	currentSubtask = None
 	index = None
 
@@ -71,7 +73,7 @@ class node:
 
 		# if agentClass is a class, create private
 		if type(agent) is type(__class__):
-			print("agent class", agent)
+			# print("agent class", agent)
 			self.agent = agent(systemState=currentSystemState, owner=self, offPolicy=offPolicy)
 		else:
 			self.agent = agent
@@ -90,6 +92,8 @@ class node:
 
 		self.setMaxEnergyLevel()
 		self.gracefulFailureLevel = currentSystemState.getGracefulFailureLevel()
+		# print('graceful death level set to', self.gracefulFailureLevel)
+		# sys.exit(0)
 
 		self.drawLocation = (0,0)
 
@@ -125,6 +129,7 @@ class node:
 		self.jobActive = False
 		self.numJobs = 0
 		self.numJobsDone = 0
+		self.numTasksDone = dict()
 		self.batch = dict()
 		self.currentTime.reset()
 
@@ -190,6 +195,18 @@ class node:
 		# default behaviour is to not have a configuration
 		return 0
 
+	def getNumTasksDone(self, taskname):
+		if taskname not in self.numTasksDone:
+			return 0
+		else:
+			return self.numTasksDone[taskname]
+
+	def incrementTaskDone(self, taskname):
+		if taskname not in self.numTasksDone:
+			self.numTasksDone[taskname] = 1
+		else:
+			self.numTasksDone[taskname] += 1
+
 	def hasFpga(self):
 		return np.any([isinstance(component, fpga) for component in self.processors])
 
@@ -221,7 +238,8 @@ class node:
 		sim.debug.out("adding subtask %s %s" % (str(task), str(self)), 'b')
 
 		# prioritised tasks without jobs (batchContinue mostly)
-		taskPriority = task.job.id if task.job is not None else 0
+		taskPriority = task.job\
+			if task.job is not None else 0
 		# some simulations remove task queues (because they are queued elsewhere)
 		if self.taskQueue is not None:
 			self.taskQueue.put(PrioritizedItem(taskPriority, task))
@@ -368,7 +386,7 @@ class node:
 		# for name in self.batch:
 		# 	print("name", name)
 		# 	for j in self.batch[name]:
-		# 		print(j)
+		# 		print(j,)
 		# assert task == self.currentBatch
 
 		# decide whether to continue with batch or not
@@ -393,7 +411,9 @@ class node:
 		if proceed:
 			if self.batchLength(self.currentBatch) > 0:
 				self.currentJob = self.batch[self.currentBatch][0]
-				self.currentJob.combineEnergyCosts(previousJob)
+				# previousJob is destroyed if offloaded due to graceful failure
+				if not self.gracefulFailure:
+					self.currentJob.combineJobs(previousJob)
 				self.removeJobFromBatch(self.currentJob)
 
 				return self.currentJob.activate()
@@ -710,8 +730,10 @@ class node:
 
 	def performGracefulFailure(self):
 		self.gracefulFailure = True
-
+		# print(self.gracefulFailureLevel, self.getEnergyLevelPercentage())
 		for dev in self.offloadingOptions: dev.removeOffloadingOption(self)
+
+		# print("graceful failure with", self, self.batchLengths(), np.sum(self.batchLengths()))
 
 	def hasOffloadingOptions(self):
 		# print(self.offloadingOptions, len(self.offloadingOptions))

@@ -1,10 +1,13 @@
 # TX RESULT destination swap source
 import sys
+import time
 
 from sim import debug, simulations
+from sim.debug import learnOut
 from sim.learning.action import OFFLOADING
 from sim.offloading import offloadingPolicy
 from sim.simulations import constants
+import numpy as np
 
 enableGracefulFailure = True
 
@@ -312,8 +315,11 @@ class batchContinue(subtask):
 		# else:
 			# if doing entire
 
+		# keep link to job in case we have to train on it
+		currentJob = self.job
 
-		if self.owner.reconsiderBatches:
+		# job is none if it's been sent to someone else (training in tx)
+		if self.owner.reconsiderBatches and self.job is not None:
 			# always trains once you decide
 			self.owner.agent.train(self.job.currentTask, self.job, self.owner, cause=self.__name__)
 
@@ -323,7 +329,16 @@ class batchContinue(subtask):
 
 		if not self.owner.reconsiderBatches and affected is None:
 			# end of batch, train
-			self.owner.agent.train(self.job.currentTask, self.job, self.owner, cause=self.__name__)
+			# nextTask = None if  is None else self.job.currentTask
+			# as far as i know this only happens in graceful failure
+			# print(self.owner.gracefulFailure, currentJob)
+
+			if self.owner.gracefulFailure and not self.owner.hasOffloadingOptions():
+				self.owner.agent.train(currentJob.currentTask, currentJob, self.owner, cause=self.__name__)
+				print("\n\n\n\n\t\t**** special occurance ***\n\n\n\n\n")
+				time.sleep(1)
+			else:
+				assert not self.owner.gracefulFailure or (self.owner.gracefulFailure and currentJob is None)
 
 		if affected is None:
 			# sleepMcu = True
@@ -443,7 +458,7 @@ class newJob(subtask):
 
 		# either fail or start processing new job
 		if self.owner.gracefulFailure:
-			print("GRACEFUL FAILURE")
+			learnOut("GRACEFUL FAILURE: %s" % self.owner)
 			debug.out("GRACEFUL FAILURE on %s %s %s" % (self.owner, self.owner.offloadingOptions, self.owner.batch))
 			# debug.infoOut("training from %s" % self.owner.agent.systemState.getStateDescription(self.job.beforeState))
 			# debug.infoOut("training to   %s" % self.owner.agent.systemState.getStateDescription(
@@ -453,7 +468,8 @@ class newJob(subtask):
 				# cannot offload to anything and dying
 				return None
 			else:
-				self.job.beforeState = self.owner.agent.systemState.currentState # .getIndex()
+
+				self.job.beforeState = self.owner.agent.systemState.getCurrentState(self.job.currentTask, self.job, self.owner) # .getIndex()
 				choice = self.owner.agent.getAction(OFFLOADING)
 				self.job.latestAction = self.owner.agent.getActionIndex(choice)
 
@@ -465,7 +481,7 @@ class newJob(subtask):
 				self.job.processingNode = choice.targetDevice
 				newSubtask = createMessage(self.job)
 				debug.out("spraying %s" % self.job)
-				self.owner.agent.train(self.job.currentTask, self.job, self.owner, cause="Graceful Failure")
+				# self.owner.agent.train(self.job.currentTask, self.job, self.owner, cause="Graceful Failure")
 
 			# TODO: train based on failed jobs here
 		else:
@@ -894,8 +910,6 @@ class rxJob(rxMessage):
 		# self.job.setDecisionTarget(choice)
 		# self.job.activate()
 
-		# TODO: removed this redeciding...
-		# affected = self.job.owner.agent.retarget(self.job.currentTask, self.job, self.job.owner)
 		choice = self.job.owner.agent.redecideDestination(self.job.currentTask, self.job, self.job.owner)
 		debug.learnOut("redeciding choice %s" % choice)
 		self.job.setDecisionTarget(choice)

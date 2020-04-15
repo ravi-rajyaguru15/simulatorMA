@@ -1,3 +1,4 @@
+import numpy as np
 import sim.debug
 import sim.learning.state.systemState
 import sim.offloading.offloadingPolicy
@@ -8,6 +9,7 @@ import sim.simulations.simulationResults
 import sim.tasks.subtask
 # from node import node
 from sim import debug
+from sim.debug import learnOut
 from sim.learning.action import LOCAL
 from sim.simulations import constants, simulationResults
 
@@ -203,6 +205,7 @@ class job:
 		sim.debug.out("%s %s %s (%f) %s" % ("-"*50, self, "finished", self.totalEnergyCost, "-"*50))
 		self.finished = True
 		self.owner.numJobsDone += 1
+		self.owner.incrementTaskDone(self.currentTask)
 		self.owner.removeJob(self)
 
 		# if sim.simulations.constants.OFFLOADING_POLICY == sim.offloading.offloadingPolicy.REINFORCEMENT_LEARNING:
@@ -263,9 +266,14 @@ class job:
 			self.devicesEnergyCost[device] = 0
 		self.devicesEnergyCost[device] += incrementalPower
 
-	def combineEnergyCosts(self, otherJob):
-		# print("combining costs from", otherJob.totalEnergyCost, "with", self.totalEnergyCost)
+	def combineJobs(self, otherJob):
+		# decision was made on other job if not reconsidering jobs
+		if not self.owner.reconsiderBatches:
+			self.beforeState = np.array(otherJob.beforeState)
 
+		# def combineEnergyCosts(self, otherJob):
+		# print("combining costs from", otherJob.totalEnergyCost, "with", self.totalEnergyCost)
+		learnOut("combining %s with %s (%.2f %.2f)" % (otherJob, self, otherJob.totalEnergyCost, self.totalEnergyCost))
 		for dev in otherJob.devicesEnergyCost:
 			self.addEnergyCost(otherJob.devicesEnergyCost[dev], dev)
 

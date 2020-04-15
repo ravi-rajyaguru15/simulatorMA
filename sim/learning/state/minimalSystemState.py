@@ -14,7 +14,7 @@ class minimalSystemState(discretisedSystemState):
 					   discreteState('jobsInQueue', maxJobs + 1)]
 		else:
 			singles = [ discreteState('energyRemaining', 5),
-						discreteState('jobsInQueue', maxJobs + 2, scalingFactor=maxJobs + 1)]
+						discreteState('jobsInQueue', maxJobs + 1)]
 		multiples = []
 
 		args = discretisedSystemState.convertTuples(numDevices=numDevices, singlesWithDiscreteNum=singles, multiplesWithDiscreteNum=multiples)

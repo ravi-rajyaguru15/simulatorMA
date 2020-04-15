@@ -19,19 +19,21 @@ if __name__ == "__main__":
 	setupMultithreading()
 
 	basic = False
+	long = True
 
 	np.set_printoptions(suppress=True, precision=2)
-	debug.settings.learnEnabled = False # change this to see debug on how it learns
+	debug.settings.learnEnabled = not long # change this to see debug on how it learns
 
 	systemStateClass = minimalSystemState if basic else extendedSystemState
 
 	for agent in [minimalTableAgent]: # lazyTableAgent
-		exp = SimpleSimulation(numDevices=1, maxJobs=2, reconsiderBatches=not basic
+		exp = SimpleSimulation(numDevices=2, maxJobs=2, reconsiderBatches=not basic
 							   , agentClass=agent, systemStateClass=systemStateClass)
 		exp.scenario.setInterval(1)
 		exp.setBatterySize(1e-1)
 		print("pretraining...")
-		for i in range(int(1e3)): # change this to train longer (i'm using 1e3 to get a decent view)
+		numrepeats = 1e5 if long else 1
+		for i in range(int(numrepeats)): # change this to train longer (i'm using 1e3 to get a decent view)
 			debug.learnOut('\n')
 			exp.simulateEpisode()
 			debug.learnOut('\n')
