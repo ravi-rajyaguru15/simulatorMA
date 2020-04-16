@@ -21,8 +21,8 @@ class SimpleSimulation(BasicSimulation):
 	jobInterval = None
 	scenario = None
 
-	def __init__(self, numDevices=constants.NUM_DEVICES, jobInterval=constants.DEFAULT_TIME_INTERVAL, maxJobs=constants.MAX_JOBS, systemStateClass=extendedSystemState, agentClass=minimalTableAgent, allowExpansion=constants.ALLOW_EXPANSION, reconsiderBatches=False, tasks=constants.DEFAULT_TASK_GRAPH, offPolicy=constants.OFF_POLICY, scenarioTemplate=RANDOM_SCENARIO_RANDOM):
-		BasicSimulation.__init__(self, numDevices=numDevices, maxJobs=maxJobs, reconsiderBatches=reconsiderBatches, systemStateClass=systemStateClass, agentClass=agentClass, globalClock=False, allowExpansion=allowExpansion, tasks=tasks, offPolicy=offPolicy)
+	def __init__(self, numDevices=constants.NUM_DEVICES, jobInterval=constants.DEFAULT_TIME_INTERVAL, maxJobs=constants.MAX_JOBS, systemStateClass=extendedSystemState, agentClass=minimalTableAgent, allowExpansion=constants.ALLOW_EXPANSION, reconsiderBatches=False, tasks=constants.DEFAULT_TASK_GRAPH, offPolicy=constants.OFF_POLICY, scenarioTemplate=RANDOM_SCENARIO_RANDOM, centralisedLearning=constants.CENTRALISED_LEARNING):
+		BasicSimulation.__init__(self, numDevices=numDevices, maxJobs=maxJobs, reconsiderBatches=reconsiderBatches, systemStateClass=systemStateClass, agentClass=agentClass, globalClock=False, allowExpansion=allowExpansion, tasks=tasks, offPolicy=offPolicy, centralisedLearning=centralisedLearning)
 		# remove the taskqueues as tasks are queued in sim
 		for dev in self.devices: dev.taskQueue = None
 

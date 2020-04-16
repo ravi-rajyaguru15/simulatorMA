@@ -47,6 +47,8 @@ class agent:
 	productionMode = None
 	offPolicy = None
 
+	numChosenAction = dict()
+
 	def __init__(self, systemState, owner=None, offPolicy=constants.OFF_POLICY):
 		self.systemState = systemState
 		# print("set systemstate to", systemState)
@@ -63,7 +65,19 @@ class agent:
 
 	def reset(self):
 		self.episodeReward = 0
+		self.numChosenAction = dict()
 
+	def incrementChosenAction(self, action):
+		if action in self.numChosenAction:
+			self.numChosenAction[action] += 1
+		else:
+			self.numChosenAction[action] = 1
+
+	def getChosenAction(self, action):
+		if action in self.numChosenAction:
+			return self.numChosenAction[action]
+		else:
+			return 0
 	def setProductionMode(self, value=True):
 		debug.learnOut("switching to production mode!", 'y')
 		self.productionMode = value
@@ -282,7 +296,7 @@ class agent:
 		# special case if job queue is full
 		if device.isQueueFull(task):
 			actionIndex = self.numActions - 1
-			debug.learnOut("\nSpecial case! %s queue is full %s %d %s %s" % (job, device.batchLengths(), actionIndex, self.possibleActions[actionIndex], job.beforeState), 'r')
+			debug.learnOut(debug.formatLearn("\nSpecial case! %s queue is full %s %d %s %s", (job, device.batchLengths(), actionIndex, self.possibleActions[actionIndex], job.beforeState)), 'r')
 
 			# print("queue full")
 		# check if no offloading is available
@@ -301,7 +315,7 @@ class agent:
 			debug.out("getting action %s %s" % (device, device.batchLengths()))
 			# choose best action based on current state
 			actionIndex = self.selectAction(job.beforeState)
-			debug.learnOut("\nChoose %s for %s: %d %s %s" % (device, job, actionIndex, self.possibleActions[actionIndex], job.beforeState), 'g')
+			debug.learnOut(debug.formatLearn("\nChoose %s for %s: %d %s %s", (device, job, actionIndex, self.possibleActions[actionIndex], job.beforeState)), 'g')
 			# qValues = self.predict(job.beforeState)
 			# actionIndex = self.selectAction(qValues)
 			# print("chose")
@@ -314,6 +328,9 @@ class agent:
 
 		choice.updateTargetDevice(owner=device, offloadingDevices=device.offloadingOptions)
 		# choice.updateTargetDevice(devices=self.devices)
+
+		self.incrementChosenAction(choice)
+
 		return choice
 
 	# only used when using static target

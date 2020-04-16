@@ -4,7 +4,6 @@ from sim.simulations import constants
 
 
 class targetedSystemState(discretisedSystemState):
-	maxJobs = None
 
 	def __init__(self, numDevices, maxJobs, numTasks, allowExpansion=constants.ALLOW_EXPANSION):
 		self.maxJobs = maxJobs

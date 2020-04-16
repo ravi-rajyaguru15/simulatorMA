@@ -3,6 +3,7 @@ import os
 import pickle
 import sys
 from copy import deepcopy
+from random import random, choice
 
 import numpy as np
 # import tensorflow as tf
@@ -74,7 +75,7 @@ class qTableAgent(qAgent):
 		self.latestMeanQ = self.model.meanQ(beforeState)
 
 		# if beforeState[0] == 4 and beforeState[1] == 0:
-		debug.learnOut("training %d %s %s %.2f %s %s" % (latestAction, beforeState, currentState, reward, beforeQ, trainModel.getQ(beforeIndex)))
+		debug.learnOut(debug.formatLearn("training %d %s %s %.2f %s %s", (latestAction, beforeState, currentState, reward, beforeQ, trainModel.getQ(beforeIndex))))
 
 	def predict(self, state):
 		# find row from q table for this state
@@ -95,11 +96,13 @@ class qTableAgent(qAgent):
 			return action
 		else:
 			qValues = self.predict(index)
-			best = np.argmax(qValues)
+			best = np.max(qValues)
+			indexes = np.where(qValues == best)[0]
+			chosen = choice(indexes)
 			# if systemState[0] == 4 and systemState[1] == 0:
 			# debug.learnOut("chose: {} ({}) {} {}".format(best, self.possibleActions[best], systemState, np.array(qValues)), 'r')
 
-			return best
+			return chosen
 
 	def printModel(self):
 		self._printModel(self.model)

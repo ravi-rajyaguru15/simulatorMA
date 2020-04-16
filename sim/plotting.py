@@ -111,6 +111,7 @@ def _plotMulti(name, results=None, ylim=None, ylabel=None, xlabel=None,
 	orderedResults = collections.OrderedDict(sorted(results.items()))
 	print("orderedResults", orderedResults)
 	legends = list()
+	pp.figure(figsize=(10,10))
 	for key, graph in orderedResults.items():  # , colour in zip(results, colours):
 		if separate:
 			pp.figure()

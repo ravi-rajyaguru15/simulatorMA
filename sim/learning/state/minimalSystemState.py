@@ -6,7 +6,7 @@ from sim.simulations import constants
 class minimalSystemState(discretisedSystemState):
 	maxJobs = None
 
-	def __init__(self, numDevices, maxJobs, allowExpansion=constants.ALLOW_EXPANSION):
+	def __init__(self, numDevices, maxJobs, allowExpansion=constants.ALLOW_EXPANSION, numTasks=None):
 		self.maxJobs = maxJobs
 		# add extra state for "full" job queue
 		if allowExpansion:

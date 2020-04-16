@@ -12,6 +12,8 @@ class fpga(processor):
 	sleepColour = (0, 0, 0.2, 1)
 	reconfigurationColour = (0, 0, 0.25, 1)
 
+	configTimes = dict()
+	lastConfigTime = None
 
 	currentConfig = None
 	reconfigurationPower = None
@@ -19,14 +21,14 @@ class fpga(processor):
 
 	def __init__(self, owner):
 		self.reconfigurationPower = [owner.platform.FPGA_RECONFIGURATION_INT_POWER, owner.platform.FPGA_RECONFIGURATION_AUX_POWER]
-    		
+
 		processor.__init__(self, owner,
-						   # voltage = [platform.FPGA_ INT_VOLTAGE, platform.FPGA_AUX_VOLTAGE],
-						   activePower = [owner.platform.FPGA_ACTIVE_INT_POWER, owner.platform.FPGA_ACTIVE_AUX_POWER],
-						   idlePower = [owner.platform.FPGA_IDLE_INT_POWER, owner.platform.FPGA_IDLE_AUX_POWER],
-						   sleepPower = [owner.platform.FPGA_SLEEP_INT_POWER, owner.platform.FPGA_SLEEP_AUX_POWER],
-						   processingSpeed = owner.platform.FPGA_PROCESSING_SPEED,
-						   idleTimeout = constants.FPGA_IDLE_SLEEP)
+			# voltage = [platform.FPGA_ INT_VOLTAGE, platform.FPGA_AUX_VOLTAGE],
+			activePower = [owner.platform.FPGA_ACTIVE_INT_POWER, owner.platform.FPGA_ACTIVE_AUX_POWER],
+			idlePower = [owner.platform.FPGA_IDLE_INT_POWER, owner.platform.FPGA_IDLE_AUX_POWER],
+			sleepPower = [owner.platform.FPGA_SLEEP_INT_POWER, owner.platform.FPGA_SLEEP_AUX_POWER],
+			processingSpeed = owner.platform.FPGA_PROCESSING_SPEED,
+			idleTimeout = constants.FPGA_IDLE_SLEEP)
 	#
 	# def timeOutSleep(self):
 	# 	# do not sleep until done with batch
@@ -37,10 +39,15 @@ class fpga(processor):
 	# 		elif constants.FPGA_POWER_PLAN == powerPolicy.IMMEDIATELY_OFF and self.isIdle():
 	# 			self.sleep()
 			
+	def reset(self):
+		self.lastConfigTime = None
+		self.setConfig(None)
+		processor.reset(self)
+		self.configTimes = dict()
 
 	# power states
 	def reconfigure(self, task):
-		self.currentConfig = task
+		self.setConfig(task)
 		debug.out("changed fpga config to %s" % task.identifier)
 		self.busyColour = task.colour
 		# print ("changed fpga colour")
@@ -55,8 +62,33 @@ class fpga(processor):
 
 	# loses configuration when it sleeps
 	def sleep(self):
-		self.currentConfig = None
+		self.setConfig(None)
 		processor.sleep(self)
+
+	def setConfig(self, configuration):
+
+		# add config times to logs
+		if self.lastConfigTime is not None:
+			# only increment time when it has been configured before
+			self.incrementConfigTime(self.currentConfig, self.owner.currentTime.current - self.lastConfigTime)
+
+		# update config to new config
+		self.currentConfig = configuration
+		self.lastConfigTime = self.owner.currentTime.current
+
+	def incrementConfigTime(self, task, increment):
+		assert increment >= 0
+		if task not in self.configTimes:
+			self.configTimes[task] = increment
+		else:
+			self.configTimes[task] += increment
+
+	def getConfigTime(self, task):
+		if task not in self.configTimes:
+			return 0
+		else:
+			return self.configTimes[task]
+		# print("incremented", task, "on", self.owner, "by", increment)
 
 	def isReconfiguring(self):
 		return self.getPowerState() == RECONFIGURING

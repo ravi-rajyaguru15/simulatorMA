@@ -281,19 +281,22 @@ class createMessage(subtask):
 class batchContinue(subtask):
 	__name__ = "Batch Continue"
 	processingNode = None
+	batch = None
 
 	# job in parameter so
 	def __init__(self, job=None, node=None):
 
-		if job is not None:
-			debug.out("creating batchContinue with job {}".format(job))
-			self.processingNode = job.processingNode
-		elif node is not None:
+		if node is not None:
 			debug.out("creating batchContinue with node {}".format(node))
 			self.processingNode = node
+			self.job = job
+		elif job is not None:
+			debug.out("creating batchContinue with job {}".format(job))
+			self.processingNode = job.processingNode
 		else:
 			raise Exception("Cannot create batchContinue without job and node")
 		duration = self.processingNode.platform.MCU_BATCHING_LATENCY.gen()
+		self.batch = self.processingNode.currentBatch
 
 		subtask.__init__(self, job, duration)
 
@@ -337,8 +340,10 @@ class batchContinue(subtask):
 				self.owner.agent.train(currentJob.currentTask, currentJob, self.owner, cause=self.__name__)
 				print("\n\n\n\n\t\t**** special occurance ***\n\n\n\n\n")
 				time.sleep(1)
-			else:
-				assert not self.owner.gracefulFailure or (self.owner.gracefulFailure and currentJob is None)
+			# else:
+			# 	if not(not self.owner.gracefulFailure or (self.owner.gracefulFailure and currentJob is None)):
+			# 		print(self.processingNode.batch, self.processingNode.batchLength(self.processingNode.currentBatch), self.processingNode.currentBatch, currentJob.currentTask)
+			# 	assert not self.owner.gracefulFailure or (self.owner.gracefulFailure and currentJob is None)
 
 		if affected is None:
 			# sleepMcu = True
@@ -776,7 +781,7 @@ class txJob(txMessage):
 
 		if self.owner.gracefulFailure:
 			debug.out("continuing graceful failure")
-			nextSubtask = batchContinue(node=self.owner)
+			nextSubtask = batchContinue(node=self.owner, job=self.job)
 			affectedDevices = [(self.owner, nextSubtask)]
 
 		return txMessage.finishTask(self, affectedDevices)

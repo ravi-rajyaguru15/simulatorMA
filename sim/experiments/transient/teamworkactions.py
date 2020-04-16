@@ -24,7 +24,6 @@ from sim.tasks.tasks import EASY, HARD, ALTERNATIVE
 
 
 def runThread(agent, numEpisodes, numDevices, taskOptions, results, finished):
-    constants.CENTRALISED_LEARNING = False
     exp = SimpleSimulation(numDevices=numDevices, maxJobs=10, agentClass=agent, tasks=taskOptions, systemStateClass=targetedSystemState, reconsiderBatches=False, scenarioTemplate=RANDOM_SCENARIO_ROUND_ROBIN, centralisedLearning=False)
     exp.scenario.setInterval(1)
     exp.setFpgaIdleSleep(60)
@@ -36,9 +35,12 @@ def runThread(agent, numEpisodes, numDevices, taskOptions, results, finished):
             debug.infoEnabled = False
             exp.simulateEpisode()
 
+
             for device in exp.devices:
-                for task in taskOptions:
-                    results.put(["Device %d Task %d" % (device.index, task.identifier), e, device.getNumTasksDone(task)])
+                for action in device.agent.possibleActions:
+                    results.put(["Device %d %s" % (device.index, action), e, device.agent.getChosenAction(action)])
+            #     for task in taskOptions:
+            #         results.put(["Device %d Task %d" % (device.index, task.identifier), e, device.getNumTasksDone(task)])
                     # print(e, "Device %d Task %s" % (device.index, task), e, device.getNumTasksDone(task))
     except:
         debug.printCache()
@@ -69,7 +71,7 @@ def run(numEpisodes):
     # experiments = multiprocessing.Queue()
     # REPEATS = 1
 
-    numDevices = 3
+    numDevices = 2
     # localConstants.REPEATS = 10
     numEpisodes = int(numEpisodes)
     # agentsToTest = [minimalTableAgent] #, lazyTableAgent]
@@ -85,16 +87,16 @@ def run(numEpisodes):
         # for taskOptions in tasks:
         processes.append(multiprocessing.Process(target=runThread, args=(regretfulTableAgent, numEpisodes, numDevices, taskOptions, results, finished)))
 
-    results = executeMulti(processes, results, finished, numResults=len(processes) * numEpisodes * len(taskOptions) * numDevices, assembly=experiment.assembleResultsBasic)
+    results = executeMulti(processes, results, finished, numResults=len(processes) * numEpisodes * 3 * numDevices, assembly=experiment.assembleResultsBasic)
 
     # plotting.plotMultiWithErrors("Number of Jobs", results=results, ylabel="Job #", xlabel="Episode #")  # , save=True)
-    plotting.plotMulti("Number of Jobs", results=results, ylabel="Job #", xlabel="Episode #")  # , save=True)
+    plotting.plotMulti("Number of times action chosen", results=results, ylabel="Action Count", xlabel="Episode #")  # , save=True)
 
 
 if __name__ == "__main__":
     setupMultithreading()
     try:
-        run(1e3)
+        run(1e4)
     except:
         traceback.print_exc(file=sys.stdout)
 

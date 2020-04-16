@@ -12,17 +12,16 @@ from sim.tasks.tasks import HARD, EASY
 
 numEpisodes = int(1e2)
 
-numDevices = 2
+numDevices = 3
 def run(results, finished):
-    constants.CENTRALISED_LEARNING = False
-    exp = SimpleSimulation(numDevices=numDevices, maxJobs=100, tasks=[HARD])
+    exp = SimpleSimulation(numDevices=numDevices, maxJobs=100, tasks=[HARD], centralisedLearning=False)
     exp.setBatterySize(1e0)
     # exp.setBatterySize(1e-5)
     # replace agents in devices
     # for dev in exp.devices:
     #     print(dev.agent, dev.agent.model)
-    for agent, device in zip([lazyTableAgent, minimalTableAgent], exp.devices):
-        device.agent = agent(systemState=exp.currentSystemState, owner=device, offPolicy=constants.OFF_POLICY)
+    for agent, device in zip([lazyTableAgent, minimalTableAgent, minimalTableAgent], exp.devices):
+        device.agent = agent(systemState=exp.currentSystemState, owner=device, offPolicy=exp.offPolicy)
         device.agent.setDevices(exp.devices)
         print("set agent", agent, agent.__name__, device.agent, device.agent.__name__)
         # device.agent.reset()
@@ -35,7 +34,7 @@ def run(results, finished):
         for device in exp.devices:
             print("putting results", device.agent.__name__, device.numJobsDone)
             # results.put(["Agent %s" % device.agent.__name__, e, device.currentTime.current])
-            results.put(["Agent %s" % device.agent.__name__, e, device.numJobsDone])
+            results.put(["Device %d Agent %s" % (device.index, device.agent.__name__), e, device.numJobsDone])
 
         sys.stdout.write("\rProgress: %.2f%%" % ((e+1)/numEpisodes*100.))
 

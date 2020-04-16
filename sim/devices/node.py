@@ -44,7 +44,7 @@ class node:
 	gracefulFailure = False
 	gracefulFailureLevel = None
 	offloadingOptions = None
-	defaultOffloadingOptions = None
+	defaultOffloadingOptions = []
 
 	platform = None
 	components = None
@@ -139,7 +139,7 @@ class node:
 				com.reset()
 
 		self.agent.reset()
-		self.offloadingOptions = self.defaultOffloadingOptions
+		self.offloadingOptions = list(self.defaultOffloadingOptions)
 
 	def resetEnergyLevel(self):
 		self.energyLevel = self.maxEnergyLevel
@@ -177,7 +177,7 @@ class node:
 			if device is not self:
 				self.offloadingOptions.append(device)
 		self.defaultOffloadingOptions = list(self.offloadingOptions)
-
+		print("set offloading options", self.defaultOffloadingOptions, self.offloadingOptions)
 		debug.out("set offloading options for %s to %s" % (self, self.offloadingOptions))
 
 	def removeOffloadingOption(self, device):
@@ -380,6 +380,7 @@ class node:
 
 		if self.batchLength(self.currentBatch) == 0:
 			debug.learnOut("no more in batch %s for %s" % (self.currentBatch, self))
+			# print("batch done", self.currentBatch)
 			self.currentJob = None
 			return None
 		debug.learnOut("continue batch for %s (%d)" % (self.currentBatch, self.batchLength(self.currentBatch)))

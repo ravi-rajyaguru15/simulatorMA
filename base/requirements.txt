@@ -7,3 +7,5 @@ pillow
 pyyaml
 memory-profiler
 gym
+pycallgraph
+snakeviz

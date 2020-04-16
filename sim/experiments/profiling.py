@@ -9,6 +9,7 @@ from pycallgraph.output import GraphvizOutput
 from sim import debug
 from sim.devices.components.powerPolicy import IDLE_TIMEOUT
 from sim.learning.agent.minimalAgent import minimalAgent
+from sim.learning.agent.minimalTableAgent import minimalTableAgent
 from sim.learning.state.minimalSystemState import minimalSystemState
 from sim.offloading.offloadingDecision import offloadingDecision
 from sim.offloading.offloadingPolicy import REINFORCEMENT_LEARNING
@@ -21,7 +22,7 @@ from sim.tasks.tasks import EASY
 def profileTarget():
 	debug.enabled = False
 
-	exp = Simulation(numDevices=1, systemStateClass=minimalSystemState, agentClass=minimalAgent)
+	exp = Simulation(numDevices=4, systemStateClass=minimalSystemState, agentClass=minimalTableAgent)
 	exp.setBatterySize(1e-1)
 	for i in range(100):
 		exp.simulateEpisode()

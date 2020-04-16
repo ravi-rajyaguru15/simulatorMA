@@ -53,7 +53,7 @@ class BasicSimulation:
 	maxJobs = None
 	offPolicy = None
 
-	def __init__(self, numDevices, maxJobs, systemStateClass, reconsiderBatches, agentClass, tasks, globalClock=True, allowExpansion=constants.ALLOW_EXPANSION, offPolicy=constants.OFF_POLICY):
+	def __init__(self, numDevices, maxJobs, systemStateClass, reconsiderBatches, agentClass, tasks, globalClock=True, allowExpansion=constants.ALLOW_EXPANSION, offPolicy=constants.OFF_POLICY, centralisedLearning=constants.CENTRALISED_LEARNING):
 		hardwareAccelerated = True
 		self.episodeNumber = 0
 		self.allowExpansion = allowExpansion
@@ -75,10 +75,11 @@ class BasicSimulation:
 
 		# requires simulation to be populated
 		self.currentSystemState = systemStateClass(numDevices=numDevices, maxJobs=maxJobs, numTasks=len(tasks))
-		self.useSharedAgent = constants.CENTRALISED_LEARNING
+		self.useSharedAgent = centralisedLearning
 		if self.useSharedAgent:
 			# create shared learning agent
 			debug.out("creating shared agent %s" % agentClass)
+			print("created shared agent")
 			self.sharedAgent = agentClass(systemState=self.currentSystemState, owner=None, offPolicy=offPolicy)
 			# TODO: need private state for non shared agent
 			agentClass = self.sharedAgent
@@ -86,7 +87,7 @@ class BasicSimulation:
 
 		# simulationResults.learningHistory = history()
 
-		debug.out("Learning: shared: %s agent: %s centralised: %s" % (self.useSharedAgent, agentClass, constants.CENTRALISED_LEARNING), 'r')
+		debug.out("Learning: shared: %s agent: %s centralised: %s" % (self.useSharedAgent, agentClass, centralisedLearning), 'r')
 		self.devices = [elasticNode(self.time, constants.DEFAULT_ELASTIC_NODE, self.results, i, maxJobs=maxJobs, reconsiderBatches=reconsiderBatches, currentSystemState=self.currentSystemState, agent=agentClass, alwaysHardwareAccelerate=hardwareAccelerated, offPolicy=offPolicy) for i in range(numDevices)]
 
 
