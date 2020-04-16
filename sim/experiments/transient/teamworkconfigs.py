@@ -46,7 +46,7 @@ def runThread(agent, numEpisodes, numDevices, taskOptions, results, finished):
                     ratio = inf
                 else:
                     ratio = times[0] / times[1]
-                if ratio < 1: ratio = 1. / ratio
+                if ratio < 1 and ratio != 0: ratio = 1. / ratio
                 results.put(["Device %d EASY/HARD" % (device.index), e, ratio])
                 # print(e, "Device %d Task %s" % (device.index, task), e, device.getNumTasksDone(task))
     except:
