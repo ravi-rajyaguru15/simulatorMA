@@ -30,7 +30,7 @@ def runThread(agent, numEpisodes, numDevices, taskOptions, interval, results, fi
     exp = SimpleSimulation(numDevices=numDevices, maxJobs=10, agentClass=agent, tasks=taskOptions, systemStateClass=targetedSystemState, reconsiderBatches=False, scenarioTemplate=RANDOM_SCENARIO_ROUND_ROBIN, centralisedLearning=False)
     exp.scenario.setInterval(interval)
     exp.setFpgaIdleSleep(5)
-    exp.setBatterySize(1e0)
+    exp.setBatterySize(1e1)
 
     e = None
     try:
@@ -89,11 +89,11 @@ def run(numEpisodes):
         taskOptions[t].identifier = t
         print("task", taskOptions[t], taskOptions[t].identifier)
 
-    testIntervals = np.logspace(-2, 1, num=4)
+    testIntervals = np.logspace(-2, 2, num=5)
     # testIntervals = [1e-1]
 
     # for agent in agentsToTest: # [minimalAgent, lazyAgent]:
-    localConstants.REPEATS = 25
+    # localConstants.REPEATS = 1
     for _ in range(localConstants.REPEATS):
         # for taskOptions in tasks:
         for interval in testIntervals:
@@ -102,13 +102,13 @@ def run(numEpisodes):
     results = executeMulti(processes, results, finished, numResults=len(processes) * numEpisodes, assembly=experiment.assembleResultsBasic)
 
     # plotting.plotMultiWithErrors("Number of Jobs", results=results, ylabel="Job #", xlabel="Episode #")  # , save=True)
-    plotting.plotMulti("Number of Jobs", results=results, ylabel="Total Jobs", xlabel="Favoritism")  # , save=True)
+    plotting.plotMulti("Number of Jobs", results=results, ylabel="DOL", xlabel="Episode #")  # , save=True)
 
 
 if __name__ == "__main__":
     setupMultithreading()
     try:
-        run(1e1)
+        run(1e3)
     except:
         traceback.print_exc(file=sys.stdout)
 
