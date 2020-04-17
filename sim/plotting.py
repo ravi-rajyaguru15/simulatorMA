@@ -135,10 +135,16 @@ def _plotMulti(name, results=None, ylim=None, ylabel=None, xlabel=None,
 				if plotErrors:
 					errors.append(value[1])
 
+		sortedY = [k for _,k in sorted(zip(x, y))]
+		sortedX = np.sort(x)
+		# print(x)
+		# print(y)
+		# print(np.sort(x))
+		# print(sortedY)
 		if plotErrors:
-			pp.errorbar(x, y, yerr=errors)
+			pp.errorbar(sortedX, sortedY, yerr=errors)
 		else:
-			pp.errorbar(x, y)
+			pp.errorbar(sortedX, sortedY)
 
 	pp.legend(legends)
 	pp.grid()

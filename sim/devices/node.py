@@ -177,7 +177,6 @@ class node:
 			if device is not self:
 				self.offloadingOptions.append(device)
 		self.defaultOffloadingOptions = list(self.offloadingOptions)
-		print("set offloading options", self.defaultOffloadingOptions, self.offloadingOptions)
 		debug.out("set offloading options for %s to %s" % (self, self.offloadingOptions))
 
 	def removeOffloadingOption(self, device):

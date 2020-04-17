@@ -34,7 +34,7 @@ class qAgent(agent):
 		# reward = self.reward(job, task, device)
 		finished = episodeFinished
 
-		debug.out("backward {} {}".format(reward, finished), 'y')
+		debug.out(debug.formatDebug("backward {} {}", (reward, finished)), 'y')
 		debug.out("\n")
 		# traceback.print_stack()
 		# debug.learnOut("\n")
@@ -71,7 +71,7 @@ class qAgent(agent):
 
 		# print('reward', reward)
 
-		debug.infoOut("loss: {} reward: {}".format(self.latestLoss, self.latestReward), 'r')
+		debug.infoOut(debug.formatInfo("loss: {} reward: {}", (self.latestLoss, self.latestReward)), 'r')
 		# debug.learnOut("loss: {} reward: {} R: {}".format(self.latestLoss, self.latestReward, self.latestR), 'r')
 	#
 	# agent.step += 1
@@ -100,9 +100,9 @@ class qAgent(agent):
 				traceback.print_stack()
 
 			self.backward(job, episodeFinished=job.episodeFinished(), task=task, device=device)
-			debug.infoOut("train: %s %s %s A %s R %.2f" % (task, job, device, self.possibleActions[job.latestAction], self.latestReward))
-			debug.infoOut("to     %s %d" % (self.systemState.getStateDescription(), self.systemState.getIndex()))
-			debug.infoOut("from   %s" % self.systemState.getStateDescription(self.systemState.getIndex(job.beforeState)))
+			debug.infoOut(debug.formatInfo("train: %s %s %s A %s R %.2f", (task, job, device, self.possibleActions[job.latestAction], self.latestReward)))
+			debug.infoOut(debug.formatInfo("to     %s %d", (self.systemState.getStateDescription(), self.systemState.getIndex())))
+			debug.infoOut(debug.formatInfo("from   %s", self.systemState.getStateDescription(self.systemState.getIndex(job.beforeState))))
 
 
 	genericException = Exception("Not implemented in generic Q agent")

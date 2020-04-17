@@ -20,7 +20,8 @@ from sim.tasks.tasks import EASY
 
 
 def profileTarget():
-	debug.enabled = False
+	debug.settings.enabled = False
+	debug.settings.learnEnabled = False
 
 	exp = Simulation(numDevices=4, systemStateClass=minimalSystemState, agentClass=minimalTableAgent)
 	exp.setBatterySize(1e-1)

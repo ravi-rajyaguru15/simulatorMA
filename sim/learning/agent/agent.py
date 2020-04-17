@@ -286,7 +286,7 @@ class agent:
 		# job.beforeState = deepcopy(self.systemState)
 		job.beforeState = self.systemState.getCurrentState(task, job, device)
 
-		sim.debug.out("beforestate {}".format(job.beforeState))
+		sim.debug.out(debug.formatDebug("beforestate {}",job.beforeState))
 
 		# if job.beforeState[0] == 4 and job.beforeState[1] == 0:
 		# debug.learnOut("%s choosing for %s" % (device, job))

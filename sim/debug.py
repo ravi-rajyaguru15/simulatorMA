@@ -15,11 +15,19 @@ class settings:
     # fileOutput = False
 
 def formatLearn(formatString, args=None):
-    return format(formatString, args, settings.learnEnabled)
+    return _format(formatString, args, settings.learnEnabled)
 
-def format(formatString, args, enable):
+def formatInfo(formatString, args=None):
+    return _format(formatString, args, settings.infoEnabled)
+
+def formatDebug(formatString, args=None):
+    return _format(formatString, args, settings.enabled)
+
+def _format(formatString, args, enable):
     if enable:
         return formatString % args
+    else:
+        return None
 
 # print to console in a fancy colour
 # options are k r g y b p c w
