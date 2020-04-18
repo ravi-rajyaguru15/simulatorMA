@@ -20,14 +20,22 @@ def DOL(devices, tasks):
         # tCounts = Counter(oneColony[i].getJobs())
 
         for j in range(0, numThetas):
-            tCount = devices[i].getNumTasksDone(tasks[j])
+            tCount = devices[i].fpga.getConfigTime(tasks[j])
+            # tCount = devices[i].getNumTasksDone(tasks[j])
+
             dataMatrix[i][j] = tCount
             totalTasks += tCount
-        # dataMatrix[i][numThetas] = tCounts['None']
-        # totalTasks += tCounts['None']
+        dataMatrix[i][numThetas] = devices[i].currentTime - np.sum(dataMatrix[i][:-1])
+        totalTasks += dataMatrix[i][numThetas]
+
+    print()
+    print(dataMatrix)
+
 
     # Step 2:  Normalize the matrix by dividing every cell by the total number of tasks
     dataMatrix = dataMatrix * (1 / totalTasks)
+
+    print(dataMatrix)
 
     # Step 3:  Build probability data structures
     xProbs = np.ones(numThetas)  # number of tasks in length
@@ -75,5 +83,7 @@ def DOL(devices, tasks):
         DOL_TASK_IND = totalI / entropyY
     else:
         DOL_TASK_IND = 0
+
+    print(DOL_IND_TASK)
 
     return DOL_IND_TASK, DOL_TASK_IND  # , DOL_SYMM

@@ -89,7 +89,7 @@ def run(numEpisodes):
         taskOptions[t].identifier = t
         print("task", taskOptions[t], taskOptions[t].identifier)
 
-    testIntervals = np.logspace(-2, 2, num=5)
+    testIntervals = np.logspace(-2, 1, num=4)
     # testIntervals = [1e-1]
 
     # for agent in agentsToTest: # [minimalAgent, lazyAgent]:
@@ -108,7 +108,7 @@ def run(numEpisodes):
 if __name__ == "__main__":
     setupMultithreading()
     try:
-        run(1e3)
+        run(1e4)
     except:
         traceback.print_exc(file=sys.stdout)
 
