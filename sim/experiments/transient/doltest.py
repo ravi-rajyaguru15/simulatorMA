@@ -78,7 +78,7 @@ def run(numEpisodes):
     # experiments = multiprocessing.Queue()
     # REPEATS = 1
 
-    numDevices = 2
+    numDevices = 6
     # localConstants.REPEATS = 10
     numEpisodes = int(numEpisodes)
     # agentsToTest = [minimalTableAgent] #, lazyTableAgent]
@@ -108,7 +108,7 @@ def run(numEpisodes):
 if __name__ == "__main__":
     setupMultithreading()
     try:
-        run(1e4)
+        run(1e1)
     except:
         traceback.print_exc(file=sys.stdout)
 

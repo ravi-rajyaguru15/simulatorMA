@@ -13,7 +13,8 @@ def DOL(devices, tasks):
     # of this experiment, n = 10 and m = 9.
     numAgents = len(devices)
     numThetas = len(tasks)
-    dataMatrix = np.zeros((len(devices), len(tasks) + 1))  # not +1 because no idle matrix that is number of individuals x number of tasks
+    # dataMatrix = np.zeros((len(devices), len(tasks) + 1))  # not +1 because no idle matrix that is number of individuals x number of tasks
+    dataMatrix = np.zeros((len(devices), len(tasks)))  # not +1 because no idle matrix that is number of individuals x number of tasks
     totalTasks = 0
     # now we need to populate the matrix per individual
     for i in range(0, len(devices)):
@@ -25,8 +26,8 @@ def DOL(devices, tasks):
 
             dataMatrix[i][j] = tCount
             totalTasks += tCount
-        dataMatrix[i][numThetas] = devices[i].currentTime - np.sum(dataMatrix[i][:-1])
-        totalTasks += dataMatrix[i][numThetas]
+        # dataMatrix[i][numThetas] = devices[i].currentTime - np.sum(dataMatrix[i][:-1])
+        # totalTasks += dataMatrix[i][numThetas]
 
     print()
     print(dataMatrix)
