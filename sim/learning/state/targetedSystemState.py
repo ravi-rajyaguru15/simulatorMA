@@ -24,7 +24,7 @@ class targetedSystemState(discretisedSystemState):
 		discretisedSystemState.__init__(self, *args)
 
 	def updateState(self, task, job, device):
-		debug.out("update state: %s %s %d %s %s" % (device, device.batchLength(task), device.maxJobs, task, job))
+		debug.out(debug.formatDebug("update state: %s %s %d %s %s", (device, device.batchLength(task), device.maxJobs, task, job)))
 		self.setField('jobsInQueue', device.batchLength(task) / device.maxJobs)
 		self.setField('currentConfig', device.fpga.isConfigured(task))
 		# print("set currentconfig", device.fpga.isConfigured(task), task, device.getFpgaConfiguration())

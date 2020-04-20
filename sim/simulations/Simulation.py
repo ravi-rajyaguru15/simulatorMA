@@ -88,7 +88,9 @@ class BasicSimulation:
 		# simulationResults.learningHistory = history()
 
 		debug.out("Learning: shared: %s agent: %s centralised: %s" % (self.useSharedAgent, agentClass, centralisedLearning), 'r')
-		self.devices = [elasticNode(self.time, constants.DEFAULT_ELASTIC_NODE, self.results, i, maxJobs=maxJobs, reconsiderBatches=reconsiderBatches, currentSystemState=self.currentSystemState, agent=agentClass, alwaysHardwareAccelerate=hardwareAccelerated, offPolicy=offPolicy) for i in range(numDevices)]
+		self.devices = []
+		for i in range(numDevices):
+			self.addDevice(elasticNode(self.time, constants.DEFAULT_ELASTIC_NODE, self.results, i, maxJobs=maxJobs, reconsiderBatches=reconsiderBatches, currentSystemState=self.currentSystemState, agent=agentClass, alwaysHardwareAccelerate=hardwareAccelerated, offPolicy=offPolicy))
 
 
 			# offloadingDecision.offloadingDecision.createSharedAgent(self.currentSystemState, agentClass)
@@ -110,8 +112,8 @@ class BasicSimulation:
 		for device in self.devices: device.setOffloadingOptions(self.devices)
 
 		# assemble expected lifetime for faster computation later
-		self.devicesExpectedLifetimeFunctions = [dev.expectedLifetime for dev in self.devices]
-		self.devicesExpectedLifetimes = np.zeros((len(self.devices),))
+		self.populateDevicesExpectedLifetimes()
+
 		# # self.en = elasticNode()
 		# self.gw = [] #gateway()
 		# self.srv = [] # [server() for i in range(numServers)]
@@ -135,7 +137,25 @@ class BasicSimulation:
 
 		# sim.simulations.Simulation.currentSimulation = self
 
+	def populateDevicesExpectedLifetimes(self):
+		self.devicesExpectedLifetimeFunctions = [dev.expectedLifetime for dev in self.devices]
+		self.devicesExpectedLifetimes = np.zeros((len(self.devices),))
+
 	def getNumDevices(self): return len(self.devices)
+
+	def addDevice(self, newDevice):
+		self.devices.append(newDevice)
+		self.populateDevicesExpectedLifetimes()
+
+	def removeDevice(self):
+		target = self.devices[0]
+
+		self.devices.remove(target)
+
+		for dev in self.devices:
+			dev.removeDefaultOffloadingOption(target)
+
+		self.populateDevicesExpectedLifetimes()
 
 	def setFpgaIdleSleep(self, idleTime):
 		for device in self.devices:
@@ -182,11 +202,10 @@ class BasicSimulation:
 	def simulateEpisode(self):
 		self.reset()
 		i = 0
-		while not self.finished:#  and i < 100:
-			# debug.out("%s" % [dev.getEnergyLevelPercentage() for dev in self.devices])
+		while not self.finished:
 			i += 1
 			self.simulateTick()
-			debug.out("%s" % [dev.energyLevel for dev in self.devices])
+			debug.out(debug.formatDebug("%s", [dev.energyLevel for dev in self.devices]))
 		self.episodeNumber += 1
 
 		# update target model if required

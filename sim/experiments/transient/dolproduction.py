@@ -40,6 +40,9 @@ def runThread(agent, numEpisodes, numDevices, taskOptions, interval, results, fi
 
         for e in range(numEpisodes):
             debug.infoEnabled = False
+            if e > numEpisodes / 2:
+                for dev in exp.devices:
+                    dev.agent.setProductionMode(True)
             exp.simulateEpisode()
 
             dol_ind_task, dol_task_ind = DOL(exp.devices, taskOptions)
@@ -114,7 +117,7 @@ def run(numEpisodes):
 if __name__ == "__main__":
     setupMultithreading()
     try:
-        run(5e2)
+        run(1e2)
     except:
         traceback.print_exc(file=sys.stdout)
 

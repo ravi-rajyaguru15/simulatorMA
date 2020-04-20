@@ -10,7 +10,7 @@ from sim.devices.components import powerPolicy
 from sim.experiments.scenario import RANDOM_SCENARIO_RANDOM
 from sim.learning.agent.minimalTableAgent import minimalTableAgent
 from sim.learning.state.extendedSystemState import extendedSystemState
-from sim.simulations import constants
+from sim.simulations import constants, Simulation
 from sim.simulations.Simulation import BasicSimulation
 from sim.tasks.subtask import subtask
 
@@ -62,11 +62,15 @@ class SimpleSimulation(BasicSimulation):
 			except Empty:
 				continue
 			self.queue.task_done()
+		self.scenario.reset()
 
 		BasicSimulation.reset(self)
 		self.queueInitialJobs()
 
+	def removeDevice(self):
+		BasicSimulation.removeDevice(self)
 
+		self.scenario.setDevices(self.devices, queueInitial=False)
 		# if self.autoJobs: self.queueInitialJobs()
 
 	def performScenario(self, targetScenario):
@@ -115,6 +119,7 @@ class SimpleSimulation(BasicSimulation):
 			nextTask = self.queue.get()
 			newTime = nextTask.priority
 			arguments = nextTask.item
+			# print(newTime, arguments)
 			debug.out("new time %f %s %s" % (newTime, arguments, [dev.getNumSubtasks() for dev in self.devices]))
 			debug.out("remaining tasks: %d" % self.queue.qsize(), 'dg')
 
@@ -123,6 +128,7 @@ class SimpleSimulation(BasicSimulation):
 				self.printQueue()
 
 			if self.stopIfEpisodeDone():
+				print("EPISODE OVER")
 				debug.out("EPISODE ALREADY OVER", 'r')
 				return False
 			# device.setTime(newTime)
@@ -254,7 +260,6 @@ class SimpleSimulation(BasicSimulation):
 		if task == NEW_JOB:
 			debug.out("creating new job", 'b')
 			device = args[1]
-
 			# check job needs to be reassigned
 			if device.gracefulFailure:
 				olddevice = device
@@ -353,6 +358,7 @@ class SimpleSimulation(BasicSimulation):
 	def queueNewJobs(self, jobs):
 		for time, device in jobs:
 			self.queueTask(time, NEW_JOB, device)
+
 
 	def queueTask(self, time, taskType, device, subtask=None):
 		# check if this device has a task lined up already:

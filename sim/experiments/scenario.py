@@ -30,13 +30,16 @@ class scenario:
 	def setInterval(self, interval):
 		raise Exception("Not implemented")
 
-	def setDevices(self, devices):
+	def setDevices(self, devices, queueInitial=True):
 		# print("set devices to", devices)
 		self.devices = list(devices)
-		self.defaultDevices = devices
+		self.defaultDevices = list(devices)
 
 		# queue initial jobs
-		return self.queueInitialJobs()
+		if queueInitial:
+			return self.queueInitialJobs()
+		else:
+			return None
 
 	def removeDevice(self, device):
 		# print("removing", device, "from", self.devices)
@@ -48,7 +51,13 @@ class scenario:
 
 	def queueInitialJobs(self):
 		self.devices = list(self.defaultDevices)
-		return self.addJob(self.nextTime(0), self.devices)
+		initialJobs = self.addJob(self.nextTime(0), self.devices)
+		return initialJobs
+
+	def reset(self):
+		self.previousDevice = None
+		self.devicePolicy.reset()
+
 	# def getTasks(self):
 	# 	return self.tasks
 
@@ -143,6 +152,10 @@ class randomDevice(devicePolicy):
 class roundRobin(devicePolicy):
 	name = "Round Robin"
 	index = 0
+
+	@staticmethod
+	def reset():
+		roundRobin.index = 0
 
 	@staticmethod
 	def chooseDevice(devices):

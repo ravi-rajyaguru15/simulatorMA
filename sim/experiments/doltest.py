@@ -25,9 +25,10 @@ from sim.simulations.variable import Constant
 from sim.tasks.tasks import EASY, HARD, ALTERNATIVE
 import numpy as np
 
-def runThread(agent, numEpisodes, numDevices, taskOptions, interval, results, finished):
+def runThread(numEpisodesTrain, numEpisodesTest, numDevices, taskOptions, interval, results, finished):
     constants.CENTRALISED_LEARNING = False
-    exp = SimpleSimulation(numDevices=numDevices, maxJobs=10, agentClass=agent, tasks=taskOptions, systemStateClass=targetedSystemState, reconsiderBatches=False, scenarioTemplate=RANDOM_SCENARIO_ROUND_ROBIN, centralisedLearning=False)
+    numDevices = int(numDevices)
+    exp = SimpleSimulation(numDevices=numDevices, maxJobs=10, agentClass=regretfulTableAgent, tasks=taskOptions, systemStateClass=targetedSystemState, reconsiderBatches=False, scenarioTemplate=RANDOM_SCENARIO_ROUND_ROBIN, centralisedLearning=False)
     exp.scenario.setInterval(interval)
     exp.setFpgaIdleSleep(5)
     exp.setBatterySize(1e0)
@@ -38,15 +39,20 @@ def runThread(agent, numEpisodes, numDevices, taskOptions, interval, results, fi
         # for e in range(0):
         #     exp.simulateEpisode()
 
-        for e in range(numEpisodes):
-            debug.infoEnabled = False
+        debug.infoEnabled = False
+        for e in range(numEpisodesTrain):
             exp.simulateEpisode()
 
-            dol_ind_task, dol_task_ind = DOL(exp.devices, taskOptions)
+        # dols = list()
+        for e in range(numEpisodesTest):
+            exp.simulateEpisode()
 
-            results.put(["DOL Devices %d" % numDevices, e, dol_ind_task])
+            dol_ind_task, dol_task_ind = DOL(exp.devices, taskOptions, addIdle=False)
+            results.put(["Devices: %d" % numDevices, interval, dol_ind_task])
             results.put(["Jobs Devices %d" % numDevices, e, exp.numFinishedJobs / 1000])
-            # results.put(["Interval %.2f" % interval, e, dol_ind_task])
+            # dols.append(dol_ind_task)
+
+        # results.put(["Devices: %d" % numDevices, interval, np.average(dols)])
 
 
         finished.put("")
@@ -54,7 +60,7 @@ def runThread(agent, numEpisodes, numDevices, taskOptions, interval, results, fi
     except:
         debug.printCache()
         traceback.print_exc(file=sys.stdout)
-        print(agent, e)
+        # print(agent, e)
         print("Error in experiment ̰:", exp.time)
         sys.exit(0)
 
@@ -68,7 +74,7 @@ def runThread(agent, numEpisodes, numDevices, taskOptions, interval, results, fi
     # exp.sharedAgent.printModel()
 
 
-def run(numEpisodes):
+def run(numEpisodesTrain, numEpisodesTest):
     print("starting experiment")
 
     processes = list()
@@ -80,9 +86,11 @@ def run(numEpisodes):
     # experiments = multiprocessing.Queue()
     # REPEATS = 1
 
-    # numDevices = 6
+    maxDevices = 12
+    minDevices = 2
+    numDevices = np.linspace(start=minDevices, stop=maxDevices, num=int((maxDevices - minDevices) / 2))
     # localConstants.REPEATS = 10
-    numEpisodes = int(numEpisodes)
+    numEpisodesTrain, numEpisodesTest = int(numEpisodesTrain), int(numEpisodesTest)
     # agentsToTest = [minimalTableAgent] #, lazyTableAgent]
     # tasks = [[EASY], [EASY, HARD]]
     taskOptions = [EASY, HARD]
@@ -92,29 +100,24 @@ def run(numEpisodes):
         print("task", taskOptions[t], taskOptions[t].identifier)
 
     # testIntervals = np.logspace(-4, 0, num=5)
+    testIntervals = np.linspace(1e-2, 1, num=3)
 
-    # testIntervals = [1e0]
-
-    # for agent in agentsToTest: # [minimalAgent, lazyAgent]:
-    localConstants.REPEATS = 1
     for _ in range(localConstants.REPEATS):
-        # for taskOptions in tasks:
-        # for interval in testIntervals:
-        # interval = testIntervals
-        for numDevices in [2, 12]:
-            processes.append(multiprocessing.Process(target=runThread, args=(regretfulTableAgent, numEpisodes, numDevices, taskOptions, 1, results, finished)))
+        for interval in testIntervals:
+            for devs in numDevices:
+                processes.append(multiprocessing.Process(target=runThread, args=(numEpisodesTrain, numEpisodesTest, devs, taskOptions, interval, results, finished)))
 
-    results = executeMulti(processes, results, finished, numResults=len(processes) * numEpisodes * 2) #, assembly=experiment.assembleResultsBasic)
+    results = executeMulti(processes, results, finished, numResults=len(processes) * numEpisodesTest*2) #, assembly=experiment.assembleResultsBasic)
 
     # plotting.plotMultiWithErrors("Number of Jobs", results=results, ylabel="Job #", xlabel="Episode #")  # , save=True)
     localConstants.SAVE_GRAPH = True
-    plotting.plotMultiWithErrors("DOL", results=results, ylabel="DOL", xlabel="Episode #")
+    plotting.plotMultiWithErrors("DOL", results=results, ylabel="DOL", xlabel="Interval")
 
 
 if __name__ == "__main__":
     setupMultithreading()
     try:
-        run(5e2)
+        run(1e2, 1e2)
     except:
         traceback.print_exc(file=sys.stdout)
 

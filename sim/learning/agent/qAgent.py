@@ -92,7 +92,7 @@ class qAgent(agent):
 	def train(self, task, job, device, cause=None):
 		if not self.productionMode:
 			# debug.learnOut("Training: [{}] [{}] [{}]".format(task, job, device), 'y')
-			debug.learnOut("Training %s for %s %d %s %s" % (device, job, job.latestAction, cause, job.beforeState), 'y')
+			debug.learnOut(debug.formatLearn("Training %s for %s %d %s %s", (device, job, job.latestAction, cause, job.beforeState)), 'y')
 			if device.gracefulFailure: debug.learnOut("graceful failure %s" % job.beforeState, 'y')
 			self.systemState.updateState(task, job, device)
 
@@ -101,8 +101,8 @@ class qAgent(agent):
 
 			self.backward(job, episodeFinished=job.episodeFinished(), task=task, device=device)
 			debug.infoOut(debug.formatInfo("train: %s %s %s A %s R %.2f", (task, job, device, self.possibleActions[job.latestAction], self.latestReward)))
-			debug.infoOut(debug.formatInfo("to     %s %d", (self.systemState.getStateDescription(), self.systemState.getIndex())))
-			debug.infoOut(debug.formatInfo("from   %s", self.systemState.getStateDescription(self.systemState.getIndex(job.beforeState))))
+			debug.infoOut(debug.formatInfo("to     %s %d", (self.systemState.getStateDescription(enabled=debug.settings.infoEnabled, index=self.systemState.getIndex()))))
+			debug.infoOut(debug.formatInfo("from   %s", self.systemState.getStateDescription(index=self.systemState.getIndex(job.beforeState), enabled=debug.settings.infoEnabled)))
 
 
 	genericException = Exception("Not implemented in generic Q agent")

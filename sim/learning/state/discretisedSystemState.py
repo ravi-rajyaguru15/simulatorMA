@@ -166,28 +166,31 @@ class discretisedSystemState(systemState):
 			raise Exception("energyField not found")
 			return systemState.getGracefulFailureLevel(self)
 
-	def getStateDescription(self, index=None):
-		if index is None:
-			index = self.getIndex()
-		elif isinstance(index, np.ndarray):
-			index = self.getIndex(index)
-		# print("index", index)
+	def getStateDescription(self, index=None, enabled=True):
+		if enabled:
+			if index is None:
+				index = self.getIndex()
+			elif isinstance(index, np.ndarray):
+				index = self.getIndex(index)
+			# print("index", index)
 
-		description = ""
-		for i in range(len(self.singles)):
-			# calculate multiplication factor based on remaining states' options
-			restMultiplier = 1
-			if i < len(self.singles) - 1:
-				for j in range(i + 1, len(self.singles)):
-					restMultiplier *= self.singlesDiscrete[self.singles[j]]
+			description = ""
+			for i in range(len(self.singles)):
+				# calculate multiplication factor based on remaining states' options
+				restMultiplier = 1
+				if i < len(self.singles) - 1:
+					for j in range(i + 1, len(self.singles)):
+						restMultiplier *= self.singlesDiscrete[self.singles[j]]
 
-			# field is value of this field in the singles set
-			field = int(index / restMultiplier)
-			if index >= restMultiplier:
-				index -= restMultiplier * field
-			description += "{} ={:2d} ".format(self.singles[i], field)
-				# print(index)
-		return description
+				# field is value of this field in the singles set
+				field = int(index / restMultiplier)
+				if index >= restMultiplier:
+					index -= restMultiplier * field
+				description += "{} ={:2d} ".format(self.singles[i], field)
+					# print(index)
+			return description
+		else:
+			return "Not enabled"
 
 	# create a clone form the index
 	def fromIndex(self, index):

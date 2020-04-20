@@ -184,6 +184,10 @@ class node:
 			self.offloadingOptions.remove(device)
 			debug.learnOut("removed offloading option %s %s" % (device, self.offloadingOptions))
 
+	def removeDefaultOffloadingOption(self, device):
+		if device in self.defaultOffloadingOptions:
+			self.defaultOffloadingOptions.remove(device)
+
 	# def setOptions(self, options):
 		# self.setOffloadingDecisions(options)
 

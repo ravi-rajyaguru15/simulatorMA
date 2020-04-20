@@ -2,12 +2,11 @@ import collections
 import datetime
 import os
 import pickle
+import sys
 
 import matplotlib as mpl
 import matplotlib.pyplot as pp
 import numpy as np
-
-import sim.simulations.constants
 
 # print (os.environ["DISPLAY"])
 from sim.simulations import constants, localConstants
@@ -111,7 +110,7 @@ def _plotMulti(name, results=None, ylim=None, ylabel=None, xlabel=None,
 	orderedResults = collections.OrderedDict(sorted(results.items()))
 	print("orderedResults", orderedResults)
 	legends = list()
-	pp.figure(figsize=(10,10))
+	pp.figure(figsize=(10, 10))
 	for key, graph in orderedResults.items():  # , colour in zip(results, colours):
 		if separate:
 			pp.figure()
@@ -159,6 +158,94 @@ def _plotMulti(name, results=None, ylim=None, ylabel=None, xlabel=None,
 
 	if xlabel is not None:
 		pp.xlabel(xlabel)
+
+	if localConstants.SAVE_GRAPH:
+		saveFig(filename)
+
+	if localConstants.DRAW_GRAPH:
+		pp.show()
+
+def plotMultiSubplots(name, results=None, ylim=None, ylabel=None, xlabel=None, separate=False, plotErrors=True, subplotCodes=[], scaleJobs=True):
+	# print("plotting!")
+	filename = "{}{}_{}".format(localConstants.OUTPUT_DIRECTORY, name,
+								str(datetime.datetime.now()).replace(":", "."))
+	pickle.dump((name, results, ylim, ylabel, xlabel), open("{}.pickle".format(filename), "wb"))
+
+	# sort by graph key
+	# print("results", results)
+	orderedResults = collections.OrderedDict(sorted(results.items()))
+	# print("orderedResults", orderedResults)
+	legends = list()
+	for i in range(len(subplotCodes)):
+		legends.append([])
+	pp.figure(figsize=(10, 10))
+	for key, graph in orderedResults.items():  # , colour in zip(results, colours):
+		if separate:
+			pp.figure()
+
+		chosenSubplot = None
+		# find which subplot to send this to
+		for s in range(len(subplotCodes)):
+			if subplotCodes[s] in key:
+				chosenSubplot = s
+				break
+
+		if chosenSubplot is None:
+			print("subplot not found!", key, subplotCodes)
+		else:
+			print("chose", subplotCodes[chosenSubplot], "for", key)
+			pp.subplot(1, len(subplotCodes), chosenSubplot + 1)
+
+
+		legends[chosenSubplot].append(key)
+		x, y = list(), list()
+		errors = list()
+
+		# sort graph by x indices
+		# orderedGraph = collections.OrderedDict(sorted(graph.items()))
+		# print(graph)
+
+		for xIndex, value in graph.items():
+			if isinstance(value, list):
+				for yi in value:
+					x.append(xIndex)
+					y.append(yi)
+			else:
+				x.append(xIndex)
+				yvalue = value[0]
+				yerror = value[1]
+				if scaleJobs:
+					if "Jobs" in key:
+						yvalue *= 1000.
+						yerror *= 1000.
+				y.append(yvalue)
+				if plotErrors:
+					errors.append(yerror)
+
+		sortedY = [k for _, k in sorted(zip(x, y))]
+		sortedX = np.sort(x)
+
+		if plotErrors:
+			pp.errorbar(sortedX, sortedY, yerr=errors)
+		else:
+			pp.errorbar(sortedX, sortedY)
+
+	for i in range(len(subplotCodes)):
+		pp.subplot(1, len(subplotCodes), i+1)
+		pp.legend(legends[i])
+		pp.grid()
+		if ylabel is not None:
+			pp.ylabel(ylabel[i])
+		pp.tight_layout()
+		# pp.title(name)
+		if xlabel is not None:
+			pp.xlabel(xlabel)
+
+
+
+	if ylim is not None:
+		pp.ylim(ylim)
+
 
 	if localConstants.SAVE_GRAPH:
 		saveFig(filename)
@@ -218,4 +305,17 @@ def saveFig(filename):
 
 	print ("saving figure {}".format(filename))
 	pp.savefig("{}.png".format(filename))
+
+def replot(filename):
+	# filename = "{}{}_{}".format(localConstants.OUTPUT_DIRECTORY, name,
+	# 							str(datetime.datetime.now()).replace(":", "."))
+	(name, results, ylim, ylabel, xlabel) = pickle.load(open("{}.pickle".format(filename), "rb"))
+	plotMultiSubplots("", results=results, ylim=ylim, ylabel=ylabel, xlabel=xlabel, subplotCodes=["Jobs Devices", "Devices"], plotErrors=True)
+	# print("plotting!")
+
+if __name__ == "__main__":
+	# fn = sys.argv[1]
+	# print("replotting", fn)
+	(name, results, ylim, ylabel, xlabel) = pickle.load(open("{}.pickle".format("/tmp/output/simulator/DOL_2020-04-20 13.28.20.341042"), "rb"))
+	plotMultiSubplots(name, results=results, ylim=ylim, ylabel=["System Jobs #", "DOL"], xlabel=xlabel, subplotCodes=["Jobs Devices", "Devices"], plotErrors=True, scaleJobs=True)
 

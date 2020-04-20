@@ -6,37 +6,42 @@ Division of labor Index by Gorelick et al. -- 2004
 '''
 
 
-def DOL(devices, tasks):
+def DOL(devices, tasks, addIdle=True):
     # Step 1:  create a matrix that is n x m, where n is the number of rows
     # and m is the number of columns.  Each row represents an individual
     # in the population, each column represents a task.  For the purposes
     # of this experiment, n = 10 and m = 9.
     numAgents = len(devices)
     numThetas = len(tasks)
-    # dataMatrix = np.zeros((len(devices), len(tasks) + 1))  # not +1 because no idle matrix that is number of individuals x number of tasks
-    dataMatrix = np.zeros((len(devices), len(tasks)))  # not +1 because no idle matrix that is number of individuals x number of tasks
+    numColumns = len(tasks) + 1 if addIdle else len(tasks)
+    dataMatrix = np.zeros((len(devices), numColumns))  # not +1 because no idle matrix that is number of individuals x number of tasks
     totalTasks = 0
     # now we need to populate the matrix per individual
     for i in range(0, len(devices)):
         # tCounts = Counter(oneColony[i].getJobs())
 
         for j in range(0, numThetas):
-            tCount = devices[i].fpga.getConfigTime(tasks[j])
-            # tCount = devices[i].getNumTasksDone(tasks[j])
+            # tCount = devices[i].fpga.getConfigTime(tasks[j])
+            tCount = devices[i].getNumTasksDone(tasks[j])
 
             dataMatrix[i][j] = tCount
             totalTasks += tCount
-        # dataMatrix[i][numThetas] = devices[i].currentTime - np.sum(dataMatrix[i][:-1])
-        # totalTasks += dataMatrix[i][numThetas]
+        if addIdle:
+            dataMatrix[i][numThetas] = devices[i].currentTime - np.sum(dataMatrix[i][:-1])
+            totalTasks += dataMatrix[i][numThetas]
 
-    print()
-    print(dataMatrix)
+    # print()
+    # print(dataMatrix)
 
 
     # Step 2:  Normalize the matrix by dividing every cell by the total number of tasks
-    dataMatrix = dataMatrix * (1 / totalTasks)
+    if totalTasks != 0:
+        dataMatrix = dataMatrix * (1 / totalTasks)
+    else:
+        print("ZERO TASKS PERFORMED", dataMatrix)
+        raise Exception("Zero tasks")
 
-    print(dataMatrix)
+    # print(dataMatrix)
 
     # Step 3:  Build probability data structures
     xProbs = np.ones(numThetas)  # number of tasks in length
@@ -85,6 +90,6 @@ def DOL(devices, tasks):
     else:
         DOL_TASK_IND = 0
 
-    print(DOL_IND_TASK)
+    # print(DOL_IND_TASK)
 
     return DOL_IND_TASK, DOL_TASK_IND  # , DOL_SYMM

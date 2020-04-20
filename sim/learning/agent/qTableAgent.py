@@ -151,6 +151,7 @@ class qTableAgent(qAgent):
 			qTable.copyModel(self.model, self.targetModel)
 
 	def updateTargetModel(self):
+		assert self.offPolicy
 		if not self.productionMode:
 			qTable.copyModel(self.targetModel, self.model)
 
