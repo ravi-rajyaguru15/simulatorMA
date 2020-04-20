@@ -12,7 +12,7 @@ class staticAgent(agent):
 	def backward(self, job):
 		pass
 
-	def train(self, task, job, device):
+	def train(self, task, job, device, cause=None):
 		pass
 
 	def updateTargetModel(self):

@@ -29,4 +29,5 @@ class localAgent(staticAgent):
 		self.createModel()
 
 		self.devices = devices
+		self._setDecisions(devices)
 		# return self.possibleActions

@@ -8,7 +8,6 @@ from multiprocessing import freeze_support
 
 from sim import debug, counters, plotting
 from sim.experiments.experiment import executeMulti
-from sim.experiments.scenario import REGULAR_SCENARIO_ROUND_ROBIN
 from sim.learning.agent.lazyDeepAgent import lazyDeepAgent
 from sim.learning.agent.lazyTableAgent import lazyTableAgent
 from sim.learning.agent.localAgent import localAgent
@@ -16,21 +15,22 @@ from sim.learning.agent.minimalDeepAgent import minimalDeepAgent
 from sim.learning.agent.minimalTableAgent import minimalTableAgent
 from sim.learning.agent.randomAgent import randomAgent
 from sim.learning.agent.regretfulTableAgent import regretfulTableAgent
+from sim.learning.state.extendedSystemState import extendedSystemState
 from sim.learning.state.minimalSystemState import minimalSystemState
 from sim.simulations import localConstants, constants
 from sim.simulations.SimpleSimulation import SimpleSimulation
 import os
 
 from sim.simulations.variable import Constant
-from sim.tasks.tasks import HARD, EASY
+from sim.tasks.tasks import HARD
 
 maxjobs = 10
 
 def runThread(agent, numEpisodes, results, finished):
-    constants.CENTRALISED_LEARNING = True
-    exp = SimpleSimulation(numDevices=2, maxJobs=maxjobs, agentClass=agent, tasks=[HARD], systemStateClass=minimalSystemState, scenarioTemplate=REGULAR_SCENARIO_ROUND_ROBIN)
+    constants.CENTRALISED_LEARNING = False
+    exp = SimpleSimulation(numDevices=2, maxJobs=maxjobs, agentClass=agent, tasks=[HARD], systemStateClass=extendedSystemState, reconsiderBatches=True)
     exp.scenario.setInterval(1)
-    exp.setBatterySize(1e-1)
+    exp.setBatterySize(1e0)
 
     e = None
     try:
@@ -52,8 +52,8 @@ def runThread(agent, numEpisodes, results, finished):
     # print("\nsaving history", simulationResults.learningHistory, '\nr')
 
     print("forward", counters.NUM_FORWARD, "backward", counters.NUM_BACKWARD)
-    # if exp.sharedAgent.__class__ == minimalTableAgent:
-    plotting.plotModel(exp.sharedAgent, drawLabels=True)
+    if exp.sharedAgent.__class__ == minimalTableAgent:
+        plotting.plotModel(exp.sharedAgent, drawLabels=False)
 
     # exp.sharedAgent.printModel()
 
@@ -73,7 +73,7 @@ def run(numEpisodes):
     # localConstants.REPEATS = 10
     numEpisodes = int(numEpisodes)
     # agentsToTest = [minimalTableAgent, minimalDeepAgent, lazyTableAgent, lazyDeepAgent] # , localAgent] # , randomAgent]
-    agentsToTest = [minimalTableAgent, lazyTableAgent] #, randomAgent] # , localAgent] # , randomAgent]
+    agentsToTest = [minimalTableAgent, regretfulTableAgent, lazyTableAgent, randomAgent] # , localAgent] # , randomAgent]
     for agent in agentsToTest: # [minimalAgent, lazyAgent]:
         for _ in range(localConstants.REPEATS):
             processes.append(multiprocessing.Process(target=runThread, args=(agent, numEpisodes, results, finished)))

@@ -90,17 +90,17 @@ def plotAgentHistory(history):
 
 
 def plotMultiWithErrors(name, results=None, ylim=None, ylabel=None, xlabel=None,
-						separate=False):  # , show=False, save=False):
-	_plotMulti(name, results, ylim, ylabel, xlabel, separate, True)
+						separate=False, title=None):  # , show=False, save=False):
+	_plotMulti(name, results, ylim, ylabel, xlabel, separate, True, title=title)
 
 
 def plotMulti(name, results=None, ylim=None, ylabel=None, xlabel=None,
-						separate=False):  # , show=False, save=False):
-	_plotMulti(name, results, ylim, ylabel, xlabel, separate, False)
+						separate=False, title=None):  # , show=False, save=False):
+	_plotMulti(name, results, ylim, ylabel, xlabel, separate, False, title=title)
 
 
 def _plotMulti(name, results=None, ylim=None, ylabel=None, xlabel=None,
-						separate=False, plotErrors=True):
+						separate=False, plotErrors=True, title=None):
 	# print("plotting!")
 	filename = "{}{}_{}".format(localConstants.OUTPUT_DIRECTORY, name, str(datetime.datetime.now()).replace(":", "."))
 	pickle.dump((name, results, ylim, ylabel, xlabel), open("{}.pickle".format(filename), "wb"))
@@ -148,7 +148,8 @@ def _plotMulti(name, results=None, ylim=None, ylabel=None, xlabel=None,
 	pp.legend(legends)
 	pp.grid()
 
-	pp.title(name)
+	if title is not None:
+		pp.title(title)
 
 	if ylim is not None:
 		pp.ylim(ylim)
@@ -179,6 +180,7 @@ def plotMultiSubplots(name, results=None, ylim=None, ylabel=None, xlabel=None, s
 	for i in range(len(subplotCodes)):
 		legends.append([])
 	pp.figure(figsize=(10, 10))
+	print("keys:", orderedResults.keys())
 	for key, graph in orderedResults.items():  # , colour in zip(results, colours):
 		if separate:
 			pp.figure()
@@ -265,7 +267,7 @@ def plotModel(agent, drawLabels=True):
 			yticks.append(text)
 		# pp.text(-2, i, text, horizontalalignment='right', fontsize=5)
 
-	pp.figure()
+	pp.figure(figsize=(10,10))
 	pp.title(agent.__name__)
 
 	# normalise:
@@ -316,6 +318,10 @@ def replot(filename):
 if __name__ == "__main__":
 	# fn = sys.argv[1]
 	# print("replotting", fn)
-	(name, results, ylim, ylabel, xlabel) = pickle.load(open("{}.pickle".format("/tmp/output/simulator/DOL_2020-04-20 13.28.20.341042"), "rb"))
-	plotMultiSubplots(name, results=results, ylim=ylim, ylabel=["System Jobs #", "DOL"], xlabel=xlabel, subplotCodes=["Jobs Devices", "Devices"], plotErrors=True, scaleJobs=True)
+	# fn = "DOL_2020-04-20 13.28.20.341042"
+	# codes= ["Jobs Devices", "Devices"]
+	fn = "DOL_2020-04-20 18.13.58.955317"
+	codes = ["Jobs Completed", "DOL"]
+	(name, results, ylim, ylabel, xlabel) = pickle.load(open("{}.pickle".format("/tmp/output/simulator/%s" % fn), "rb"))
+	plotMultiSubplots(name, results=results, ylim=ylim, ylabel=["System Jobs #", "DOL"], xlabel=xlabel, subplotCodes=codes, plotErrors=True, scaleJobs=True)
 

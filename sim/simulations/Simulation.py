@@ -79,7 +79,6 @@ class BasicSimulation:
 		if self.useSharedAgent:
 			# create shared learning agent
 			debug.out("creating shared agent %s" % agentClass)
-			print("created shared agent")
 			self.sharedAgent = agentClass(systemState=self.currentSystemState, owner=None, offPolicy=offPolicy)
 			# TODO: need private state for non shared agent
 			agentClass = self.sharedAgent

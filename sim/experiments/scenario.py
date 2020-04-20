@@ -107,6 +107,10 @@ class devicePolicy:
 	def __repr__(self): return self.name # self.__class__.name
 
 	@staticmethod
+	def reset():
+		raise Exception("Not implemented")
+
+	@staticmethod
 	def nextDevice(currentDevice, devices):
 		raise Exception("Not implemented")
 
@@ -147,6 +151,10 @@ class randomDevice(devicePolicy):
 	@staticmethod
 	def nextDevice(currentDevice, devices):
 		return randomDevice.chooseDevice(devices)[0]
+
+	@staticmethod
+	def reset():
+		pass
 
 
 class roundRobin(devicePolicy):

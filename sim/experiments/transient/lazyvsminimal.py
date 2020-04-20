@@ -32,7 +32,7 @@ def run(results, finished):
     for e in range(int(numEpisodes)):
         exp.simulateEpisode()
         for device in exp.devices:
-            print("putting results", device.agent.__name__, device.numJobsDone)
+            # print("putting results", device.agent.__name__, device.numJobsDone)
             # results.put(["Agent %s" % device.agent.__name__, e, device.currentTime.current])
             results.put(["Device %d Agent %s" % (device.index, device.agent.__name__), e, device.numJobsDone])
 
