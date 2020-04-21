@@ -1,3 +1,5 @@
+import traceback
+
 import sim
 from sim.simulations import localConstants
 

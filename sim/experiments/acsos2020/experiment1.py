@@ -24,12 +24,11 @@ import os
 from sim.simulations.variable import Constant
 from sim.tasks.tasks import HARD, EASY
 
-maxjobs = 10
+maxjobs = 25
 
 def runThread(agent, numEpisodes, results, finished):
-    constants.CENTRALISED_LEARNING = True
-    exp = SimpleSimulation(numDevices=2, maxJobs=maxjobs, agentClass=agent, tasks=[HARD], systemStateClass=minimalSystemState, scenarioTemplate=REGULAR_SCENARIO_ROUND_ROBIN)
-    exp.scenario.setInterval(1)
+    exp = SimpleSimulation(numDevices=4, maxJobs=maxjobs, agentClass=agent, tasks=[HARD], systemStateClass=minimalSystemState, scenarioTemplate=REGULAR_SCENARIO_ROUND_ROBIN, centralisedLearning=True)
+    # exp.scenario.setInterval(1)
     exp.setBatterySize(1e-1)
 
     e = None
@@ -52,23 +51,17 @@ def runThread(agent, numEpisodes, results, finished):
     # print("\nsaving history", simulationResults.learningHistory, '\nr')
 
     print("forward", counters.NUM_FORWARD, "backward", counters.NUM_BACKWARD)
+
     # if exp.sharedAgent.__class__ == minimalTableAgent:
-    plotting.plotModel(exp.sharedAgent, drawLabels=True)
-
+    # plotting.plotModel(exp.sharedAgent, drawLabels=True)
     # exp.sharedAgent.printModel()
-
 
 def run(numEpisodes):
     print("starting experiment")
 
     processes = list()
-    # sim.simulations.constants.MINIMUM_BATCH = 1e7
-
-    # offloadingOptions = [True, False]
     results = multiprocessing.Queue()
     finished = multiprocessing.Queue()
-    # experiments = multiprocessing.Queue()
-    # REPEATS = 1
 
     # localConstants.REPEATS = 10
     numEpisodes = int(numEpisodes)
@@ -85,7 +78,7 @@ def run(numEpisodes):
 
 if __name__ == "__main__":
     try:
-        run(1e2)
+        run(2e2)
     except:
         traceback.print_exc(file=sys.stdout)
 

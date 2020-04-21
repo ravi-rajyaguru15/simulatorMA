@@ -119,7 +119,7 @@ class SimpleSimulation(BasicSimulation):
 			nextTask = self.queue.get()
 			newTime = nextTask.priority
 			arguments = nextTask.item
-			# print(newTime, arguments)
+			# print("pop", newTime, arguments)
 			debug.out("new time %f %s %s" % (newTime, arguments, [dev.getNumSubtasks() for dev in self.devices]))
 			debug.out("remaining tasks: %d" % self.queue.qsize(), 'dg')
 
@@ -132,6 +132,8 @@ class SimpleSimulation(BasicSimulation):
 				debug.out("EPISODE ALREADY OVER", 'r')
 				return False
 			# device.setTime(newTime)
+
+			# process this queued task
 			usages = self.processQueuedTask(newTime, arguments)
 
 			# check if queues are overrun
@@ -279,7 +281,7 @@ class SimpleSimulation(BasicSimulation):
 					nextdevice, nextsubtask = affectedDevice
 					debug.out("new job affected: %s %s" % (nextdevice, nextsubtask), 'b')
 					self.queueTask(scheduledTime, PROCESS_SUBTASK, nextdevice, nextsubtask)
-					# print("queueing initial subtask", scheduledTime, nextdevice, nextsubtask)
+					print("queueing initial subtask", scheduledTime, nextdevice, nextsubtask)
 					# self.processAffectedDevice(affectedDevice)
 
 			else:
@@ -367,6 +369,8 @@ class SimpleSimulation(BasicSimulation):
 		debug.out("queueing task %f %s %s %s" % (time, taskType, device, subtask), 'r')
 		newTask = PrioritizedItem(time, (taskType, device, subtask))
 		self.queue.put(newTask)
+		# print("queue:")
+		# self.printQueue()
 		device.queuedTask = newTask
 
 	# eoh m# 	print("device", device, "already has queued item!", self.queue)
@@ -385,7 +389,7 @@ class SimpleSimulation(BasicSimulation):
 		# assert affected is not None
 
 		# device, subtask = affected
-		# print("sim:", device, subtask)
+		print("sim:", device, subtask)
 		hasOffspring = False
 		visualiser = None
 		# decide whether to pass in visualiser or not

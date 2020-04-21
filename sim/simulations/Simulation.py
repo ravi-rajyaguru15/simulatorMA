@@ -52,6 +52,7 @@ class BasicSimulation:
 	allowExpansion = None
 	maxJobs = None
 	offPolicy = None
+	jobCounter = None
 
 	def __init__(self, numDevices, maxJobs, systemStateClass, reconsiderBatches, agentClass, tasks, globalClock=True, allowExpansion=constants.ALLOW_EXPANSION, offPolicy=constants.OFF_POLICY, centralisedLearning=constants.CENTRALISED_LEARNING):
 		hardwareAccelerated = True
@@ -236,6 +237,7 @@ class BasicSimulation:
 		if self.time is not None:
 			self.time.reset()
 		self.finished = False
+		self.jobCounter = 0
 
 	def isEpisodeFinished(self):
 		return self.finished
@@ -371,7 +373,9 @@ class BasicSimulation:
 
 
 
-		newJob = job(device, constants.SAMPLE_SIZE.gen(), isEpisodeFinished=self.isEpisodeFinished, incrementCompletedJobs=self.incrementCompletedJobs, hardwareAccelerated=hardwareAccelerated, taskGraph=task)
+		newJob = job(device, self.jobCounter, constants.SAMPLE_SIZE.gen(), isEpisodeFinished=self.isEpisodeFinished, incrementCompletedJobs=self.incrementCompletedJobs, hardwareAccelerated=hardwareAccelerated, taskGraph=task)
+		self.jobCounter += 1
+		print(device.currentTime, device, "created", newJob)
 		self.addJob(device, newJob)
 		debug.out('creating %s on %s' % (newJob, device), 'r')
 		debug.out("added job to device queue", 'p')

@@ -59,9 +59,11 @@ class job:
 
 	history = None
 
-	def __init__(self, jobCreator, samples, hardwareAccelerated, isEpisodeFinished, incrementCompletedJobs, taskGraph=None):
-		job.id += 1
-		self.id = job.id
+	def __init__(self, jobCreator, id, samples, hardwareAccelerated, isEpisodeFinished, incrementCompletedJobs, taskGraph=None):
+		# job.id += 1
+		# print("inc job id", job.id)
+		# self.id = job.id
+		self.id = id
 
 		self.creator = jobCreator
 		# self.simulation = origin.simulation
@@ -273,7 +275,7 @@ class job:
 
 		# def combineEnergyCosts(self, otherJob):
 		# print("combining costs from", otherJob.totalEnergyCost, "with", self.totalEnergyCost)
-		learnOut("combining %s with %s (%.2f %.2f)" % (otherJob, self, otherJob.totalEnergyCost, self.totalEnergyCost))
+		learnOut("combining %s with %s (%.2f %.2f)" % (otherJob, self, otherJob.totalEnergyCost * 1e3, self.totalEnergyCost * 1e3))
 		for dev in otherJob.devicesEnergyCost:
 			self.addEnergyCost(otherJob.devicesEnergyCost[dev], dev)
 

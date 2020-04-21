@@ -5,6 +5,8 @@ from sim import debug, plotting
 from sim.devices.components import powerPolicy
 from sim.experiments.experiment import setupMultithreading
 import numpy as np
+
+from sim.experiments.scenario import REGULAR_SCENARIO_RANDOM, REGULAR_SCENARIO_ROUND_ROBIN
 from sim.learning.agent.lazyAgent import lazyAgent
 from sim.learning.agent.lazyTableAgent import lazyTableAgent
 from sim.learning.agent.minimalAgent import minimalAgent
@@ -14,12 +16,13 @@ from sim.learning.state.minimalSystemState import minimalSystemState
 from sim.offloading import offloadingPolicy
 from sim.simulations import constants, variable, localConstants
 from sim.simulations.SimpleSimulation import SimpleSimulation
+from sim.tasks.tasks import HARD
 
 if __name__ == "__main__":
 	setupMultithreading()
 
-	basic = False
-	long = True
+	basic = True
+	long = False
 
 	np.set_printoptions(suppress=True, precision=2)
 	debug.settings.learnEnabled = not long # change this to see debug on how it learns
@@ -27,10 +30,11 @@ if __name__ == "__main__":
 	systemStateClass = minimalSystemState if basic else extendedSystemState
 
 	for agent in [minimalTableAgent]: # lazyTableAgent
-		exp = SimpleSimulation(numDevices=2, maxJobs=2, reconsiderBatches=not basic
-							   , agentClass=agent, systemStateClass=systemStateClass)
+		exp = SimpleSimulation(numDevices=2, maxJobs=2, reconsiderBatches=not basic, tasks=[HARD]
+							   , agentClass=agent, systemStateClass=systemStateClass, scenarioTemplate=REGULAR_SCENARIO_ROUND_ROBIN)
 		exp.scenario.setInterval(1)
-		exp.setBatterySize(1e-1)
+		exp.setFpgaIdleSleep(1e-1)
+		exp.setBatterySize(1e-2)
 		print("pretraining...")
 		numrepeats = 1e5 if long else 1
 		for i in range(int(numrepeats)): # change this to train longer (i'm using 1e3 to get a decent view)
@@ -46,7 +50,7 @@ if __name__ == "__main__":
 		# debug.settings.infoEnabled = True
 
 		# exp.setFpgaIdleSleep(1e-3)
-		exp.simulateEpisode()
+		# exp.simulateEpisode()
 
 		# print(exp.sharedAgent.__name__)
 		# print([device.totalSleepTime / device.currentTime.current for device in exp.devices])
@@ -56,7 +60,7 @@ if __name__ == "__main__":
 
 		# debug.settings.infoEnabled = False
 		# exp.sharedAgent.printModel()
-		plotting.plotModel(exp.sharedAgent, drawLabels=True)
+		# plotting.plotModel(exp.sharedAgent, drawLabels=True)
 		#
 		# for i in range(10):
 		# 	for j in range(int(1e3)):

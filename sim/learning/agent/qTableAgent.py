@@ -75,7 +75,7 @@ class qTableAgent(qAgent):
 		self.latestMeanQ = self.model.meanQ(beforeState)
 
 		# if beforeState[0] == 4 and beforeState[1] == 0:
-		debug.learnOut(debug.formatLearn("training %d %s %s %.2f %s %s", (latestAction, beforeState, currentState, reward, beforeQ, trainModel.getQ(beforeIndex))))
+		debug.learnOut(debug.formatLearn("training %d before: %s current: %s r: %.2f %s %s", (latestAction, beforeState, currentState, reward, beforeQ, trainModel.getQ(beforeIndex))))
 
 	def predict(self, state):
 		# find row from q table for this state

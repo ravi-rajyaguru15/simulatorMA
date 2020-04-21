@@ -336,10 +336,10 @@ class batchContinue(subtask):
 			# as far as i know this only happens in graceful failure
 			# print(self.owner.gracefulFailure, currentJob)
 
-			if self.owner.gracefulFailure and not self.owner.hasOffloadingOptions():
-				self.owner.agent.train(currentJob.currentTask, currentJob, self.owner, cause=self.__name__)
-				print("\n\n\n\n\t\t**** special occurance ***\n\n\n\n\n")
-				time.sleep(1)
+			# if self.owner.gracefulFailure and not self.owner.hasOffloadingOptions():
+			self.owner.agent.train(currentJob.currentTask, currentJob, self.owner, cause=self.__name__)
+				# print("\n\n\n\n\t\t**** special occurance ***\n\n\n\n\n")
+				# time.sleep(1)
 			# else:
 			# 	if not(not self.owner.gracefulFailure or (self.owner.gracefulFailure and currentJob is None)):
 			# 		print(self.processingNode.batch, self.processingNode.batchLength(self.processingNode.currentBatch), self.processingNode.currentBatch, currentJob.currentTask)
@@ -455,6 +455,7 @@ class newJob(subtask):
 		newSubtask = None
 		# start first job in queue
 		self.job.processingNode.currentBatch = self.job.currentTask
+		print("processing batch", self.job.processingNode.batchLength(self.job.currentTask))
 
 		# consider graceful failure
 		if enableGracefulFailure and not self.owner.gracefulFailure:
