@@ -17,3 +17,5 @@ class staticAgent(agent):
 
 	def updateTargetModel(self):
 		pass
+
+	# def setReconsiderBatches(self, reconsiderBatches): pass

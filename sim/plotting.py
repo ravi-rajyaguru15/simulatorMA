@@ -306,7 +306,7 @@ def saveFig(filename):
 		pass
 
 	print ("saving figure {}".format(filename))
-	pp.savefig("{}.png".format(filename))
+	pp.savefig("{}.pdf".format(filename))
 
 def replot(filename):
 	# filename = "{}{}_{}".format(localConstants.OUTPUT_DIRECTORY, name,

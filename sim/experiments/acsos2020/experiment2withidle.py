@@ -30,7 +30,7 @@ maxjobs = 20
 
 def runThread(agent, numEpisodes, results, finished):
     # constants.CENTRALISED_LEARNING = False
-    exp = SimpleSimulation(numDevices=2, maxJobs=maxjobs, agentClass=agent, tasks=[HARD], systemStateClass=minimalSystemState, scenarioTemplate=REGULAR_SCENARIO_ROUND_ROBIN, reconsiderBatches=False)
+    exp = SimpleSimulation(numDevices=2, maxJobs=maxjobs, agentClass=agent, tasks=[HARD], systemStateClass=extendedSystemState, scenarioTemplate=REGULAR_SCENARIO_ROUND_ROBIN, reconsiderBatches=True)
     # exp.scenario.setInterval(1)
     exp.setFpgaIdleSleep(1e-3)
     exp.setBatterySize(1e-1)
@@ -41,7 +41,7 @@ def runThread(agent, numEpisodes, results, finished):
             debug.infoEnabled = False
             exp.simulateEpisode()
 
-            results.put(["Job %s" % exp.sharedAgent.__name__, e, exp.numFinishedJobs])
+            results.put(["Jobs %s" % exp.sharedAgent.__name__, e, exp.numFinishedJobs])
             results.put(["Duration %s" % exp.sharedAgent.__name__, e, exp.getCurrentTime()])
     except:
         debug.printCache()
@@ -85,8 +85,8 @@ def run(numEpisodes):
     results = executeMulti(processes, results, finished, numResults=len(processes) * numEpisodes * 2)
 
     # plotting.plotMultiWithErrors("Number of Jobs", results=results, ylabel="Job #", xlabel="Episode #")  # , save=True)
-    # plotting.plotMulti("experiment2", title="experiment 2", results=results, ylabel="Job #", xlabel="Episode #")  # , save=True)
-    plotting.plotMultiSubplots("experiment2", results=results, subplotCodes=["Job", "Duration"], ylabel=["Job #", "Duration in s"], xlabel="Episode #")  # , save=True)
+    # plotting.plotMulti("experiment2withidle", title="experiment 2 with idle", results=results, ylabel="Job #", xlabel="Episode #")  # , save=True)
+    plotting.plotMultiSubplots("experiment2withidle", results=results, ylabel=["Job #", "Duration (in s)"], subplotCodes=["Job", "Duration"], xlabel="Episode #") # , save=True)
 
 if __name__ == "__main__":
     try:

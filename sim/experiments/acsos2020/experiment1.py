@@ -24,12 +24,13 @@ import os
 from sim.simulations.variable import Constant
 from sim.tasks.tasks import HARD, EASY
 
-maxjobs = 25
+maxjobs = 5
 
 def runThread(agent, numEpisodes, results, finished):
-    exp = SimpleSimulation(numDevices=4, maxJobs=maxjobs, agentClass=agent, tasks=[HARD], systemStateClass=minimalSystemState, scenarioTemplate=REGULAR_SCENARIO_ROUND_ROBIN, centralisedLearning=True)
+    exp = SimpleSimulation(numDevices=2, maxJobs=maxjobs, agentClass=agent, tasks=[EASY], systemStateClass=minimalSystemState, scenarioTemplate=REGULAR_SCENARIO_ROUND_ROBIN)
     # exp.scenario.setInterval(1)
     exp.setBatterySize(1e-1)
+    exp.setFpgaIdleSleep(0.5)
 
     e = None
     try:
@@ -46,15 +47,11 @@ def runThread(agent, numEpisodes, results, finished):
         sys.exit(0)
 
     finished.put(True)
-    # assert simulationResults.learningHistory is not None
-    # histories.put(simulationResults.learningHistory)
-    # print("\nsaving history", simulationResults.learningHistory, '\nr')
 
     print("forward", counters.NUM_FORWARD, "backward", counters.NUM_BACKWARD)
 
     # if exp.sharedAgent.__class__ == minimalTableAgent:
     # plotting.plotModel(exp.sharedAgent, drawLabels=True)
-    # exp.sharedAgent.printModel()
 
 def run(numEpisodes):
     print("starting experiment")
@@ -65,8 +62,7 @@ def run(numEpisodes):
 
     # localConstants.REPEATS = 10
     numEpisodes = int(numEpisodes)
-    # agentsToTest = [minimalTableAgent, minimalDeepAgent, lazyTableAgent, lazyDeepAgent] # , localAgent] # , randomAgent]
-    agentsToTest = [minimalTableAgent, lazyTableAgent] #, randomAgent] # , localAgent] # , randomAgent]
+    agentsToTest = [minimalTableAgent, lazyTableAgent, randomAgent] # , localAgent]
     for agent in agentsToTest: # [minimalAgent, lazyAgent]:
         for _ in range(localConstants.REPEATS):
             processes.append(multiprocessing.Process(target=runThread, args=(agent, numEpisodes, results, finished)))
@@ -74,7 +70,7 @@ def run(numEpisodes):
     results = executeMulti(processes, results, finished, numResults=len(agentsToTest) * numEpisodes * localConstants.REPEATS)
 
     # plotting.plotMultiWithErrors("Number of Jobs", results=results, ylabel="Job #", xlabel="Episode #")  # , save=True)
-    plotting.plotMulti("experiment1", results=results, ylabel="Job #", xlabel="Episode #")  # , save=True)
+    plotting.plotMulti("experiment1", title="experiment 1", results=results, ylabel="Job #", xlabel="Episode #")  # , save=True)
 
 if __name__ == "__main__":
     try:

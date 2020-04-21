@@ -80,7 +80,7 @@ class BasicSimulation:
 		if self.useSharedAgent:
 			# create shared learning agent
 			debug.out("creating shared agent %s" % agentClass)
-			self.sharedAgent = agentClass(systemState=self.currentSystemState, owner=None, offPolicy=offPolicy)
+			self.sharedAgent = agentClass(systemState=self.currentSystemState, reconsiderBatches=reconsiderBatches, owner=None, offPolicy=offPolicy)
 			# TODO: need private state for non shared agent
 			agentClass = self.sharedAgent
 
@@ -375,7 +375,7 @@ class BasicSimulation:
 
 		newJob = job(device, self.jobCounter, constants.SAMPLE_SIZE.gen(), isEpisodeFinished=self.isEpisodeFinished, incrementCompletedJobs=self.incrementCompletedJobs, hardwareAccelerated=hardwareAccelerated, taskGraph=task)
 		self.jobCounter += 1
-		print(device.currentTime, device, "created", newJob)
+		# print(device.currentTime, device, "created", newJob)
 		self.addJob(device, newJob)
 		debug.out('creating %s on %s' % (newJob, device), 'r')
 		debug.out("added job to device queue", 'p')

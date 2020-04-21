@@ -35,7 +35,7 @@ if __name__ == "__main__":
 
 		beforeState = job.beforeState
 		energyCost = job.totalEnergyCost * 1e3
-		print("%s %s created: %.2f energy: %.4f %s" % (job, job.finished, job.createdTime, energyCost, beforeState.dictRepresentation))
+		print("%s %d created: %.2f energy: %.4f %s" % (job, job.finished, job.createdTime, energyCost, beforeState.dictRepresentation))
 
 		if job.finished:
 			xlist.append(beforeState.dictRepresentation[""])

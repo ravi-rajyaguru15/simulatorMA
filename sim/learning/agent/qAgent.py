@@ -104,6 +104,7 @@ class qAgent(agent):
 			debug.infoOut(debug.formatInfo("to     %s %d", (self.systemState.getStateDescription(enabled=debug.settings.infoEnabled, index=self.systemState.getIndex()))))
 			debug.infoOut(debug.formatInfo("from   %s", self.systemState.getStateDescription(index=self.systemState.getIndex(job.beforeState), enabled=debug.settings.infoEnabled)))
 
+			job.reset()
 
 	genericException = Exception("Not implemented in generic Q agent")
 	def predict(self, state):

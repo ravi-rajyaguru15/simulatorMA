@@ -38,7 +38,7 @@ class qTableAgent(qAgent):
 
 	allowExpansion = None
 
-	def __init__(self, systemState, allowExpansion=constants.ALLOW_EXPANSION, owner=None, offPolicy=constants.OFF_POLICY):
+	def __init__(self, systemState, reconsiderBatches, allowExpansion=constants.ALLOW_EXPANSION, owner=None, offPolicy=constants.OFF_POLICY):
 		self.gamma = constants.GAMMA
 		self.policy = Uniform(.5, 1)
 		self.allowExpansion = allowExpansion
@@ -46,7 +46,7 @@ class qTableAgent(qAgent):
 		debug.out("Q Table agent")
 		# self.dqn = rl.agents.DQNAgent(model=self.model, policy=rl.policy.LinearAnnealedPolicy(, attr='eps', value_max=sim.constants.EPS_MAX, value_min=sim.constants.EPS_MIN, value_test=.05, nb_steps=sim.constants.EPS_STEP_COUNT), enable_double_dqn=False, gamma=.99, batch_size=1, nb_actions=self.numActions)
 
-		qAgent.__init__(self, systemState, owner=owner, offPolicy=offPolicy)
+		qAgent.__init__(self, systemState, reconsiderBatches=reconsiderBatches, owner=owner, offPolicy=offPolicy)
 
 	def createModel(self):
 		# create Q table

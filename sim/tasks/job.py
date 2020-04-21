@@ -86,7 +86,7 @@ class job:
 		self.started = False
 		self.active = False
 		self.processed = False
-		self.finished = False
+		self.finished = 0
 		if taskGraph is None:
 			taskGraph = constants.DEFAULT_TASK_GRAPH
 		self.taskGraph = taskGraph
@@ -205,7 +205,7 @@ class job:
 
 	def finish(self):
 		sim.debug.out("%s %s %s (%f) %s" % ("-"*50, self, "finished", self.totalEnergyCost, "-"*50))
-		self.finished = True
+		self.finished += 1
 		self.owner.numJobsDone += 1
 		self.owner.incrementTaskDone(self.currentTask)
 		self.owner.removeJob(self)
@@ -268,13 +268,23 @@ class job:
 			self.devicesEnergyCost[device] = 0
 		self.devicesEnergyCost[device] += incrementalPower
 
+	def reset(self):
+		self.devicesEnergyCost = dict()
+		self.finished = 0
+
+
 	def combineJobs(self, otherJob):
 		# decision was made on other job if not reconsidering jobs
-		if not self.owner.reconsiderBatches:
+		if not self.owner.agent.reconsiderBatches:
 			self.beforeState = np.array(otherJob.beforeState)
 
-		# def combineEnergyCosts(self, otherJob):
-		# print("combining costs from", otherJob.totalEnergyCost, "with", self.totalEnergyCost)
+			# def combineEnergyCosts(self, otherJob):
+			# print("combining costs from", otherJob.totalEnergyCost, "with", self.totalEnergyCost)
+
+			self.finished += otherJob.finished
+			self.latestAction = otherJob.latestAction
+
+		# combine energy costs:
 		learnOut("combining %s with %s (%.2f %.2f)" % (otherJob, self, otherJob.totalEnergyCost * 1e3, self.totalEnergyCost * 1e3))
 		for dev in otherJob.devicesEnergyCost:
 			self.addEnergyCost(otherJob.devicesEnergyCost[dev], dev)

@@ -8,7 +8,8 @@ class minimalAgent(qAgent):
 
 	def reward(self, job, task, device):
 		# default reward behaviour
-		jobReward = 100. if job.finished else -50 # * device.numJobsDone
+		# jobReward = 100. if job.finished else -50 # * device.numJobsDone
+		jobReward = 1. * job.finished #if job.finished > 0 else -.5 # * device.numJobsDone
 		# jobReward = 1. * device.numJobsDone * 100.
 		if job.totalEnergyCost != 0 and device in job.devicesEnergyCost:
 			# if device not in job.devicesEnergyCost:
@@ -18,11 +19,11 @@ class minimalAgent(qAgent):
 		else:
 			energyReward = 0
 
-		deathReward = -1000. if device.gracefulFailure else 0
+		deathReward = -10. if device.gracefulFailure else 0
 
 		debug.learnOut(debug.formatLearn("Reward: %s (%s) j: %.2f e: %.2f d: %.2f", (self.__name__, self.possibleActions[job.latestAction], jobReward, energyReward, deathReward)))
 
 		reward = jobReward + energyReward + deathReward
-		# print(self.__name__, reward, jobReward, energyReward, deathReward)
+		# print("Reward: %20s (% 8s) r: %.2f j: %.2f e: %.2f d: %.2f" % (self.__name__, self.possibleActions[job.latestAction], reward, jobReward, energyReward, deathReward))
 		return reward
 

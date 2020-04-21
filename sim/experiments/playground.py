@@ -29,12 +29,12 @@ if __name__ == "__main__":
 
 	systemStateClass = minimalSystemState if basic else extendedSystemState
 
-	for agent in [minimalTableAgent]: # lazyTableAgent
-		exp = SimpleSimulation(numDevices=2, maxJobs=2, reconsiderBatches=not basic, tasks=[HARD]
+	for agent in [lazyTableAgent]: # lazyTableAgent
+		exp = SimpleSimulation(numDevices=2, maxJobs=2, reconsiderBatches=False, tasks=[HARD]
 							   , agentClass=agent, systemStateClass=systemStateClass, scenarioTemplate=REGULAR_SCENARIO_ROUND_ROBIN)
 		exp.scenario.setInterval(1)
-		exp.setFpgaIdleSleep(1e-1)
-		exp.setBatterySize(1e-2)
+		exp.setFpgaIdleSleep(1e-3)
+		exp.setBatterySize(1e-1)
 		print("pretraining...")
 		numrepeats = 1e5 if long else 1
 		for i in range(int(numrepeats)): # change this to train longer (i'm using 1e3 to get a decent view)

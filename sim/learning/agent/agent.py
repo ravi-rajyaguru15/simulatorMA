@@ -50,7 +50,9 @@ class agent:
 
 	numChosenAction = dict()
 
-	def __init__(self, systemState, owner=None, offPolicy=constants.OFF_POLICY):
+	reconsiderBatches = None
+
+	def __init__(self, systemState, reconsiderBatches, owner=None, offPolicy=constants.OFF_POLICY):
 		self.systemState = systemState
 		# print("set systemstate to", systemState)
 		self.owner = owner # owner none means shared
@@ -60,6 +62,9 @@ class agent:
 		self.totalReward = 0
 		self.productionMode = False
 		self.reset()
+		self.setReconsiderBatches(reconsiderBatches)
+
+	def setReconsiderBatches(self, reconsiderBatches): self.reconsiderBatches = reconsiderBatches
 
 	def __repr__(self): return "<" + self.__name__ + ">"
 		# self.setDevices(devices)
@@ -286,6 +291,7 @@ class agent:
 		# currentSim = sim.simulations.Simulation.currentSimulation
 		# job.beforeState = deepcopy(self.systemState)
 		job.beforeState = self.systemState.getCurrentState(task, job, device)
+		job.reset()
 
 		sim.debug.out(debug.formatDebug("beforestate {}",job.beforeState))
 

@@ -322,7 +322,7 @@ class batchContinue(subtask):
 		currentJob = self.job
 
 		# job is none if it's been sent to someone else (training in tx)
-		if self.owner.reconsiderBatches and self.job is not None:
+		if self.owner.agent.reconsiderBatches and self.job is not None:
 			# always trains once you decide
 			self.owner.agent.train(self.job.currentTask, self.job, self.owner, cause=self.__name__)
 
@@ -330,7 +330,7 @@ class batchContinue(subtask):
 		affected = self.processingNode.continueBatch(self.job)
 		# print("batch continue:", affected, self.owner.currentJob)
 
-		if not self.owner.reconsiderBatches and affected is None:
+		if not self.owner.agent.reconsiderBatches and affected is None:
 			# end of batch, train
 			# nextTask = None if  is None else self.job.currentTask
 			# as far as i know this only happens in graceful failure
@@ -455,7 +455,7 @@ class newJob(subtask):
 		newSubtask = None
 		# start first job in queue
 		self.job.processingNode.currentBatch = self.job.currentTask
-		print("processing batch", self.job.processingNode.batchLength(self.job.currentTask))
+		learnOut("processing batch %d (%s)" % (self.job.processingNode.batchLength(self.job.currentTask), self.job.processingNode.fpga.isConfigured(self.job.currentTask)))
 
 		# consider graceful failure
 		if enableGracefulFailure and not self.owner.gracefulFailure:

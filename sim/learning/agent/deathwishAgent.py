@@ -5,11 +5,11 @@ from sim.learning.agent.qTableAgent import qTableAgent
 
 
 class deathwishAgent(qTableAgent):
-	def __repr__(self): return "<Deathwish Agent>"
+	__name__ = "Deathwish Agent"
 
 	def reward(self, job, task, device):
 		# default reward behaviour
-		jobReward = 1. * device.numJobsDone if job.finished else -.5
+		jobReward = 1. * job.finished
 		# if job.totalEnergyCost != 0:
 		# 	energyReward = -job.totalEnergyCost / device.maxEnergyLevel * 1e2
 		# 	# energyReward = -log2(job.totalEnergyCost)

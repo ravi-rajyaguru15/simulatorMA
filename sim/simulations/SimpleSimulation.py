@@ -281,7 +281,7 @@ class SimpleSimulation(BasicSimulation):
 					nextdevice, nextsubtask = affectedDevice
 					debug.out("new job affected: %s %s" % (nextdevice, nextsubtask), 'b')
 					self.queueTask(scheduledTime, PROCESS_SUBTASK, nextdevice, nextsubtask)
-					print("queueing initial subtask", scheduledTime, nextdevice, nextsubtask)
+					# print("queueing initial subtask", scheduledTime, nextdevice, nextsubtask)
 					# self.processAffectedDevice(affectedDevice)
 
 			else:
@@ -389,7 +389,7 @@ class SimpleSimulation(BasicSimulation):
 		# assert affected is not None
 
 		# device, subtask = affected
-		print("sim:", device, subtask)
+		# print("sim:", device, subtask)
 		hasOffspring = False
 		visualiser = None
 		# decide whether to pass in visualiser or not

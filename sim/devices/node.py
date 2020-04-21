@@ -55,7 +55,7 @@ class node:
 	batch = None
 	currentBatch = None
 	batchFull = None
-	reconsiderBatches = None
+	# reconsiderBatches = None
 	maxJobs = None
 
 	currentTime = None
@@ -88,7 +88,7 @@ class node:
 		# print("created index", index)
 		self.maxJobs = maxJobs
 		# self.nodeType = nodeType
-		self.reconsiderBatches = reconsiderBatches
+		# self.reconsiderBatches = reconsiderBatches
 
 		self.setMaxEnergyLevel()
 		self.gracefulFailureLevel = currentSystemState.getGracefulFailureLevel()
@@ -395,7 +395,7 @@ class node:
 
 		# decide whether to continue with batch or not
 		possibleNextJob = self.batch[self.currentBatch][0]
-		if self.reconsiderBatches:
+		if self.agent.reconsiderBatches:
 			newChoice = self.agent.redecideDestination(possibleNextJob.currentTask, possibleNextJob, self)
 			debug.learnOut("decided to continue batch at %s?: %s" % (possibleNextJob, newChoice))
 

@@ -9,7 +9,9 @@ class regretfulAgent(qAgent):
 	def reward(self, job, task, device):
 		# default reward behaviour
 		# jobReward = 100. if job.finished else -50 # * device.numJobsDone
-		jobReward = 100. * device.numJobsDone
+		# jobReward = 100. * device.numJobsDone
+		jobReward = 100. * job.finished if job.finished > 0 else -50 # * device.numJobsDone
+
 		if job.totalEnergyCost != 0 and device in job.devicesEnergyCost:
 			# if device not in job.devicesEnergyCost:
 			# 	print(job.creator, job.processingNode, job.owner, job.finished, job.devicesEnergyCost)
