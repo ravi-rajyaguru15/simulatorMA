@@ -74,7 +74,7 @@ class node:
 		# if agentClass is a class, create private
 		if type(agent) is type(__class__):
 			# print("agent class", agent)
-			self.agent = agent(systemState=currentSystemState, owner=self, offPolicy=offPolicy)
+			self.agent = agent(systemState=currentSystemState, owner=self, offPolicy=offPolicy,reconsiderBatches=reconsiderBatches)
 		else:
 			self.agent = agent
 

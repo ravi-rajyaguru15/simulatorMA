@@ -90,7 +90,7 @@ def run(numEpisodes):
 
 if __name__ == "__main__":
     try:
-        run(1e3)
+        run(1e2)
     except:
         traceback.print_exc(file=sys.stdout)
 

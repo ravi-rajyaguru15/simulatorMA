@@ -27,10 +27,10 @@ from sim.tasks.tasks import HARD, EASY
 maxjobs = 5
 
 def runThread(agent, numEpisodes, results, finished):
-    exp = SimpleSimulation(numDevices=2, maxJobs=maxjobs, agentClass=agent, tasks=[EASY], systemStateClass=minimalSystemState, scenarioTemplate=REGULAR_SCENARIO_ROUND_ROBIN)
+    exp = SimpleSimulation(numDevices=2, maxJobs=maxjobs, agentClass=agent, tasks=[HARD], systemStateClass=minimalSystemState, scenarioTemplate=REGULAR_SCENARIO_ROUND_ROBIN)
     # exp.scenario.setInterval(1)
     exp.setBatterySize(1e-1)
-    exp.setFpgaIdleSleep(0.5)
+    exp.setFpgaIdleSleep(1e-3)
 
     e = None
     try:
@@ -74,7 +74,7 @@ def run(numEpisodes):
 
 if __name__ == "__main__":
     try:
-        run(2e2)
+        run(1e2)
     except:
         traceback.print_exc(file=sys.stdout)
 

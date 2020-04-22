@@ -29,7 +29,7 @@ def runThread(agent, numEpisodes, numDevices, taskOptions, interval, results, fi
     constants.CENTRALISED_LEARNING = False
     exp = SimpleSimulation(numDevices=numDevices, maxJobs=50, agentClass=agent, tasks=taskOptions, systemStateClass=targetedSystemState, reconsiderBatches=False, scenarioTemplate=RANDOM_SCENARIO_ROUND_ROBIN, centralisedLearning=False)
     exp.scenario.setInterval(interval)
-    exp.setFpgaIdleSleep(5)
+    exp.setFpgaIdleSleep(1e-3)
     exp.setBatterySize(1e0)
 
     assert numEpisodes % 2 == 0
@@ -126,7 +126,7 @@ def run(numEpisodes):
 if __name__ == "__main__":
     setupMultithreading()
     try:
-        run(1e3)
+        run(1e4)
     except:
         traceback.print_exc(file=sys.stdout)
 

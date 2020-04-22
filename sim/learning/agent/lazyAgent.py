@@ -23,7 +23,7 @@ class lazyAgent(qAgent):
 
 		# print(0.1 / device.maxEnergyLevel, 0.2 / device.maxEnergyLevel)
 
-		deathReward = -10. if device.gracefulFailure else 0
+		deathReward = 0 #-1e4 if device.gracefulFailure else 0
 
 		# jobReward = energyReward + deathReward # -log2(job.totalEnergyCost * 1e3)
 		# print(job.totalEnergyCost, device.maxEnergyLevel, jobReward)
