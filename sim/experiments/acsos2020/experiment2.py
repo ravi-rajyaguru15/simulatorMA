@@ -56,8 +56,8 @@ def runThread(agent, numEpisodes, results, finished):
     # print("\nsaving history", simulationResults.learningHistory, '\nr')
 
     print("forward", counters.NUM_FORWARD, "backward", counters.NUM_BACKWARD)
-    # if exp.sharedAgent.__class__ == minimalTableAgent:
-    #     plotting.plotModel(exp.sharedAgent, drawLabels=False)
+    if exp.sharedAgent.__class__ == minimalTableAgent:
+        plotting.plotModel(exp.sharedAgent, drawLabels=False)
 
     # exp.sharedAgent.printModel()
 
@@ -76,8 +76,8 @@ def run(numEpisodes):
 
     localConstants.REPEATS = 10
     numEpisodes = int(numEpisodes)
-    # agentsToTest = [minimalTableAgent, minimalDeepAgent, lazyTableAgent, lazyDeepAgent] # , localAgent] # , randomAgent]
-    agentsToTest = [minimalTableAgent, lazyTableAgent, randomAgent] # , localAgent] # , randomAgent]
+    agentsToTest = [minimalTableAgent] # , localAgent] # , randomAgent]
+    # agentsToTest = [minimalTableAgent, lazyTableAgent, randomAgent] # , localAgent] # , randomAgent]
     for agent in agentsToTest: # [minimalAgent, lazyAgent]:
         for _ in range(localConstants.REPEATS):
             processes.append(multiprocessing.Process(target=runThread, args=(agent, numEpisodes, results, finished)))
@@ -90,7 +90,7 @@ def run(numEpisodes):
 
 if __name__ == "__main__":
     try:
-        run(1e3)
+        run(1e2)
     except:
         traceback.print_exc(file=sys.stdout)
 

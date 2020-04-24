@@ -5,6 +5,9 @@
 import time
 from sys import stdout
 
+import scipy
+import scipy.stats
+
 from sim import debug, counters
 from sim.devices.components.powerPolicy import IDLE_TIMEOUT
 from sim.learning.agent.minimalAgent import minimalAgent
@@ -116,7 +119,14 @@ def assembleResults(resultsQueue, outputQueue, numResults=None):
 		for x, ylist in graph.items():
 			# print()
 			# print(ylist)
-			outputGraphs[key][x] = (np.average(ylist), np.std(ylist))
+			confidence = 0.95
+			n = len(ylist)
+			m = scipy.mean(ylist)
+			std_err = scipy.stats.sem(ylist)
+			h = std_err * scipy.stats.t.ppf((1 + confidence) / 2, n - 1)
+
+			outputGraphs[key][x] = (m, h)
+			print(ylist, key, x, outputGraphs[key][x])
 		# print(outputGraphs[key][x])
 	# print ("processed")
 	outputQueue.put(outputGraphs)

@@ -13,7 +13,7 @@ from sim import debug
 from sim.experiments.experiment import executeMulti, setupMultithreading
 from sim.plotting import plotMultiWithErrors
 from sim.simulations.variable import Gaussian
-
+from sim.tasks.tasks import HARD
 
 numDevices = 4
 
@@ -23,8 +23,9 @@ def runThread(numTrain, numTest, agent, maxJobs, results, finished):
 	try:
 		# pretrain
 
-		exp = SimpleSimulation(numDevices=numDevices, maxJobs=maxJobs, agentClass=agent, systemStateClass=extendedSystemState, jobInterval=1)
-		exp.setBatterySize(1e0)
+		exp = SimpleSimulation(numDevices=numDevices, maxJobs=maxJobs, agentClass=agent, tasks=[HARD], systemStateClass=extendedSystemState, jobInterval=1)
+		exp.setBatterySize(1e-1)
+		exp.setFpgaIdleSleep(1e-3)
 		exp.simulateEpisodes(int(numTrain))
 	except:
 		traceback.print_exc(file=sys.stdout)
@@ -46,13 +47,17 @@ def run():
 
 	processes = list()
 	# constants.MINIMUM_BATCH = 5
-	
+
+	localConstants.REPEATS = 1
 	results = multiprocessing.Queue()
 	finished = multiprocessing.Queue()
-	numtrain = 1
+	numtrain = 1e3
 	numtest = int(1e1)
 	for agent in [lazyTableAgent, minimalTableAgent]:
-		for maxJobs in np.linspace(2, 100, num=10):
+	# for agent in [lazyTableAgent]:
+		# for maxJobs in np.linspace(2, 100, num=10):
+		# for maxJobs in [256]:
+		for maxJobs in np.logspace(0, 9, base=2, num=10):
 			for _ in range(localConstants.REPEATS):
 				processes.append(multiprocessing.Process(target=runThread, args=(numtrain, numtest, agent, int(maxJobs), results, finished)))
 	

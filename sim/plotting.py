@@ -90,17 +90,17 @@ def plotAgentHistory(history):
 
 
 def plotMultiWithErrors(name, results=None, ylim=None, ylabel=None, xlabel=None,
-						separate=False, title=None):  # , show=False, save=False):
-	_plotMulti(name, results, ylim, ylabel, xlabel, separate, True, title=title)
+						separate=False, title=None, logx=False):
+	_plotMulti(name, results, ylim, ylabel, xlabel, separate, True, title=title, logx=logx)
 
 
 def plotMulti(name, results=None, ylim=None, ylabel=None, xlabel=None,
-						separate=False, title=None):  # , show=False, save=False):
-	_plotMulti(name, results, ylim, ylabel, xlabel, separate, False, title=title)
+						separate=False, title=None, logx=False):
+	_plotMulti(name, results, ylim, ylabel, xlabel, separate, False, title=title, logx=logx)
 
 
 def _plotMulti(name, results=None, ylim=None, ylabel=None, xlabel=None,
-						separate=False, plotErrors=True, title=None):
+						separate=False, plotErrors=True, title=None, logx=False):
 	# print("plotting!")
 	filename = "{}{}_{}".format(localConstants.OUTPUT_DIRECTORY, name, str(datetime.datetime.now()).replace(":", "."))
 	pickle.dump((name, results, ylim, ylabel, xlabel), open("{}.pickle".format(filename), "wb"))
@@ -135,17 +135,21 @@ def _plotMulti(name, results=None, ylim=None, ylabel=None, xlabel=None,
 					errors.append(value[1])
 
 		sortedY = [k for _,k in sorted(zip(x, y))]
+		if plotErrors:
+			sortedErrors = [k for _,k in sorted(zip(x, errors))]
 		sortedX = np.sort(x)
 		# print(x)
 		# print(y)
 		# print(np.sort(x))
 		# print(sortedY)
+		if logx:
+			pp.xscale("log", nonposx='clip')
 		if plotErrors:
-			pp.errorbar(sortedX, sortedY, yerr=errors)
+			pp.errorbar(sortedX, sortedY, yerr=sortedErrors)
 		else:
 			pp.errorbar(sortedX, sortedY)
 
-	pp.legend(legends)
+	pp.legend(legends, loc='best')
 	pp.grid()
 
 	if title is not None:
@@ -296,8 +300,12 @@ def plotModel(agent, drawLabels=True):
 
 	# biggest = max(abs(np.min(outputTable)), abs(np.max(outputTable)))
 	# pp.imshow(outputTable, cmap=pp.get_cmap('bwr'))
-	pp.show()
+	if localConstants.SAVE_GRAPH:
+		filename = "%s/agent %s model (%s)" % (localConstants.OUTPUT_DIRECTORY, agent.__name__, str(datetime.datetime.now()).replace(":", "."))
+		saveFig(filename)
 
+	if localConstants.DRAW_GRAPH:
+		pp.show()
 
 def saveFig(filename):
 	try:
@@ -320,8 +328,11 @@ if __name__ == "__main__":
 	# print("replotting", fn)
 	# fn = "DOL_2020-04-20 13.28.20.341042"
 	# codes= ["Jobs Devices", "Devices"]
-	fn = "DOL_2020-04-20 18.13.58.955317"
-	codes = ["Jobs Completed", "DOL"]
-	(name, results, ylim, ylabel, xlabel) = pickle.load(open("{}.pickle".format("/tmp/output/simulator/%s" % fn), "rb"))
-	plotMultiSubplots(name, results=results, ylim=ylim, ylabel=["System Jobs #", "DOL"], xlabel=xlabel, subplotCodes=codes, plotErrors=True, scaleJobs=True)
 
+	# fn = "DOL_2020-04-20 18.13.58.955317"
+	# codes = ["Jobs Completed", "DOL"]
+	# plotMultiSubplots(name, results=results, ylim=ylim, ylabel=["System Jobs #", "DOL"], xlabel=xlabel, subplotCodes=codes, plotErrors=True, scaleJobs=True)
+
+	fn = "Max Jobs in Queue_2020-04-24 18.02.21.578890"
+	(name, results, ylim, ylabel, xlabel) = pickle.load(open("{}.pickle".format("/tmp/output/simulator/%s" % fn), "rb"))
+	plotMultiWithErrors(name, results, ylim, ylabel, xlabel, logx=True)
