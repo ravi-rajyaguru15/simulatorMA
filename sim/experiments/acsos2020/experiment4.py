@@ -30,7 +30,7 @@ def runThread(agent, numEpisodes, numDevices, taskOptions, interval, results, fi
     exp = SimpleSimulation(numDevices=numDevices, maxJobs=50, agentClass=agent, tasks=taskOptions, systemStateClass=targetedSystemState, reconsiderBatches=False, scenarioTemplate=RANDOM_SCENARIO_ROUND_ROBIN, centralisedLearning=False)
     exp.scenario.setInterval(interval)
     exp.setFpgaIdleSleep(1e-3)
-    exp.setBatterySize(1e0)
+    exp.setBatterySize(1e-1)
 
     assert numEpisodes % 2 == 0
 
@@ -108,7 +108,7 @@ def run(numEpisodes):
     # testIntervals = [1e0]
 
     # for agent in agentsToTest: # [minimalAgent, lazyAgent]:
-    localConstants.REPEATS = 32
+    localConstants.REPEATS = 128
     for _ in range(localConstants.REPEATS):
         # for taskOptions in tasks:
         # for interval in testIntervals:
@@ -126,7 +126,7 @@ def run(numEpisodes):
 if __name__ == "__main__":
     setupMultithreading()
     try:
-        run(1e4)
+        run(2e3)
     except:
         traceback.print_exc(file=sys.stdout)
 
