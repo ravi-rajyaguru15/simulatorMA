@@ -1,3 +1,6 @@
+import sys
+import traceback
+
 import numpy as np
 import math
 
@@ -28,6 +31,8 @@ def DOL(devices, tasks, addIdle=True):
             totalTasks += tCount
         if addIdle:
             dataMatrix[i][numThetas] = devices[i].currentTime - np.sum(dataMatrix[i][:-1])
+            if dataMatrix[i][numThetas] < 0:
+                dataMatrix[i][numThetas] = 0
             totalTasks += dataMatrix[i][numThetas]
 
     # print()
@@ -75,7 +80,12 @@ def DOL(devices, tasks, addIdle=True):
             probX = xProbs[j]  # probability of the task
             probY = yProbs[i]  # probability of encountering individual
             if probXY != 0 and probX != 0 and probY != 0:
-                totalI += probXY * math.log(probXY / (probX * probY))
+                try:
+                    totalI += probXY * math.log(probXY / (probX * probY))
+                except ValueError:
+                    print("error in dol:", probXY, probX, probY)
+                    print(dataMatrix)
+                    return 0, 0
 
     # We can now calcuate the DOLs - be aware of bad entropy values (i.e. = 0 which can occur)
     # Also taking into account when we get an incredibly low (but positive) entropyX score

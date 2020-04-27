@@ -84,10 +84,11 @@ class qTableAgent(qAgent):
 	# def predictBatch(self, stateBatch):
 	# 	return self.model.predict_on_batch(stateBatch)
 
+
 	def selectAction(self, systemState):
 		index = self.systemState.getIndex(systemState)
 		# EPS greedy
-		if self.policy.evaluate(constants.EPS) and not self.productionMode:
+		if self.policy.evaluate(self.getEpsilon()) and not self.productionMode:
 			# return random
 			action = np.random.randint(0, self.numActions)
 			# if systemState[0] == 4:

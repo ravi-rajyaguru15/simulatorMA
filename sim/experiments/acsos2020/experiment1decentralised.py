@@ -19,7 +19,7 @@ from sim.tasks.tasks import HARD, EASY
 maxjobs = 5
 
 def runThread(agent, numEpisodes, results, finished):
-    exp = SimpleSimulation(numDevices=2, maxJobs=maxjobs, agentClass=agent, tasks=[HARD], systemStateClass=minimalSystemState, scenarioTemplate=REGULAR_SCENARIO_ROUND_ROBIN, centralisedLearning=True)
+    exp = SimpleSimulation(numDevices=2, maxJobs=maxjobs, agentClass=agent, tasks=[HARD], systemStateClass=minimalSystemState, scenarioTemplate=REGULAR_SCENARIO_ROUND_ROBIN, centralisedLearning=False)
     # exp.scenario.setInterval(1)
     exp.setBatterySize(1e-1)
     exp.setFpgaIdleSleep(1e-3)
@@ -30,7 +30,7 @@ def runThread(agent, numEpisodes, results, finished):
             debug.infoEnabled = False
             exp.simulateEpisode(e)
 
-            results.put(["%s" % exp.sharedAgent.__name__, e, exp.numFinishedJobs])
+            results.put(["%s" % exp.devices[0].agent.__name__, e, exp.numFinishedJobs])
     except:
         debug.printCache()
         traceback.print_exc(file=sys.stdout)
@@ -40,7 +40,7 @@ def runThread(agent, numEpisodes, results, finished):
 
     finished.put(True)
 
-    # print("forward", counters.NUM_FORWARD, "backward", counters.NUM_BACKWARD)
+    print("forward", counters.NUM_FORWARD, "backward", counters.NUM_BACKWARD)
 
     # if exp.sharedAgent.__class__ == minimalTableAgent:
     #     plotting.plotModel(exp.sharedAgent, drawLabels=True)

@@ -26,7 +26,7 @@ def run(results, finished):
 
     print([device.agent.__name__ for device in exp.devices])
     for e in range(int(numEpisodes)):
-        exp.simulateEpisode()
+        exp.simulateEpisode(e)
         for device in exp.devices:
             # print("putting results", device.agent.__name__, device.numJobsDone)
             # results.put(["Agent %s" % device.agent.__name__, e, device.currentTime.current])
@@ -42,7 +42,7 @@ if __name__ == "__main__":
     finished = multiprocessing.Queue()
 
     processes = []
-    localConstants.REPEATS = 128
+    # localConstants.REPEATS = 128
     for _ in range(localConstants.REPEATS):
         processes.append(multiprocessing.Process(target=run, args=(results, finished)))
 

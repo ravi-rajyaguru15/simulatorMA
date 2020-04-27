@@ -199,8 +199,8 @@ class BasicSimulation:
 			self.simulateEpisode()
 
 	# reset energy levels of all devices and run entire simulation
-	def simulateEpisode(self):
-		self.reset()
+	def simulateEpisode(self, episodeNumber):
+		self.reset(episodeNumber)
 		i = 0
 		while not self.finished:
 			i += 1
@@ -217,9 +217,9 @@ class BasicSimulation:
 					dev.agent.updateTargetModel()
 		# debug.enabled = True
 
-	def reset(self):
+	def reset(self, episodeNumber):
 		if self.useSharedAgent:
-			self.sharedAgent.reset()
+			self.sharedAgent.reset(episodeNumber)
 		# self.finishedJobsList = []
 		self.latestFinishedJob = None
 		self.finishedTasks = dict()
@@ -230,7 +230,7 @@ class BasicSimulation:
 
 		# reset energy
 		for dev in self.devices:
-			dev.reset()
+			dev.reset(episodeNumber)
 		# print([dev.getEnergyLevelPercentage() for dev in self.devices])
 
 		# time is None when not using global clock

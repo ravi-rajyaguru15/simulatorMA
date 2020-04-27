@@ -28,7 +28,10 @@ import numpy as np
 def runThread(agent, numEpisodes, numDevices, taskOptions, interval, results, finished):
     constants.CENTRALISED_LEARNING = False
     exp = SimpleSimulation(numDevices=numDevices, maxJobs=50, agentClass=agent, tasks=taskOptions, systemStateClass=targetedSystemState, reconsiderBatches=False, scenarioTemplate=RANDOM_SCENARIO_ROUND_ROBIN, centralisedLearning=False)
-    exp.scenario.setInterval(interval)
+    norminterval = float(interval) / numDevices
+
+    print("scaling interval from", interval, "to", norminterval)
+    exp.scenario.setInterval(norminterval)
     exp.setFpgaIdleSleep(1e-3)
     exp.setBatterySize(1e-1)
 
@@ -38,11 +41,6 @@ def runThread(agent, numEpisodes, numDevices, taskOptions, interval, results, fi
     e = 0
     reduced = False
     try:
-        #pretrain
-        # for e in range(0):
-        #     exp.simulateEpisode()
-
-        debug.infoEnabled = False
         for i in range(2):
             for e in range(int(numEpisodes / 2)):
                 exp.simulateEpisode(e)
@@ -57,8 +55,12 @@ def runThread(agent, numEpisodes, numDevices, taskOptions, interval, results, fi
                 for i in range(int(numDevices / 2)):
                     exp.removeDevice()
                 reduced = True
+                oldinterval = norminterval
+                norminterval = float(interval) / len(exp.devices)
+                print("scaling reduced interval from", oldinterval, "to", norminterval, "(%d to %d)" % (numDevices, len(exp.devices)))
+
                 print("reduce to", exp.devices)
-                offset = e
+                offset = e + 1
 
         finished.put("")
 
@@ -84,49 +86,37 @@ def run(numEpisodes):
     print("starting experiment")
 
     processes = list()
-    # sim.simulations.constants.MINIMUM_BATCH = 1e7
 
-    # offloadingOptions = [True, False]
     results = multiprocessing.Queue()
     finished = multiprocessing.Queue()
-    # experiments = multiprocessing.Queue()
-    # REPEATS = 1
 
-    # numDevices = 6
-    # localConstants.REPEATS = 10
     numEpisodes = int(numEpisodes)
-    # agentsToTest = [minimalTableAgent] #, lazyTableAgent]
-    # tasks = [[EASY], [EASY, HARD]]
     taskOptions = [EASY, HARD]
-    # taskOptions = [HARD, ALTERNATIVE]
     for t in range(len(taskOptions)):
         taskOptions[t].identifier = t
         print("task", taskOptions[t], taskOptions[t].identifier)
 
-    # testIntervals = np.logspace(-4, 0, num=5)
-
-    # testIntervals = [1e0]
-
-    # for agent in agentsToTest: # [minimalAgent, lazyAgent]:
     # localConstants.REPEATS = 128
+    localConstants.REPEATS = 16
     for _ in range(localConstants.REPEATS):
-        # for taskOptions in tasks:
-        # for interval in testIntervals:
-        # interval = testIntervals
         for numDevices in [4, 8, 12]: #, 6, 8, 10, 12]:
-            processes.append(multiprocessing.Process(target=runThread, args=(regretfulTableAgent, numEpisodes, numDevices, taskOptions, 1, results, finished)))
+        # for numDevices in [4, 12]:
+            processes.append(multiprocessing.Process(target=runThread, args=(minimalTableAgent, numEpisodes, numDevices, taskOptions, 1, results, finished)))
 
     results = executeMulti(processes, results, finished, numResults=len(processes) * numEpisodes * 2) #, assembly=experiment.assembleResultsBasic)
 
     # plotting.plotMultiWithErrors("Number of Jobs", results=results, ylabel="Job #", xlabel="Episode #")  # , save=True)
-    # localConstants.SAVE_GRAPH = True
-    plotting.plotMultiWithErrors("DOL", results=results, ylabel="DOL", xlabel="Episode #")
+    # plotting.plotMultiWithErrors("DOL", results=results, ylabel="DOL", xlabel="Episode #")
+
+
+    codes = ["Jobs Completed", "DOL"]
+    plotting.plotMultiSubplots("experiment4normalised", results=results, ylabel=["System Jobs #", "DOL"], xlabel="Episode #", subplotCodes=codes, plotErrors=True)
 
 
 if __name__ == "__main__":
     setupMultithreading()
     try:
-        run(2e3)
+        run(1e3)
     except:
         traceback.print_exc(file=sys.stdout)
 

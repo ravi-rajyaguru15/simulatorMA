@@ -46,7 +46,7 @@ class SimpleSimulation(BasicSimulation):
 		self.scenario.setInterval(jobInterval)
 		self.queueNewJobs(self.scenario.setDevices(self.devices))
 
-		BasicSimulation.reset(self)
+		BasicSimulation.reset(self, 0)
 
 	def queueInitialJobs(self):
 		self.queueNewJobs(self.scenario.setDevices(self.devices))
@@ -54,7 +54,7 @@ class SimpleSimulation(BasicSimulation):
 		# for dev in self.devices:
 		# 	self.queueNextJob(dev)
 
-	def reset(self):
+	def reset(self, episodeNumber):
 		# remove remaining tasks from queue
 		while not self.queue.empty():
 			try:
@@ -64,7 +64,7 @@ class SimpleSimulation(BasicSimulation):
 			self.queue.task_done()
 		self.scenario.reset()
 
-		BasicSimulation.reset(self)
+		BasicSimulation.reset(self, episodeNumber)
 		self.queueInitialJobs()
 
 	def removeDevice(self):

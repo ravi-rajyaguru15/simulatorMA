@@ -98,7 +98,7 @@ class node:
 		self.drawLocation = (0,0)
 
 		self.setComponents(components)
-		self.reset()
+		self.reset(0)
 		# self.episodeFinished = episodeFinished
 		self.alwaysHardwareAccelerate = alwaysHardwareAccelerate
 
@@ -109,7 +109,7 @@ class node:
 	def setTime(self, newTime):
 		self.currentTime.set(newTime)
 
-	def reset(self):
+	def reset(self, episodeNumber):
 		self.previousTimestamp = 0
 		self.jobQueue = PriorityQueue()
 		self.currentJob = None
@@ -138,7 +138,7 @@ class node:
 			for com in self.components:
 				com.reset()
 
-		self.agent.reset()
+		self.agent.reset(episodeNumber)
 		self.offloadingOptions = list(self.defaultOffloadingOptions)
 
 	def resetEnergyLevel(self):

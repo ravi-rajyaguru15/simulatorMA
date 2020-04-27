@@ -47,6 +47,7 @@ class agent:
 	episodeReward = None
 	productionMode = None
 	offPolicy = None
+	episodeNumber = None
 
 	numChosenAction = dict()
 
@@ -55,23 +56,23 @@ class agent:
 	def __init__(self, systemState, reconsiderBatches, owner=None, offPolicy=constants.OFF_POLICY):
 		self.systemState = systemState
 		# print("set systemstate to", systemState)
-		self.owner = owner # owner none means shared
+		self.owner = owner  # owner none means shared
 
 		self.offPolicy = offPolicy
 
 		self.totalReward = 0
 		self.productionMode = False
-		self.reset()
+		self.reset(0)
 		self.setReconsiderBatches(reconsiderBatches)
 
 	def setReconsiderBatches(self, reconsiderBatches): self.reconsiderBatches = reconsiderBatches
 
 	def __repr__(self): return "<" + self.__name__ + ">"
-		# self.setDevices(devices)
 
-	def reset(self):
+	def reset(self, episodeNumber):
 		self.episodeReward = 0
 		self.numChosenAction = dict()
+		self.episodeNumber = episodeNumber
 
 	def incrementChosenAction(self, action):
 		if action in self.numChosenAction:
@@ -274,6 +275,18 @@ class agent:
 		# # 		# create shared agent if required
 		# # 		assert offloadingDecision.sharedAgent is not None
 		# # 		self.agent = offloadingDecision.sharedAgent
+
+	def getEpsilon(self):
+		# calculate decaying epsilon for greedy-e
+		if constants.EPS_DECAY:
+			if self.episodeNumber < constants.EPS_STEP_COUNT:
+				epsilon = constants.EPS * (1 - self.episodeNumber / constants.EPS_STEP_COUNT)
+			else:
+				epsilon = 0
+		else:
+			epsilon = constants.EPS
+		# print(epsilon)
+		return epsilon
 
 	# default behaviour is just random choice
 	def selectAction(self, systemState):
