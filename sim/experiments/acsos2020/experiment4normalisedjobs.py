@@ -116,7 +116,7 @@ def run(numEpisodes):
 if __name__ == "__main__":
     setupMultithreading()
     try:
-        run(1e3)
+        run(1e1)
     except:
         traceback.print_exc(file=sys.stdout)
 
