@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
 
-docker build . -t "git.uni-due.de:6666/embedded-systems/elastic-node/simulator:latest"
-docker push "git.uni-due.de:6666/embedded-systems/elastic-node/simulator:latest"
+url=alwynburger/simulator:experiment
+docker build . -t $url
+docker push $url

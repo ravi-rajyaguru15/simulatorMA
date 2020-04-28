@@ -1,6 +1,6 @@
 #FROM git.uni-due.de:6666/embedded-systems/docker-images/keras-python3:latest-gpu
-FROM git.uni-due.de:6666/embedded-systems/elastic-node/simulator/base:latest
-
+#FROM git.uni-due.de:6666/embedded-systems/elastic-node/simulator/base:latest
+FROM alwynburger/simulator:base
 
 #ENV PYTHONPATH "/app/src"
 

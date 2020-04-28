@@ -8,14 +8,15 @@ spec:
     spec:
       volumes:
         - name: share-nfs
-          nfs:
-            server: 192.168.200.30
-            path: /experiments
-#          persistentVolumeClaim:
-#              claimName: share-claim
+#          nfs:
+#            server: 192.168.200.30
+#            path: /experiments
+          persistentVolumeClaim:
+              claimName: share-claim
       containers:
       - name: simulator
-        image: git.uni-due.de:6666/embedded-systems/elastic-node/simulator:latest
+        image: alwynburger/simulator:experiment
+#        image: git.uni-due.de:6666/embedded-systems/elastic-node/simulator:latest
         imagePullPolicy: Always
         volumeMounts:
           - name: share-nfs
@@ -23,10 +24,10 @@ spec:
         resources:
           requests:
             memory: "2Gi"
-            cpu: "250m"
-          limits:
-            memory: "64Gi"
             cpu: "16"
+          limits:
+            memory: "16Gi"
+            cpu: "64"
       imagePullSecrets:
       - name: regcred
       restartPolicy: Never

@@ -3,7 +3,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: share-claim
 spec:
-  storageClassName: manual
+#  storageClassName: manual
   accessModes:
     - ReadWriteOnce
   resources:

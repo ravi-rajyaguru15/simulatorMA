@@ -13,6 +13,7 @@ from sim.learning.agent.randomAgent import randomAgent
 from sim.learning.state.minimalSystemState import minimalSystemState
 from sim.simulations import localConstants, constants
 from sim.simulations.SimpleSimulation import SimpleSimulation
+from sim.experiments.experiment import executeMulti, setupMultithreading
 
 from sim.tasks.tasks import HARD, EASY
 
@@ -52,8 +53,8 @@ def run(numEpisodes):
     results = multiprocessing.Queue()
     finished = multiprocessing.Queue()
 
-    # localConstants.REPEATS = 128
-    localConstants.REPEATS = 8
+    localConstants.REPEATS = 128
+    # localConstants.REPEATS = 8
     numEpisodes = int(numEpisodes)
     # agentsToTest = [minimalTableAgent]
     agentsToTest = [minimalTableAgent, lazyTableAgent, randomAgent] # , localAgent]
@@ -70,9 +71,11 @@ def run(numEpisodes):
     # plotting.plotMulti("experiment1", title="experiment 1", results=results, ylabel="Job #", xlabel="Episode #")  # , save=True)
 
 if __name__ == "__main__":
+    setupMultithreading()
     try:
         # run(1e4)
-        run(1e2)
+        run(1e3)
+        # run(10)
     except:
         traceback.print_exc(file=sys.stdout)
 

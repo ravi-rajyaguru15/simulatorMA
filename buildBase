@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-url="192.168.202.153/simulator/base:latest"
+url=alwynburger/simulator:base
+#url="192.168.202.153/simulator/base:latest"
 #url="git.uni-due.de:6666/embedded-systems/elastic-node/simulator/base:latest"
 docker build ./base -t $url
 docker push $url
