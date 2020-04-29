@@ -1,8 +1,8 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  generateName: simulator
-#  name: simulator-test
+#  generateName: simulator
+  name: simulator-job
 spec:
   template:
     spec:
