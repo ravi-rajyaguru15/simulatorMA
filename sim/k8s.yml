@@ -8,11 +8,11 @@ spec:
     spec:
       volumes:
         - name: share-nfs
-#          nfs:
-#            server: 192.168.200.30
-#            path: /experiments
-          persistentVolumeClaim:
-              claimName: share-claim
+          nfs:
+            server: 192.168.200.30
+            path: /experiments
+#          persistentVolumeClaim:
+#              claimName: share-claim
       containers:
       - name: simulator
         image: alwynburger/simulator:experiment
@@ -24,7 +24,7 @@ spec:
         resources:
           requests:
             memory: "2Gi"
-            cpu: "16"
+            cpu: "7.8"
           limits:
             memory: "16Gi"
             cpu: "64"

@@ -109,6 +109,7 @@ class discretisedSystemState(systemState):
 	def setField(self, field, value, overrideScaling=False):
 		assert field in self.dictRepresentation
 		assert value >= 0
+		assert value is not None
 
 		# print("before", self.dictRepresentation)
 		# debug.out("set %s to %s: %s" % (field, value, self.dictRepresentation[field][:]))
@@ -155,7 +156,10 @@ class discretisedSystemState(systemState):
 		# debug.out("getting index: %s %s" % (self.currentState, self.multipliers))
 		# debug.out("%s" % self.dictRepresentation)
 		# print(state, self.multipliers, np.dot(state, self.multipliers))
-		return np.dot(state, self.multipliers)
+		if None in state:
+			return None
+		else:
+			return np.dot(state, self.multipliers)
 		# return discretisedSystemState._getIndex(self.singlesDiscrete, self.singles, self.multiplesDiscrete, self.multiples, self.dictRepresentation)
 
 	energyField = 'energyRemaining'
@@ -169,7 +173,7 @@ class discretisedSystemState(systemState):
 	def getStateDescription(self, index=None, enabled=True):
 		if enabled:
 			if index is None:
-				index = self.getIndex()
+				return None # index = self.getIndex()
 			elif isinstance(index, np.ndarray):
 				index = self.getIndex(index)
 			# print("index", index)

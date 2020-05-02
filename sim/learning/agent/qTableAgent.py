@@ -52,6 +52,7 @@ class qTableAgent(qAgent):
 		# create Q table
 		debug.learnOut("qtable: (%d, %d)" % (self.systemState.getUniqueStates(), self.numActions))
 		self.model = qTable(self.systemState.getUniqueStates(), self.numActions, "Model")
+		# print("states:", self.systemState.maxJobs, self.systemState.getUniqueStates())
 		if self.offPolicy:
 			self.targetModel = qTable(self.systemState.getUniqueStates(), self.numActions, "Target Model")
 
@@ -59,6 +60,9 @@ class qTableAgent(qAgent):
 		pass
 
 	def trainModel(self, latestAction, reward, beforeState, currentState, finished):
+		if beforeState is None:
+			print("beforestate None")
+			return
 		beforeIndex = self.systemState.getIndex(beforeState)
 		Qsa = self.model.getQ(beforeIndex, latestAction)
 		beforeQ = np.array(self.model.getQ(beforeIndex))

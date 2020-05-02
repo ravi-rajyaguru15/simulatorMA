@@ -30,7 +30,7 @@ maxjobs = 20
 
 def runThread(agent, numEpisodes, results, finished):
     # constants.CENTRALISED_LEARNING = False
-    exp = SimpleSimulation(numDevices=2, maxJobs=maxjobs, agentClass=agent, tasks=[HARD], systemStateClass=minimalSystemState, scenarioTemplate=REGULAR_SCENARIO_ROUND_ROBIN, reconsiderBatches=False)
+    exp = SimpleSimulation(numDevices=2, maxJobs=maxjobs, agentClass=agent, tasks=[HARD], systemStateClass=minimalSystemState, scenarioTemplate=REGULAR_SCENARIO_ROUND_ROBIN, reconsiderBatches=False, centralisedLearning=False)
     # exp.scenario.setInterval(1)
     exp.setFpgaIdleSleep(1e-3)
     exp.setBatterySize(1e-1)
@@ -39,10 +39,10 @@ def runThread(agent, numEpisodes, results, finished):
     try:
         for e in range(numEpisodes):
             debug.infoEnabled = False
-            exp.simulateEpisode()
+            exp.simulateEpisode(e)
 
-            results.put(["Job %s" % exp.sharedAgent.__name__, e, exp.numFinishedJobs])
-            results.put(["Duration %s" % exp.sharedAgent.__name__, e, exp.getCurrentTime()])
+            results.put(["Job %s" % exp.devices[0].agent.__name__, e, exp.numFinishedJobs])
+            results.put(["Duration %s" % exp.devices[0].agent.__name__, e, exp.getCurrentTime()])
     except:
         debug.printCache()
         traceback.print_exc(file=sys.stdout)
@@ -74,10 +74,10 @@ def run(numEpisodes):
     # experiments = multiprocessing.Queue()
     # REPEATS = 1
 
-    localConstants.REPEATS = 10
+    localConstants.REPEATS = 1
     numEpisodes = int(numEpisodes)
-    agentsToTest = [minimalTableAgent] # , localAgent] # , randomAgent]
-    # agentsToTest = [minimalTableAgent, lazyTableAgent, randomAgent] # , localAgent] # , randomAgent]
+    # agentsToTest = [minimalTableAgent] # , localAgent] # , randomAgent]
+    agentsToTest = [minimalTableAgent, lazyTableAgent, randomAgent] # , localAgent] # , randomAgent]
     for agent in agentsToTest: # [minimalAgent, lazyAgent]:
         for _ in range(localConstants.REPEATS):
             processes.append(multiprocessing.Process(target=runThread, args=(agent, numEpisodes, results, finished)))

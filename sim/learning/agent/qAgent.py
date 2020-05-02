@@ -48,7 +48,10 @@ class qAgent(agent):
 		# if job.beforeState 4 and job.beforeState[1] == 0:
 		# 	print("training", job, "from", cause)
 
-		self.trainModel(job.latestAction, reward, job.beforeState, self.systemState, finished)
+		if None in job.beforeState:
+			print("cannot train, none beforestate")
+		else:
+			self.trainModel(job.latestAction, reward, job.beforeState, self.systemState, finished)
 
 		# new metrics
 		self.latestReward = reward
@@ -100,7 +103,7 @@ class qAgent(agent):
 				traceback.print_stack()
 
 			self.backward(job, episodeFinished=job.episodeFinished(), task=task, device=device)
-			debug.infoOut(debug.formatInfo("train: %s %s %s A %s R %.2f", (task, job, device, self.possibleActions[job.latestAction], self.latestReward)))
+			debug.infoOut(debug.formatInfo("train: %s %s %s A %s R %.2f", (task, job, device, self.getAction(job.latestAction), self.latestReward)))
 			debug.infoOut(debug.formatInfo("to     %s %d", (self.systemState.getStateDescription(enabled=debug.settings.infoEnabled, index=self.systemState.getIndex()))))
 			debug.infoOut(debug.formatInfo("from   %s", self.systemState.getStateDescription(index=self.systemState.getIndex(job.beforeState), enabled=debug.settings.infoEnabled)))
 

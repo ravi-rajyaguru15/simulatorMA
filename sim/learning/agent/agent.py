@@ -108,7 +108,14 @@ class agent:
 		self._setDecisions(devices)
 
 	def getAction(self, action):
-		return self.possibleActions[self.getActionIndex(action)]
+		if action is not None:
+			if not (isinstance(action, int) or isinstance(action, np.int64)):
+				index = self.getActionIndex(action)
+			else:
+				index = action
+			return self.possibleActions[index]
+		else:
+			return None
 
 	def getActionIndex(self, action):
 		return self.possibleActions.index(action)

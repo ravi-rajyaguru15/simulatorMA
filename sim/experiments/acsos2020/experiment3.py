@@ -35,7 +35,7 @@ def runThread(numTrain, numTest, agent, maxJobs, results, finished):
 	exp.sharedAgent.setProductionMode()
 
 	for i in range(int(numTest)):
-		exp.simulateEpisode()
+		exp.simulateEpisode(int(numTrain) + i)
 		results.put(["Agent %s" % exp.sharedAgent.__name__, maxJobs, exp.numFinishedJobs])
 	# results.put(["", jobInterval, np.average([dev.numJobs for dev in exp.devices]) / exp.getCompletedJobs()])
 	finished.put(True)

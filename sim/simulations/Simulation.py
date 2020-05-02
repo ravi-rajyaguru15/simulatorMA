@@ -196,7 +196,7 @@ class BasicSimulation:
 
 	def simulateEpisodes(self, numEpisodes):
 		for i in range(numEpisodes):
-			self.simulateEpisode()
+			self.simulateEpisode(i)
 
 	# reset energy levels of all devices and run entire simulation
 	def simulateEpisode(self, episodeNumber):

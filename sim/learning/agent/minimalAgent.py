@@ -3,8 +3,8 @@ from sim.learning.agent.qAgent import qAgent
 
 
 class minimalAgent(qAgent):
-	__name__ = "Minimal Agent"
-	def __repr__(self): return "<Minimal Agent>"
+	__name__ = "Basic Agent"
+	def __repr__(self): return "<Basic Agent>"
 
 	def reward(self, job, task, device):
 		# default reward behaviour
@@ -21,7 +21,8 @@ class minimalAgent(qAgent):
 
 		deathReward = -10. if device.gracefulFailure else 0
 
-		debug.learnOut(debug.formatLearn("Reward: %s (%s) j: %.2f e: %.2f d: %.2f", (self.__name__, self.possibleActions[job.latestAction], jobReward, energyReward, deathReward)))
+		latestAction = "None" if job.latestAction is None else self.possibleActions[job.latestAction]
+		debug.learnOut(debug.formatLearn("Reward: %s (%s) j: %.2f e: %.2f d: %.2f", (self.__name__, latestAction, jobReward, energyReward, deathReward)))
 
 		reward = jobReward + energyReward + deathReward
 		# print("Reward: %20s (% 8s) r: %.2f j: %.2f e: %.2f d: %.2f" % (self.__name__, self.possibleActions[job.latestAction], reward, jobReward, energyReward, deathReward))

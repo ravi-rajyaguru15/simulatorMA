@@ -39,7 +39,7 @@ def runThread(agent, numEpisodes, results, finished):
     try:
         for e in range(numEpisodes):
             debug.infoEnabled = False
-            exp.simulateEpisode()
+            exp.simulateEpisode(e)
 
             results.put(["Jobs %s" % exp.sharedAgent.__name__, e, exp.numFinishedJobs])
             results.put(["Duration %s" % exp.sharedAgent.__name__, e, exp.getCurrentTime()])

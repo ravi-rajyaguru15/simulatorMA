@@ -1,4 +1,6 @@
 .venv/
+.idea
+sim/venv
 .venv37/
 .venvwsl/
 .git/

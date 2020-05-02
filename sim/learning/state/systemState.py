@@ -43,6 +43,7 @@ class systemState:
 		# self.setSimulation(simulation)
 
 	def setState(self, arrayState):
+		assert arrayState is not None
 		self.currentState = np.array(arrayState)
 		self.createDictionaryRepresentation()
 

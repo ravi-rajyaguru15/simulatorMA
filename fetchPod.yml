@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Pod
+metadata:
+ name: simulator-fetch
+#  namespace: es
+spec:
+ volumes:
+  - name: share-nfs
+    nfs:
+      server: 192.168.200.30
+      path: /experiments
+  #  persistentVolumeClaim:
+  #    claimName: share-claim
+ containers:
+  - name: dummy
+    image: nginx
+    imagePullPolicy: Always
+    volumeMounts:
+      - name: share-nfs
+        mountPath: /output/
+    resources:
+      requests:
+        memory: "10m"
+        cpu: "250m"
+#    restartPolicy: Never
+#  ttlSecondsAfterFinished: 604800 # 7 days

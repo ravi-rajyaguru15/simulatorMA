@@ -2,6 +2,7 @@
 
 # TODO: initial sleep mcu!
 # TODO: sleep mcu during reconfiguration!
+import math
 import time
 from sys import stdout
 
@@ -123,10 +124,10 @@ def assembleResults(resultsQueue, outputQueue, numResults=None):
 			n = len(ylist)
 			m = scipy.mean(ylist)
 			std_err = scipy.stats.sem(ylist)
-			h = std_err * scipy.stats.t.ppf((1 + confidence) / 2, n - 1)
+			h = std_err * 1.96 / math.sqrt(n) # scipy.stats.t.ppf((1 + confidence) / 2, n - 1)
 
 			outputGraphs[key][x] = (m, h)
-			print(ylist, key, x, outputGraphs[key][x])
+			print(ylist, key, x, outputGraphs[key][x], std_err) # , scipy.stats.t.ppf((1 + confidence) / 2, n - 1))
 		# print(outputGraphs[key][x])
 	# print ("processed")
 	outputQueue.put(outputGraphs)
@@ -189,6 +190,8 @@ def assembleResultsBasic(resultsQueue, outputQueue, numResults=None):
 def executeMulti(processes, results, finished, numResults=None, assembly=assembleResults):
 	if numResults is None:
 		numResults = len(processes)
+
+	print("Starting experiment:", len(processes), "@", constants.THREAD_COUNT)
 
 	# results consumption thread:
 	outputData = multiprocessing.Queue()
