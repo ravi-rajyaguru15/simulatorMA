@@ -1,0 +1,1 @@
+kubectl cp simulator-fetch:/output/simulator/ /Users/alwynburger/Downloads/fetch/

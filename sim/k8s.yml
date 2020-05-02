@@ -8,11 +8,11 @@ spec:
     spec:
       volumes:
         - name: share-nfs
-          nfs:
-            server: 192.168.200.30
-            path: /experiments
-#          persistentVolumeClaim:
-#              claimName: share-claim
+#          nfs:
+#            server: 192.168.200.30
+#            path: /experiments
+          persistentVolumeClaim:
+              claimName: share-claim
       containers:
       - name: simulator
         image: alwynburger/simulator:experiment

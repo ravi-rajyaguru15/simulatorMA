@@ -58,7 +58,7 @@ def run(episodeNum):
 
     processes = []
     for _ in range(localConstants.REPEATS):
-        for percentage in np.linspace(0.1, 1.0, num=5):
+        for percentage in np.linspace(0.1, 1.0, num=10):
             processes.append(multiprocessing.Process(target=threadRun, args=(percentage, episodeNum, results, finished)))
 
     results = executeMulti(processes, results, finished, numResults=episodeNum * len(processes))

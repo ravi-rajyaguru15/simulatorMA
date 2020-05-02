@@ -1,3 +1,4 @@
+scanf
 pip
 matplotlib
 numpy

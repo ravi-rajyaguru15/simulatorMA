@@ -3,6 +3,9 @@ import datetime
 import os
 import pickle
 import sys
+from _signal import pause
+from os import wait
+from time import time
 
 import matplotlib as mpl
 import matplotlib.pyplot as pp
@@ -90,32 +93,92 @@ def plotAgentHistory(history):
 
 
 def plotMultiWithErrors(name, results=None, ylim=None, ylabel=None, xlabel=None,
-						separate=False, title=None, logx=False):
-	_plotMulti(name, results, ylim, ylabel, xlabel, separate, True, title=title, logx=logx)
+						separate=False, title=None, logx=False, legend=None, order=True):
+	_plotMulti(name, results, ylim, ylabel, xlabel, separate, True, title=title, logx=logx, legend=legend, order=order)
 
 
-def plotMulti(name, results=None, ylim=None, ylabel=None, xlabel=None,
-						separate=False, title=None, logx=False):
-	_plotMulti(name, results, ylim, ylabel, xlabel, separate, False, title=title, logx=logx)
+def plotMultiSeparate(name, results=None, ylim=None, ylabel=None, xlabel=None,
+						separate=False, title=None, logx=False, legend=None, order=True):
+	_plotMulti(name, results, ylim, ylabel, xlabel, separate, False, title=title, logx=logx, legend=legend, order=False)
 
 
+figsize = (8, 8)
 def _plotMulti(name, results=None, ylim=None, ylabel=None, xlabel=None,
-						separate=False, plotErrors=True, title=None, logx=False):
+						separate=False, plotErrors=True, title=None, logx=False, legend=None, order=True, subplots=False, subplotCodes=[]):
 	# print("plotting!")
 	filename = "{}{}_{}".format(localConstants.OUTPUT_DIRECTORY, name, str(datetime.datetime.now()).replace(":", "."))
+	try:
+		os.makedirs(localConstants.OUTPUT_DIRECTORY, exist_ok=True)
+	except FileExistsError:
+		pass
 	pickle.dump((name, results, ylim, ylabel, xlabel), open("{}.pickle".format(filename), "wb"))
 
 	# sort by graph key
 	print("results", results)
-	orderedResults = collections.OrderedDict(sorted(results.items()))
+
+	alreadysorted = False
+	if legend is not None:
+		if isinstance(legend, tuple):
+			print("manually reorder")
+			newdict = dict()
+			keys = np.array(list(results.keys()))
+			# print(legend[1])
+			keys = keys[legend[1]]
+			for key in keys:
+				# print(key)
+				newdict[key] = results[key]
+			orderedResults = newdict
+			alreadysorted = True
+
+	if not alreadysorted:
+		if order:
+			orderedResults = collections.OrderedDict(sorted(results.items()))
+		else:
+			orderedResults = results
+
+	items = orderedResults.items()
+
 	print("orderedResults", orderedResults)
 	legends = list()
-	pp.figure(figsize=(10, 10))
-	for key, graph in orderedResults.items():  # , colour in zip(results, colours):
-		if separate:
-			pp.figure()
+	for i in range(len(subplotCodes)): legends.append(list())
+	if not separate and not subplots:
+		pp.figure(figsize=figsize)
 
-		legends.append(key)
+	elif separate:
+		for i in range(len(subplotCodes)):
+			pp.figure(i, figsize=figsize)
+
+
+	for i, (key, graph) in zip(range(len(orderedResults.keys())), items):  # , colour in zip(results, colours):
+		# print("key", key)
+		# if separate:
+		# 	pp.figure()
+
+		# choose subplot or figure:
+		if separate or subplots:
+			chosenSubplot = None
+			# find which subplot to send this to
+			for s in range(len(subplotCodes)):
+				if subplotCodes[s] in key:
+					chosenSubplot = s
+					break
+
+			if chosenSubplot is None:
+				print("subplot not found!", key, subplotCodes)
+			elif not separate:
+				print("chose", subplotCodes[chosenSubplot], "for", key)
+				pp.subplot(1, len(subplotCodes), chosenSubplot + 1)
+			else:
+				# print("creating figure '%d'" % chosenSubplot)
+				pp.figure(chosenSubplot) # , figsize=(10, 10))
+
+			if legend is None:
+				legends[chosenSubplot].append(key)
+			else:
+				legends[chosenSubplot].append(legend[0][i])
+
+		else:
+			legends.append(key)
 		x, y = list(), list()
 		errors = list()
 
@@ -142,6 +205,10 @@ def _plotMulti(name, results=None, ylim=None, ylabel=None, xlabel=None,
 		# print(y)
 		# print(np.sort(x))
 		# print(sortedY)
+
+		# print("plotting", key, "on", chosenSubplot)
+		# pp.title("drawing %d" % chosenSubplot)
+
 		if logx:
 			pp.xscale("log", nonposx='clip')
 		if plotErrors:
@@ -149,115 +216,172 @@ def _plotMulti(name, results=None, ylim=None, ylabel=None, xlabel=None,
 		else:
 			pp.errorbar(sortedX, sortedY)
 
-	pp.legend(legends, loc='best')
-	pp.grid()
-
-	if title is not None:
-		pp.title(title)
-
-	if ylim is not None:
-		pp.ylim(ylim)
-
-	if ylabel is not None:
-		pp.ylabel(ylabel)
-
-	if xlabel is not None:
-		pp.xlabel(xlabel)
-
-	if localConstants.SAVE_GRAPH:
-		saveFig(filename)
-
-	if localConstants.DRAW_GRAPH:
-		pp.show()
-
-def plotMultiSubplots(name, results=None, ylim=None, ylabel=None, xlabel=None, separate=False, plotErrors=True, subplotCodes=[], scaleJobs=True):
-	# print("plotting!")
-	filename = "{}{}_{}".format(localConstants.OUTPUT_DIRECTORY, name,
-								str(datetime.datetime.now()).replace(":", "."))
-	pickle.dump((name, results, ylim, ylabel, xlabel), open("{}.pickle".format(filename), "wb"))
-
-	# sort by graph key
-	# print("results", results)
-	orderedResults = collections.OrderedDict(sorted(results.items()))
-	# print("orderedResults", orderedResults)
-	legends = list()
-	for i in range(len(subplotCodes)):
-		legends.append([])
-	pp.figure(figsize=(10, 10))
-	print("keys:", orderedResults.keys())
-	for key, graph in orderedResults.items():  # , colour in zip(results, colours):
-		if separate:
-			pp.figure()
-
-		chosenSubplot = None
-		# find which subplot to send this to
-		for s in range(len(subplotCodes)):
-			if subplotCodes[s] in key:
-				chosenSubplot = s
-				break
-
-		if chosenSubplot is None:
-			print("subplot not found!", key, subplotCodes)
-		else:
-			print("chose", subplotCodes[chosenSubplot], "for", key)
-			pp.subplot(1, len(subplotCodes), chosenSubplot + 1)
-
-
-		legends[chosenSubplot].append(key)
-		x, y = list(), list()
-		errors = list()
-
-		# sort graph by x indices
-		# orderedGraph = collections.OrderedDict(sorted(graph.items()))
-		# print(graph)
-
-		for xIndex, value in graph.items():
-			if isinstance(value, list):
-				for yi in value:
-					x.append(xIndex)
-					y.append(yi)
+	if separate or subplots:
+		for i in range(len(subplotCodes)):
+			# print("creating figure for", subplotCodes[i])
+			if separate:
+				# print("rendering figure '%d'" % i)
+				pp.figure(i) # , figsize=(10,10))
 			else:
-				x.append(xIndex)
-				yvalue = value[0]
-				yerror = value[1]
-				if scaleJobs:
-					if "Jobs" in key:
-						yvalue *= 1000.
-						yerror *= 1000.
-				y.append(yvalue)
-				if plotErrors:
-					errors.append(yerror)
+				pp.subplot(1, len(subplotCodes), i+1)
 
-		sortedY = [k for _, k in sorted(zip(x, y))]
-		sortedX = np.sort(x)
 
-		if plotErrors:
-			pp.errorbar(sortedX, sortedY, yerr=errors)
+			if legend is None:
+				# print("legends:",legends)
+				pp.legend(legends[i], loc='best')
+			elif not isinstance(legend, tuple):
+				pp.legend(legend)
+			elif isinstance(legend[0][0], list):
+				print("given new legends")
+				pp.legend(legend[0][i])
+			else:
+				pp.legend(legends[i])
+			pp.grid()
+			if ylabel is not None:
+				pp.ylabel(ylabel[i])
+			pp.tight_layout()
+			# pp.title("figure %d" % i)
+			if xlabel is not None:
+				pp.xlabel(xlabel)
+
+			if localConstants.SAVE_GRAPH:
+				saveFig("%s-%d" % (filename, i))
+
+		if localConstants.DRAW_GRAPH:
+			# print ("showing", i)
+			pp.show()
+	else:
+		if legend is None or isinstance(legend, tuple):
+			pp.legend(legends, loc='best')
 		else:
-			pp.errorbar(sortedX, sortedY)
-
-	for i in range(len(subplotCodes)):
-		pp.subplot(1, len(subplotCodes), i+1)
-		pp.legend(legends[i])
+			pp.legend(legend)
 		pp.grid()
+
+		if title is not None:
+			pp.title(title)
+
+		if ylim is not None:
+			pp.ylim(ylim)
+
 		if ylabel is not None:
-			pp.ylabel(ylabel[i])
-		pp.tight_layout()
-		# pp.title(name)
+			pp.ylabel(ylabel)
+
 		if xlabel is not None:
 			pp.xlabel(xlabel)
 
+		if localConstants.SAVE_GRAPH:
+			saveFig(filename)
+
+		if localConstants.DRAW_GRAPH:
+			pp.show()
 
 
-	if ylim is not None:
-		pp.ylim(ylim)
+def plotMultiSubplots(name, results=None, ylim=None, ylabel=None, xlabel=None, plotErrors=True,
+					  subplotCodes=[], legend=None, scaleJobs=True):
+	_plotMulti(name=name, results=results, ylim=ylim, ylabel=ylabel, xlabel=xlabel, separate=False, legend=legend,
+			  subplotCodes=subplotCodes, plotErrors=plotErrors, subplots=True)
+
+def plotMultiSeparate(name, results=None, ylim=None, ylabel=None, xlabel=None, plotErrors=True,
+					  subplotCodes=[], legend=None, scaleJobs=True):
+	_plotMulti(name=name, results=results, ylim=ylim, ylabel=ylabel, xlabel=xlabel, separate=True, legend=legend,
+			  subplotCodes=subplotCodes, plotErrors=plotErrors, subplots=False)
+
+	# # print("plotting!")
+	# filename = "{}{}_{}".format(localConstants.OUTPUT_DIRECTORY, name,
+	# 							str(datetime.datetime.now()).replace(":", "."))
+	# try:
+	# 	os.makedirs(localConstants.OUTPUT_DIRECTORY, exist_ok=True)
+	# except FileExistsError:
+	# 	pass
+	# pickle.dump((name, results, ylim, ylabel, xlabel), open("{}.pickle".format(filename), "wb"))
+	#
+	# # sort by graph key
+	# # print("results", results)
+	# orderedResults = collections.OrderedDict(sorted(results.items()))
+	# # print("orderedResults", orderedResults)
+	# legends = list()
+	# for i in range(len(subplotCodes)):
+	# 	legends.append([])
+	# pp.figure(figsize=(10, 10))
+	# print("keys:", orderedResults.keys())
+	# for key, graph in orderedResults.items():  # , colour in zip(results, colours):
+	# 	# if separate:
+	# 	# 	pp.figure(figsize=(10, 10))
+	#
+	# 	chosenSubplot = None
+	# 	# find which subplot to send this to
+	# 	for s in range(len(subplotCodes)):
+	# 		if subplotCodes[s] in key:
+	# 			chosenSubplot = s
+	# 			break
+	#
+	# 	if chosenSubplot is None:
+	# 		print("subplot not found!", key, subplotCodes)
+	# 	elif not separate:
+	# 		print("chose", subplotCodes[chosenSubplot], "for", key)
+	# 		pp.subplot(1, len(subplotCodes), chosenSubplot + 1)
+	# 	else:
+	# 		pp.figure(chosenSubplot, figsize=(10, 10))
+	#
+	#
+	# 	legends[chosenSubplot].append(key)
+	# 	x, y = list(), list()
+	# 	errors = list()
+	#
+	# 	# sort graph by x indices
+	# 	# orderedGraph = collections.OrderedDict(sorted(graph.items()))
+	# 	# print(graph)
+	#
+	# 	for xIndex, value in graph.items():
+	# 		if isinstance(value, list):
+	# 			for yi in value:
+	# 				x.append(xIndex)
+	# 				y.append(yi)
+	# 		else:
+	# 			x.append(xIndex)
+	# 			yvalue = value[0]
+	# 			yerror = value[1]
+	# 			if scaleJobs:
+	# 				if "Jobs" in key:
+	# 					yvalue *= 1000.
+	# 					yerror *= 1000.
+	# 			y.append(yvalue)
+	# 			if plotErrors:
+	# 				errors.append(yerror)
+	#
+	# 	sortedY = [k for _, k in sorted(zip(x, y))]
+	# 	sortedX = np.sort(x)
+	#
+	# 	if plotErrors:
+	# 		pp.errorbar(sortedX, sortedY, yerr=errors)
+	# 	else:
+	# 		pp.errorbar(sortedX, sortedY)
+	#
+	# for i in range(len(subplotCodes)):
+	# 	if separate:
+	# 		pp.figure(i)
+	# 	else:
+	# 		pp.subplot(1, len(subplotCodes), i+1)
+	# 	pp.legend(legends[i])
+	# 	pp.grid()
+	# 	if ylabel is not None:
+	# 		pp.ylabel(ylabel[i])
+	# 	pp.tight_layout()
+	# 	# pp.title(name)
+	# 	if xlabel is not None:
+	# 		pp.xlabel(xlabel)
 
 
-	if localConstants.SAVE_GRAPH:
-		saveFig(filename)
-
-	if localConstants.DRAW_GRAPH:
-		pp.show()
+	#
+	# if ylim is not None:
+	# 	pp.ylim(ylim)
+	#
+	#
+	# if localConstants.SAVE_GRAPH:
+	# 	saveFig(filename)
+	#
+	# if localConstants.DRAW_GRAPH:
+	# 	pp.show()
 
 def plotModel(agent, drawLabels=True):
 	outputTable = np.zeros((agent.model.stateCount, agent.model.actionCount))
@@ -323,6 +447,65 @@ def replot(filename):
 	plotMultiSubplots("", results=results, ylim=ylim, ylabel=ylabel, xlabel=xlabel, subplotCodes=["Jobs Devices", "Devices"], plotErrors=True)
 	# print("plotting!")
 
+acsos = "/Users/alwynburger/git/acsos-2020/figures/extra data"
+def replotexp5():
+	# fn = "Competing Agents_2020-05-02 10.53.18.075400"
+	fn = "Competing Agents_2020-05-02 15.10.58.898751"
+	(name, results, ylim, ylabel, xlabel) = pickle.load(open("{}/{}.pickle".format(acsos, fn), "rb"))
+	legend = results.keys()
+	newlegend = []
+	print("legend:", legend)
+	import scanf
+	for l in legend:
+		print(l)
+		perc = str((scanf.scanf("%d %s Basic Agents", l))[0])
+		perc = perc.rjust(3)
+		s = "%s %% Basic Agents" % perc
+		print(perc, "'%s'"%s)
+		newlegend.append(s)
+
+	neworder = np.argsort(newlegend)
+	neworder = neworder[::-1]
+	print(neworder)
+	plotMultiWithErrors(name, results, ylim, ylabel="Average Jobs", xlabel=xlabel, legend=(newlegend, neworder), order=False)
+
+def replotexp4():
+	fn = "experiment4normalised_2020-04-28 16.12.54.347130"
+	(name, results, ylim, ylabel, xlabel) = pickle.load(open("{}/{}.pickle".format(acsos, fn), "rb"))
+	codes = ["Jobs Completed", "DOL"]
+	legend = results.keys()
+	newlegend = []
+	newlegends = []
+	for i in range(len(codes)): newlegends.append([])
+	# print("legend:", legend)
+	import scanf
+	scans = ["%s %%d devices" % code for code in codes]
+	
+	for l in legend:
+		# print(l)
+		for i, s in zip(range(len(scans)), scans):
+			result = scanf.scanf(s, l)
+			if result is None: continue
+
+			perc = str((scanf.scanf(s, l))[0])
+			perc = perc.rjust(2)
+			print(perc)
+			s = "%s devices" % perc
+			newlegend.append(s)
+			newlegends[i].append(s)
+
+	# for i in range(len(scans)): newlegends[i].sort()
+	print("newlegend", newlegend)
+	neworder = np.argsort(newlegend)
+	neworder = neworder[::-1]
+	print("new order:", neworder)
+	newlegend = newlegend[::-1]
+
+
+	plotMultiSeparate(name, results=results, ylim=ylim, ylabel=["System Jobs #", "DOL"], xlabel=xlabel, legend=(newlegend, neworder), subplotCodes=codes, plotErrors=True, scaleJobs=False)
+
+
+
 if __name__ == "__main__":
 	# fn = sys.argv[1]
 	# print("replotting", fn)
@@ -330,9 +513,8 @@ if __name__ == "__main__":
 	# codes= ["Jobs Devices", "Devices"]
 
 	# fn = "DOL_2020-04-20 18.13.58.955317"
-	# codes = ["Jobs Completed", "DOL"]
-	# plotMultiSubplots(name, results=results, ylim=ylim, ylabel=["System Jobs #", "DOL"], xlabel=xlabel, subplotCodes=codes, plotErrors=True, scaleJobs=True)
-
-	fn = "Max Jobs in Queue_2020-04-24 18.02.21.578890"
-	(name, results, ylim, ylabel, xlabel) = pickle.load(open("{}.pickle".format("/tmp/output/simulator/%s" % fn), "rb"))
-	plotMultiWithErrors(name, results, ylim, ylabel, xlabel, logx=True)
+	# fn = "Max Jobs in Queue_2020-04-24 18.02.21.578890"
+	# (name, results, ylim, ylabel, xlabel) = pickle.load(open("{}.pickle".format("/tmp/output/simulator/%s" % fn), "rb"))
+	# plotMultiWithErrors(name, results, ylim, ylabel, xlabel, logx=True)
+	# replotexp4()
+	replotexp5()
