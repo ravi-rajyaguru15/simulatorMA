@@ -12,6 +12,8 @@ import matplotlib.pyplot as pp
 import numpy as np
 
 # print (os.environ["DISPLAY"])
+import tikzplotlib as tikzplotlib
+
 from sim.simulations import constants, localConstants
 
 # if "DISPLAY" not in os.environ:
@@ -93,18 +95,18 @@ def plotAgentHistory(history):
 
 
 def plotMultiWithErrors(name, results=None, ylim=None, ylabel=None, xlabel=None,
-						separate=False, title=None, logx=False, legend=None, order=True):
-	_plotMulti(name, results, ylim, ylabel, xlabel, separate, True, title=title, logx=logx, legend=legend, order=order)
+						separate=False, title=None, logx=False, legend=None, order=True, legendlocation='best'):
+	_plotMulti(name, results, ylim, ylabel, xlabel, separate, True, title=title, logx=logx, legend=legend, order=order, legendlocation=legendlocation)
 
 
 def plotMultiSeparate(name, results=None, ylim=None, ylabel=None, xlabel=None,
-						separate=False, title=None, logx=False, legend=None, order=True):
-	_plotMulti(name, results, ylim, ylabel, xlabel, separate, False, title=title, logx=logx, legend=legend, order=False)
+						separate=False, title=None, logx=False, legend=None, order=True, legendlocation='best'):
+	_plotMulti(name, results, ylim, ylabel, xlabel, separate, False, title=title, logx=logx, legend=legend, order=False, legendlocation=legendlocation)
 
 
 figsize = (8, 8)
 def _plotMulti(name, results=None, ylim=None, ylabel=None, xlabel=None,
-						separate=False, plotErrors=True, title=None, logx=False, legend=None, order=True, subplots=False, subplotCodes=[]):
+						separate=False, plotErrors=True, title=None, logx=False, legend=None, order=True, subplots=False, subplotCodes=[], legendlocation='best'):
 	# print("plotting!")
 	filename = "{}{}_{}".format(localConstants.OUTPUT_DIRECTORY, name, str(datetime.datetime.now()).replace(":", "."))
 	try:
@@ -122,6 +124,7 @@ def _plotMulti(name, results=None, ylim=None, ylabel=None, xlabel=None,
 			print("manually reorder")
 			newdict = dict()
 			keys = np.array(list(results.keys()))
+			print("orig", keys)
 			# print(legend[1])
 			keys = keys[legend[1]]
 			for key in keys:
@@ -130,13 +133,19 @@ def _plotMulti(name, results=None, ylim=None, ylabel=None, xlabel=None,
 			orderedResults = newdict
 			alreadysorted = True
 
+			items = orderedResults.items()
+			keys = orderedResults.keys()
+			print("keys", keys)
+			print(legend[1])
+			# print(items)
+
 	if not alreadysorted:
 		if order:
 			orderedResults = collections.OrderedDict(sorted(results.items()))
 		else:
 			orderedResults = results
 
-	items = orderedResults.items()
+		items = orderedResults.items()
 
 	print("orderedResults", orderedResults)
 	legends = list()
@@ -228,14 +237,14 @@ def _plotMulti(name, results=None, ylim=None, ylabel=None, xlabel=None,
 
 			if legend is None:
 				# print("legends:",legends)
-				pp.legend(legends[i], loc='best')
+				pp.legend(legends[i], loc=legendlocation)
 			elif not isinstance(legend, tuple):
-				pp.legend(legend)
+				pp.legend(legend, loc=legendlocation)
 			elif isinstance(legend[0][0], list):
 				print("given new legends")
-				pp.legend(legend[0][i])
+				pp.legend(legend[0][i], legendlocation)
 			else:
-				pp.legend(legends[i])
+				pp.legend(legends[i], legendlocation)
 			pp.grid()
 			if ylabel is not None:
 				pp.ylabel(ylabel[i])
@@ -251,10 +260,21 @@ def _plotMulti(name, results=None, ylim=None, ylabel=None, xlabel=None,
 			# print ("showing", i)
 			pp.show()
 	else:
-		if legend is None or isinstance(legend, tuple):
-			pp.legend(legends, loc='best')
+		# if legend is None or isinstance(legend, tuple):
+		# 	pp.legend(legends, loc='best')
+		# else:
+		# 	pp.legend(legend)
+		if legend is None:
+			# print("legends:",legends)
+			pp.legend(legends, loc=legendlocation)
+		elif not isinstance(legend, tuple):
+			pp.legend(legend, loc=legendlocation)
+		elif isinstance(legend[0], list):
+			print("given new legends")
+			legend[0].sort()
+			pp.legend(legend[0], loc=legendlocation)
 		else:
-			pp.legend(legend)
+			pp.legend(legends, loc=legendlocation)
 		pp.grid()
 
 		if title is not None:
@@ -269,6 +289,7 @@ def _plotMulti(name, results=None, ylim=None, ylabel=None, xlabel=None,
 		if xlabel is not None:
 			pp.xlabel(xlabel)
 
+		pp.tight_layout()
 		if localConstants.SAVE_GRAPH:
 			saveFig(filename)
 
@@ -432,13 +453,14 @@ def plotModel(agent, drawLabels=True):
 		pp.show()
 
 def saveFig(filename):
-	try:
-		os.mkdir(localConstants.OUTPUT_DIRECTORY)
-	except FileExistsError:
-		pass
+	# try:
+	os.makedirs(localConstants.OUTPUT_DIRECTORY, exist_ok=True)
+	# except FileExistsError:
+	# 	pass
 
 	print ("saving figure {}".format(filename))
-	pp.savefig("{}.pdf".format(filename))
+	pp.savefig("{}.png".format(filename))
+	tikzplotlib.save("{}.tex".format(filename))
 
 def replot(filename):
 	# filename = "{}{}_{}".format(localConstants.OUTPUT_DIRECTORY, name,
@@ -448,9 +470,9 @@ def replot(filename):
 	# print("plotting!")
 
 acsos = "/Users/alwynburger/git/acsos-2020/figures/extra data"
-def replotexp5():
-	# fn = "Competing Agents_2020-05-02 10.53.18.075400"
-	fn = "Competing Agents_2020-05-02 15.10.58.898751"
+
+def replotexp1():
+	fn = "experiment1_2020-04-28 14.02.09.563071"
 	(name, results, ylim, ylabel, xlabel) = pickle.load(open("{}/{}.pickle".format(acsos, fn), "rb"))
 	legend = results.keys()
 	newlegend = []
@@ -458,16 +480,57 @@ def replotexp5():
 	import scanf
 	for l in legend:
 		print(l)
-		perc = str((scanf.scanf("%d %s Basic Agents", l))[0])
-		perc = perc.rjust(3)
-		s = "%s %% Basic Agents" % perc
-		print(perc, "'%s'"%s)
+		central = None
+		if "Centralised" in l:
+			if "Random" in l:
+				agent = "Random"
+			else:
+				agent = scanf.scanf("%s Table Agent Centralised", l)[0]
+			central = "Centralised"
+		else:
+			agent = scanf.scanf("%s Table Agent Decentralised", l)[0]
+			central = "Decentralised"
+
+		if agent == "Minimal": agent = "Basic"
+
+		print("'%s'" % agent)
+
+		s = "%s Table Agent %s" % (agent, central)
+		# s = "%s %% Basic Agents" % perc
+		# print(perc, "'%s'"%s)
 		newlegend.append(s)
 
 	neworder = np.argsort(newlegend)
-	neworder = neworder[::-1]
+	# neworder = neworder[::-1]
 	print(neworder)
 	plotMultiWithErrors(name, results, ylim, ylabel="Average Jobs", xlabel=xlabel, legend=(newlegend, neworder), order=False)
+
+
+def replotexp3():
+	fn = "Max Jobs in Queue_2020-04-24 18.06.33.201307"
+	(name, results, ylim, ylabel, xlabel) = pickle.load(open("{}/{}.pickle".format(acsos, fn), "rb"))
+	legend = results.keys()
+	newlegend = []
+	print("legend:", legend)
+	import scanf
+	for l in legend:
+		print(l)
+		agent = scanf.scanf("Agent %s Table Agent", l)[0]
+
+		if agent == "Minimal": agent = "Basic"
+
+		print("'%s'" % agent)
+
+		s = "%s Table Agent" % (agent)
+		# s = "%s %% Basic Agents" % perc
+		# print(perc, "'%s'"%s)
+		newlegend.append(s)
+
+	neworder = np.argsort(newlegend)
+	# neworder = neworder[::-1]
+	print(neworder)
+	plotMultiWithErrors(name, results, ylim, ylabel="Average Jobs", xlabel=xlabel, legend=(newlegend, neworder), order=False, logx=True, legendlocation='lower left')
+
 
 def replotexp4():
 	fn = "experiment4normalised_2020-04-28 16.12.54.347130"
@@ -480,7 +543,7 @@ def replotexp4():
 	# print("legend:", legend)
 	import scanf
 	scans = ["%s %%d devices" % code for code in codes]
-	
+
 	for l in legend:
 		# print(l)
 		for i, s in zip(range(len(scans)), scans):
@@ -501,9 +564,33 @@ def replotexp4():
 	print("new order:", neworder)
 	newlegend = newlegend[::-1]
 
+	plotMultiSeparate(name, results=results, ylim=ylim, ylabel=["System Jobs #", "DOL"], xlabel=xlabel,
+					  legend=(newlegend, neworder), subplotCodes=codes, plotErrors=True, scaleJobs=False)
 
-	plotMultiSeparate(name, results=results, ylim=ylim, ylabel=["System Jobs #", "DOL"], xlabel=xlabel, legend=(newlegend, neworder), subplotCodes=codes, plotErrors=True, scaleJobs=False)
 
+def replotexp5():
+	fn = "Competing Agents_2020-05-02 10.53.18.075400"
+	# fn = "Competing Agents_2020-05-02 15.10.58.898751"
+	(name, results, ylim, ylabel, xlabel) = pickle.load(open("{}/{}.pickle".format(acsos, fn), "rb"))
+	legend = results.keys()
+	newlegend = []
+	print("legend:", legend)
+	import scanf
+	for l in legend:
+		print(l)
+		perc = (scanf.scanf("%d %s Basic Agents", l))[0]
+		num = int(10. * int(perc * 10 / 100))
+		print("correcting percentage:", perc, num)
+		perc = str(num).rjust(3)
+		s = "%s %% Basic Agents" % perc
+		print(perc, "'%s'"%s)
+		newlegend.append(s)
+
+	neworder = np.argsort(newlegend)
+	# neworder = neworder[::-1]
+	# newlegend = newlegend[::-1]
+	print(results)
+	plotMultiWithErrors(name, results, ylim, ylabel="Average Jobs", xlabel=xlabel, legend=(newlegend, neworder), order=True)
 
 
 if __name__ == "__main__":
@@ -516,5 +603,7 @@ if __name__ == "__main__":
 	# fn = "Max Jobs in Queue_2020-04-24 18.02.21.578890"
 	# (name, results, ylim, ylabel, xlabel) = pickle.load(open("{}.pickle".format("/tmp/output/simulator/%s" % fn), "rb"))
 	# plotMultiWithErrors(name, results, ylim, ylabel, xlabel, logx=True)
+	# replotexp1()
+	replotexp3()
 	# replotexp4()
-	replotexp5()
+	# replotexp5()

@@ -1,9 +1,5 @@
 import glob
 import cv2
-import imutils
-import matplotlib.image as mpimg
-import pdf2image
-import numpy as np
 
 from sim.simulations import localConstants
 

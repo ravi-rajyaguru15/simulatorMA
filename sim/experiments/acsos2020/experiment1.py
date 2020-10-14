@@ -31,7 +31,8 @@ def runThread(agent, numEpisodes, centralised, results, finished):
             debug.infoEnabled = False
             exp.simulateEpisode(e)
 
-            results.put(["%s %s" % (exp.devices[0].agent.__name__, "Centralised" if centralised else "Decentralised"), e, exp.numFinishedJobs])
+            # results.put(["%s %s" % (exp.devices[0].agent.__name__, "Centralised" if centralised else "Decentralised"), e, exp.numFinishedJobs])
+            results.put(["%s %s" % (exp.devices[0].agent.__name__, "Centralised" if centralised else "Decentralised"), e, exp.getCurrentTime()])
     except:
         debug.printCache()
         traceback.print_exc(file=sys.stdout)
@@ -67,7 +68,8 @@ def run(numEpisodes):
     results = executeMulti(processes, results, finished, numResults=len(processes) * numEpisodes)
 
     # plotting.plotMultiWithErrors("Number of Jobs", results=results, ylabel="Job #", xlabel="Episode #")  # , save=True)
-    plotting.plotMultiWithErrors("experiment1", title="experiment 1", results=results, ylabel="Job #", xlabel="Episode #")  # , save=True)
+    # plotting.plotMultiWithErrors("experiment1", title="experiment 1", results=results, ylabel="Job #", xlabel="Episode #")  # , save=True)
+    plotting.plotMultiWithErrors("experiment1duration", title="experiment 1 duration", results=results, ylabel="Lifetime", xlabel="Episode #")  # , save=True)
     # plotting.plotMulti("experiment1", title="experiment 1", results=results, ylabel="Job #", xlabel="Episode #")  # , save=True)
 
 if __name__ == "__main__":
