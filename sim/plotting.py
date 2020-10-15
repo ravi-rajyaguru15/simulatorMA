@@ -13,6 +13,11 @@ import numpy as np
 
 # print (os.environ["DISPLAY"])
 import tikzplotlib as tikzplotlib
+import os
+print()
+print(os.path.abspath(os.curdir))
+print(sys.path)
+print()
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -498,7 +503,10 @@ def replotexp1():
 
 		print("'%s'" % agent)
 
-		s = "%s Table Agent %s" % (agent, central)
+		if "Random" in agent:
+			s = "%s Agent" % agent
+		else:
+			s = "%s Table Agent %s" % (agent, central)
 		# s = "%s %% Basic Agents" % perc
 		# print(perc, "'%s'"%s)
 		newlegend.append(s)
@@ -606,7 +614,7 @@ if __name__ == "__main__":
 	# fn = "Max Jobs in Queue_2020-04-24 18.02.21.578890"
 	# (name, results, ylim, ylabel, xlabel) = pickle.load(open("{}.pickle".format("/tmp/output/simulator/%s" % fn), "rb"))
 	# plotMultiWithErrors(name, results, ylim, ylabel, xlabel, logx=True)
-	replotexp1()
+	# replotexp1()
 	# replotexp3()
 	# replotexp4()
 	# replotexp5()
