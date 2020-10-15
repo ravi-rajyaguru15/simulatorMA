@@ -6,6 +6,9 @@
 	],
 	"settings": {
 		"python.pythonPath": ".venv/bin/python",
-		"python.dataScience.notebookFileRoot": "${workspaceFolder}"
+		"python.dataScience.notebookFileRoot": "${workspaceFolder}",
+		"python.autoComplete.extraPaths": [
+		"${workspaceFolder}"
+		]
 	}
 }

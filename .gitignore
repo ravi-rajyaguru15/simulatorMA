@@ -1,4 +1,5 @@
 .vscode/
+tmpoutputs
 sim/venv
 sim/simulations/localConstants.py
 *__pycache__*

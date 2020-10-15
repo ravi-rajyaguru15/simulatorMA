@@ -2,3 +2,4 @@ scanf
 matplotlib
 numpy
 tikzplotlib
+scipy

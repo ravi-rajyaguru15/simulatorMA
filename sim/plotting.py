@@ -124,7 +124,7 @@ def _plotMulti(name, results=None, ylim=None, ylabel=None, xlabel=None,
 	pickle.dump((name, results, ylim, ylabel, xlabel), open("{}.pickle".format(filename), "wb"))
 
 	# sort by graph key
-	print("results", results)
+	# print("results", results)
 
 	alreadysorted = False
 	if legend is not None:
@@ -132,7 +132,7 @@ def _plotMulti(name, results=None, ylim=None, ylabel=None, xlabel=None,
 			print("manually reorder")
 			newdict = dict()
 			keys = np.array(list(results.keys()))
-			print("orig", keys)
+			# print("orig", keys)
 			# print(legend[1])
 			keys = keys[legend[1]]
 			for key in keys:
@@ -143,8 +143,8 @@ def _plotMulti(name, results=None, ylim=None, ylabel=None, xlabel=None,
 
 			items = orderedResults.items()
 			keys = orderedResults.keys()
-			print("keys", keys)
-			print(legend[1])
+			# print("keys", keys)
+			# print(legend[1])
 			# print(items)
 
 	if not alreadysorted:
@@ -155,7 +155,7 @@ def _plotMulti(name, results=None, ylim=None, ylabel=None, xlabel=None,
 
 		items = orderedResults.items()
 
-	print("orderedResults", orderedResults)
+	# print("orderedResults", orderedResults)
 	legends = list()
 	for i in range(len(subplotCodes)): legends.append(list())
 	if not separate and not subplots:
@@ -225,7 +225,6 @@ def _plotMulti(name, results=None, ylim=None, ylabel=None, xlabel=None,
 
 		# print("plotting", key, "on", chosenSubplot)
 		# pp.title("drawing %d" % chosenSubplot)
-
 		if logx:
 			pp.xscale("log", nonposx='clip')
 		if plotErrors:
@@ -458,6 +457,7 @@ def plotModel(agent, drawLabels=True):
 		saveFig(filename)
 
 	if localConstants.DRAW_GRAPH:
+		print("DRAWING GRAPH")
 		pp.show()
 
 def saveFig(filename):
@@ -467,8 +467,35 @@ def saveFig(filename):
 	# 	pass
 
 	print ("saving figure {}".format(filename))
+	children = [c for c in [child.get_children() for child in pp.gcf().get_children()]][1]
+	legends = [c for c in children if isinstance(c, mpl.legend.Legend)]
+	legend = legends[0].get_texts()
+	legendTexts = [a for a in legend]
+	# print("found", legendTexts)
+	tikz = tikzplotlib.get_tikz_code().split('\n')
+	# print(tikz)
+	index = 0
+	# print("total length = " + str(len(tikz)))
+	for i in range(len(legendTexts)):
+		# print("finding " + str(i) + " " + legendTexts[i].get_text())
+
+		# finding next legend entry...
+		for j in range(index, len(tikz)):
+			if 'addlegendentry' in tikz[j]:
+				break
+
+		newline = '\\addlegendentry{' + legendTexts[i].get_text() + '}'
+		tikz[j] = newline
+		index = j+1
+
+	open("{}.tex".format(filename), 'w').writelines([line + '\n' for line in tikz])
+
+	# tikzplotlib.save("{}.tex".format(filename))
+	# result = open("{}.tex".format(filename)).readlines()
+	# print("legends:")
+	# for i in [line for line in result if 'addlegendentry' in line]:
+	# 	print (i)
 	pp.savefig("{}.png".format(filename))
-	tikzplotlib.save("{}.tex".format(filename))
 
 def replot(filename):
 	# filename = "{}{}_{}".format(localConstants.OUTPUT_DIRECTORY, name,
@@ -514,7 +541,7 @@ def replotexp1():
 	neworder = np.argsort(newlegend)
 	# neworder = neworder[::-1]
 	print(neworder)
-	plotMultiWithErrors(name, results, ylim, ylabel="Average Jobs", xlabel=xlabel, legend=(newlegend, neworder), order=False)
+	plotMultiWithErrors(name, results, ylim, ylabel="Average Jobs", xlabel=xlabel.replace('#', '\\#'), legend=(newlegend, neworder), order=False)
 
 
 def replotexp3():
@@ -575,7 +602,7 @@ def replotexp4():
 	print("new order:", neworder)
 	newlegend = newlegend[::-1]
 
-	plotMultiSeparate(name, results=results, ylim=ylim, ylabel=["System Jobs #", "DOL"], xlabel=xlabel,
+	plotMultiSeparate(name, results=results, ylim=ylim, ylabel=["System Jobs \\#", "DOL"], xlabel=xlabel.replace('#', '\\#'),
 					  legend=(newlegend, neworder), subplotCodes=codes, plotErrors=True, scaleJobs=False)
 
 
@@ -593,15 +620,15 @@ def replotexp5():
 		num = int(10. * int(perc * 10 / 100))
 		print("correcting percentage:", perc, num)
 		perc = str(num).rjust(3)
-		s = "%s %% Basic Agents" % perc
+		s = "%s \\%% Basic Agents" % perc
 		print(perc, "'%s'"%s)
 		newlegend.append(s)
 
 	neworder = np.argsort(newlegend)
 	# neworder = neworder[::-1]
 	# newlegend = newlegend[::-1]
-	print(results)
-	plotMultiWithErrors(name, results, ylim, ylabel="Average Jobs", xlabel=xlabel, legend=(newlegend, neworder), order=True)
+	# print(results)
+	plotMultiWithErrors(name, results, ylim, ylabel="Average Jobs", xlabel=xlabel.replace('#', '\\#'), legend=(newlegend, neworder), order=True)
 
 
 if __name__ == "__main__":
@@ -616,5 +643,5 @@ if __name__ == "__main__":
 	# plotMultiWithErrors(name, results, ylim, ylabel, xlabel, logx=True)
 	# replotexp1()
 	# replotexp3()
-	# replotexp4()
+	replotexp4()
 	# replotexp5()
