@@ -82,6 +82,7 @@ class BasicSimulation:
 			debug.out("creating shared agent %s" % agentClass)
 			self.sharedAgent = agentClass(systemState=self.currentSystemState, reconsiderBatches=reconsiderBatches, owner=None, offPolicy=offPolicy)
 			# TODO: need private state for non shared agent
+			print(self.sharedAgent)
 			agentClass = self.sharedAgent
 
 

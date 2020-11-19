@@ -35,7 +35,7 @@ class dqnAgent(qAgent):
 
 		return names
 
-	def __init__(self, systemState, owner, offPolicy):
+	def __init__(self, systemState, reconsiderBatches, allowExpansion=constants.ALLOW_EXPANSION, owner=None, offPolicy=constants.OFF_POLICY):
 		self.gamma = constants.GAMMA
 
 		debug.out("DQN agent created")
@@ -43,21 +43,30 @@ class dqnAgent(qAgent):
 		# self.dqn = rl.agents.DQNAgent(model=self.model, policy=rl.policy.LinearAnnealedPolicy(, attr='eps', value_max=sim.constants.EPS_MAX, value_min=sim.constants.EPS_MIN, value_test=.05, nb_steps=sim.constants.EPS_STEP_COUNT), enable_double_dqn=False, gamma=.99, batch_size=1, nb_actions=self.numActions)
 		self.optimizer = keras.optimizers.Adam(lr=constants.LEARNING_RATE)
 
-		agent.__init__(self, systemState=systemState, owner=owner, offPolicy=offPolicy)
+		qAgent.__init__(self, systemState, reconsiderBatches=reconsiderBatches, owner=owner, offPolicy=offPolicy)
 
 	def createModel(self):
 		# create basic model
 		self.model = keras.models.Sequential()
-		self.model.add(keras.layers.Flatten(input_shape=(1,) + (self.systemState.stateCount,))) # 3 input
-		# print('input shape', (1,) + env.observation_space.shape)
-		self.model.add(keras.layers.Dense(2))
-		self.model.add(keras.layers.Activation('relu'))
-
-		self.model.add(keras.layers.Dense(self.numActions))
-		self.model.add(keras.layers.Activation('relu'))
-		self.model.add(keras.layers.Softmax())
+		# self.model.add(keras.layers.Flatten(input_shape=(len(self.systemState.singles),))) 
+		self.model.add(keras.Input(shape=(len(self.systemState.singles),)))
 		
-		if sim.debug.enabled:
+		# self.model.add(keras.layers.Flatten(input_shape=(1,) + (len(self.systemState.singles),))) # 3 input
+		# print('input shape', (1,) + env.observation_space.shape)
+
+		# hidden layers
+		self.model.add(keras.layers.Dense(2, activation='relu'))
+
+		# output layers
+		# self.model.add(keras.layers.Dense(self.numActions, activation='relu'))
+		self.model.add(keras.layers.Dense(self.numActions, activation='softmax'))
+		# self.model.add(keras.layers.Softmax(axis=1))
+
+		# , activation='softmax'))
+
+		# self.model.add(keras.layers.Softmax(axis=-1))
+		
+		if debug.settings.enabled:
 			self.model.summary()
 
 		self.createTrainableModel()
@@ -72,7 +81,7 @@ class dqnAgent(qAgent):
 		if self.offPolicy:
 			self.targetModel = clone_model(self.model, custom_objects={})
 			self.targetModel.compile(optimizer=self.optimizer, loss='mse')
-		self.model.compile(optimizer=self.optimizer, loss='mse')
+		self.model.compile(optimizer=self.optimizer, loss='mse', metrics=['accuracy'])
 
 		def clipped_masked_error(args):
 			correctQ, predictedQ, mask = args
@@ -103,7 +112,10 @@ class dqnAgent(qAgent):
 
 	def predict(self, model, state):
 		# print("state", state, state.shape)
-		return model.predict(state.reshape((1, 1, state.shape[0])))[0]
+		# return model.predict(state.reshape((1, 1, state.shape[0])))[0]
+		state = np.array(state, dtype=np.float).reshape((1,1,state.shape[0]))
+		print("predict: ", state)
+		return model.predict(state)
 		# return self.model.predict(state.currentState.reshape((1, 1, state.stateCount)))[0]
 
 	# def predictBatch(self, stateBatch):
@@ -114,6 +126,9 @@ class dqnAgent(qAgent):
 		return self.policy.select_action(q_values=qValues)
 
 	def trainModel(self, latestAction, reward, beforeState, afterState, finished):
+		return self.trainModelBatch(latestAction, reward, [[beforeState]], afterState, finished)
+
+	def trainModelBatchOnline(self, latestAction, reward, beforeStates, afterState, finished):
 		assert self.trainable_model is not None
 
 		metrics = [np.nan for _ in self.metrics_names]
@@ -159,7 +174,7 @@ class dqnAgent(qAgent):
 		# Finally, perform a single update on the entire batch. We use a dummy target since
 		# the actual loss is computed in a Lambda layer that needs more complex input. However,
 		# it is still useful to know the actual target to compute metrics properly.
-		x = [np.array([[beforeState]])] + [targets, masks]
+		x = [np.array(beforeStates)] + [targets, masks]
 		y = [dummy_targets, targets]
 
 		# print(x, "state:", beforeState, y)
@@ -174,6 +189,73 @@ class dqnAgent(qAgent):
 		self.latestLoss = metrics[0]
 		self.latestMAE = metrics[1]
 		self.latestMeanQ = metrics[2]
+
+	def trainModelBatch(self, beforeStates, actions):
+		assert self.trainable_model is not None
+
+		# metrics = [np.nan for _ in self.metrics_names]
+
+		# Compute the q_values given state1, and extract the maximum for each sample in the batch.
+		# We perform this prediction on the target_model instead of the model for reasons
+		# outlined in Mnih (2015). In short: it makes the algorithm more stable.
+		# target_q_values =  self.model.predict_on_batch(
+		# 	np.array([np.array([np.array(self.systemState.currentState)])]))  # TODO: target_model
+
+		# model = self.model if self.offPolicy else self.targetModel
+
+		# target_q_values = self.predict(self.targetModel, self.systemState.currentState)
+		# if self.offPolicy:
+		# 	q_values = self.predict(self.model, self.systemState.currentState)
+		# 	actions = np.argmax(q_values, axis=0)
+		# 	q_batch = np.array([target_q_values[actions]])
+		# else:
+		# 	# print(self.predict(self.systemState), target_q_values)
+		# 	q_batch = np.max(target_q_values).flatten()
+		# print(q_batch)
+		# sys.exit(0)
+
+		# Compute r_t + gamma * max_a Q(s_t+1, a) and update the target targets accordingly,
+		# but only for the affected output units (as given by action_batch).
+		# discounted_reward_batch = self.gamma * q_batch
+		# # Set discounted reward to zero for all states that were terminal.
+		# discounted_reward_batch *= [0. if finished else 1.]
+		# # assert discounted_reward_batch.shape == reward_batch.shape
+		# R = reward + discounted_reward_batch
+
+		# targets = np.zeros((1, self.numActions))
+		# dummy_targets = np.zeros((1,))
+		# masks = np.zeros((1, self.numActions))
+
+		# targets[0, latestAction] = R  # update action with estimated accumulated reward
+		# dummy_targets[0] = R
+		# masks[0, latestAction] = 1.  # enable loss for this specific action
+
+		# targets = np.array(targets).astype('float32')
+		# masks = np.array(masks).astype('float32')
+
+		# # Finally, perform a single update on the entire batch. We use a dummy target since
+		# # the actual loss is computed in a Lambda layer that needs more complex input. However,
+		# # it is still useful to know the actual target to compute metrics properly.
+		# x = [np.array(beforeStates)] + [targets, masks]
+		# y = [dummy_targets, targets]
+
+		# print(x, "state:", beforeState, y)
+
+		# self.trainable_model._make_train_function()
+		print("test")
+		metrics = self.model.train_on_batch(beforeStates, actions, return_dict=True)
+		
+		# metrics = metrics[1:3]
+		# metrics = [metric for idx, metric in enumerate(metrics) if idx not in (1, 2)]  # throw away individual losses
+		# metrics += self.getPolicyMetrics()
+		# print(metrics, self.metrics_names)
+		print(metrics)
+		self.latestLoss = metrics['loss']
+		self.latestMAE = metrics['accuracy']
+		self.latestMeanQ = 0# metrics[2]
+
+	def fit(self, beforeStates, actions, epochs, split=0.):
+		self.model.fit(x=beforeStates, y=actions, batch_size=int(actions.shape[0]/5), epochs=epochs, validation_split=split, use_multiprocessing=True, verbose=2)
 
 	def updateTargetModel(self):
 		self.targetModel.set_weights(self.model.get_weights())

@@ -21,55 +21,38 @@ from sim.tasks.tasks import HARD, EASY
 
 maxjobs = 5
 
-def runThread(agent, numEpisodes, centralised, results, finished):
-    exp = SimpleSimulation(numDevices=2, maxJobs=maxjobs, agentClass=agent, tasks=[HARD], systemStateClass=minimalSystemState, scenarioTemplate=REGULAR_SCENARIO_ROUND_ROBIN, centralisedLearning=centralised)
-    # exp.scenario.setInterval(1)
-    exp.setBatterySize(1e-1)
-    exp.setFpgaIdleSleep(1e-3)
+print("starting experiment")
 
-    e = None
-    try:
-        for e in range(numEpisodes):
-            debug.infoEnabled = False
-            exp.simulateEpisode(e)
+processes = list()
+results = multiprocessing.Queue()
+finished = multiprocessing.Queue()
 
-            # results.put(["%s %s" % (exp.devices[0].agent.__name__, "Centralised" if centralised else "Decentralised"), e, exp.numFinishedJobs])
-            results.put(["%s %s" % (exp.devices[0].agent.__name__, "Centralised" if centralised else "Decentralised"), e, exp.getCurrentTime()])
-    except:
-        debug.printCache()
-        traceback.print_exc(file=sys.stdout)
-        print(agent, e)
-        print("Error in experiment ̰:", exp.time)
-        sys.exit(0)
+localConstants.REPEATS = 1
+# localConstants.REPEATS = 8
+numEpisodes = int(1e3)
+# agentsToTest = [minimalTableAgent]
+minimalTableAgent # , localAgent]
+agent = minimalTableAgent # [minimalAgent, lazyAgent]:
+centralised = True
+exp = SimpleSimulation(numDevices=2, maxJobs=maxjobs, agentClass=agent, tasks=[HARD], systemStateClass=minimalSystemState, scenarioTemplate=REGULAR_SCENARIO_ROUND_ROBIN, centralisedLearning=centralised)
+# exp.scenario.setInterval(1)
+exp.setBatterySize(1e-1)
+exp.setFpgaIdleSleep(1e-3)
 
-    finished.put(True)
+e = None
+try:
+    print("running episodes")
+    for e in range(numEpisodes):
+        if e % 100 == 0: print ('.')
+        debug.infoEnabled = False
+        exp.simulateEpisode(e)
 
-    # print("forward", counters.NUM_FORWARD, "backward", counters.NUM_BACKWARD)
+        # results.put(["%s %s" % (exp.devices[0].agent.__name__, "Centralised" if centralised else "Decentralised"), e, exp.numFinishedJobs])
+except:
+    debug.printCache()
+    traceback.print_exc(file=sys.stdout)
+    print(agent, e)
+    print("Error in experiment:", exp.time)
+    sys.exit(0)
 
-    # if exp.sharedAgent.__class__ == minimalTableAgent:
-    #     plotting.plotModel(exp.sharedAgent, drawLabels=True)
-
-def run(1e3):
-    print("starting experiment")
-
-    processes = list()
-    results = multiprocessing.Queue()
-    finished = multiprocessing.Queue()
-
-    localConstants.REPEATS = 1
-    # localConstants.REPEATS = 8
-    numEpisodes = int(1e3)
-    # agentsToTest = [minimalTableAgent]
-    agentsToTest = [minimalTableAgent, lazyTableAgent, randomAgent] # , localAgent]
-    for agent in agentsToTest: # [minimalAgent, lazyAgent]:
-        for _ in range(localConstants.REPEATS):
-            for centralised in [True, False]:
-                if not (not centralised and agent is randomAgent):
-                    processes.append(multiprocessing.Process(target=runThread, args=(agent, numEpisodes, centralised, results, finished)))
-
-    results = executeMulti(processes, results, finished, numResults=len(processes) * numEpisodes)
-
-    # plotting.plotMultiWithErrors("Number of Jobs", results=results, ylabel="Job #", xlabel="Episode #")  # , save=True)
-    # plotting.plotMultiWithErrors("experiment1", title="experiment 1", results=results, ylabel="Job #", xlabel="Episode #")  # , save=True)
-    plotting.plotMultiWithErrors("experiment1duration", title="experiment 1 duration", results=results, ylabel="Lifetime", xlabel="Episode #")  # , save=True)
-    # plotting.plotMulti("experiment1", title="experiment 1", results=results, ylabel="Job #", xlabel="Episode #")  # , save=True)
+exp.sharedAgent.saveModel()

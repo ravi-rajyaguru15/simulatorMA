@@ -1,3 +1,4 @@
+.vscode/.vs_code_bazel_build
 .vscode/
 tmpoutputs
 sim/venv
