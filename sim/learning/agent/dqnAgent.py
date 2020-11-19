@@ -48,17 +48,17 @@ class dqnAgent(qAgent):
 	def createModel(self):
 		# create basic model
 		self.model = keras.models.Sequential()
-		self.model.add(keras.layers.Flatten(input_shape=(1,) + (self.systemState.stateCount,)))
+		self.model.add(keras.layers.Flatten(input_shape=(1,) + (self.systemState.stateCount,))) # 3 input
 		# print('input shape', (1,) + env.observation_space.shape)
-		# self.model.add(keras.layers.Dense(4))
-		# self.model.add(keras.layers.Activation('relu'))
-		self.model.add(keras.layers.Dense(16))
+		self.model.add(keras.layers.Dense(2))
 		self.model.add(keras.layers.Activation('relu'))
 
 		self.model.add(keras.layers.Dense(self.numActions))
-		self.model.add(keras.layers.Activation('linear'))
-		# if sim.debug.enabled:
-		# 	self.model.summary()
+		self.model.add(keras.layers.Activation('relu'))
+		self.model.add(keras.layers.Softmax())
+		
+		if sim.debug.enabled:
+			self.model.summary()
 
 		self.createTrainableModel()
 
