@@ -38,7 +38,7 @@ class qTableAgent(qAgent):
 
 	allowExpansion = None
 
-	def __init__(self, systemState, reconsiderBatches, allowExpansion=constants.ALLOW_EXPANSION, owner=None, offPolicy=constants.OFF_POLICY):
+	def __init__(self, systemState, reconsiderBatches, allowExpansion=constants.ALLOW_EXPANSION, owner=None, offPolicy=constants.OFF_POLICY, trainClassification=False):
 		self.gamma = constants.GAMMA
 		self.policy = Uniform(.5, 1)
 		self.allowExpansion = allowExpansion
@@ -197,7 +197,7 @@ class qTable:
 		if isinstance(state, discretisedSystemState):
 			state = state.getIndex()
 
-		# print("getq", state)
+		# print("getq", state, self.stateCount)
 		assert state < self.stateCount
 
 		if action is None:

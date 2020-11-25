@@ -2,18 +2,20 @@ from sim import debug
 from sim.learning.state.discretisedSystemState import discretisedSystemState, discreteState
 from sim.simulations import constants
 
+import sys
 
 class minimalSystemState(discretisedSystemState):
 	maxJobs = None
 
-	def __init__(self, numDevices, maxJobs, allowExpansion=constants.ALLOW_EXPANSION, numTasks=None):
+	def __init__(self, numDevices, maxJobs, allowExpansion=constants.ALLOW_EXPANSION, numTasks=None, numEnergyLevels=constants.NUM_ENERGY_LEVELS):
 		self.maxJobs = maxJobs
+
 		# add extra state for "full" job queue
 		if allowExpansion:
-			singles = [discreteState('energyRemaining', 5),
+			singles = [discreteState('energyRemaining', numEnergyLevels),
 					   discreteState('jobsInQueue', maxJobs + 1)]
 		else:
-			singles = [ discreteState('energyRemaining', 5),
+			singles = [ discreteState('energyRemaining', numEnergyLevels),
 						discreteState('jobsInQueue', maxJobs + 1)]
 		multiples = []
 

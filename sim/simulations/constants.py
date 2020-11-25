@@ -53,6 +53,7 @@ MCU_IDLE_SLEEP = .05
 # MINIMUM_BATCH = 5
 MAX_JOBS = 3
 ABSOLUTE_MAX_JOBS = 15
+NUM_ENERGY_LEVELS = 5
 
 # tasks
 DEFAULT_TASK_GRAPH = [sim.tasks.tasks.EASY] # TODO: single task only

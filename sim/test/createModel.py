@@ -29,12 +29,13 @@ finished = multiprocessing.Queue()
 
 localConstants.REPEATS = 1
 # localConstants.REPEATS = 8
-numEpisodes = int(1e3)
+numEpisodes = int(1e6)
 # agentsToTest = [minimalTableAgent]
 minimalTableAgent # , localAgent]
 agent = minimalTableAgent # [minimalAgent, lazyAgent]:
 centralised = True
-exp = SimpleSimulation(numDevices=2, maxJobs=maxjobs, agentClass=agent, tasks=[HARD], systemStateClass=minimalSystemState, scenarioTemplate=REGULAR_SCENARIO_ROUND_ROBIN, centralisedLearning=centralised)
+exp = SimpleSimulation(numDevices=2, maxJobs=maxjobs, agentClass=agent, tasks=[HARD], numEnergyLevels=5, systemStateClass=minimalSystemState, scenarioTemplate=REGULAR_SCENARIO_ROUND_ROBIN, centralisedLearning=centralised)
+print(exp.currentSystemState.uniqueStates)
 # exp.scenario.setInterval(1)
 exp.setBatterySize(1e-1)
 exp.setFpgaIdleSleep(1e-3)

@@ -19,6 +19,11 @@ class dqnAgent(qAgent):
 	__name__ = "Deep Q Agent"
 
 	optimizer = None
+	loss = None
+	activation = None
+	metrics = None
+	classification = None
+	fullModel = None
 
 	def getPolicyMetrics(self):
 		return self.policy.metrics
@@ -35,86 +40,105 @@ class dqnAgent(qAgent):
 
 		return names
 
-	def __init__(self, systemState, reconsiderBatches, allowExpansion=constants.ALLOW_EXPANSION, owner=None, offPolicy=constants.OFF_POLICY):
+	def __init__(self, systemState, reconsiderBatches, allowExpansion=constants.ALLOW_EXPANSION, owner=None, offPolicy=constants.OFF_POLICY, loss='binary_crossentropy', activation='relu', metrics=['accuracy'], trainClassification=True):
 		self.gamma = constants.GAMMA
+		self.loss = loss
+		self.activation = activation
+		self.metrics = metrics
+		self.classification = trainClassification
 
 		debug.out("DQN agent created")
 		self.policy = EpsGreedyQPolicy(eps=constants.EPS)
 		# self.dqn = rl.agents.DQNAgent(model=self.model, policy=rl.policy.LinearAnnealedPolicy(, attr='eps', value_max=sim.constants.EPS_MAX, value_min=sim.constants.EPS_MIN, value_test=.05, nb_steps=sim.constants.EPS_STEP_COUNT), enable_double_dqn=False, gamma=.99, batch_size=1, nb_actions=self.numActions)
-		self.optimizer = keras.optimizers.Adam(lr=constants.LEARNING_RATE)
+		# self.optimizer = keras.optimizers.Adam(lr=constants.LEARNING_RATE)
+		self.optimizer = keras.optimizers.RMSprop(lr=constants.LEARNING_RATE)
+
 
 		qAgent.__init__(self, systemState, reconsiderBatches=reconsiderBatches, owner=owner, offPolicy=offPolicy)
 
-	def createModel(self):
+	def createModel(self, hiddenDepth=2, hiddenWidth=4):
 		# create basic model
-		self.model = keras.models.Sequential()
+		self.fullModel = keras.models.Sequential()
 		# self.model.add(keras.layers.Flatten(input_shape=(len(self.systemState.singles),))) 
-		self.model.add(keras.Input(shape=(len(self.systemState.singles),)))
+		self.fullModel.add(keras.Input(shape=(len(self.systemState.singles),)))
 		
 		# self.model.add(keras.layers.Flatten(input_shape=(1,) + (len(self.systemState.singles),))) # 3 input
 		# print('input shape', (1,) + env.observation_space.shape)
 
 		# hidden layers
-		self.model.add(keras.layers.Dense(2, activation='relu'))
+		for i in range(hiddenDepth):
+			self.fullModel.add(keras.layers.Dense(hiddenWidth, activation=self.activation))
+			self.fullModel.add(keras.layers.Dense(hiddenWidth, activation=self.activation))
+
+		# # hidden layers
+		# self.model.add(keras.layers.Dense(4, activation='relu'))
 
 		# output layers
-		# self.model.add(keras.layers.Dense(self.numActions, activation='relu'))
-		self.model.add(keras.layers.Dense(self.numActions, activation='softmax'))
-		# self.model.add(keras.layers.Softmax(axis=1))
+		if self.classification:
+			self.fullModel.add(keras.layers.Dense(self.numActions, activation='softmax', name='final'))
+			self.model = self.fullModel
+		else:
+			self.fullModel.add(keras.layers.Dense(self.numActions, activation='linear', name='final'))
+			self.fullModel.add(keras.layers.Softmax())
 
-		# , activation='softmax'))
+			# create a model that doesn't use the softmax
+			self.model = keras.Model(inputs=self.fullModel.input, outputs=self.fullModel.get_layer(name='final').output)
 
-		# self.model.add(keras.layers.Softmax(axis=-1))
 		
 		if debug.settings.enabled:
 			self.model.summary()
 
-		self.createTrainableModel()
+# intermediate_layer_model = Model(inputs=model.input,
+#                                  outputs=model.get_layer(layer_name).output)
 
-
+		self.model.compile(optimizer=self.optimizer, metrics=self.metrics, loss=self.loss)
+		self.fullModel.compile(optimizer=self.optimizer, metrics=self.metrics, loss=self.loss)
+		
+		# self.createTrainableModel()
 
 	def createTrainableModel(self):
-		# COPIED FROM KERAS-RL LIBRARY
-		metrics = ['mae']
-		metrics += [mean_q]  # register default metrics
+		raise Exception("not implemented ")
+		# # COPIED FROM KERAS-RL LIBRARY
+		# # metrics = ['mae']
+		# # metrics += [mean_q]  # register default metrics
 
-		if self.offPolicy:
-			self.targetModel = clone_model(self.model, custom_objects={})
-			self.targetModel.compile(optimizer=self.optimizer, loss='mse')
-		self.model.compile(optimizer=self.optimizer, loss='mse', metrics=['accuracy'])
+		# # if self.offPolicy:
+		# # 	self.targetModel = clone_model(self.model, custom_objects={})
+		# # 	self.targetModel.compile(optimizer=self.optimizer, loss='mse')
+		# self.model.compile(optimizer=self.optimizer, loss=self.loss, metrics=self.metrics)
 
-		def clipped_masked_error(args):
-			correctQ, predictedQ, mask = args
-			loss = huber_loss(correctQ, predictedQ, np.inf)
-			loss *= mask  # apply element-wise mask
-			return tf.keras.backend.sum(loss, axis=-1)
+		# def clipped_masked_error(args):
+		# 	correctQ, predictedQ, mask = args
+		# 	loss = huber_loss(correctQ, predictedQ, np.inf)
+		# 	loss *= mask  # apply element-wise mask
+		# 	return tf.keras.backend.sum(loss, axis=-1)
 
-		# Create trainable model. The problem is that we need to mask the output since we only
-		# ever want to update the Q values for a certain action. The way we achieve this is by
-		# using a custom Lambda layer that computes the loss. This gives us the necessary flexibility
-		# to mask out certain parameters by passing in multiple inputs to the Lambda layer.
-		predictedQ = self.model.output
-		correctQ = keras.layers.Input(name='correctQ', shape=(self.numActions,))
-		mask = keras.layers.Input(name='mask', shape=(self.numActions,))
-		lossOut = keras.layers.Lambda(clipped_masked_error, output_shape=(1,), name='loss')(
-			[correctQ, predictedQ, mask])
-		# this copies the existing model
-		ins = [self.model.input] if type(self.model.input) is not list else self.model.input
-		self.trainable_model = keras.models.Model(inputs=ins + [correctQ, mask], outputs=[lossOut, predictedQ])
-		assert len(self.trainable_model.output_names) == 2
-		combined_metrics = {self.trainable_model.output_names[1]: metrics}
-		losses = [
-			lambda correctQ, predictedQ: predictedQ,  # loss is computed in Lambda layer
-			lambda correctQ, predictedQ: tf.keras.backend.zeros_like(predictedQ),
-			# we only include this for the metrics
-		]
-		self.trainable_model.compile(optimizer=self.optimizer, loss=losses, metrics=combined_metrics)
+		# # Create trainable model. The problem is that we need to mask the output since we only
+		# # ever want to update the Q values for a certain action. The way we achieve this is by
+		# # using a custom Lambda layer that computes the loss. This gives us the necessary flexibility
+		# # to mask out certain parameters by passing in multiple inputs to the Lambda layer.
+		# predictedQ = self.model.output
+		# correctQ = keras.layers.Input(name='correctQ', shape=(self.numActions,))
+		# mask = keras.layers.Input(name='mask', shape=(self.numActions,))
+		# lossOut = keras.layers.Lambda(clipped_masked_error, output_shape=(1,), name='loss')(
+		# 	[correctQ, predictedQ, mask])
+		# # this copies the existing model
+		# ins = [self.model.input] if type(self.model.input) is not list else self.model.input
+		# self.trainable_model = keras.models.Model(inputs=ins + [correctQ, mask], outputs=[lossOut, predictedQ])
+		# assert len(self.trainable_model.output_names) == 2
+		# combined_metrics = {self.trainable_model.output_names[1]: metrics}
+		# losses = [
+		# 	lambda correctQ, predictedQ: predictedQ,  # loss is computed in Lambda layer
+		# 	lambda correctQ, predictedQ: tf.keras.backend.zeros_like(predictedQ),
+		# 	# we only include this for the metrics
+		# ]
+		# self.trainable_model.compile(optimizer=self.optimizer, loss=losses, metrics=combined_metrics)
 
 	def predict(self, model, state):
 		# print("state", state, state.shape)
 		# return model.predict(state.reshape((1, 1, state.shape[0])))[0]
 		state = np.array(state, dtype=np.float).reshape((1,1,state.shape[0]))
-		print("predict: ", state)
+		# print("predict: ", state)
 		return model.predict(state)
 		# return self.model.predict(state.currentState.reshape((1, 1, state.stateCount)))[0]
 
@@ -254,8 +278,9 @@ class dqnAgent(qAgent):
 		self.latestMAE = metrics['accuracy']
 		self.latestMeanQ = 0# metrics[2]
 
-	def fit(self, beforeStates, actions, epochs, split=0.):
-		self.model.fit(x=beforeStates, y=actions, batch_size=int(actions.shape[0]/5), epochs=epochs, validation_split=split, use_multiprocessing=True, verbose=2)
+	def fit(self, beforeStates, actions, epochs, split=0., class_weights=None):
+		verbosity = 2 if debug.settings.enabled else 0
+		self.model.fit(x=beforeStates, y=actions, batch_size=5, epochs=epochs, validation_split=split, use_multiprocessing=True, verbose=verbosity, class_weight=class_weights)
 
 	def updateTargetModel(self):
 		self.targetModel.set_weights(self.model.get_weights())

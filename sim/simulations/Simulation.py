@@ -13,8 +13,6 @@ from sim.visualiser import visualiser
 queueLengths = list()
 # currentSimulation = None
 
-
-
 class BasicSimulation:
 	sharedAgent = None
 
@@ -54,7 +52,7 @@ class BasicSimulation:
 	offPolicy = None
 	jobCounter = None
 
-	def __init__(self, numDevices, maxJobs, systemStateClass, reconsiderBatches, agentClass, tasks, globalClock=True, allowExpansion=constants.ALLOW_EXPANSION, offPolicy=constants.OFF_POLICY, centralisedLearning=constants.CENTRALISED_LEARNING):
+	def __init__(self, numDevices, maxJobs, numEnergyLevels, systemStateClass, reconsiderBatches, agentClass, tasks, globalClock=True,  allowExpansion=constants.ALLOW_EXPANSION, offPolicy=constants.OFF_POLICY, centralisedLearning=constants.CENTRALISED_LEARNING, trainClassification=True):
 		hardwareAccelerated = True
 		self.episodeNumber = 0
 		self.allowExpansion = allowExpansion
@@ -75,14 +73,15 @@ class BasicSimulation:
 		self.tasks = tasks
 
 		# requires simulation to be populated
-		self.currentSystemState = systemStateClass(numDevices=numDevices, maxJobs=maxJobs, numTasks=len(tasks))
+		self.currentSystemState = systemStateClass(numDevices=numDevices, maxJobs=maxJobs, numTasks=len(tasks), numEnergyLevels=numEnergyLevels)
 		self.useSharedAgent = centralisedLearning
+		# TODO: trainClassification in distributed 
 		if self.useSharedAgent:
 			# create shared learning agent
 			debug.out("creating shared agent %s" % agentClass)
-			self.sharedAgent = agentClass(systemState=self.currentSystemState, reconsiderBatches=reconsiderBatches, owner=None, offPolicy=offPolicy)
+			self.sharedAgent = agentClass(systemState=self.currentSystemState, reconsiderBatches=reconsiderBatches, owner=None, offPolicy=offPolicy, trainClassification=trainClassification)
 			# TODO: need private state for non shared agent
-			print(self.sharedAgent)
+			if debug.settings.enabled: print(self.sharedAgent)
 			agentClass = self.sharedAgent
 
 
