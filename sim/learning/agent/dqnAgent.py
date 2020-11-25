@@ -278,9 +278,9 @@ class dqnAgent(qAgent):
 		self.latestMAE = metrics['accuracy']
 		self.latestMeanQ = 0# metrics[2]
 
-	def fit(self, beforeStates, actions, epochs, split=0., class_weights=None):
+	def fit(self, beforeStates, actions, epochs, split=0., class_weights=None, batch_size=5):
 		verbosity = 2 if debug.settings.enabled else 0
-		self.model.fit(x=beforeStates, y=actions, batch_size=5, epochs=epochs, validation_split=split, use_multiprocessing=True, verbose=verbosity, class_weight=class_weights)
+		self.model.fit(x=beforeStates, y=actions, batch_size=batch_size, epochs=epochs, validation_split=split, use_multiprocessing=True, verbose=verbosity, class_weight=class_weights)
 
 	def updateTargetModel(self):
 		self.targetModel.set_weights(self.model.get_weights())

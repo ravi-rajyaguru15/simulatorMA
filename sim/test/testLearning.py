@@ -20,12 +20,13 @@ from sklearn import metrics
 from sklearn.utils import class_weight
 
 
+# from tensorflow.python.client import device_lib
+# print(device_lib.list_local_devices())
 
 # %%
-
 CLASSIFICATION = False
-MAX_JOBS = 5
-NUM_ENERGY_STATES = 5
+MAX_JOBS = 15
+NUM_ENERGY_STATES = 10
 if CLASSIFICATION:
     LOSS = ['categorical_crossentropy']
 else:
@@ -112,7 +113,12 @@ else:
 # %%
 
 
-def singleThread(ID, depth, width, loss, results):
+def singleThread(ID, depth, width, loss, epochs, results):
+    # import tensorflow as tf
+    # import tensorflow.config.gpu
+    # tf.config.gpu.set_per_process_memory_growth(True)
+    # tf.debugging.set_log_device_placement(True)
+
     # create deep agent for learning
     dqnExp = SimpleSimulation(numDevices=2, maxJobs=MAX_JOBS, agentClass=dqnAgent, tasks=[
                               HARD], systemStateClass=minimalSystemState, scenarioTemplate=REGULAR_SCENARIO_ROUND_ROBIN, centralisedLearning=True, numEnergyLevels=NUM_ENERGY_STATES, trainClassification=CLASSIFICATION)
@@ -125,7 +131,7 @@ def singleThread(ID, depth, width, loss, results):
     deepAgent.loss = loss
     deepAgent.createModel(depth, width)
 
-    deepAgent.fit(trainingData, trainingTargetOneHot, epochs=100,
+    deepAgent.fit(trainingData, trainingTargetOneHot, epochs=epochs,
                   split=0.0, class_weights=class_weights_dict)
     if CLASSIFICATION:
         output = deepAgent.model.evaluate(trainingData, trainingTargetOneHot, verbose=0)
@@ -134,8 +140,14 @@ def singleThread(ID, depth, width, loss, results):
     predictions = deepAgent.model.predict_on_batch(trainingData)
     # print("evaluate: ", ID, output)
     if CLASSIFICATION: 
-        print(metrics.confusion_matrix(
-        trainingTarget, predictions.argmax(axis=1)))
+        confusion = metrics.confusion_matrix(
+        trainingTarget, predictions.argmax(axis=1))
+    else:
+        # print(trainingTargetOneHot.argmax(axis=1))
+        onehot = np.eye(np.shape(trainingTargetOneHot)[1])[trainingTargetOneHot.argmax(axis=1)]
+        # print(onehot)
+        # print(deepAgent.fullModel.predict_on_batch(trainingData).argmax(axis=1))
+        confusion = metrics.confusion_matrix(trainingTargetOneHot.argmax(axis=1), deepAgent.fullModel.predict_on_batch(trainingData).argmax(axis=1))
 
     # full estimate
     # print(deepAgent.model.predict_on_batch(trainingData))
@@ -144,22 +156,34 @@ def singleThread(ID, depth, width, loss, results):
     # deepAgent.model.summary()
     # deepAgent.fullModel.summary()
 
-    results.put((depth, width, loss, output[1]))
+    results.put((depth, width, loss, output[1], confusion, epochs))
 
 # print(deepAgent.predict(deepAgent.model, state.currentState))
 
 
-NUM_THREADS = 16
+
+NUM_CPUS = 64
+NUM_THREADS = 8
 processes = []
 results = multiprocessing.Queue()
 for i in range(NUM_THREADS):
-    for depth in [1,2,3,4,5,6,7,8]:
-        for width in [2,4,6,8,10,12]:
+    for depth in [1]: #,2]: #,3,4,5,6,7,8]:
+        for width in [10]: #[2,4,6,8,10,12]:
             for loss in LOSS:
-                newprocess = multiprocessing.Process(
-                    target=singleThread, args=(i, depth, width, loss, results, ))
-                newprocess.start()
-                processes.append(newprocess)
+                for epochs in [10, 50, 100, 1000, 10000]: 
+                    newprocess = multiprocessing.Process(
+                        target=singleThread, args=(i, depth, width, loss, epochs, results, ))
+                    # newprocess.start()
+                    processes.append(newprocess)
+
+# print("total processes:", len(processes))
+# print("initial processes")
+index = 0
+for i in range(min(NUM_CPUS, len(processes))):
+    processes[i].start()
+    index += 1
+
+# print("doing", index)
 
 print("\n\nresults:")
 collected = dict()
@@ -167,21 +191,32 @@ for i in range(len(processes)):
 
     # processes[i].join()
     result = results.get()
-    identifier = (result[2], result[0], result[1])
+    
+    # start more if available
+    if len(processes) > index:
+        processes[index].start()
+        index += 1
+        # print("started", index)
+
+    identifier = (result[2], result[0], result[1], result[5])
     if identifier not in collected:
         collected[identifier] = []
-    collected[identifier].append(result[3])
+    collected[identifier].append((result[3], result[4]))
 
 processed = dict()
 # print(collected)
 for key in collected:
-    avg = np.max(collected[key])
+    values = [things[0] for things in collected[key]]
+    avg = np.max(values)
+    favourite = collected[key][np.argmax(values)][1]
     if avg not in processed:
         processed[avg] = []
-    processed[avg].append(key)
+    processed[avg].append((key, favourite))
 
 keys = list(processed.keys())
 keys.sort()
 # print(keys)
 for key in keys:
-    print(key, processed[key])
+    acc, confusion = processed[key][0]
+    print(key, acc)
+    print(confusion)

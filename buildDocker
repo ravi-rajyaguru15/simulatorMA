@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 
 url=alwynburger/simulator:experiment
-docker build . -t $url
+docker build  --no-cache . -t $url 
 docker push $url

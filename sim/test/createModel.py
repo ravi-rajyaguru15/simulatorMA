@@ -19,7 +19,8 @@ from sim.experiments.experiment import executeMulti, setupMultithreading
 
 from sim.tasks.tasks import HARD, EASY
 
-maxjobs = 5
+maxjobs = 15
+numEnergyLevels = 10
 
 print("starting experiment")
 
@@ -34,7 +35,7 @@ numEpisodes = int(1e6)
 minimalTableAgent # , localAgent]
 agent = minimalTableAgent # [minimalAgent, lazyAgent]:
 centralised = True
-exp = SimpleSimulation(numDevices=2, maxJobs=maxjobs, agentClass=agent, tasks=[HARD], numEnergyLevels=5, systemStateClass=minimalSystemState, scenarioTemplate=REGULAR_SCENARIO_ROUND_ROBIN, centralisedLearning=centralised)
+exp = SimpleSimulation(numDevices=2, maxJobs=maxjobs, agentClass=agent, tasks=[HARD], numEnergyLevels=numEnergyLevels, systemStateClass=minimalSystemState, scenarioTemplate=REGULAR_SCENARIO_ROUND_ROBIN, centralisedLearning=centralised)
 print(exp.currentSystemState.uniqueStates)
 # exp.scenario.setInterval(1)
 exp.setBatterySize(1e-1)
