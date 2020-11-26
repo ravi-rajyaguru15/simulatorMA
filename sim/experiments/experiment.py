@@ -127,7 +127,7 @@ def assembleResults(resultsQueue, outputQueue, numResults=None):
 			h = std_err * 1.96 / math.sqrt(n) # scipy.stats.t.ppf((1 + confidence) / 2, n - 1)
 
 			outputGraphs[key][x] = (m, h)
-			print(ylist, key, x, outputGraphs[key][x], std_err) # , scipy.stats.t.ppf((1 + confidence) / 2, n - 1))
+			# print(ylist, key, x, outputGraphs[key][x], std_err) # , scipy.stats.t.ppf((1 + confidence) / 2, n - 1))
 		# print(outputGraphs[key][x])
 	# print ("processed")
 	outputQueue.put(outputGraphs)
@@ -280,6 +280,9 @@ def doOffloadJob(experiment, source, destination):
 	assert destination.currentJob is None
 
 def setupMultithreading():
+	import os
+	os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+
 	print(multiprocessing.get_start_method(allow_none=False))
 	multiprocessing.freeze_support()
 	if multiprocessing.get_start_method(allow_none=False) != 'spawn':

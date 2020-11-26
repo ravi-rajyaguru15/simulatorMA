@@ -7,27 +7,33 @@
 # %%
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+import tensorflow.python.util.deprecation as deprecation
+deprecation._PRINT_DEPRECATION_WARNINGS = False
 from sim.learning.state.minimalSystemState import minimalSystemState
 from sim.experiments.scenario import REGULAR_SCENARIO_ROUND_ROBIN
 from sim.tasks.tasks import HARD
 from sim.learning.agent.dqnAgent import dqnAgent
 from sim.learning.agent.minimalTableAgent import minimalTableAgent
 from sim.simulations.SimpleSimulation import SimpleSimulation
+from sim.simulations import localConstants
+
 import numpy as np
 np.set_printoptions(suppress=True, precision=2)
 import multiprocessing
 from sklearn import metrics
 from sklearn.utils import class_weight
+import keras.models
 
 
 # from tensorflow.python.client import device_lib
 # print(device_lib.list_local_devices())
 
 # %%
-CLASSIFICATION = False
-MAX_JOBS = 15
-NUM_ENERGY_STATES = 10
+CLASSIFICATION = True
+MAX_JOBS = 5
+NUM_ENERGY_STATES = 3
 if CLASSIFICATION:
+    # LOSS = ['mse']
     LOSS = ['categorical_crossentropy']
 else:
     LOSS = ['mse']
@@ -100,8 +106,12 @@ if CLASSIFICATION:
     class_weights = class_weight.compute_class_weight(
         'balanced', np.unique(trainingTarget), trainingTarget)
     class_weights_dict = dict()
-    for i in range(len(np.unique(trainingTarget))):
-        class_weights_dict[i] = class_weights[i]
+    for i in range(tableExp.sharedAgent.numActions):
+        if i in class_weights:
+            class_weights_dict[i] = class_weights[i]
+        else:
+            class_weights_dict[i] = 0
+    class_weights_dict = None # DISABLE WEIGHT BALANCE
 else:
     class_weights_dict = None
 # class_weights_dict = None
@@ -155,8 +165,11 @@ def singleThread(ID, depth, width, loss, epochs, results):
 
     # deepAgent.model.summary()
     # deepAgent.fullModel.summary()
-
-    results.put((depth, width, loss, output[1], confusion, epochs))
+    # print('done')
+    deepAgent.saveModel(ID)
+    result = (depth, width, loss, output[1], confusion, epochs, ID)
+    # print(result)
+    results.put(result)
 
 # print(deepAgent.predict(deepAgent.model, state.currentState))
 
@@ -166,31 +179,35 @@ NUM_CPUS = 64
 NUM_THREADS = 8
 processes = []
 results = multiprocessing.Queue()
+ID = 0
 for i in range(NUM_THREADS):
-    for depth in [1]: #,2]: #,3,4,5,6,7,8]:
-        for width in [10]: #[2,4,6,8,10,12]:
+    for depth in [1]: # [1,2,3,4,5,6,7,8]:
+        for width in [10]: # [2,4,6,8,10,12]:
             for loss in LOSS:
-                for epochs in [10, 50, 100, 1000, 10000]: 
+                for epochs in [10, 100, 1000]: # 10, 50, 100, , 10000
                     newprocess = multiprocessing.Process(
-                        target=singleThread, args=(i, depth, width, loss, epochs, results, ))
+                        target=singleThread, args=(ID, depth, width, loss, epochs, results, ))
+                    ID += 1
                     # newprocess.start()
                     processes.append(newprocess)
 
-# print("total processes:", len(processes))
+print("total processes:", len(processes))
 # print("initial processes")
 index = 0
 for i in range(min(NUM_CPUS, len(processes))):
     processes[i].start()
     index += 1
 
-# print("doing", index)
+print("doing", index)
 
 print("\n\nresults:")
 collected = dict()
 for i in range(len(processes)):
 
-    # processes[i].join()
+    # processes[i].join()\
+    # print("waiting for result")
     result = results.get()
+    # print("results", i)
     
     # start more if available
     if len(processes) > index:
@@ -201,22 +218,47 @@ for i in range(len(processes)):
     identifier = (result[2], result[0], result[1], result[5])
     if identifier not in collected:
         collected[identifier] = []
-    collected[identifier].append((result[3], result[4]))
+    collected[identifier].append((result[3], result[4], result[6]))
 
 processed = dict()
 # print(collected)
+print("collected:")
+print(collected.keys())
 for key in collected:
     values = [things[0] for things in collected[key]]
     avg = np.max(values)
-    favourite = collected[key][np.argmax(values)][1]
+    bestresult = collected[key][np.argmax(values)]
+    favourite = bestresult[1] # this is confusion matrix
+    bestid = bestresult[2]
     if avg not in processed:
         processed[avg] = []
-    processed[avg].append((key, favourite))
+    processed[avg].append((key, favourite, bestid))
 
 keys = list(processed.keys())
 keys.sort()
-# print(keys)
+print("keys:")
+print(keys)
 for key in keys:
-    acc, confusion = processed[key][0]
-    print(key, acc)
+    acc, confusion, id = processed[key][0]
+    print(key, acc, id)
     print(confusion)
+
+print('winning id', id)
+targetName = localConstants.OUTPUT_DIRECTORY + "dqnfullmodel.pickle"
+import os.path
+import shutil
+if os.path.exists(targetName):
+    shutil.rmtree(targetName)
+os.rename(localConstants.OUTPUT_DIRECTORY + f"/dqnfullmodel{id}.pickle", targetName)
+
+# delete unused models
+import glob
+models = glob.glob(localConstants.OUTPUT_DIRECTORY + "/dqnfullmodel*.pickle")
+# models.remove(targetName)
+print("avoid", targetName)
+for file in models:
+    if file != targetName:
+        # print("delete", file)
+        shutil.rmtree(file)
+    # else:
+    #     print("not delete", file)

@@ -14,10 +14,10 @@ import numpy as np
 # print (os.environ["DISPLAY"])
 import tikzplotlib as tikzplotlib
 import os
-print()
-print(os.path.abspath(os.curdir))
-print(sys.path)
-print()
+# print()
+# print(os.path.abspath(os.curdir))
+# print(sys.path)
+# print()
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -114,9 +114,14 @@ def plotMultiSeparate(name, results=None, ylim=None, ylabel=None, xlabel=None,
 
 figsize = (8, 8)
 def _plotMulti(name, results=None, ylim=None, ylabel=None, xlabel=None,
-						separate=False, plotErrors=True, title=None, logx=False, legend=None, order=True, subplots=False, subplotCodes=[], legendlocation='best'):
+						separate=False, plotErrors=True, title=None, logx=False, legend=None, order=True, subplots=False, subplotCodes=[], legendlocation='best', saveTimestamp=False):
 	# print("plotting!")
-	filename = "{}{}_{}".format(localConstants.OUTPUT_DIRECTORY, name, str(datetime.datetime.now()).replace(":", "."))
+	if saveTimestamp:
+		filename = f"{localConstants.OUTPUT_DIRECTORY}{name}_{str(datetime.datetime.now())}".replace(":", ".")
+	else:
+		filename = f"{localConstants.OUTPUT_DIRECTORY}{name}".replace(":", ".")
+
+		# filename = "{}{}_{}".format(localConstants.OUTPUT_DIRECTORY, name, str(datetime.datetime.now()).replace(":", "."))
 	try:
 		os.makedirs(localConstants.OUTPUT_DIRECTORY, exist_ok=True)
 	except FileExistsError:
@@ -204,6 +209,7 @@ def _plotMulti(name, results=None, ylim=None, ylabel=None, xlabel=None,
 		# print(graph)
 
 		for xIndex, value in graph.items():
+			# print(xIndex, value)
 			if isinstance(value, list):
 				for yi in value:
 					x.append(xIndex)
@@ -212,8 +218,16 @@ def _plotMulti(name, results=None, ylim=None, ylabel=None, xlabel=None,
 				x.append(xIndex)
 				y.append(value[0])
 				if plotErrors:
-					errors.append(value[1])
+					if isinstance(value[1], np.ndarray):
+						# TODO: no idea why this is an array
+						print("warning: errors are an array")
+						errors.append(np.average(value[1]))
+					else:
+						errors.append(value[1])
+				# print(xIndex, value[0], value[1])
 
+		# print(x)
+		# print(y)
 		sortedY = [k for _,k in sorted(zip(x, y))]
 		if plotErrors:
 			sortedErrors = [k for _,k in sorted(zip(x, errors))]
@@ -228,7 +242,9 @@ def _plotMulti(name, results=None, ylim=None, ylabel=None, xlabel=None,
 		if logx:
 			pp.xscale("log", nonposx='clip')
 		if plotErrors:
+			# print("errors:", sortedErrors)
 			pp.errorbar(sortedX, sortedY, yerr=sortedErrors)
+			# print(key, sortedX, sortedY, sortedErrors)
 		else:
 			pp.errorbar(sortedX, sortedY)
 

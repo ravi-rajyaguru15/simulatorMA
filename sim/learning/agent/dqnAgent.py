@@ -75,14 +75,16 @@ class dqnAgent(qAgent):
 
 		# output layers
 		if self.classification:
-			self.fullModel.add(keras.layers.Dense(self.numActions, activation='softmax', name='final'))
-			self.model = self.fullModel
+			self.fullModel.add(keras.layers.Dense(self.numActions, activation='relu', name='final'))
+
+			# self.fullModel.add(keras.layers.Dense(self.numActions, activation='softmax', name='final'))
+			# self.model = self.fullModel
 		else:
 			self.fullModel.add(keras.layers.Dense(self.numActions, activation='linear', name='final'))
-			self.fullModel.add(keras.layers.Softmax())
+		self.fullModel.add(keras.layers.Softmax())
 
 			# create a model that doesn't use the softmax
-			self.model = keras.Model(inputs=self.fullModel.input, outputs=self.fullModel.get_layer(name='final').output)
+		self.model = keras.Model(inputs=self.fullModel.input, outputs=self.fullModel.get_layer(name='final').output)
 
 		
 		if debug.settings.enabled:
@@ -137,13 +139,25 @@ class dqnAgent(qAgent):
 	def predict(self, model, state):
 		# print("state", state, state.shape)
 		# return model.predict(state.reshape((1, 1, state.shape[0])))[0]
-		state = np.array(state, dtype=np.float).reshape((1,1,state.shape[0]))
-		# print("predict: ", state)
-		return model.predict(state)
+		# state = np.array(state, dtype=np.float).reshape((1,1,state.shape[0]))
+		state = np.array(state, dtype=np.float).reshape((1, 2))
+		prediction = model.predict(state).flatten()
+		
+		# print()
+		# print("state:", state)
+		# print("predict: ", prediction)
+		# print()
+
+		return prediction
 		# return self.model.predict(state.currentState.reshape((1, 1, state.stateCount)))[0]
 
 	# def predictBatch(self, stateBatch):
 	# 	return self.model.predict_on_batch(stateBatch)
+
+	def setProductionMode(self, value=True):
+		debug.learnOut("switching dqn to production mode!", 'y')
+		self.productionMode = value
+		self.policy.eps = 0
 
 	def selectAction(self, systemState):
 		qValues = self.predict(self.model, systemState)
@@ -280,24 +294,35 @@ class dqnAgent(qAgent):
 
 	def fit(self, beforeStates, actions, epochs, split=0., class_weights=None, batch_size=5):
 		verbosity = 2 if debug.settings.enabled else 0
-		self.model.fit(x=beforeStates, y=actions, batch_size=batch_size, epochs=epochs, validation_split=split, use_multiprocessing=True, verbose=verbosity, class_weight=class_weights)
+
+		trainedModel = self.fullModel if self.classification else self.model
+
+		trainedModel.fit(x=beforeStates, y=actions, batch_size=batch_size, epochs=epochs, validation_split=split, use_multiprocessing=True, verbose=verbosity, class_weight=class_weights)
 
 	def updateTargetModel(self):
 		self.targetModel.set_weights(self.model.get_weights())
 
-	def saveModel(self):
-		keras.models.save_model(self.model, localConstants.OUTPUT_DIRECTORY + "/dqnmodel.pickle")
+	def saveModel(self, id=""):
+		keras.models.save_model(self.fullModel, localConstants.OUTPUT_DIRECTORY + f"/dqnfullmodel{id}.pickle")
+		# keras.models.save_model(self.model, localConstants.OUTPUT_DIRECTORY + f"/dqnmodel{id}.pickle")
+
 		if self.targetModel is not None:
 			keras.models.save_model(self.targetModel, localConstants.OUTPUT_DIRECTORY + "/dqntargetModel.pickle")
 
-	def loadModel(self):
-		if os.path.exists(localConstants.OUTPUT_DIRECTORY + "/dqnmodel.pickle"):
-			self.model = keras.models.load_model(localConstants.OUTPUT_DIRECTORY + "/dqnmodel.pickle")
+	def loadModel(self, id=""):
+		if os.path.exists(localConstants.OUTPUT_DIRECTORY + f"/dqnfullmodel{id}.pickle"):
+			# self.model = keras.models.load_model(localConstants.OUTPUT_DIRECTORY + f"/dqnmodel{id}.pickle")
+			self.fullModel = keras.models.load_model(localConstants.OUTPUT_DIRECTORY + "/dqnfullmodel.pickle")
+			self.model = keras.Model(inputs=self.fullModel.inputs, outputs=self.fullModel.get_layer('final').output)
 			if self.offPolicy:
 				self.targetModel = keras.models.load_model(localConstants.OUTPUT_DIRECTORY + "/dqntargetModel.pickle")
 			return True
 		else:
+			print("ERROR: Could not load model", id)
+			import sys
+			sys.exit(0)
 			return False
+
 def mean_q(correctQ, predictedQ):
 	return mean(max(predictedQ, axis=-1))
 
