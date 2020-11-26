@@ -31,7 +31,7 @@ finished = multiprocessing.Queue()
 
 localConstants.REPEATS = 1
 # localConstants.REPEATS = 8
-numEpisodes = int(1e3)
+numEpisodes = int(1e6)
 # agentsToTest = [minimalTableAgent]
 minimalTableAgent # , localAgent]
 agent = minimalTableAgent # [minimalAgent, lazyAgent]:

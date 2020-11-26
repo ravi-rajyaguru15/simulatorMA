@@ -102,7 +102,7 @@ class qTableAgent(qAgent):
 		else:
 			qValues = self.predict(index)
 			best = np.max(qValues)
-			print('\t', index, qValues, np.where(qValues == best))
+			# print('\t', index, qValues, np.where(qValues == best))
 			if len(np.where(qValues == best)) > 1:
 				print("identical choices", qValues)
 			indexes = np.where(qValues == best)[0]

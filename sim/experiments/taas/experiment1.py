@@ -3,7 +3,7 @@ import multiprocessing
 
 import sys
 import traceback
-
+import numpy as np
 
 from sim import debug, counters, plotting
 from sim.experiments.experiment import executeMulti
@@ -37,9 +37,10 @@ def runThread(numEpisodes, results, finished):
     tableExp.sharedAgent.setProductionMode()
     tableExp.setBatterySize(1e-1)
     tableExp.setFpgaIdleSleep(1e-3)
-
+    
 
     print("states:", tableExp.sharedAgent.systemState.uniqueStates)
+    duplicates = []
     # iterate through possible states
     for i in range(tableExp.sharedAgent.systemState.uniqueStates):
         # set state in both experiments
@@ -49,6 +50,9 @@ def runThread(numEpisodes, results, finished):
         # table
         agentName = tableExp.sharedAgent.__name__
         qvalues = tableExp.sharedAgent.predict(state)
+        print(np.where(qvalues == np.max(qvalues))[0])
+        if np.where(qvalues == np.max(qvalues))[0].shape[0] > 1:
+            duplicates.append(i)
         for j in range(tableExp.sharedAgent.numActions):
             result = [f"{agentName} {j}", i, qvalues[j]]
             results.put(result)
@@ -60,6 +64,8 @@ def runThread(numEpisodes, results, finished):
             result = [f"{agentName} {j}", i, qvalues[j]]
             results.put(result)
         # results.put([f"{agentName}", e, exp.getCurrentTime()])
+
+    print("DUPLICATES", duplicates)
 # except:
 #     debug.printCache()
 #     traceback.print_exc(file=sys.stdout)
