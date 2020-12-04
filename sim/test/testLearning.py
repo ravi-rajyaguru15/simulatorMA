@@ -5,24 +5,27 @@
 # To add a new cell, type '# %%'
 # To add a new markdown cell, type '# %% [markdown]'
 # %%
+import glob
+import shutil
+import os.path
+import keras.models
+from sklearn.utils import class_weight
+from sklearn import metrics
+import multiprocessing
+import numpy as np
+from sim.simulations import localConstants
+from sim.simulations.SimpleSimulation import SimpleSimulation
+from sim.learning.agent.minimalTableAgent import minimalTableAgent
+from sim.learning.agent.dqnAgent import dqnAgent
+from sim.tasks.tasks import HARD
+from sim.experiments.scenario import REGULAR_SCENARIO_ROUND_ROBIN
+from sim.learning.state.minimalSystemState import minimalSystemState
+import tensorflow.python.util.deprecation as deprecation
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-import tensorflow.python.util.deprecation as deprecation
 deprecation._PRINT_DEPRECATION_WARNINGS = False
-from sim.learning.state.minimalSystemState import minimalSystemState
-from sim.experiments.scenario import REGULAR_SCENARIO_ROUND_ROBIN
-from sim.tasks.tasks import HARD
-from sim.learning.agent.dqnAgent import dqnAgent
-from sim.learning.agent.minimalTableAgent import minimalTableAgent
-from sim.simulations.SimpleSimulation import SimpleSimulation
-from sim.simulations import localConstants
 
-import numpy as np
 np.set_printoptions(suppress=True, precision=2)
-import multiprocessing
-from sklearn import metrics
-from sklearn.utils import class_weight
-import keras.models
 
 
 # from tensorflow.python.client import device_lib
@@ -73,7 +76,8 @@ trainingData = np.zeros((NUM_SAMPLES, len(state.singles)))
 if CLASSIFICATION:
     trainingTarget = np.zeros((NUM_SAMPLES, ), dtype=np.int)
 else:
-    trainingTargetOneHot = np.zeros((NUM_SAMPLES, tableExp.sharedAgent.numActions), dtype=np.int)
+    trainingTargetOneHot = np.zeros(
+        (NUM_SAMPLES, tableExp.sharedAgent.numActions), dtype=np.int)
 
 for i in range(NUM_SAMPLES):
     # chosenJobs = np.random.randint(0, maxJobs)
@@ -111,7 +115,7 @@ if CLASSIFICATION:
             class_weights_dict[i] = class_weights[i]
         else:
             class_weights_dict[i] = 0
-    class_weights_dict = None # DISABLE WEIGHT BALANCE
+    class_weights_dict = None  # DISABLE WEIGHT BALANCE
 else:
     class_weights_dict = None
 # class_weights_dict = None
@@ -144,20 +148,24 @@ def singleThread(ID, depth, width, loss, epochs, results):
     deepAgent.fit(trainingData, trainingTargetOneHot, epochs=epochs,
                   split=0.0, class_weights=class_weights_dict)
     if CLASSIFICATION:
-        output = deepAgent.model.evaluate(trainingData, trainingTargetOneHot, verbose=0)
+        output = deepAgent.model.evaluate(
+            trainingData, trainingTargetOneHot, verbose=0)
     else:
-        output = deepAgent.fullModel.evaluate(trainingData,         trainingTargetOneHot.argmax(axis=1), verbose=0)
+        output = deepAgent.fullModel.evaluate(
+            trainingData,         trainingTargetOneHot.argmax(axis=1), verbose=0)
     predictions = deepAgent.model.predict_on_batch(trainingData)
     # print("evaluate: ", ID, output)
-    if CLASSIFICATION: 
+    if CLASSIFICATION:
         confusion = metrics.confusion_matrix(
-        trainingTarget, predictions.argmax(axis=1))
+            trainingTarget, predictions.argmax(axis=1))
     else:
         # print(trainingTargetOneHot.argmax(axis=1))
-        onehot = np.eye(np.shape(trainingTargetOneHot)[1])[trainingTargetOneHot.argmax(axis=1)]
+        onehot = np.eye(np.shape(trainingTargetOneHot)[1])[
+            trainingTargetOneHot.argmax(axis=1)]
         # print(onehot)
         # print(deepAgent.fullModel.predict_on_batch(trainingData).argmax(axis=1))
-        confusion = metrics.confusion_matrix(trainingTargetOneHot.argmax(axis=1), deepAgent.fullModel.predict_on_batch(trainingData).argmax(axis=1))
+        confusion = metrics.confusion_matrix(trainingTargetOneHot.argmax(
+            axis=1), deepAgent.fullModel.predict_on_batch(trainingData).argmax(axis=1))
 
     # full estimate
     # print(deepAgent.model.predict_on_batch(trainingData))
@@ -174,17 +182,16 @@ def singleThread(ID, depth, width, loss, epochs, results):
 # print(deepAgent.predict(deepAgent.model, state.currentState))
 
 
-
 NUM_CPUS = 64
 NUM_THREADS = 8
 processes = []
 results = multiprocessing.Queue()
 ID = 0
 for i in range(NUM_THREADS):
-    for depth in [1]: # [1,2,3,4,5,6,7,8]:
-        for width in [10]: # [2,4,6,8,10,12]:
+    for depth in [1]:  # [1,2,3,4,5,6,7,8]:
+        for width in [10]:  # [2,4,6,8,10,12]:
             for loss in LOSS:
-                for epochs in [10, 100, 1000]: # 10, 50, 100, , 10000
+                for epochs in [10, 100, 1000]:  # 10, 50, 100, , 10000
                     newprocess = multiprocessing.Process(
                         target=singleThread, args=(ID, depth, width, loss, epochs, results, ))
                     ID += 1
@@ -208,7 +215,7 @@ for i in range(len(processes)):
     # print("waiting for result")
     result = results.get()
     # print("results", i)
-    
+
     # start more if available
     if len(processes) > index:
         processes[index].start()
@@ -228,7 +235,7 @@ for key in collected:
     values = [things[0] for things in collected[key]]
     avg = np.max(values)
     bestresult = collected[key][np.argmax(values)]
-    favourite = bestresult[1] # this is confusion matrix
+    favourite = bestresult[1]  # this is confusion matrix
     bestid = bestresult[2]
     if avg not in processed:
         processed[avg] = []
@@ -245,14 +252,12 @@ for key in keys:
 
 print('winning id', id)
 targetName = localConstants.OUTPUT_DIRECTORY + "dqnfullmodel.pickle"
-import os.path
-import shutil
 if os.path.exists(targetName):
     shutil.rmtree(targetName)
-os.rename(localConstants.OUTPUT_DIRECTORY + f"/dqnfullmodel{id}.pickle", targetName)
+os.rename(localConstants.OUTPUT_DIRECTORY +
+          f"/dqnfullmodel{id}.pickle", targetName)
 
 # delete unused models
-import glob
 models = glob.glob(localConstants.OUTPUT_DIRECTORY + "/dqnfullmodel*.pickle")
 # models.remove(targetName)
 print("avoid", targetName)

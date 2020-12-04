@@ -201,6 +201,7 @@ def _plotMulti(name, results=None, ylim=None, ylabel=None, xlabel=None,
 
 		else:
 			legends.append(key)
+			
 		x, y = list(), list()
 		errors = list()
 
@@ -243,6 +244,9 @@ def _plotMulti(name, results=None, ylim=None, ylabel=None, xlabel=None,
 			pp.xscale("log", nonposx='clip')
 		if plotErrors:
 			# print("errors:", sortedErrors)
+			if len(errors) == 0:
+				print("FAKING ERRORS!!")
+				sortedErrors = np.zeros_like(np.array(sortedY))
 			pp.errorbar(sortedX, sortedY, yerr=sortedErrors)
 			# print(key, sortedX, sortedY, sortedErrors)
 		else:

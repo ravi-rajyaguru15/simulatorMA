@@ -53,7 +53,7 @@ class agent:
 
 	reconsiderBatches = None
 
-	def __init__(self, systemState, reconsiderBatches, owner=None, offPolicy=constants.OFF_POLICY):
+	def __init__(self, systemState, reconsiderBatches, owner=None, offPolicy=constants.OFF_POLICY, trainClassification=None):
 		self.systemState = systemState
 		# print("set systemstate to", systemState)
 		self.owner = owner  # owner none means shared
@@ -64,6 +64,8 @@ class agent:
 		self.productionMode = False
 		self.reset(0)
 		self.setReconsiderBatches(reconsiderBatches)
+
+		# classification is irrelevant here
 
 	def setReconsiderBatches(self, reconsiderBatches): self.reconsiderBatches = reconsiderBatches
 

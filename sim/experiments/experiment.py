@@ -51,7 +51,7 @@ def randomJobs(offloadingPolicy=ANYTHING, hw=True):
 
 # creates dictionary with (avg, std) for each x for each graph
 # takes results as input, 
-def assembleResults(resultsQueue, outputQueue, numResults=None):
+def assembleResults(resultsQueue, outputQueue, numResults=None, chooseBest=1.0):
 	# process results into dict
 	if numResults is None:
 		numResults = resultsQueue.qsize()
@@ -111,10 +111,43 @@ def assembleResults(resultsQueue, outputQueue, numResults=None):
 		for sample in graphs[name]:
 			graphs[name][sample] /= maximum
 
+	# find the best graphs
+	if chooseBest == 1.0:
+		reducedGraph = graphs
+	else:
+		reducedGraph = dict()
+		# populate full array so best can be chosen
+		for key, graph in graphs.items():
+			# print(f"choosing best {chooseBest} {chooseBest*len(graph[])}")
+			# print("key", key)
+			fullArray = []
+			for x, ylist in graph.items():
+				# print(x, len(ylist), ylist)
+				fullArray.append(ylist)
+			
+			fullArray = np.array(fullArray)
+			averages = np.average(fullArray, axis=0)
+			# print('avg', averages)
+			bestIndices = averages.argsort()[-int(chooseBest * fullArray.shape[1]):]
+			print(fullArray.shape)
+			print('best', bestIndices)
+
+			# grab only the best results
+			reducedGraph[key] = dict()
+			for x, ylist in graph.items():
+				reducedGraph[key][x] = np.array(ylist)[bestIndices].tolist()
+
+			# print(fullArray)
+			# print(fullArray.shape)
+
+		print(f'\n\n\n{graphs}\n\n{reducedGraph}\n\n')
+
+
+
 	# print("done with experiment")
 	# calculate means and averages
 	outputGraphs = dict()
-	for key, graph in graphs.items():
+	for key, graph in reducedGraph.items():
 		# turn each list into a (value, error) tuple
 		outputGraphs[key] = dict()
 		for x, ylist in graph.items():
@@ -187,7 +220,7 @@ def assembleResultsBasic(resultsQueue, outputQueue, numResults=None):
 
 # return outputGraphs
 
-def executeMulti(processes, results, finished, numResults=None, assembly=assembleResults):
+def executeMulti(processes, results, finished, numResults=None, assembly=assembleResults, chooseBest=1.0):
 	if numResults is None:
 		numResults = len(processes)
 
@@ -195,7 +228,7 @@ def executeMulti(processes, results, finished, numResults=None, assembly=assembl
 
 	# results consumption thread:
 	outputData = multiprocessing.Queue()
-	assemble = multiprocessing.Process(target=assembly, args=(results, outputData, numResults,))
+	assemble = multiprocessing.Process(target=assembly, args=(results, outputData, numResults, chooseBest,))
 	assemble.start()
 
 	# process simulation

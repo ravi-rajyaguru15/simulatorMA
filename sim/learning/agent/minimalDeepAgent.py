@@ -3,7 +3,7 @@ from sim.learning.agent.minimalAgent import minimalAgent
 
 
 class minimalDeepAgent(minimalAgent, dqnAgent):
-	__name__ = "Minimal Deep Agent"
+	__name__ = "Basic Deep Agent"
 	def __repr__(self): return "<%s>" % __name__
 
 

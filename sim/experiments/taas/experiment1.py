@@ -31,7 +31,7 @@ def runThread(numEpisodes, results, finished):
     dqnExp.setBatterySize(1e-1)
     dqnExp.setFpgaIdleSleep(1e-3)
 
-    tableExp = SimpleSimulation(numDevices=2, maxJobs=maxjobs, agentClass=minimalTableAgent, tasks=[HARD], systemStateClass=minimalSystemState, scenarioTemplate=REGULAR_SCENARIO_ROUND_ROBIN, centralisedLearning=True, numEnergyLevels=numEnergyStates, trainClassification=False)
+    tableExp = SimpleSimulation(numDevices=2, maxJobs=maxjobs, agentClass=minimalTableAgent, tasks=[HARD], systemStateClass=minimalSystemState, scenarioTemplate=REGULAR_SCENARIO_ROUND_ROBIN, centralisedLearning=True, numEnergyLevels=numEnergyStates, trainClassification=True)
     # exp.scenario.setInterval(1)
     tableExp.sharedAgent.loadModel()
     tableExp.sharedAgent.setProductionMode()

@@ -13,7 +13,7 @@ from sim import debug
 from sim.learning.agent.agent import agent
 from sim.learning.agent.qAgent import qAgent
 from sim.simulations import constants, localConstants
-
+from sim.learning.state.systemState import systemState
 
 class dqnAgent(qAgent):
 	__name__ = "Deep Q Agent"
@@ -24,6 +24,9 @@ class dqnAgent(qAgent):
 	metrics = None
 	classification = None
 	fullModel = None
+
+	trainingData = None
+	trainingTargets = None
 
 	def getPolicyMetrics(self):
 		return self.policy.metrics
@@ -53,6 +56,8 @@ class dqnAgent(qAgent):
 		# self.optimizer = keras.optimizers.Adam(lr=constants.LEARNING_RATE)
 		self.optimizer = keras.optimizers.RMSprop(lr=constants.LEARNING_RATE)
 
+		self.trainingData = []
+		self.trainingTargets = []
 
 		qAgent.__init__(self, systemState, reconsiderBatches=reconsiderBatches, owner=owner, offPolicy=offPolicy)
 
@@ -67,20 +72,19 @@ class dqnAgent(qAgent):
 
 		# hidden layers
 		for i in range(hiddenDepth):
-			self.fullModel.add(keras.layers.Dense(hiddenWidth, activation=self.activation))
-			self.fullModel.add(keras.layers.Dense(hiddenWidth, activation=self.activation))
+			self.fullModel.add(keras.layers.Dense(hiddenWidth, activation=self.activation, kernel_initializer='random_normal', bias_initializer='zeros'))
 
 		# # hidden layers
 		# self.model.add(keras.layers.Dense(4, activation='relu'))
 
 		# output layers
 		if self.classification:
-			self.fullModel.add(keras.layers.Dense(self.numActions, activation='relu', name='final'))
+			self.fullModel.add(keras.layers.Dense(self.numActions, activation='relu', name='final', kernel_initializer='random_normal', bias_initializer='zeros'))
 
 			# self.fullModel.add(keras.layers.Dense(self.numActions, activation='softmax', name='final'))
 			# self.model = self.fullModel
 		else:
-			self.fullModel.add(keras.layers.Dense(self.numActions, activation='linear', name='final'))
+			self.fullModel.add(keras.layers.Dense(self.numActions, activation='linear', name='final', kernel_initializer='random_normal', bias_initializer='zeros'))
 		self.fullModel.add(keras.layers.Softmax())
 
 			# create a model that doesn't use the softmax
@@ -89,6 +93,8 @@ class dqnAgent(qAgent):
 		
 		if debug.settings.enabled:
 			self.model.summary()
+		# self.model.summary()
+
 
 # intermediate_layer_model = Model(inputs=model.input,
 #                                  outputs=model.get_layer(layer_name).output)
@@ -164,12 +170,58 @@ class dqnAgent(qAgent):
 		return self.policy.select_action(q_values=qValues)
 
 	def trainModel(self, latestAction, reward, beforeState, afterState, finished):
-		return self.trainModelBatch(latestAction, reward, [[beforeState]], afterState, finished)
+		# print(f'training dqn model {latestAction} {reward} {beforeState} {afterState} {finished}')
+
+		return self.trainModelOnline(latestAction, reward, beforeState, afterState, finished)
+		# return self.trainModelBatch(latestAction, reward, [[beforeState]], afterState, finished)
+
+	def trainModelOnline(self, latestAction, reward, beforeStates, afterState, finished):
+		# old Q value
+		# directly based on trainModel from qTaleAgent
+		trainingModel = self.fullModel if self.classification else self.model
+		# Q before
+		beforeStates = np.array(beforeStates).reshape(1, beforeStates.shape[0])
+		beforeQ = trainingModel.predict(beforeStates)
+		# print(f"beforeQ {beforeQ}")
+		Qsa = beforeQ[0, latestAction]
+		# print (f"beforeQ {beforeQ}")
+		# Q after
+		if isinstance(afterState, systemState): afterState = afterState.currentState
+		afterState = np.array(afterState).reshape(1, afterState.shape[0])
+		maxQ = np.argmax(trainingModel.predict(afterState))
+		# calculate new Q
+		target = reward + constants.GAMMA * maxQ
+		increment = constants.LEARNING_RATE * (target - Qsa)
+		
+		# same update as qtable
+		targetQ = np.array(beforeQ)
+		targetQ[0, latestAction] = Qsa + increment
+
+		self.latestLoss = (target - Qsa) ** 2.
+		self.latestMeanQ = np.mean(beforeQ)
+
+		# learn this sample
+		# print(beforeStates)
+		beforeStates = beforeStates.reshape((1, beforeStates.shape[1]))
+		# print(beforeStates)
+		# print(targetQ)
+		targetQ = targetQ.reshape((1, targetQ.shape[1]))
+		# print(targetQ)
+
+		# print(beforeStates, targetQ)
+
+		if self.offPolicy:
+			self.trainingData.append(beforeStates)
+			self.trainingTargets.append(targetQ)
+		else:
+			trainingModel.train_on_batch(beforeStates, targetQ)
+	
 
 	def trainModelBatchOnline(self, latestAction, reward, beforeStates, afterState, finished):
 		assert self.trainable_model is not None
+		self.trainable_model = self.fullModel if self.classification else self.model
 
-		metrics = [np.nan for _ in self.metrics_names]
+		# metrics = [np.nan for _ in self.metrics_names]
 
 		# Compute the q_values given state1, and extract the maximum for each sample in the batch.
 		# We perform this prediction on the target_model instead of the model for reasons
@@ -179,7 +231,11 @@ class dqnAgent(qAgent):
 
 		# model = self.model if self.offPolicy else self.targetModel
 
-		target_q_values = self.predict(self.targetModel, self.systemState.currentState)
+		# target_q_values = self.predict(self.targetModel, self.systemState.currentState)
+		# target_q_values = self.predict(self.targetModel, self.systemState.currentState)
+		target_q_values = self.predict(self.model, self.systemState.currentState)
+
+
 		if self.offPolicy:
 			q_values = self.predict(self.model, self.systemState.currentState)
 			actions = np.argmax(q_values, axis=0)
@@ -215,9 +271,11 @@ class dqnAgent(qAgent):
 		x = [np.array(beforeStates)] + [targets, masks]
 		y = [dummy_targets, targets]
 
-		# print(x, "state:", beforeState, y)
+		print(x)
+		print("state:", beforeStates)
+		print(y)
 
-		self.trainable_model._make_train_function()
+		# self.trainable_model._make_train_function()
 		metrics = self.trainable_model.train_on_batch(x, y)
 		# metrics = metrics[1:3]
 		metrics = [metric for idx, metric in enumerate(metrics) if idx not in (1, 2)]  # throw away individual losses
@@ -300,7 +358,18 @@ class dqnAgent(qAgent):
 		trainedModel.fit(x=beforeStates, y=actions, batch_size=batch_size, epochs=epochs, validation_split=split, use_multiprocessing=True, verbose=verbosity, class_weight=class_weights)
 
 	def updateTargetModel(self):
-		self.targetModel.set_weights(self.model.get_weights())
+		trainedModel = self.fullModel if self.classification else self.model
+		self.trainingData = np.array(self.trainingData)
+		self.trainingTargets = np.array(self.trainingTargets)
+		
+		# print(self.trainingData.shape, self.trainingTargets.shape)
+		
+		trainedModel.fit(self.trainingData, self.trainingTargets,verbose=0, use_multiprocessing=True, workers=4)
+
+
+		self.trainingData, self.trainingTargets = [], []
+
+		# self.targetModel.set_weights(self.model.get_weights())
 
 	def saveModel(self, id=""):
 		keras.models.save_model(self.fullModel, localConstants.OUTPUT_DIRECTORY + f"/dqnfullmodel{id}.pickle")
@@ -310,6 +379,7 @@ class dqnAgent(qAgent):
 			keras.models.save_model(self.targetModel, localConstants.OUTPUT_DIRECTORY + "/dqntargetModel.pickle")
 
 	def loadModel(self, id=""):
+		print("\n\n\nWARNING: LOADING DQN MODEL\n\n\n")
 		if os.path.exists(localConstants.OUTPUT_DIRECTORY + f"/dqnfullmodel{id}.pickle"):
 			# self.model = keras.models.load_model(localConstants.OUTPUT_DIRECTORY + f"/dqnmodel{id}.pickle")
 			self.fullModel = keras.models.load_model(localConstants.OUTPUT_DIRECTORY + "/dqnfullmodel.pickle")

@@ -1,3 +1,7 @@
+#1. remove uncertain training data
+#3. update to online learning
+#4. hopefully match table perf with nn
+#5. expanding network
 
 import multiprocessing
 
