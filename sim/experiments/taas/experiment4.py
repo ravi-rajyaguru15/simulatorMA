@@ -38,7 +38,7 @@ def runThread(id, agent, numEpisodes, results, finished):
 
             agentName = exp.devices[0].agent.__name__
             result = [f"{agentName}", e, exp.numFinishedJobs]
-            print(result)
+            # print(result)
             results.put(result)
             # results.put([f"{agentName}", e, exp.getCurrentTime()])
     except:
@@ -82,7 +82,7 @@ def run(numEpisodes):
 if __name__ == "__main__":
     setupMultithreading()
     try:
-        run(1e3)
+        run(2e2)
     except:
         traceback.print_exc(file=sys.stdout)
 

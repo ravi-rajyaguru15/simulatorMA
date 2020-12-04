@@ -143,11 +143,14 @@ class qTableAgent(qAgent):
 	def expandField(self, field):
 		originalState = deepcopy(self.systemState)
 		originalModel = deepcopy(self.model)
+		# print("before", self.systemState.getUniqueStates())
 		self.systemState.expandField(field)
 		# print(originalState.getUniqueStates(), self.systemState.getUniqueStates())
-		self.model.expand()
+		# print("after", )
+
+		self.model.expand(self.systemState.getUniqueStates())
 		if self.offPolicy:
-			self.targetModel.expand()
+			self.targetModel.expand(self.systemState.getUniqueStates())
 		self.importQTable(sourceTable=originalModel, sourceSystemState=originalState)
 
 	def importQTable(self, sourceTable, sourceSystemState):
@@ -192,9 +195,9 @@ class qTable:
 	def __repr__(self): return self.name
 
 	# increase size of existing table
-	def expand(self):
-		self.stateCount *= 2
-		self.table = np.zeros((self.stateCount, self.actionCount)) + constants.INITIAL_Q
+	def expand(self, newStateCount):
+		self.stateCount = newStateCount
+		self.table = np.zeros((newStateCount, self.actionCount)) + constants.INITIAL_Q
 
 	def getQ(self, state, action=None):
 		if isinstance(state, discretisedSystemState):

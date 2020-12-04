@@ -3,6 +3,7 @@ import pickle
 
 import numpy as np
 import tensorflow as tf
+from copy import deepcopy
 
 from keras.backend import mean, max
 from rl.policy import EpsGreedyQPolicy
@@ -27,6 +28,8 @@ class dqnAgent(qAgent):
 
 	trainingData = None
 	trainingTargets = None
+
+	predictions = None
 
 	def getPolicyMetrics(self):
 		return self.policy.metrics
@@ -61,7 +64,7 @@ class dqnAgent(qAgent):
 
 		qAgent.__init__(self, systemState, reconsiderBatches=reconsiderBatches, owner=owner, offPolicy=offPolicy)
 
-	def createModel(self, hiddenDepth=2, hiddenWidth=4):
+	def createModel(self, hiddenDepth=1, hiddenWidth=10):
 		# create basic model
 		self.fullModel = keras.models.Sequential()
 		# self.model.add(keras.layers.Flatten(input_shape=(len(self.systemState.singles),))) 
@@ -96,6 +99,7 @@ class dqnAgent(qAgent):
 		# self.model.summary()
 
 
+
 # intermediate_layer_model = Model(inputs=model.input,
 #                                  outputs=model.get_layer(layer_name).output)
 
@@ -103,6 +107,8 @@ class dqnAgent(qAgent):
 		self.fullModel.compile(optimizer=self.optimizer, metrics=self.metrics, loss=self.loss)
 		
 		# self.createTrainableModel()
+		self.cachePredictions()
+
 
 	def createTrainableModel(self):
 		raise Exception("not implemented ")
@@ -142,12 +148,34 @@ class dqnAgent(qAgent):
 		# ]
 		# self.trainable_model.compile(optimizer=self.optimizer, loss=losses, metrics=combined_metrics)
 
+	def expandField(self, field):
+		originalState = deepcopy(self.systemState)
+		self.systemState.expandField(field)
+
+	def cachePredictions(self):
+		# perform predictions for all possible states 
+		# collect input states
+		# print("updating predictions")
+		inputStates = []
+		for i in range(self.systemState.getUniqueStates()):
+			inputStates.append(self.systemState.fromIndex(i).currentState)
+		inputStates = np.array(inputStates)
+		
+		# perform all predictions
+		listPredictions = self.model.predict_on_batch(inputStates)
+		# print(listPredictions)
+		# assemble dict
+		self.predictions = dict()
+		for i in range(self.systemState.getUniqueStates()):
+			self.predictions[i] = listPredictions[i]
+
 	def predict(self, model, state):
 		# print("state", state, state.shape)
 		# return model.predict(state.reshape((1, 1, state.shape[0])))[0]
 		# state = np.array(state, dtype=np.float).reshape((1,1,state.shape[0]))
 		state = np.array(state, dtype=np.float).reshape((1, 2))
-		prediction = model.predict(state).flatten()
+		prediction = self.predictions[self.systemState.getIndex(state)[0]]
+		# prediction = model.predict(state).flatten()
 		
 		# print()
 		# print("state:", state)
@@ -181,21 +209,30 @@ class dqnAgent(qAgent):
 		trainingModel = self.fullModel if self.classification else self.model
 		# Q before
 		beforeStates = np.array(beforeStates).reshape(1, beforeStates.shape[0])
-		beforeQ = trainingModel.predict(beforeStates)
+		
+		# beforeQ = trainingModel.predict(beforeStates)
+		beforeQ = self.predictions[afterState.getIndex(beforeStates)[0]]
+		
 		# print(f"beforeQ {beforeQ}")
-		Qsa = beforeQ[0, latestAction]
+		Qsa = beforeQ[latestAction]
 		# print (f"beforeQ {beforeQ}")
 		# Q after
-		if isinstance(afterState, systemState): afterState = afterState.currentState
-		afterState = np.array(afterState).reshape(1, afterState.shape[0])
-		maxQ = np.argmax(trainingModel.predict(afterState))
+		maxQ = np.argmax(self.predictions[afterState.getIndex()])
+
+		# if isinstance(afterState, systemState): afterState = afterState.currentState
+		# afterState = np.array(afterState).reshape(1, afterState.shape[0])
+
+		# # maxQ = np.argmax(trainingModel.predict(afterState))
+		# maxQold = np.argmax(trainingModel.predict(afterState))
+		# print(maxQold, maxQ)
+
 		# calculate new Q
 		target = reward + constants.GAMMA * maxQ
 		increment = constants.LEARNING_RATE * (target - Qsa)
 		
 		# same update as qtable
 		targetQ = np.array(beforeQ)
-		targetQ[0, latestAction] = Qsa + increment
+		targetQ[latestAction] = Qsa + increment
 
 		self.latestLoss = (target - Qsa) ** 2.
 		self.latestMeanQ = np.mean(beforeQ)
@@ -205,7 +242,8 @@ class dqnAgent(qAgent):
 		beforeStates = beforeStates.reshape((1, beforeStates.shape[1]))
 		# print(beforeStates)
 		# print(targetQ)
-		targetQ = targetQ.reshape((1, targetQ.shape[1]))
+		# print(targetQ.shape)
+		targetQ = targetQ.reshape((1, targetQ.shape[0]))
 		# print(targetQ)
 
 		# print(beforeStates, targetQ)
@@ -215,6 +253,7 @@ class dqnAgent(qAgent):
 			self.trainingTargets.append(targetQ)
 		else:
 			trainingModel.train_on_batch(beforeStates, targetQ)
+			self.cachePredictions()
 	
 
 	def trainModelBatchOnline(self, latestAction, reward, beforeStates, afterState, finished):
@@ -355,17 +394,25 @@ class dqnAgent(qAgent):
 
 		trainedModel = self.fullModel if self.classification else self.model
 
+		# print("\nfit", beforeStates.shape, actions.shape, '\n')
+		# print("FIT TRAIN")
+
 		trainedModel.fit(x=beforeStates, y=actions, batch_size=batch_size, epochs=epochs, validation_split=split, use_multiprocessing=True, verbose=verbosity, class_weight=class_weights)
 
 	def updateTargetModel(self):
+		# print("\n\nupdatetargetmodel")
+		# return
+		# sys.exit(0)
 		trainedModel = self.fullModel if self.classification else self.model
 		self.trainingData = np.array(self.trainingData)
 		self.trainingTargets = np.array(self.trainingTargets)
 		
+		self.trainingData = self.trainingData.reshape((self.trainingData.shape[0], self.trainingData.shape[2]))
+		self.trainingTargets = self.trainingTargets.reshape((self.trainingTargets.shape[0], self.trainingTargets.shape[2]))
 		# print(self.trainingData.shape, self.trainingTargets.shape)
-		
-		trainedModel.fit(self.trainingData, self.trainingTargets,verbose=0, use_multiprocessing=True, workers=4)
 
+		trainedModel.fit(self.trainingData, self.trainingTargets, verbose=0) # , use_multiprocessing=True, workers=4)
+		self.cachePredictions()
 
 		self.trainingData, self.trainingTargets = [], []
 

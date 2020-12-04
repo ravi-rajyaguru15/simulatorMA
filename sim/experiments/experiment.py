@@ -52,6 +52,8 @@ def randomJobs(offloadingPolicy=ANYTHING, hw=True):
 # creates dictionary with (avg, std) for each x for each graph
 # takes results as input, 
 def assembleResults(resultsQueue, outputQueue, numResults=None, chooseBest=1.0):
+	# is each experiment done in the right order...?
+	
 	# process results into dict
 	if numResults is None:
 		numResults = resultsQueue.qsize()
@@ -126,6 +128,13 @@ def assembleResults(resultsQueue, outputQueue, numResults=None, chooseBest=1.0):
 				fullArray.append(ylist)
 			
 			fullArray = np.array(fullArray)
+			print(fullArray)
+			if isinstance(fullArray[0], list):
+				newArray = np.zeros((fullArray.shape[0], len(fullArray[0])))
+				for i in range(fullArray.shape[0]):
+					newArray[i, :] = np.array(fullArray[i])
+				print(newArray)
+				fullArray = newArray
 			averages = np.average(fullArray, axis=0)
 			# print('avg', averages)
 			bestIndices = averages.argsort()[-int(chooseBest * fullArray.shape[1]):]

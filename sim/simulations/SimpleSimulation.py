@@ -22,7 +22,8 @@ class SimpleSimulation(BasicSimulation):
 	scenario = None
 
 	def __init__(self, numDevices=constants.NUM_DEVICES, jobInterval=constants.DEFAULT_TIME_INTERVAL, maxJobs=constants.MAX_JOBS, numEnergyLevels=constants.NUM_ENERGY_LEVELS, systemStateClass=extendedSystemState, agentClass=minimalTableAgent, allowExpansion=constants.ALLOW_EXPANSION, reconsiderBatches=False, tasks=constants.DEFAULT_TASK_GRAPH, offPolicy=constants.OFF_POLICY, scenarioTemplate=RANDOM_SCENARIO_RANDOM, centralisedLearning=constants.CENTRALISED_LEARNING, trainClassification=True):
-		BasicSimulation.__init__(self, numDevices=numDevices, maxJobs=maxJobs, reconsiderBatches=reconsiderBatches, numEnergyLevels=numEnergyLevels, systemStateClass=systemStateClass, agentClass=agentClass, globalClock=False, allowExpansion=allowExpansion, tasks=tasks, offPolicy=offPolicy, centralisedLearning=centralisedLearning, trainClassification=trainClassification)
+		BasicSimulation.__init__(self, numDevices=numDevices, maxJobs=maxJobs, reconsiderBatches=reconsiderBatches, numEnergyLevels=numEnergyLevels, systemStateClass=systemStateClass,
+		                         agentClass=agentClass, globalClock=False, allowExpansion=allowExpansion, tasks=tasks, offPolicy=offPolicy, centralisedLearning=centralisedLearning, trainClassification=trainClassification)
 		# remove the taskqueues as tasks are queued in sim
 		for dev in self.devices: dev.taskQueue = None
 
@@ -107,20 +108,23 @@ class SimpleSimulation(BasicSimulation):
 
 			# process new queued task here
 			# newTime, arguments = self.queue.get()
-			debug.out("graceful failure: %s" % [dev.gracefulFailure for dev in self.devices])
+			debug.out("graceful failure: %s" %
+			          [dev.gracefulFailure for dev in self.devices])
 			assert self.queue.qsize() > 0
 
 			if debug.settings.enabled:
 				print("before:")
 				self.printQueue()
-			debug.out("states before: {0}".format([[comp.getPowerState() for comp in dev.components] for dev in self.devices]), 'y')
+			debug.out("states before: {0}".format(
+			    [[comp.getPowerState() for comp in dev.components] for dev in self.devices]), 'y')
 
 			assert self.queue.qsize() > 0
 			nextTask = self.queue.get()
 			newTime = nextTask.priority
 			arguments = nextTask.item
 			# print("pop", newTime, arguments)
-			debug.out("new time %f %s %s" % (newTime, arguments, [dev.getNumSubtasks() for dev in self.devices]))
+			debug.out("new time %f %s %s" % (newTime, arguments, [
+			          dev.getNumSubtasks() for dev in self.devices]))
 			debug.out("remaining tasks: %d" % self.queue.qsize(), 'dg')
 
 			# temporarily cache tasks to print
@@ -142,20 +146,7 @@ class SimpleSimulation(BasicSimulation):
 				if np.max([dev.maxBatchLength() for dev in self.devices]) >= self.maxJobs - 1:
 					if self.maxJobs - 1 < constants.ABSOLUTE_MAX_JOBS:
 						# print("max jobs exceeded!")
-
-						beforeCount = self.currentSystemState.getUniqueStates()
-						# increase max jobs allowed
-						self.maxJobs += 1
-						for dev in self.devices: dev.maxJobs += 1
-						# print("increased maxjobs", self.devices[0].maxJobs)
-						field = "jobsInQueue"
-						assert field in self.currentSystemState.singles
-						# self.currentSystemState.expandField(field)
-						if self.sharedAgent is not None:
-							self.sharedAgent.expandField(field)
-						else:
-							for dev in self.devices: dev.agent.expandField(field)
-						debug.out("expanded states %d to %d" % (beforeCount, self.currentSystemState.getUniqueStates()))
+						self.expandState("jobsInQueue")
 
 			# print("popped time", newTime, arguments)
 
@@ -200,14 +191,20 @@ class SimpleSimulation(BasicSimulation):
 				# 	debug.out("nothing...")
 				# else:
 				debug.out("tasks before {0}".format(tasksBefore), 'r')
-				debug.out("have jobs:\t{0}".format([dev.hasJob() for dev in self.devices]), 'b')
-				debug.out("jobQueues:\t{0}".format([dev.getNumJobs() for dev in self.devices]), 'g')
+				debug.out("have jobs:\t{0}".format(
+				    [dev.hasJob() for dev in self.devices]), 'b')
+				debug.out("jobQueues:\t{0}".format(
+				    [dev.getNumJobs() for dev in self.devices]), 'g')
 				debug.out("batchLengths:\t{0}".format(self.batchLengths()), 'c')
-				debug.out("currentBatch:\t{0}".format([dev.currentBatch for dev in self.devices]))
-				debug.out("currentConfig:\t{0}".format([dev.getFpgaConfiguration() for dev in self.devices]))
-				debug.out("taskQueues:\t{0}".format([dev.getNumSubtasks() for dev in self.devices]), 'dg')
+				debug.out("currentBatch:\t{0}".format(
+				    [dev.currentBatch for dev in self.devices]))
+				debug.out("currentConfig:\t{0}".format(
+				    [dev.getFpgaConfiguration() for dev in self.devices]))
+				debug.out("taskQueues:\t{0}".format(
+				    [dev.getNumSubtasks() for dev in self.devices]), 'dg')
 				# debug.out("taskQueues:\t{0}".format([[task for task in dev.taskQueue] for dev in self.devices]), 'dg')
-				debug.out("states after: {0}".format([[comp.getPowerState() for comp in dev.components] for dev in self.devices]), 'y')
+				debug.out("states after: {0}".format(
+				    [[comp.getPowerState() for comp in dev.components] for dev in self.devices]), 'y')
 				debug.out("tasks after {0}".format(tasksAfter), 'r')
 
 				# if np.sum(self.currentDelays) > 0:
@@ -216,7 +213,20 @@ class SimpleSimulation(BasicSimulation):
 	# # if constants.DRAW_DEVICES:
 	# if self.frames % self.plotFrames == 0:
 	# 	self.visualiser.update()
-
+	def expandState(self, field):
+		beforeCount = self.currentSystemState.getUniqueStates()
+		# increase max jobs allowed
+		self.maxJobs += 1
+		for dev in self.devices: dev.maxJobs += 1
+		# print("increased maxjobs", self.devices[0].maxJobs)
+		assert field in self.currentSystemState.singles
+		# self.currentSystemState.expandField(field)
+		if self.sharedAgent is not None:
+			self.sharedAgent.expandField(field)
+		else:
+			for dev in self.devices: dev.agent.expandField(field)
+		debug.out("expanded states %d to %d" %
+					(beforeCount, self.currentSystemState.getUniqueStates()))
 	# progress += constants.TD
 
 	# add next job to be created for this device to backlog

@@ -5,6 +5,10 @@
 # To add a new cell, type '# %%'
 # To add a new markdown cell, type '# %% [markdown]'
 # %%
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+import tensorflow.python.util.deprecation as deprecation
+deprecation._PRINT_DEPRECATION_WARNINGS = False
 import glob
 import shutil
 import os.path
@@ -20,10 +24,6 @@ from sim.learning.agent.dqnAgent import dqnAgent
 from sim.tasks.tasks import HARD
 from sim.experiments.scenario import REGULAR_SCENARIO_ROUND_ROBIN
 from sim.learning.state.minimalSystemState import minimalSystemState
-import tensorflow.python.util.deprecation as deprecation
-import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-deprecation._PRINT_DEPRECATION_WARNINGS = False
 
 np.set_printoptions(suppress=True, precision=2)
 
@@ -72,12 +72,14 @@ numBatteryLevels = state.singlesDiscrete['energyRemaining']
 agent = tableExp.sharedAgent
 agent.setProductionMode()
 
-trainingData = np.zeros((NUM_SAMPLES, len(state.singles)))
+trainingData = []
+# trainingData = np.zeros((NUM_SAMPLES, len(state.singles)))
 if CLASSIFICATION:
-    trainingTarget = np.zeros((NUM_SAMPLES, ), dtype=np.int)
+    trainingTarget = []
+    # trainingTarget = np.zeros((NUM_SAMPLES, ), dtype=np.int)
 else:
-    trainingTargetOneHot = np.zeros(
-        (NUM_SAMPLES, tableExp.sharedAgent.numActions), dtype=np.int)
+    trainingTargetOneHot = []
+    # trainingTargetOneHot = np.zeros((NUM_SAMPLES, tableExp.sharedAgent.numActions), dtype=np.int)
 
 for i in range(NUM_SAMPLES):
     # chosenJobs = np.random.randint(0, maxJobs)
@@ -88,13 +90,30 @@ for i in range(NUM_SAMPLES):
 
     # get correct action
 
-    # add to datasets
-    trainingData[i, :] = np.array(state.currentState)
-    if CLASSIFICATION:
-        action = agent.selectAction(state.currentState)
-        trainingTarget[i] = action
-    else:
-        trainingTargetOneHot[i] = agent.predict(state)
+    # checking if state has clear winner
+    qvalues = agent.predict(state)
+    unique, counts = np.unique(qvalues, return_counts=True) 
+    print(qvalues, unique, counts, counts[np.argmax(unique)])
+    if counts[np.argmax(unique)] == 1:
+        # add to datasets
+        # trainingData[i, :] = np.array(state.currentState)
+        trainingData.append(np.array(state.currentState))
+        if CLASSIFICATION:
+            action = agent.selectAction(state.currentState)
+            # trainingTarget[i] = action
+            trainingTarget.append(action)
+        else:
+            # trainingTargetOneHot[i] = agent.predict(state)
+            trainingTargetOneHot.append(agent.predict(state))
+
+print("Training reduced from", state.getUniqueStates(), "to", len(trainingData))
+
+trainingData = np.array(trainingData)
+if CLASSIFICATION:
+    trainingTarget = np.array(trainingTarget)
+else:
+    trainingTargetOneHot = np.array(trainingTargetOneHot)
+
 # if CLASSIFICATION:
 #     print(trainingTarget)
 # else:
@@ -188,10 +207,10 @@ processes = []
 results = multiprocessing.Queue()
 ID = 0
 for i in range(NUM_THREADS):
-    for depth in [1]:  # [1,2,3,4,5,6,7,8]:
-        for width in [10]:  # [2,4,6,8,10,12]:
+    for depth in [1, 2, 3, 4]:  # [1,2,3,4,5,6,7,8]:
+        for width in [2, 4, 8, 10, 20]:  # [2,4,6,8,10,12]:
             for loss in LOSS:
-                for epochs in [10, 100, 1000]:  # 10, 50, 100, , 10000
+                for epochs in [1, 10, 100, 1000, 10000]:  # 10, 50, 100, , 10000
                     newprocess = multiprocessing.Process(
                         target=singleThread, args=(ID, depth, width, loss, epochs, results, ))
                     ID += 1
