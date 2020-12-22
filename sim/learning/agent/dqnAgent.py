@@ -30,6 +30,7 @@ class dqnAgent(qAgent):
 	trainingTargets = None
 
 	predictions = None
+	precache = None
 
 	def getPolicyMetrics(self):
 		return self.policy.metrics
@@ -46,12 +47,13 @@ class dqnAgent(qAgent):
 
 		return names
 
-	def __init__(self, systemState, reconsiderBatches, allowExpansion=constants.ALLOW_EXPANSION, owner=None, offPolicy=constants.OFF_POLICY, loss='binary_crossentropy', activation='relu', metrics=['accuracy'], trainClassification=True):
+	def __init__(self, systemState, reconsiderBatches, allowExpansion=constants.ALLOW_EXPANSION, owner=None, offPolicy=constants.OFF_POLICY, loss='binary_crossentropy', activation='relu', metrics=['accuracy'], trainClassification=True, precache=True):
 		self.gamma = constants.GAMMA
 		self.loss = loss
 		self.activation = activation
 		self.metrics = metrics
 		self.classification = trainClassification
+		self.precache = precache
 
 		debug.out("DQN agent created")
 		self.policy = EpsGreedyQPolicy(eps=constants.EPS)
@@ -107,7 +109,11 @@ class dqnAgent(qAgent):
 		self.fullModel.compile(optimizer=self.optimizer, metrics=self.metrics, loss=self.loss)
 		
 		# self.createTrainableModel()
-		self.cachePredictions()
+		if self.precache:
+			self.cachePredictions()
+		else:
+			self.predictions = dict()
+		
 
 
 	def createTrainableModel(self):
@@ -151,6 +157,10 @@ class dqnAgent(qAgent):
 	def expandField(self, field):
 		originalState = deepcopy(self.systemState)
 		self.systemState.expandField(field)
+		if self.precache:
+			self.cachePredictions()
+		else:
+			self.predictions = dict()
 
 	def cachePredictions(self):
 		# perform predictions for all possible states 
@@ -160,6 +170,8 @@ class dqnAgent(qAgent):
 		for i in range(self.systemState.getUniqueStates()):
 			inputStates.append(self.systemState.fromIndex(i).currentState)
 		inputStates = np.array(inputStates)
+
+		# print("inputStates", inputStates)
 		
 		# perform all predictions
 		listPredictions = self.model.predict_on_batch(inputStates)
@@ -170,23 +182,19 @@ class dqnAgent(qAgent):
 			self.predictions[i] = listPredictions[i]
 
 	def predict(self, model, state):
-		# print("state", state, state.shape)
-		# return model.predict(state.reshape((1, 1, state.shape[0])))[0]
-		# state = np.array(state, dtype=np.float).reshape((1,1,state.shape[0]))
 		state = np.array(state, dtype=np.float).reshape((1, 2))
-		prediction = self.predictions[self.systemState.getIndex(state)[0]]
-		# prediction = model.predict(state).flatten()
-		
-		# print()
-		# print("state:", state)
-		# print("predict: ", prediction)
-		# print()
+		if self.precache:
+			prediction = self.predictions[self.systemState.getIndex(state)[0]]
+		else:
+			# check if prediction is available
+			key = str(state)
+			# print("key", key, state)
+			if key not in self.predictions:
+				self.predictions[key] = self.model.predict(state)[0]
+				print("adding prediction", key, self.predictions[key])
+			prediction = self.predictions[key]
 
 		return prediction
-		# return self.model.predict(state.currentState.reshape((1, 1, state.stateCount)))[0]
-
-	# def predictBatch(self, stateBatch):
-	# 	return self.model.predict_on_batch(stateBatch)
 
 	def setProductionMode(self, value=True):
 		debug.learnOut("switching dqn to production mode!", 'y')
@@ -253,7 +261,10 @@ class dqnAgent(qAgent):
 			self.trainingTargets.append(targetQ)
 		else:
 			trainingModel.train_on_batch(beforeStates, targetQ)
-			self.cachePredictions()
+			if self.precache:
+				self.cachePredictions()
+			else:
+				self.predictions = dict()
 	
 
 	def trainModelBatchOnline(self, latestAction, reward, beforeStates, afterState, finished):
@@ -400,21 +411,25 @@ class dqnAgent(qAgent):
 		trainedModel.fit(x=beforeStates, y=actions, batch_size=batch_size, epochs=epochs, validation_split=split, use_multiprocessing=True, verbose=verbosity, class_weight=class_weights)
 
 	def updateTargetModel(self):
-		# print("\n\nupdatetargetmodel")
 		# return
 		# sys.exit(0)
-		trainedModel = self.fullModel if self.classification else self.model
-		self.trainingData = np.array(self.trainingData)
-		self.trainingTargets = np.array(self.trainingTargets)
-		
-		self.trainingData = self.trainingData.reshape((self.trainingData.shape[0], self.trainingData.shape[2]))
-		self.trainingTargets = self.trainingTargets.reshape((self.trainingTargets.shape[0], self.trainingTargets.shape[2]))
-		# print(self.trainingData.shape, self.trainingTargets.shape)
+		if not self.productionMode:
+			print("\n\nupdatetargetmodel")
+			trainedModel = self.fullModel if self.classification else self.model
+			self.trainingData = np.array(self.trainingData)
+			self.trainingTargets = np.array(self.trainingTargets)
+			
+			self.trainingData = self.trainingData.reshape((self.trainingData.shape[0], self.trainingData.shape[2]))
+			self.trainingTargets = self.trainingTargets.reshape((self.trainingTargets.shape[0], self.trainingTargets.shape[2]))
+			# print(self.trainingData.shape, self.trainingTargets.shape)
 
-		trainedModel.fit(self.trainingData, self.trainingTargets, verbose=0) # , use_multiprocessing=True, workers=4)
-		self.cachePredictions()
+			trainedModel.fit(self.trainingData, self.trainingTargets, verbose=0) # , use_multiprocessing=True, workers=4)
+			if self.precache:
+				self.cachePredictions()
+			else:
+				self.predictions = dict()
 
-		self.trainingData, self.trainingTargets = [], []
+			self.trainingData, self.trainingTargets = [], []
 
 		# self.targetModel.set_weights(self.model.get_weights())
 
@@ -426,8 +441,8 @@ class dqnAgent(qAgent):
 			keras.models.save_model(self.targetModel, localConstants.OUTPUT_DIRECTORY + "/dqntargetModel.pickle")
 
 	def loadModel(self, id=""):
-		print("\n\n\nWARNING: LOADING DQN MODEL\n\n\n")
-		if os.path.exists(localConstants.OUTPUT_DIRECTORY + f"/dqnfullmodel{id}.pickle"):
+		# print("\n\n\nWARNING: LOADING DQN MODEL\n\n\n")
+		if os.path.exists(localConstants.OUTPUT_DIRECTORY + f"dqnfullmodel{id}.pickle"):
 			# self.model = keras.models.load_model(localConstants.OUTPUT_DIRECTORY + f"/dqnmodel{id}.pickle")
 			self.fullModel = keras.models.load_model(localConstants.OUTPUT_DIRECTORY + "/dqnfullmodel.pickle")
 			self.model = keras.Model(inputs=self.fullModel.inputs, outputs=self.fullModel.get_layer('final').output)

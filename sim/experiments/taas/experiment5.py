@@ -13,6 +13,7 @@ from sim.learning.agent.minimalTableAgent import minimalTableAgent
 from sim.learning.agent.minimalDeepAgent import minimalDeepAgent
 from sim.learning.agent.randomAgent import randomAgent
 from sim.learning.state.minimalSystemState import minimalSystemState
+from sim.learning.state.basicSystemState import basicSystemState
 from sim.learning.state.extendedSystemState import extendedSystemState
 from sim.simulations import localConstants, constants
 from sim.simulations.SimpleSimulation import SimpleSimulation
@@ -20,85 +21,87 @@ from sim.experiments.experiment import executeMulti, setupMultithreading
 from sim.experiments.experiment import assembleResultsBasic, assembleResults
 
 from sim.tasks.tasks import HARD
-maxjobs = 2
+maxjobs = 5
 numEnergyStates = 3
 
 
-def runThread(id, agent, numPhases, numEpisodes, results, finished):
-    exp = SimpleSimulation(numDevices=2, maxJobs=maxjobs, agentClass=agent, tasks=[
-                           HARD], systemStateClass=extendedSystemState, scenarioTemplate=REGULAR_SCENARIO_ROUND_ROBIN, centralisedLearning=True, numEnergyLevels=numEnergyStates, trainClassification=False, offPolicy=True, allowExpansion=False)
+def runThread(id, agent, systemState, productionMode, numPhases, numEpisodes, results, finished):
+	exp = SimpleSimulation(numDevices=4, maxJobs=maxjobs, agentClass=agent, tasks=[HARD], systemStateClass=systemState, scenarioTemplate=REGULAR_SCENARIO_ROUND_ROBIN, centralisedLearning=True, numEnergyLevels=numEnergyStates, trainClassification=True, offPolicy=False, allowExpansion=False)
 
-    exp.setBatterySize(1e-1)
-    exp.setFpgaIdleSleep(1e-3)
+	exp.setBatterySize(1e-1)
+	exp.setFpgaIdleSleep(1e-3)
+	exp.sharedAgent.setProductionMode(productionMode)
 
-    e = None
-    overallEpisode = 0
-    try:
-        for phase in range(numPhases):
-            for e in range(numEpisodes):
-                debug.infoEnabled = False
-                exp.simulateEpisode(e)
+	e = None
+	overallEpisode = 0
+	try:
+		for phase in range(numPhases):
+			for e in range(numEpisodes):
+				debug.infoEnabled = False
+				exp.simulateEpisode(e)
 
-                agentName = exp.devices[0].agent.__name__
-                result = [f"{agentName}", overallEpisode + e, exp.numFinishedJobs]
-                # print(result)
-                results.put(result)
-                # results.put([f"{agentName}", e, exp.getCurrentTime()])
+				agentName = exp.devices[0].agent.__name__
+				result = [f"{agentName} {productionMode}", overallEpisode +
+						  e, exp.numFinishedJobs]
+				results.put(result)
+				# results.put([f"{agentName}", e, exp.getCurrentTime()])
 
-            # check if not the last one 
-            if phase < numPhases - 1:
-                beforeStates = exp.currentSystemState.getUniqueStates()
-                for i in range(10):
-                    exp.expandState("jobsInQueue")
-                
-                # print("\nexpand:", beforeStates, exp.currentSystemState.getUniqueStates())
-                # print()
-            overallEpisode += numEpisodes
-    except:
-        debug.printCache()
-        traceback.print_exc(file=sys.stdout)
-        print(agent, e)
-        print("Error in experiment :", exp.time)
-        sys.exit(0)
+			# check if not the last one
+			if phase < numPhases - 1:
+				beforeStates = exp.currentSystemState.getUniqueStates()
+				for i in range(5):
+					exp.expandState("jobsInQueue")
 
-    finished.put(True)
+				# print("\nexpand:", beforeStates, exp.currentSystemState.getUniqueStates())
+				# print()
+			overallEpisode += numEpisodes
+	except:
+		debug.printCache()
+		traceback.print_exc(file=sys.stdout)
+		print(agent, e)
+		print("Error in experiment :", exp.time)
+		sys.exit(0)
+
+	finished.put(True)
 
 
 def run(numEpisodes):
-    print("starting experiment")
+	print("starting experiment")
 
-    processes = list()
-    results = multiprocessing.Queue()
-    finished = multiprocessing.Queue()
+	processes = list()
+	results = multiprocessing.Queue()
+	finished = multiprocessing.Queue()
 
-    localConstants.REPEATS = 8
-    numEpisodes = int(numEpisodes)
-    agentsToTest = [minimalTableAgent] # minimalDeepAgent,
-    # agentsToTest = [minimalTableAgent, randomAgent] # minimalTableAgent, , localAgent]
+	localConstants.REPEATS = 8
+	numEpisodes = int(numEpisodes)
+	# , ]minimalTableAgent
+	agentsToTest = [(minimalDeepAgent, minimalSystemState), (minimalTableAgent, minimalSystemState)]
+	# agentsToTest = [minimalTableAgent, randomAgent] # minimalTableAgent, , localAgent]
 
-    numPhases = 2
-    for agent in agentsToTest:  # [minimalAgent, lazyAgent]:
-        for _ in range(localConstants.REPEATS):
-            for centralised in [True]:
-                if not (not centralised and agent is randomAgent):
-                    processes.append(multiprocessing.Process(target=runThread, args=(
-                        len(processes), agent, numPhases, numEpisodes, results, finished)))
-                else:
-                    processes.append(multiprocessing.Process(target=runThread, args=(
-                        len(processes), agent, numPhases, numEpisodes, results, finished)))
+	numPhases = int(5e1)
+	for agent, systemState in agentsToTest:  # [minimalAgent, lazyAgent]:
+		for production in [True, False]:
+			for _ in range(localConstants.REPEATS):
+				for centralised in [True]:
+					# if not (not centralised and agent is randomAgent):
+					processes.append(multiprocessing.Process(target=runThread, args=(
+						len(processes), agent, systemState, production, numPhases, numEpisodes, results, finished)))
+					# else:
+					#     processes.append(multiprocessing.Process(target=runThread, args=(
+					#         len(processes), agent, numPhases, numEpisodes, results, finished)))
 
-    results = executeMulti(processes, results, finished, numResults=len(
-        processes) * numPhases * numEpisodes, assembly=assembleResults, chooseBest=1.0)
+	results = executeMulti(processes, results, finished, numResults=len(
+		processes) * numPhases * numEpisodes, assembly=assembleResults, chooseBest=1.0)
 
-    # plotting.plotMultiWithErrors("experiment1", title="experiment 1", results=results, ylabel="", xlabel="Episode #")  # , save=True)
-    plotting.plotMultiWithErrors("experiment5", title="experiment 5", results=results, ylabel="Job #", xlabel="Episode #")  # , save=True)
+	# plotting.plotMultiWithErrors("experiment1", title="experiment 1", results=results, ylabel="", xlabel="Episode #")  # , save=True)
+	plotting.plotMultiWithErrors("experiment5", title="experiment 5", results=results, ylabel="Job #", xlabel="Episode #")  # , save=True)
 
 
 if __name__ == "__main__":
-    setupMultithreading()
-    try:
-        run(2e2)
-    except:
-        traceback.print_exc(file=sys.stdout)
+	setupMultithreading()
+	try:
+		run(1e1)
+	except:
+		traceback.print_exc(file=sys.stdout)
 
-        print("ERROR")
+		print("ERROR")

@@ -26,14 +26,14 @@ maxjobs = 5
 numEnergyStates = 3
 
 def runThread(numEpisodes, results, finished):
-    dqnExp = SimpleSimulation(numDevices=2, maxJobs=maxjobs, agentClass=dqnAgent, tasks=[HARD], systemStateClass=minimalSystemState, scenarioTemplate=REGULAR_SCENARIO_ROUND_ROBIN, centralisedLearning=True, numEnergyLevels=numEnergyStates, trainClassification=False)
+    dqnExp = SimpleSimulation(numDevices=4, maxJobs=maxjobs, agentClass=dqnAgent, tasks=[HARD], systemStateClass=minimalSystemState, scenarioTemplate=REGULAR_SCENARIO_ROUND_ROBIN, centralisedLearning=True, numEnergyLevels=numEnergyStates, trainClassification=False)
     # exp.scenario.setInterval(1)
     dqnExp.sharedAgent.loadModel()
     dqnExp.sharedAgent.setProductionMode()
     dqnExp.setBatterySize(1e-1)
     dqnExp.setFpgaIdleSleep(1e-3)
 
-    tableExp = SimpleSimulation(numDevices=2, maxJobs=maxjobs, agentClass=minimalTableAgent, tasks=[HARD], systemStateClass=minimalSystemState, scenarioTemplate=REGULAR_SCENARIO_ROUND_ROBIN, centralisedLearning=True, numEnergyLevels=numEnergyStates, trainClassification=False)
+    tableExp = SimpleSimulation(numDevices=4, maxJobs=maxjobs, agentClass=minimalTableAgent, tasks=[HARD], systemStateClass=minimalSystemState, scenarioTemplate=REGULAR_SCENARIO_ROUND_ROBIN, centralisedLearning=True, numEnergyLevels=numEnergyStates, trainClassification=False)
     # exp.scenario.setInterval(1)
     tableExp.sharedAgent.loadModel()
     tableExp.sharedAgent.setProductionMode()
@@ -90,7 +90,7 @@ def run(numEpisodes):
     results = executeMulti(processes, results, finished, numResults=len(processes) * numEnergyStates * (maxjobs + 1) * 2)
 
     # plotting.plotMultiWithErrors("experiment1", title="experiment 1", results=results, ylabel="", xlabel="Episode #")  # , save=True)
-    plotting.plotMultiWithErrors("experiment2", title="experiment 1", results=results, ylabel="Chosen Action", xlabel="State Index")  # , save=True)
+    plotting.plotMultiWithErrors("experiment2", title="experiment 2", results=results, ylabel="Chosen Action", xlabel="State Index")  # , save=True)
     
 
 if __name__ == "__main__":

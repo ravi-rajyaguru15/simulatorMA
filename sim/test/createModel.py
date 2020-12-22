@@ -38,7 +38,7 @@ numEpisodes = int(1e3)
 minimalTableAgent # , localAgent]
 agent = minimalTableAgent # [minimalAgent, lazyAgent]:
 centralised = True
-exp = SimpleSimulation(numDevices=2, maxJobs=maxjobs, agentClass=agent, tasks=[HARD], numEnergyLevels=numEnergyLevels, systemStateClass=minimalSystemState, scenarioTemplate=REGULAR_SCENARIO_ROUND_ROBIN, centralisedLearning=centralised, trainClassification=CLASSIFICATION)
+exp = SimpleSimulation(numDevices=4, maxJobs=maxjobs, agentClass=agent, tasks=[HARD], numEnergyLevels=numEnergyLevels, systemStateClass=minimalSystemState, scenarioTemplate=REGULAR_SCENARIO_ROUND_ROBIN, centralisedLearning=centralised, trainClassification=CLASSIFICATION)
 print(exp.currentSystemState.uniqueStates)
 # exp.scenario.setInterval(1)
 exp.setBatterySize(1e-1)

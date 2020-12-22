@@ -34,17 +34,19 @@ if __name__ == "__main__":
 	systemStateClass = minimalSystemState if basic else extendedSystemState
 
 	for agent in [minimalDeepAgent]: # lazyTableAgent
-		exp = SimpleSimulation(numDevices=2, maxJobs=2, reconsiderBatches=False, tasks=[HARD], agentClass=agent, centralisedLearning=True, systemStateClass=systemStateClass, scenarioTemplate=REGULAR_SCENARIO_ROUND_ROBIN, trainClassification=False)
-		exp.sharedAgent.createModel(2, 8)
+		exp = SimpleSimulation(numDevices=4, maxJobs=5, reconsiderBatches=False, tasks=[HARD], agentClass=agent, centralisedLearning=True, systemStateClass=systemStateClass, scenarioTemplate=REGULAR_SCENARIO_ROUND_ROBIN, trainClassification=False)
+		# exp.sharedAgent.createModel(2, 8)
+		exp.sharedAgent.loadModel()
+		exp.sharedAgent.setProductionMode()
 		exp.scenario.setInterval(1)
 		exp.setFpgaIdleSleep(1e-3)
 		exp.setBatterySize(1e-1)
-		print("pretraining...")
-		numrepeats = 1e5 if long else 1
-		for i in range(int(numrepeats)): # change this to train longer (i'm using 1e3 to get a decent view)
-			debug.learnOut('\n')
-			exp.simulateEpisode(i)
-			debug.learnOut('\n')
+		# print("pretraining...")
+		# numrepeats = 1e5 if long else 1
+		# for i in range(int(numrepeats)): # change this to train longer (i'm using 1e3 to get a decent view)
+		# 	debug.learnOut('\n')
+		# 	exp.simulateEpisode(i)
+		# 	debug.learnOut('\n')
 
 		# print("testing")
 
@@ -54,7 +56,7 @@ if __name__ == "__main__":
 		# debug.settings.infoEnabled = True
 
 		# exp.setFpgaIdleSleep(1e-3)
-		# exp.simulateEpisode()
+		exp.simulateEpisode(0)
 
 		# print(exp.sharedAgent.__name__)
 		# print([device.totalSleepTime / device.currentTime.current for device in exp.devices])
