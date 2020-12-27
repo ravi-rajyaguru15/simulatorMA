@@ -130,8 +130,9 @@ class agent:
 		# self.numOptions = len(self.possibleActions)
 		self.numActions = len(self.possibleActions)
 
-		# needs numActions
-		self.createModel()
+		# new model is created because it uses numActions
+		# self.createModel()
+
 
 		self.devices = devices
 
@@ -140,6 +141,10 @@ class agent:
 
 	def updateTargetModel(self):
 		raise self.genericException
+
+	def updateModel(self):
+		raise self.genericException
+
 
 	# self.history = sim.history.history()
 	# def setDevices(self, devices):

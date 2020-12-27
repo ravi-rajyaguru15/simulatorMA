@@ -100,7 +100,7 @@ def assembleResults(resultsQueue, outputQueue, numResults=None, chooseBest=1.0):
 		if not normaliseDict[name]: continue
 
 		graphDict = graphs[name]
-		print("\n\n\n\nGraphDict:", name, graphDict)
+		# print("\n\n\n\nGraphDict:", name, graphDict)
 		maxDict[name] = 0
 		for sample in graphDict:
 			# print(sample, graphDict[sample])
@@ -128,7 +128,7 @@ def assembleResults(resultsQueue, outputQueue, numResults=None, chooseBest=1.0):
 				fullArray.append(ylist)
 			
 			fullArray = np.array(fullArray)
-			print(fullArray)
+			# print(fullArray)
 			if isinstance(fullArray[0], list):
 				newArray = np.zeros((fullArray.shape[0], len(fullArray[0])))
 				for i in range(fullArray.shape[0]):
@@ -138,8 +138,8 @@ def assembleResults(resultsQueue, outputQueue, numResults=None, chooseBest=1.0):
 			averages = np.average(fullArray, axis=0)
 			# print('avg', averages)
 			bestIndices = averages.argsort()[-int(chooseBest * fullArray.shape[1]):]
-			print(fullArray.shape)
-			print('best', bestIndices)
+			# print(fullArray.shape)
+			# print('best', bestIndices)
 
 			# grab only the best results
 			reducedGraph[key] = dict()
@@ -149,7 +149,7 @@ def assembleResults(resultsQueue, outputQueue, numResults=None, chooseBest=1.0):
 			# print(fullArray)
 			# print(fullArray.shape)
 
-		print(f'\n\n\n{graphs}\n\n{reducedGraph}\n\n')
+		# print(f'\n\n\n{graphs}\n\n{reducedGraph}\n\n')
 
 
 

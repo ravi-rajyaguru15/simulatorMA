@@ -9,6 +9,7 @@ from sim.devices.elasticNode import elasticNode
 from sim.simulations import constants
 from sim.tasks.job import job
 from sim.visualiser import visualiser
+from sim.learning.agent.agent import agent
 
 queueLengths = list()
 # currentSimulation = None
@@ -106,10 +107,13 @@ class BasicSimulation:
 			# print("shared exists")
 			assert self.sharedAgent is not None
 			self.sharedAgent.setDevices(self.devices)
+			self.sharedAgent.createModel()
 		else:
 			for device in self.devices: device.agent.setDevices(self.devices)
 		# set offloading devices
-		for device in self.devices: device.setOffloadingOptions(self.devices)
+		for device in self.devices: 
+			device.setOffloadingOptions(self.devices)
+			device.agent.createModel()
 
 		# assemble expected lifetime for faster computation later
 		self.populateDevicesExpectedLifetimes()
@@ -211,11 +215,12 @@ class BasicSimulation:
 		# update target model if required
 		if self.offPolicy:
 			if self.useSharedAgent:
-				self.sharedAgent.updateTargetModel()
+				if not self.sharedAgent.productionMode:
+					self.sharedAgent.updateModel()
 			else:
 				for dev in self.devices:
-					dev.agent.updateTargetModel()
-		# debug.enabled = True
+					if dev.agent.productionMode:
+						dev.agent.updateModel()
 
 	def reset(self, episodeNumber):
 		if self.useSharedAgent:

@@ -215,9 +215,16 @@ class SimpleSimulation(BasicSimulation):
 	# 	self.visualiser.update()
 	def expandState(self, field):
 		beforeCount = self.currentSystemState.getUniqueStates()
-		# increase max jobs allowed
-		self.maxJobs += 1
-		for dev in self.devices: dev.maxJobs += 1
+		
+		# change behaviour as required
+		if field == "jobsInQueue":
+			# increase max jobs allowed
+			self.maxJobs += 1
+			
+			for dev in self.devices: dev.maxJobs += 1
+		else:
+			raise Exception("State cannot be expanded")
+		
 		# print("increased maxjobs", self.devices[0].maxJobs)
 		assert field in self.currentSystemState.singles
 		# self.currentSystemState.expandField(field)

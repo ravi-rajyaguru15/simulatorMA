@@ -82,6 +82,37 @@ class qAgent(agent):
 
 	# return metrics
 
+	def addTrainingData(self, model, beforeStates, targetQ):
+		assert not self.productionMode
+
+		# either add to training list or immediately train
+		if self.offPolicy:
+			self.trainingData.append(beforeStates)
+			self.trainingTargets.append(targetQ)
+		else:
+			model.train_on_batch(beforeStates, targetQ)
+			# this is massively inefficient to be honest
+			if self.precache:
+				self.cachePredictions()
+			else:
+				self.predictions = dict()
+
+	def cachePredictions(self):
+		# perform predictions for all possible states 
+		# collect input states
+		inputStates = []
+		for i in range(self.systemState.getUniqueStates()):
+			inputStates.append(self.systemState.fromIndex(i).currentState)
+		inputStates = np.array(inputStates)
+		
+		# perform all predictions
+		listPredictions = self.predictBatch(inputStates)
+
+		# assemble dict
+		self.predictions = dict()
+		for i in range(self.systemState.getUniqueStates()):
+			self.predictions[i] = listPredictions[i]
+
 	def chooseDestination(self, task, job, device):
 		debug.out("deciding how to offload new job", 'y')
 		debug.out("owner: {}".format(self.owner), 'r')
@@ -112,8 +143,10 @@ class qAgent(agent):
 	genericException = Exception("Not implemented in generic Q agent")
 	def predict(self, state):
 		raise self.genericException
-	# def predictBatch(self, stateBatch):
-	# 	raise self.genericException
+	def predictBatch(self, states):
+		raise self.genericException
+
+
 	def createModel(self):
 		raise self.genericException
 

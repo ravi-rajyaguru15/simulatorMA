@@ -53,13 +53,17 @@ class qTableAgent(qAgent):
 		debug.learnOut("qtable: (%d, %d)" % (self.systemState.getUniqueStates(), self.numActions))
 		self.model = qTable(self.systemState.getUniqueStates(), self.numActions, "Model")
 		# print("states:", self.systemState.maxJobs, self.systemState.getUniqueStates())
-		if self.offPolicy:
-			self.targetModel = qTable(self.systemState.getUniqueStates(), self.numActions, "Target Model")
+		# do not need targetmodel
+		# if self.offPolicy:
+		# 	self.targetModel = qTable(self.systemState.getUniqueStates(), self.numActions, "Target Model")
 
 	def expandModel(self):
 		pass
 
 	def trainModel(self, latestAction, reward, beforeState, currentState, finished):
+		assert not self.productionMode
+		assert not self.offPolicy # have not bothered adding offpolicy on the table agent
+
 		if beforeState is None:
 			print("beforestate None")
 			return
@@ -73,8 +77,13 @@ class qTableAgent(qAgent):
 		# debug.learnOut("updating qtable: %d\t%d\t%f\t%f" % (beforeIndex, latestAction, increment, reward))
 
 		# Q learning 101:
-		trainModel = self.targetModel if self.offPolicy else self.model
+		# trainModel = self.targetModel if self.offPolicy else self.model
+		trainModel = self.model
+		targetQ = beforeQ
+		targetQ[latestAction] = Qsa + increment
+		# self.addTrainingData(trainModel, beforeState, 			
 		trainModel.setQ(beforeIndex, action=latestAction, value=Qsa + increment)
+		
 		self.latestLoss = (target - Qsa) ** 2.
 		self.latestMeanQ = self.model.meanQ(beforeState)
 
@@ -143,14 +152,12 @@ class qTableAgent(qAgent):
 	def expandField(self, field):
 		originalState = deepcopy(self.systemState)
 		originalModel = deepcopy(self.model)
-		# print("before", self.systemState.getUniqueStates())
+
 		self.systemState.expandField(field)
-		# print(originalState.getUniqueStates(), self.systemState.getUniqueStates())
-		# print("after", )
 
 		self.model.expand(self.systemState.getUniqueStates())
-		if self.offPolicy:
-			self.targetModel.expand(self.systemState.getUniqueStates())
+		# if self.offPolicy:
+		# 	self.targetModel.expand(self.systemState.getUniqueStates())
 		self.importQTable(sourceTable=originalModel, sourceSystemState=originalState)
 
 	def importQTable(self, sourceTable, sourceSystemState):
@@ -158,27 +165,45 @@ class qTableAgent(qAgent):
 		# print("mapping", mapping)
 		for i in range(len(mapping)):
 			self.model.setQ(mapping[i], sourceTable.getQ(i))
-		if self.offPolicy:
-			qTable.copyModel(self.model, self.targetModel)
+		# if self.offPolicy:
+		# 	qTable.copyModel(self.model, self.targetModel)
 
-	def updateTargetModel(self):
-		assert self.offPolicy
-		if not self.productionMode:
-			qTable.copyModel(self.targetModel, self.model)
+	# def updateTargetModel(self):
+	# 	assert self.offPolicy
+	# 	if not self.productionMode:
+	# 		qTable.copyModel(self.targetModel, self.model)
 
-	def saveModel(self):
-		pickle.dump(self.model, open(localConstants.OUTPUT_DIRECTORY + "/model.pickle", 'wb'))
-		if self.targetModel is not None:
-			pickle.dump(self.targetModel, open(localConstants.OUTPUT_DIRECTORY + "/targetModel.pickle", 'wb'))
+	def saveModel(self, id=""):
+		filename = localConstants.OUTPUT_DIRECTORY + f"/model{id}.pickle"
+		pickle.dump(self.model, open(filename, 'wb'))
+		print("saving model to", filename)
+		# if self.targetModel is not None:
+		# 	pickle.dump(self.targetModel, open(localConstants.OUTPUT_DIRECTORY + "/targetModel.pickle", 'wb'))
 
-	def loadModel(self):
-		if os.path.exists(localConstants.OUTPUT_DIRECTORY + "/model.pickle"):
-			self.model = pickle.load(open(localConstants.OUTPUT_DIRECTORY + "/model.pickle", 'rb'))
-			if self.offPolicy:
-				self.targetModel = pickle.load(open(localConstants.OUTPUT_DIRECTORY + "/targetModel.pickle", 'rb'))
+	def loadModel(self, id=""):
+		filename = localConstants.OUTPUT_DIRECTORY + f"/model{id}.pickle"
+		if os.path.exists(filename):
+			self.model = pickle.load(open(filename, 'rb'))
+			# not loading target model
+			# if self.offPolicy:
+			# 	self.targetModel = pickle.load(open(localConstants.OUTPUT_DIRECTORY + "/targetModel.pickle", 'rb'))
 			return True
 		else:
 			return False
+	
+	def updateModel(self):
+		# model is updated immediately, and not after the episode
+		assert self.offPolicy
+		assert not self.productionMode
+
+		trainedModel.fit(self.trainingData, self.trainingTargets, verbose=0) # , use_multiprocessing=True, workers=4)
+		if self.precache:
+			self.cachePredictions()
+		else:
+			self.predictions = dict()
+
+		self.trainingData, self.trainingTargets = [], []
+
 
 class qTable:
 	table = None

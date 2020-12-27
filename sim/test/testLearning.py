@@ -24,6 +24,7 @@ from sim.learning.agent.dqnAgent import dqnAgent
 from sim.tasks.tasks import HARD
 from sim.experiments.scenario import REGULAR_SCENARIO_ROUND_ROBIN
 from sim.learning.state.minimalSystemState import minimalSystemState
+from sim.learning.state.extendedSystemState import extendedSystemState
 
 np.set_printoptions(suppress=True, precision=2)
 
@@ -41,11 +42,13 @@ if CLASSIFICATION:
 else:
 	LOSS = ['mse']
 
+systemStateClass = extendedSystemState
+
 # %%
 
 # create table agent for training data
 tableExp = SimpleSimulation(numDevices=4, maxJobs=MAX_JOBS, agentClass=minimalTableAgent, tasks=[
-							HARD], systemStateClass=minimalSystemState, scenarioTemplate=REGULAR_SCENARIO_ROUND_ROBIN, centralisedLearning=True, numEnergyLevels=NUM_ENERGY_STATES, trainClassification=CLASSIFICATION)
+							HARD], systemStateClass=systemStateClass, scenarioTemplate=REGULAR_SCENARIO_ROUND_ROBIN, centralisedLearning=True, numEnergyLevels=NUM_ENERGY_STATES, trainClassification=CLASSIFICATION)
 tableExp.sharedAgent.loadModel()
 tableExp.setBatterySize(1e-1)
 tableExp.setFpgaIdleSleep(1e-3)
@@ -154,7 +157,7 @@ def singleThread(ID, depth, width, loss, epochs, results):
 
 	# create deep agent for learning
 	dqnExp = SimpleSimulation(numDevices=4, maxJobs=MAX_JOBS, agentClass=dqnAgent, tasks=[
-							  HARD], systemStateClass=minimalSystemState, scenarioTemplate=REGULAR_SCENARIO_ROUND_ROBIN, centralisedLearning=True, numEnergyLevels=NUM_ENERGY_STATES, trainClassification=CLASSIFICATION)
+							  HARD], systemStateClass=systemStateClass, scenarioTemplate=REGULAR_SCENARIO_ROUND_ROBIN, centralisedLearning=True, numEnergyLevels=NUM_ENERGY_STATES, trainClassification=CLASSIFICATION)
 	dqnExp.setBatterySize(1e-1)
 	dqnExp.setFpgaIdleSleep(1e-3)
 
