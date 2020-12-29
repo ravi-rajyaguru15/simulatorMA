@@ -103,18 +103,18 @@ def plotAgentHistory(history):
 
 
 def plotMultiWithErrors(name, results=None, ylim=None, ylabel=None, xlabel=None,
-						separate=False, title=None, logx=False, legend=None, order=True, legendlocation='best'):
-	_plotMulti(name, results, ylim, ylabel, xlabel, separate, True, title=title, logx=logx, legend=legend, order=order, legendlocation=legendlocation)
+						separate=False, title=None, logx=False, legend=None, order=True, legendlocation='best', logy=False):
+	_plotMulti(name, results, ylim, ylabel, xlabel, separate, True, title=title, logx=logx, legend=legend, order=order, legendlocation=legendlocation, logy=logy)
 
 
 def plotMultiSeparate(name, results=None, ylim=None, ylabel=None, xlabel=None,
-						separate=False, title=None, logx=False, legend=None, order=True, legendlocation='best'):
-	_plotMulti(name, results, ylim, ylabel, xlabel, separate, False, title=title, logx=logx, legend=legend, order=False, legendlocation=legendlocation)
+						separate=False, title=None, logx=False, legend=None, order=True, legendlocation='best', logy=False):
+	_plotMulti(name, results, ylim, ylabel, xlabel, separate, False, title=title, logx=logx, legend=legend, order=False, legendlocation=legendlocation, logy=logy)
 
 
 figsize = (8, 8)
 def _plotMulti(name, results=None, ylim=None, ylabel=None, xlabel=None,
-						separate=False, plotErrors=True, title=None, logx=False, legend=None, order=True, subplots=False, subplotCodes=[], legendlocation='best', saveTimestamp=False):
+						separate=False, plotErrors=True, title=None, logx=False, legend=None, order=True, subplots=False, subplotCodes=[], legendlocation='best', saveTimestamp=False, logy=False):
 	# print("plotting!")
 	if saveTimestamp:
 		filename = f"{localConstants.OUTPUT_DIRECTORY}{name}_{str(datetime.datetime.now())}".replace(":", ".")
@@ -242,6 +242,8 @@ def _plotMulti(name, results=None, ylim=None, ylabel=None, xlabel=None,
 		# pp.title("drawing %d" % chosenSubplot)
 		if logx:
 			pp.xscale("log", nonposx='clip')
+
+		
 		if plotErrors:
 			# print("errors:", sortedErrors)
 			if len(errors) == 0:

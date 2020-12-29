@@ -43,6 +43,7 @@ def runThread(id, agent, systemState, productionMode, offPolicy, numPhases, numE
 
 				agentName = exp.devices[0].agent.__name__
 				result = [f"{agentName} Production: {productionMode} OffPolicy: {offPolicy}", overallEpisode + e, exp.numFinishedJobs]
+				# print("result", result)
 				results.put(result)
 				# results.put([f"{agentName}", e, exp.getCurrentTime()])
 
@@ -56,7 +57,7 @@ def runThread(id, agent, systemState, productionMode, offPolicy, numPhases, numE
 				# print()
 			overallEpisode += numEpisodes
 	except:
-		debug.printCache()
+		debug.printCache( )
 		traceback.print_exc(file=sys.stdout)
 		print(agent, e, offPolicy, productionMode)
 		print("Error in experiment :", exp.time)
@@ -72,19 +73,18 @@ def run(numEpisodes):
 	results = multiprocessing.Queue()
 	finished = multiprocessing.Queue()
 
-	localConstants.REPEATS = 4
+	localConstants.REPEATS = 8
 	numEpisodes = int(numEpisodes)
 	# , ]minimalTableAgent
 	systemState = extendedSystemState
 
-	numPhases = int(2)
-	for agent, offPolicy in [(minimalDeepAgent, True), (minimalDeepAgent, False), (minimalTableAgent, False)]: 
-		for production in [False]: # True, 
-			for _ in range(localConstants.REPEATS):
-				for centralised in [True]:
-					# if not (not centralised and agent is randomAgent):
-					processes.append(multiprocessing.Process(target=runThread, args=(
-						len(processes), agent, systemState, production, offPolicy, numPhases, numEpisodes, results, finished)))
+	numPhases = int(1e1)
+	for agent, offPolicy, production in [(minimalDeepAgent, True, False), (minimalDeepAgent, False, False), (minimalDeepAgent, False, True), (minimalTableAgent, True, False),(minimalTableAgent, False, False), (minimalTableAgent, False, False)]: 
+		for _ in range(localConstants.REPEATS):
+			for centralised in [True]:
+				# if not (not centralised and agent is randomAgent):
+				processes.append(multiprocessing.Process(target=runThread, args=(
+					len(processes), agent, systemState, production, offPolicy, numPhases, numEpisodes, results, finished)))
 
 	results = executeMulti(processes, results, finished, numResults=len(
 		processes) * numPhases * numEpisodes, assembly=assembleResults, chooseBest=1.0)
@@ -96,7 +96,7 @@ def run(numEpisodes):
 if __name__ == "__main__":
 	setupMultithreading()
 	try:
-		run(1e3)
+		run(1e1)
 	except:
 		traceback.print_exc(file=sys.stdout)
 

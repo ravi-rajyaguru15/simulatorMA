@@ -9,7 +9,7 @@ Division of labor Index by Gorelick et al. -- 2004
 '''
 
 
-def DOL(devices, tasks, addIdle=True):
+def DOL(devices, tasks, addIdle=True, debug=False):
     # Step 1:  create a matrix that is n x m, where n is the number of rows
     # and m is the number of columns.  Each row represents an individual
     # in the population, each column represents a task.  For the purposes
@@ -36,7 +36,7 @@ def DOL(devices, tasks, addIdle=True):
             totalTasks += dataMatrix[i][numThetas]
 
     # print()
-    # print(dataMatrix)
+    if debug: print(dataMatrix)
 
 
     # Step 2:  Normalize the matrix by dividing every cell by the total number of tasks

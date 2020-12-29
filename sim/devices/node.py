@@ -66,7 +66,7 @@ class node:
 	location = None
 	# episodeFinished = None
 
-	def __init__(self, inputClock, platform, index, components, reconsiderBatches, maxJobs, currentSystemState=None, agent=None, alwaysHardwareAccelerate=None, offPolicy=constants.OFF_POLICY):
+	def __init__(self, inputClock, platform, index, components, reconsiderBatches, maxJobs, currentSystemState=None, agent=None, alwaysHardwareAccelerate=None, offPolicy=constants.OFF_POLICY, trainClassification=True):
 		self.platform = platform
 
 		# self.decision = offloadingDecisionClass(self, currentSystemState, agentClass)
@@ -74,7 +74,7 @@ class node:
 		# if agentClass is a class, create private
 		if type(agent) is type(__class__):
 			# print("agent class", agent)
-			self.agent = agent(systemState=currentSystemState, owner=self, offPolicy=offPolicy,reconsiderBatches=reconsiderBatches)
+			self.agent = agent(systemState=currentSystemState, owner=self, offPolicy=offPolicy,reconsiderBatches=reconsiderBatches, trainClassification=trainClassification)
 		else:
 			self.agent = agent
 

@@ -25,6 +25,8 @@ class agent:
 	owner = None
 
 	systemState = None
+	currentSystemState = None
+
 	model = None
 	trainable_model = None
 	policy = None
@@ -53,8 +55,11 @@ class agent:
 
 	reconsiderBatches = None
 
+	trainingData = None
+
 	def __init__(self, systemState, reconsiderBatches, owner=None, offPolicy=constants.OFF_POLICY, trainClassification=None):
 		self.systemState = systemState
+		self.currentSystemState = systemState
 		# print("set systemstate to", systemState)
 		self.owner = owner  # owner none means shared
 
@@ -64,6 +69,8 @@ class agent:
 		self.productionMode = False
 		self.reset(0)
 		self.setReconsiderBatches(reconsiderBatches)
+
+		self.trainingData = []
 
 		# classification is irrelevant here
 

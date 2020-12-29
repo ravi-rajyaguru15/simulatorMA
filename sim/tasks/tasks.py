@@ -38,6 +38,16 @@ EASY = task(
 	configSize=.1
 	)
 
+MEDIUM = task(
+	"Medium",
+	colour=(0, 0, 0, 1),
+	complexity=1e5,
+	rawSize=1e1,
+	processedSize=5,
+	deadline=Gaussian(5, 0.1),
+	configSize=.5
+)
+
 HARD = task(
 	"Hard",
 	colour=(1, 0, 1, 1), 
@@ -58,4 +68,14 @@ ALTERNATIVE = task(
 	deadline=Gaussian(5, 0.5),
 	configSize=1.0
 	)
+
+COMM = task(
+	"Communication",
+	colour=(1, 1, 1, 1),
+	complexity=10e6,
+	rawSize=100e3,
+	processedSize=100e3,
+	deadline=Gaussian(10, 0.5),
+	configSize=1.0
+)
 

@@ -5,6 +5,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 import multiprocessing
 import matplotlib.pyplot as pp
+import numpy as np 
 
 import sys
 import traceback
@@ -35,7 +36,7 @@ finished = multiprocessing.Queue()
 
 localConstants.REPEATS = 1
 # localConstants.REPEATS = 8
-numEpisodes = int(1e5)
+numEpisodes = int(1e3)
 # agentsToTest = [minimalTableAgent]
 minimalTableAgent # , localAgent]
 agent = minimalTableAgent # [minimalAgent, lazyAgent]:
@@ -48,15 +49,26 @@ exp.setFpgaIdleSleep(1e-3)
 
 results = []
 e = None
+latest = None
 try:
     print("running episodes")
     for e in range(numEpisodes):
         if e % 100 == 0: print ('.')
         debug.infoEnabled = False
         exp.simulateEpisode(e)
-        results.append(exp.numFinishedJobs)
+        latest = exp.numFinishedJobs
+        results.append(latest)
 
         # results.put(["%s %s" % (exp.devices[0].agent.__name__, "Centralised" if centralised else "Decentralised"), e, exp.numFinishedJobs])
+
+    avg = np.average(results)
+    print("done, average is", avg)
+    while latest < avg:
+        print(f"bad ending... keep trying ({latest}/{avg})")
+        exp.simulateEpisode(e)
+        latest = exp.numFinishedJobs
+        results.append(latest)
+
 except:
     debug.printCache()
     traceback.print_exc(file=sys.stdout)

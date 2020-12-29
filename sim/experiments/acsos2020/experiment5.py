@@ -32,8 +32,6 @@ def threadRun(percentageMinimal, episodeNum, results, finished):
         device.agent.setDevices(exp.devices)
         # print("set agent", agent, agent.__name__, device.agent, device.agent.__name__)
 
-
-    # print([device.agent.__name__ for device in exp.devices])
     for e in range(int(episodeNum)):
         exp.simulateEpisode(e)
         totalMinimalAgentJobs = 0

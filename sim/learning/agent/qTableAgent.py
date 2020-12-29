@@ -39,6 +39,9 @@ class qTableAgent(qAgent):
 	allowExpansion = None
 
 	def __init__(self, systemState, reconsiderBatches, allowExpansion=constants.ALLOW_EXPANSION, owner=None, offPolicy=constants.OFF_POLICY, trainClassification=False):
+		# assert not offPolicy
+		self.precache = False
+
 		self.gamma = constants.GAMMA
 		self.policy = Uniform(.5, 1)
 		self.allowExpansion = allowExpansion
@@ -60,35 +63,40 @@ class qTableAgent(qAgent):
 	def expandModel(self):
 		pass
 
-	def trainModel(self, latestAction, reward, beforeState, currentState, finished):
-		assert not self.productionMode
-		assert not self.offPolicy # have not bothered adding offpolicy on the table agent
+	def trainBatch(self, trainingData):
+		for datapoint in trainingData:
+			_, beforeStateIndex, targetQ = self.prepareTrainingDatapoint(datapoint)
+			self.model.setQ(beforeStateIndex, targetQ)
 
-		if beforeState is None:
-			print("beforestate None")
-			return
-		beforeIndex = self.systemState.getIndex(beforeState)
-		Qsa = self.model.getQ(beforeIndex, latestAction)
-		beforeQ = np.array(self.model.getQ(beforeIndex))
-		currentIndex = currentState.getIndex()
-		maxQ = np.argmax(self.model.getQ(currentIndex))
-		target = reward + constants.GAMMA * maxQ
-		increment = constants.LEARNING_RATE * (target - Qsa)
-		# debug.learnOut("updating qtable: %d\t%d\t%f\t%f" % (beforeIndex, latestAction, increment, reward))
+	# def trainModel(self, latestAction, reward, beforeState, currentState, finished):
+	# 	assert not self.productionMode
+	# 	assert not self.offPolicy # have not bothered adding offpolicy on the table agent
 
-		# Q learning 101:
-		# trainModel = self.targetModel if self.offPolicy else self.model
-		trainModel = self.model
-		targetQ = beforeQ
-		targetQ[latestAction] = Qsa + increment
-		# self.addTrainingData(trainModel, beforeState, 			
-		trainModel.setQ(beforeIndex, action=latestAction, value=Qsa + increment)
+	# 	if beforeState is None:
+	# 		print("beforestate None")
+	# 		return
+	# 	beforeIndex = self.systemState.getIndex(beforeState)
+	# 	Qsa = self.model.getQ(beforeIndex, latestAction)
+	# 	beforeQ = np.array(self.model.getQ(beforeIndex))
+	# 	currentIndex = currentState.getIndex()
+	# 	maxQ = np.argmax(self.model.getQ(currentIndex))
+	# 	target = reward + constants.GAMMA * maxQ
+	# 	increment = constants.LEARNING_RATE * (target - Qsa)
+	# 	# debug.learnOut("updating qtable: %d\t%d\t%f\t%f" % (beforeIndex, latestAction, increment, reward))
+
+	# 	# Q learning 101:
+	# 	# trainModel = self.targetModel if self.offPolicy else self.model
+	# 	trainModel = self.model
+	# 	targetQ = beforeQ
+	# 	targetQ[latestAction] = Qsa + increment
+	# 	# self.addTrainingData(trainModel, beforeState, 			
+	# 	trainModel.setQ(beforeIndex, action=latestAction, value=Qsa + increment)
 		
-		self.latestLoss = (target - Qsa) ** 2.
-		self.latestMeanQ = self.model.meanQ(beforeState)
+	# 	self.latestLoss = (target - Qsa) ** 2.
+	# 	self.latestMeanQ = self.model.meanQ(beforeState)
 
-		# if beforeState[0] == 4 and beforeState[1] == 0:
-		debug.learnOut(debug.formatLearn("training %d before: %s current: %s r: %.2f %s %s", (latestAction, beforeState, currentState, reward, beforeQ, trainModel.getQ(beforeIndex))))
+	# 	# if beforeState[0] == 4 and beforeState[1] == 0:
+	# 	debug.learnOut(debug.formatLearn("training %d before: %s current: %s r: %.2f %s %s", (latestAction, beforeState, currentState, reward, beforeQ, trainModel.getQ(beforeIndex))))
 
 	def predict(self, state):
 		# find row from q table for this state
@@ -149,16 +157,20 @@ class qTableAgent(qAgent):
 			formattedString += formattedAction
 		print("%s%s" % (" " * (maxEntryWorth+1), formattedString))
 
-	def expandField(self, field):
+	def expandStateField(self, field):
 		originalState = deepcopy(self.systemState)
 		originalModel = deepcopy(self.model)
 
+		before = self.systemState.getUniqueStates()
 		self.systemState.expandField(field)
+		print(f"increased states from {before} to {self.systemState.getUniqueStates()}")
 
 		self.model.expand(self.systemState.getUniqueStates())
 		# if self.offPolicy:
 		# 	self.targetModel.expand(self.systemState.getUniqueStates())
 		self.importQTable(sourceTable=originalModel, sourceSystemState=originalState)
+
+	def expandModelField(self, field):
 
 	def importQTable(self, sourceTable, sourceSystemState):
 		mapping = discretisedSystemState.convertIndexMap(sourceSystemState, self.systemState)
@@ -174,14 +186,14 @@ class qTableAgent(qAgent):
 	# 		qTable.copyModel(self.targetModel, self.model)
 
 	def saveModel(self, id=""):
-		filename = localConstants.OUTPUT_DIRECTORY + f"/model{id}.pickle"
+		filename = localConstants.OUTPUT_DIRECTORY + f"/models/model{id}.pickle"
 		pickle.dump(self.model, open(filename, 'wb'))
 		print("saving model to", filename)
 		# if self.targetModel is not None:
 		# 	pickle.dump(self.targetModel, open(localConstants.OUTPUT_DIRECTORY + "/targetModel.pickle", 'wb'))
 
 	def loadModel(self, id=""):
-		filename = localConstants.OUTPUT_DIRECTORY + f"/model{id}.pickle"
+		filename = localConstants.OUTPUT_DIRECTORY + f"/models/model{id}.pickle"
 		if os.path.exists(filename):
 			self.model = pickle.load(open(filename, 'rb'))
 			# not loading target model
@@ -191,18 +203,14 @@ class qTableAgent(qAgent):
 		else:
 			return False
 	
-	def updateModel(self):
-		# model is updated immediately, and not after the episode
-		assert self.offPolicy
-		assert not self.productionMode
+	# def updateModel(self):
+	# 	# model is updated immediately, and not after the episode
+	# 	assert self.offPolicy
+	# 	assert not self.productionMode
 
-		trainedModel.fit(self.trainingData, self.trainingTargets, verbose=0) # , use_multiprocessing=True, workers=4)
-		if self.precache:
-			self.cachePredictions()
-		else:
-			self.predictions = dict()
+	# 	trainedModel.fit(self.trainingData, self.trainingTargets, verbose=0) # , use_multiprocessing=True, workers=4)
 
-		self.trainingData, self.trainingTargets = [], []
+	# 	self.trainingData, self.trainingTargets = [], []
 
 
 class qTable:
@@ -222,13 +230,14 @@ class qTable:
 	# increase size of existing table
 	def expand(self, newStateCount):
 		self.stateCount = newStateCount
+		print("expanded table to", newStateCount)
 		self.table = np.zeros((newStateCount, self.actionCount)) + constants.INITIAL_Q
 
 	def getQ(self, state, action=None):
 		if isinstance(state, discretisedSystemState):
 			state = state.getIndex()
 
-		# print("getq", state, self.stateCount)
+		print("getq", state, self.stateCount)
 		assert state < self.stateCount
 
 		if action is None:

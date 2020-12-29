@@ -26,11 +26,9 @@ class dqnAgent(qAgent):
 	classification = None
 	fullModel = None
 
-	trainingData = None
-	trainingTargets = None
+	# trainingTargets = None
 
 	predictions = None
-	precache = None
 
 	def getPolicyMetrics(self):
 		return self.policy.metrics
@@ -61,8 +59,7 @@ class dqnAgent(qAgent):
 		# self.optimizer = keras.optimizers.Adam(lr=constants.LEARNING_RATE)
 		self.optimizer = keras.optimizers.RMSprop(lr=constants.LEARNING_RATE)
 
-		self.trainingData = []
-		self.trainingTargets = []
+		# self.trainingTargets = []
 
 		# self.createModel()
 
@@ -72,12 +69,13 @@ class dqnAgent(qAgent):
 		# import sys
 		# sys.exit(0)
 		# traceback.print_stack()
-		print("create model")
-
+		
 		# create basic model
 		self.fullModel = keras.models.Sequential()
 		# self.model.add(keras.layers.Flatten(input_shape=(len(self.systemState.singles),))) 
 		self.fullModel.add(keras.Input(shape=(len(self.systemState.singles),)))
+
+		# print("\t", self.systemState, len(self.systemState.singles))
 		
 		# self.model.add(keras.layers.Flatten(input_shape=(1,) + (len(self.systemState.singles),))) # 3 input
 		# print('input shape', (1,) + env.observation_space.shape)
@@ -86,20 +84,14 @@ class dqnAgent(qAgent):
 		for i in range(hiddenDepth):
 			self.fullModel.add(keras.layers.Dense(hiddenWidth, activation=self.activation, kernel_initializer='random_normal', bias_initializer='zeros'))
 
-		# # hidden layers
-		# self.model.add(keras.layers.Dense(4, activation='relu'))
-
 		# output layers
 		if self.classification:
 			self.fullModel.add(keras.layers.Dense(self.numActions, activation='relu', name='final', kernel_initializer='random_normal', bias_initializer='zeros'))
-
-			# self.fullModel.add(keras.layers.Dense(self.numActions, activation='softmax', name='final'))
-			# self.model = self.fullModel
 		else:
 			self.fullModel.add(keras.layers.Dense(self.numActions, activation='linear', name='final', kernel_initializer='random_normal', bias_initializer='zeros'))
 		self.fullModel.add(keras.layers.Softmax())
 
-			# create a model that doesn't use the softmax
+		# create a model that doesn't use the softmax
 		self.model = keras.Model(inputs=self.fullModel.input, outputs=self.fullModel.get_layer(name='final').output)
 
 		
@@ -161,30 +153,43 @@ class dqnAgent(qAgent):
 		# ]
 		# self.trainable_model.compile(optimizer=self.optimizer, loss=losses, metrics=combined_metrics)
 
-	def expandField(self, field):
-		# originalState = deepcopy(self.systemState)
+	def expandStateField(self, field):
 		self.systemState.expandField(field)
+	
+	def expandModelField(self, field):
+		self.recachePredictions()
+
+
+	def recachePredictions(self):
 		if self.precache:
 			self.cachePredictions()
 		else:
 			self.predictions = dict()
 
 
+	def predict(self, state, model=None):
+		# if no model provided, assume self.model for Q values
+		if model is None: model = self.model
 
-	def predict(self, model, state):
-		# print(self.model)
-		# self.model.summary()
-		# import sys
-		# sys.exit(0)
-
-		state = np.array(state, dtype=np.float).reshape((1, state.shape[0]))
 		if self.precache:
-			prediction = self.predictions[self.systemState.getIndex(state)[0]]
+			if isinstance(state, int) or isinstance(state, np.int64):
+				index = state
+			else:
+				state = np.array(state, dtype=np.float).reshape((1, state.shape[0]))
+				index = int(self.systemState.getIndex(state)[0])
+
+			if index not in self.predictions:
+				print("index not found", self.predictions.keys(), index, self.systemState.getUniqueStates())
+			assert index in self.predictions
+			prediction = self.predictions[index]
 		else:
+			state = np.array(state, dtype=np.float).reshape((1, state.shape[0]))
+
 			# check if prediction is available
 			key = str(state)
 			print("key", key, state)
 			if key not in self.predictions:
+				sys.exit(0)
 				self.predictions[key] = self.model.predict(state)[0]
 				print("adding prediction", key, self.predictions[key])
 			prediction = self.predictions[key]
@@ -192,6 +197,7 @@ class dqnAgent(qAgent):
 		return prediction
 
 	def predictBatch(self, states):
+		states = tf.convert_to_tensor(states)
 		return self.model.predict_on_batch(states)
 
 	def setProductionMode(self, value=True):
@@ -200,133 +206,116 @@ class dqnAgent(qAgent):
 		self.policy.eps = 0
 
 	def selectAction(self, systemState):
-		qValues = self.predict(self.model, systemState)
+		qValues = self.predict(model=self.model, state=systemState)
 		return self.policy.select_action(q_values=qValues)
 
-	def trainModel(self, latestAction, reward, beforeState, afterState, finished):
-		# print(f'training dqn model {latestAction} {reward} {beforeState} {afterState} {finished}')
+	# def trainModel(self, latestAction, reward, beforeState, afterState, finished):
+	# 	# print(f'training dqn model {latestAction} {reward} {beforeState} {afterState} {finished}')
 
-		return self.trainModelOnline(latestAction, reward, beforeState, afterState, finished)
-		# return self.trainModelBatch(latestAction, reward, [[beforeState]], afterState, finished)
+	# 	self.addTrainingData(latestAction, reward, beforeState, afterState, finished)
 
-	def trainModelOnline(self, latestAction, reward, beforeStates, afterState, finished):
-		# old Q value
-		# directly based on trainModel from qTaleAgent
-		trainingModel = self.fullModel if self.classification else self.model
-		# Q before
-		beforeStates = np.array(beforeStates).reshape(1, beforeStates.shape[0])
+	# 	return self.trainModelOnline(latestAction, reward, beforeState, afterState, finished)
+	# 	# return self.trainModelBatch(latestAction, reward, [[beforeState]], afterState, finished)
+
+	# def trainModelOnline(self, latestAction, reward, beforeStates, afterState, finished):
+
+	# trainingData is [(latestAction, reward, beforeState, beforeStateIndex, afterStateIndex, finished), ...]
+	def prepareTrainingData(self, trainingData):
+		trainingX = []
+		trainingY = []
+
+		# prepare Q values and actual training data for each
+		for datapoint in trainingData:
+			beforeState, _, targetQ = self.prepareTrainingDatapoint(datapoint)
+
+			trainingX.append(beforeState)
+			trainingY.append(targetQ)
 		
-		# beforeQ = trainingModel.predict(beforeStates)
-		beforeQ = self.predictions[afterState.getIndex(beforeStates)[0]]
+		trainingX = np.array(trainingX)
+		trainingY = np.array(trainingY)
 		
-		# print(f"beforeQ {beforeQ}")
-		Qsa = beforeQ[latestAction]
-		# print (f"beforeQ {beforeQ}")
-		# Q after
-		maxQ = np.argmax(self.predictions[afterState.getIndex()])
-
-		# if isinstance(afterState, systemState): afterState = afterState.currentState
-		# afterState = np.array(afterState).reshape(1, afterState.shape[0])
-
-		# # maxQ = np.argmax(trainingModel.predict(afterState))
-		# maxQold = np.argmax(trainingModel.predict(afterState))
-		# print(maxQold, maxQ)
-
-		# calculate new Q
-		target = reward + constants.GAMMA * maxQ
-		increment = constants.LEARNING_RATE * (target - Qsa)
-		
-		# same update as qtable
-		targetQ = np.array(beforeQ)
-		targetQ[latestAction] = Qsa + increment
-
-		self.latestLoss = (target - Qsa) ** 2.
-		self.latestMeanQ = np.mean(beforeQ)
-
-		# learn this sample
-		# print(beforeStates)
-		beforeStates = beforeStates.reshape((1, beforeStates.shape[1]))
-		# print(beforeStates)
-		# print(targetQ)
-		# print(targetQ.shape)
-		targetQ = targetQ.reshape((1, targetQ.shape[0]))
-		# print(targetQ)
-
-		# print(beforeStates, targetQ)
-
-		self.addTrainingData(trainingModel, beforeStates, targetQ)
+		return trainingX, trainingY
 	
+	def trainBatch(self, trainingData):
+		x, y = self.prepareTrainingData(trainingData)
 
-	def trainModelBatchOnline(self, latestAction, reward, beforeStates, afterState, finished):
-		assert self.trainable_model is not None
-		assert not self.productionMode
+		# print('training dqn', x.shape, y.shape)
+		
+		# if not self.productionMode:
+		trainedModel = self.fullModel if self.classification else self.model
+		
+		trainedModel.fit(x, y, verbose=0)
 
-		self.trainable_model = self.fullModel if self.classification else self.model
+	# def trainModelBatchOnline(self, latestAction, reward, beforeStates, afterState, finished):
+	# 	assert self.trainable_model is not None
+	# 	assert not self.productionMode
 
-		# metrics = [np.nan for _ in self.metrics_names]
+	# 	self.trainable_model = self.fullModel if self.classification else self.model
 
-		# Compute the q_values given state1, and extract the maximum for each sample in the batch.
-		# We perform this prediction on the target_model instead of the model for reasons
-		# outlined in Mnih (2015). In short: it makes the algorithm more stable.
-		# target_q_values =  self.model.predict_on_batch(
-		# 	np.array([np.array([np.array(self.systemState.currentState)])]))  # TODO: target_model
+	# 	# metrics = [np.nan for _ in self.metrics_names]
 
-		# model = self.model if self.offPolicy else self.targetModel
+	# 	# Compute the q_values given state1, and extract the maximum for each sample in the batch.
+	# 	# We perform this prediction on the target_model instead of the model for reasons
+	# 	# outlined in Mnih (2015). In short: it makes the algorithm more stable.
+	# 	# target_q_values =  self.model.predict_on_batch(
+	# 	# 	np.array([np.array([np.array(self.systemState.currentState)])]))  # TODO: target_model
 
-		# target_q_values = self.predict(self.targetModel, self.systemState.currentState)
-		# target_q_values = self.predict(self.targetModel, self.systemState.currentState)
-		target_q_values = self.predict(self.model, self.systemState.currentState)
+	# 	# model = self.model if self.offPolicy else self.targetModel
+
+	# 	# target_q_values = self.predict(self.targetModel, self.systemState.currentState)
+	# 	# target_q_values = self.predict(self.targetModel, self.systemState.currentState)
+	# 	target_q_values = self.predict(self.model, self.systemState.currentState)
 
 
-		if self.offPolicy:
-			# q_values = self.predict(self.model, self.systemState.currentState)
-			actions = np.argmax(target_q_values, axis=0)
-			q_batch = np.array([target_q_values[actions]])
-		else:
-			# print(self.predict(self.systemState), target_q_values)
-			q_batch = np.max(target_q_values).flatten()
-		# print(q_batch)
-		# sys.exit(0)
+	# 	if self.offPolicy:
+	# 		# q_values = self.predict(self.model, self.systemState.currentState)
+	# 		actions = np.argmax(target_q_values, axis=0)
+	# 		q_batch = np.array([target_q_values[actions]])
+	# 	else:
+	# 		# print(self.predict(self.systemState), target_q_values)
+	# 		q_batch = np.max(target_q_values).flatten()
+	# 	# print(q_batch)
+	# 	# sys.exit(0)
 
-		# Compute r_t + gamma * max_a Q(s_t+1, a) and update the target targets accordingly,
-		# but only for the affected output units (as given by action_batch).
-		discounted_reward_batch = self.gamma * q_batch
-		# Set discounted reward to zero for all states that were terminal.
-		discounted_reward_batch *= [0. if finished else 1.]
-		# assert discounted_reward_batch.shape == reward_batch.shape
-		R = reward + discounted_reward_batch
+	# 	# Compute r_t + gamma * max_a Q(s_t+1, a) and update the target targets accordingly,
+	# 	# but only for the affected output units (as given by action_batch).
+	# 	discounted_reward_batch = self.gamma * q_batch
+	# 	# Set discounted reward to zero for all states that were terminal.
+	# 	discounted_reward_batch *= [0. if finished else 1.]
+	# 	# assert discounted_reward_batch.shape == reward_batch.shape
+	# 	R = reward + discounted_reward_batch
 
-		targets = np.zeros((1, self.numActions))
-		dummy_targets = np.zeros((1,))
-		masks = np.zeros((1, self.numActions))
+	# 	targets = np.zeros((1, self.numActions))
+	# 	dummy_targets = np.zeros((1,))
+	# 	masks = np.zeros((1, self.numActions))
 
-		targets[0, latestAction] = R  # update action with estimated accumulated reward
-		dummy_targets[0] = R
-		masks[0, latestAction] = 1.  # enable loss for this specific action
+	# 	targets[0, latestAction] = R  # update action with estimated accumulated reward
+	# 	dummy_targets[0] = R
+	# 	masks[0, latestAction] = 1.  # enable loss for this specific action
 
-		targets = np.array(targets).astype('float32')
-		masks = np.array(masks).astype('float32')
+	# 	targets = np.array(targets).astype('float32')
+	# 	masks = np.array(masks).astype('float32')
 
-		# Finally, perform a single update on the entire batch. We use a dummy target since
-		# the actual loss is computed in a Lambda layer that needs more complex input. However,
-		# it is still useful to know the actual target to compute metrics properly.
-		x = [np.array(beforeStates)] + [targets, masks]
-		y = [dummy_targets, targets]
+	# 	# Finally, perform a single update on the entire batch. We use a dummy target since
+	# 	# the actual loss is computed in a Lambda layer that needs more complex input. However,
+	# 	# it is still useful to know the actual target to compute metrics properly.
+	# 	x = [np.array(beforeStates)] + [targets, masks]
+	# 	y = [dummy_targets, targets]
 
-		print(x)
-		print("state:", beforeStates)
-		print(y)
+	# 	print(x)
+	# 	print("state:", beforeStates)
+	# 	print(y)
 
-		# self.trainable_model._make_train_function()
-		metrics = self.trainable_model.train_on_batch(x, y)
-		# metrics = metrics[1:3]
-		metrics = [metric for idx, metric in enumerate(metrics) if idx not in (1, 2)]  # throw away individual losses
-		metrics += self.getPolicyMetrics()
-		# print(metrics, self.metrics_names)
+	# 	# self.trainable_model._make_train_function()
+	# 	metrics = self.trainable_model.train_on_batch(x, y)
+	# 	# metrics = metrics[1:3]
+	# 	metrics = [metric for idx, metric in enumerate(metrics) if idx not in (1, 2)]  # throw away individual losses
+	# 	metrics += self.getPolicyMetrics()
+	# 	# print(metrics, self.metrics_names)
 
-		self.latestLoss = metrics[0]
-		self.latestMAE = metrics[1]
-		self.latestMeanQ = metrics[2]
+	# 	self.latestLoss = metrics[0]
+	# 	self.latestMAE = metrics[1]
+	# 	self.latestMeanQ = metrics[2]
 
 	# def trainModelBatch(self, beforeStates, actions):
 	# 	assert self.trainable_model is not None
@@ -407,41 +396,19 @@ class dqnAgent(qAgent):
 		# model learns immediately, not here
 		# return
 
-	def updateModel(self):
-	# def updateTargetModel(self):
-		# sys.exit(0)
-		assert self.offPolicy
-		assert not self.productionMode
-
-		# if not self.productionMode:
-		trainedModel = self.fullModel if self.classification else self.model
-		self.trainingData = np.array(self.trainingData)
-		self.trainingTargets = np.array(self.trainingTargets)
-		
-		self.trainingData = self.trainingData.reshape((self.trainingData.shape[0], self.trainingData.shape[2]))
-		self.trainingTargets = self.trainingTargets.reshape((self.trainingTargets.shape[0], self.trainingTargets.shape[2]))
-		# print(self.trainingData.shape, self.trainingTargets.shape)
-
-		trainedModel.fit(self.trainingData, self.trainingTargets, verbose=0) # , use_multiprocessing=True, workers=4)
-		if self.precache:
-			self.cachePredictions()
-		else:
-			self.predictions = dict()
-
-		self.trainingData, self.trainingTargets = [], []
-
-		# self.targetModel.set_weights(self.model.get_weights())
 
 	def saveModel(self, id=""):
-		keras.models.save_model(self.fullModel, localConstants.OUTPUT_DIRECTORY + f"/dqnfullmodel{id}.pickle")
+		filename = localConstants.OUTPUT_DIRECTORY + f"/models/dqnfullmodel{id}.pickle"
+		keras.models.save_model(self.fullModel, filename)
+		print(f"saved dqn model {filename}")
 		# keras.models.save_model(self.model, localConstants.OUTPUT_DIRECTORY + f"/dqnmodel{id}.pickle")
 
-		if self.targetModel is not None:
-			keras.models.save_model(self.targetModel, localConstants.OUTPUT_DIRECTORY + "/dqntargetModel.pickle")
+		# if self.targetModel is not None:
+		# 	keras.models.save_model(self.targetModel, localConstants.OUTPUT_DIRECTORY + "/dqntargetModel.pickle")
 
 	def loadModel(self, id=""):
 		# print("\n\n\nWARNING: LOADING DQN MODEL\n\n\n")
-		filename = localConstants.OUTPUT_DIRECTORY + f"dqnfullmodel{id}.pickle"
+		filename = localConstants.OUTPUT_DIRECTORY + f"/models/dqnfullmodel{id}.pickle"
 		if os.path.exists(filename):
 			# self.model = keras.models.load_model(localConstants.OUTPUT_DIRECTORY + f"/dqnmodel{id}.pickle")
 			self.fullModel = keras.models.load_model(filename)

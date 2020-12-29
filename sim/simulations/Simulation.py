@@ -91,7 +91,7 @@ class BasicSimulation:
 		debug.out("Learning: shared: %s agent: %s centralised: %s" % (self.useSharedAgent, agentClass, centralisedLearning), 'r')
 		self.devices = []
 		for i in range(numDevices):
-			self.addDevice(elasticNode(self.time, constants.DEFAULT_ELASTIC_NODE, self.results, i, maxJobs=maxJobs, reconsiderBatches=reconsiderBatches, currentSystemState=self.currentSystemState, agent=agentClass, alwaysHardwareAccelerate=hardwareAccelerated, offPolicy=offPolicy))
+			self.addDevice(elasticNode(self.time, constants.DEFAULT_ELASTIC_NODE, self.results, i, maxJobs=maxJobs, reconsiderBatches=reconsiderBatches, currentSystemState=self.currentSystemState, agent=agentClass, alwaysHardwareAccelerate=hardwareAccelerated, offPolicy=offPolicy, trainClassification=trainClassification))
 
 
 			# offloadingDecision.offloadingDecision.createSharedAgent(self.currentSystemState, agentClass)
@@ -393,17 +393,3 @@ class BasicSimulation:
 	@staticmethod
 	def timeOutSleep(processor):
 		raise Exception("Not implemented in BasicSimulation")
-
-# if __name__ == '__main__':
-# 	print ("running sim")
-
-# 	# for i in range(1, 100, 10):
-# 	# 	print i, simulation.simulateAll(i, "latency")
-
-# 	# simulation.singleDelayedJobLocal(False)
-# 	# simulation.singleDelayedJobLocal(True)
-# 	# simulation.singleDelayedJobPeer(False)
-# 	# simulation.singleDelayedJobPeer(True)
-# 	# simulation.randomPeerJobs(True)
-# 	simulation.randomPeerJobs(False)
-# 	# simulation.singleBatchLocal(False)

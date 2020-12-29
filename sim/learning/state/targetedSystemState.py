@@ -5,17 +5,17 @@ from sim.simulations import constants
 
 class targetedSystemState(discretisedSystemState):
 
-	def __init__(self, numDevices, maxJobs, numTasks, allowExpansion=constants.ALLOW_EXPANSION):
+	def __init__(self, numDevices, maxJobs, numTasks, allowExpansion=constants.ALLOW_EXPANSION, numEnergyLevels=constants.NUM_ENERGY_LEVELS):
 		self.maxJobs = maxJobs
 		# add extra state for "full" job queue
 		if allowExpansion:
-			singles = [discreteState('energyRemaining', 5),
+			singles = [discreteState('energyRemaining', numEnergyLevels),
 					   discreteState('jobsInQueue', maxJobs + 1),
 					   discreteState('currentConfig', 2, scale=False),
 					   discreteState('taskId', numTasks)]
 		else:
 			singles = [ discreteState('currentConfig', 2, scale=False),
-						discreteState('energyRemaining', 5),
+						discreteState('energyRemaining', numEnergyLevels),
 					   	discreteState('jobsInQueue', maxJobs + 1),
 						discreteState('taskId', numTasks)]
 		multiples = []

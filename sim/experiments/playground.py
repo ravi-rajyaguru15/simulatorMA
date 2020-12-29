@@ -25,7 +25,7 @@ from sim.tasks.tasks import HARD
 if __name__ == "__main__":
 	setupMultithreading()
 
-	basic = True
+	basic = False
 	long = False
 
 	np.set_printoptions(suppress=True, precision=2)
@@ -33,20 +33,20 @@ if __name__ == "__main__":
 
 	systemStateClass = minimalSystemState if basic else extendedSystemState
 
-	for agent in [minimalDeepAgent]: # lazyTableAgent
-		exp = SimpleSimulation(numDevices=4, maxJobs=5, reconsiderBatches=False, tasks=[HARD], agentClass=agent, centralisedLearning=True, systemStateClass=systemStateClass, scenarioTemplate=REGULAR_SCENARIO_ROUND_ROBIN, trainClassification=False)
+	for agent in [minimalDeepAgent]: # lazyTableAgent minimalTableAgent 
+		exp = SimpleSimulation(numDevices=4, maxJobs=5, reconsiderBatches=False, tasks=[HARD], agentClass=agent, centralisedLearning=True, systemStateClass=systemStateClass, scenarioTemplate=REGULAR_SCENARIO_ROUND_ROBIN, trainClassification=True, offPolicy=True)
 		# exp.sharedAgent.createModel(2, 8)
-		exp.sharedAgent.loadModel()
-		exp.sharedAgent.setProductionMode()
+		# exp.sharedAgent.loadModel()
+		# exp.sharedAgent.setProductionMode()
 		exp.scenario.setInterval(1)
 		exp.setFpgaIdleSleep(1e-3)
-		exp.setBatterySize(1e-1)
+		exp.setBatterySize(1e-2)
 		# print("pretraining...")
-		# numrepeats = 1e5 if long else 1
-		# for i in range(int(numrepeats)): # change this to train longer (i'm using 1e3 to get a decent view)
-		# 	debug.learnOut('\n')
-		# 	exp.simulateEpisode(i)
-		# 	debug.learnOut('\n')
+		numrepeats = 1e5 if long else 1
+		for i in range(int(numrepeats)): # change this to train longer (i'm using 1e3 to get a decent view)
+			exp.simulateEpisode(i)
+			# debug.learnOut('\n')
+			# debug.learnOut('\n')
 
 		# print("testing")
 

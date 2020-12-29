@@ -222,6 +222,14 @@ class SimpleSimulation(BasicSimulation):
 			self.maxJobs += 1
 			
 			for dev in self.devices: dev.maxJobs += 1
+		elif field == "taskId":
+			# new task introduced
+			# ensure it was added to simulation
+			if self.useSharedAgent:
+				numTasksInState = self.currentSystemState.singlesDiscrete[field]
+			else:
+				numTasksInState = self.devices[0].agent.currentSystemState.singlesDiscrete[field]
+			assert len(self.tasks) == numTasksInState + 1
 		else:
 			raise Exception("State cannot be expanded")
 		
@@ -231,7 +239,18 @@ class SimpleSimulation(BasicSimulation):
 		if self.sharedAgent is not None:
 			self.sharedAgent.expandField(field)
 		else:
-			for dev in self.devices: dev.agent.expandField(field)
+			# all agents share a system state, so only one needs to be expanded
+			self.devices[0].agent.expandField(field)
+			# other agents still need to update their predictions
+			if len(self.devices) > 1:
+				for dev in self.devices[1:]:
+					dev.agent.recachePredictions()
+
+			# print("agents", [id(dev.agent) for dev in self.devices])
+			# for dev in self.devices: 
+				# print("dev", id(dev), id(dev.agent))
+				# dev.agent.expandField(field)
+				# print("next device")
 		debug.out("expanded states %d to %d" %
 					(beforeCount, self.currentSystemState.getUniqueStates()))
 	# progress += constants.TD

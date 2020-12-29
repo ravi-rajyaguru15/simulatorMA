@@ -273,19 +273,19 @@ for key in keys:
 	print(confusion)
 
 print('winning id', id)
-targetName = localConstants.OUTPUT_DIRECTORY + "dqnfullmodel.pickle"
+targetName = localConstants.OUTPUT_DIRECTORY + "models/dqnfullmodel.pickle"
 if os.path.exists(targetName):
 	shutil.rmtree(targetName)
 os.rename(localConstants.OUTPUT_DIRECTORY +
-		  f"/dqnfullmodel{id}.pickle", targetName)
+		  f"/models/dqnfullmodel{id}.pickle", targetName)
 
-# delete unused models
-models = glob.glob(localConstants.OUTPUT_DIRECTORY + "/dqnfullmodel*.pickle")
-# models.remove(targetName)
-print("avoid", targetName)
-for file in models:
-	if file != targetName:
-		# print("delete", file)
-		shutil.rmtree(file)
-	# else:
-	#     print("not delete", file)
+# # delete unused models
+# models = glob.glob(localConstants.OUTPUT_DIRECTORY + "/models/dqnfullmodel*.pickle")
+# # models.remove(targetName)
+# print("avoid", targetName)
+# for file in models:
+# 	if file != targetName:
+# 		# print("delete", file)
+# 		shutil.rmtree(file)
+# 	# else:
+# 	#     print("not delete", file)

@@ -11,7 +11,8 @@ from sim.simulations import constants
 class qAgent(agent):
 	__name__ = "Q Agent"
 	targetModel = None
-
+	precache = None
+	
 	# def reward(self, job, task, device):
 	# 	# default reward behaviour
 	# 	jobReward = 1 if job.finished else 0
@@ -51,7 +52,9 @@ class qAgent(agent):
 		if None in job.beforeState:
 			print("cannot train, none beforestate")
 		else:
-			self.trainModel(job.latestAction, reward, job.beforeState, self.systemState, finished)
+			self.addTrainingData(job.latestAction, reward, job.beforeState, self.systemState, finished)
+
+			# self.trainModel(job.latestAction, reward, job.beforeState, self.systemState, finished)
 
 		# new metrics
 		self.latestReward = reward
@@ -82,20 +85,70 @@ class qAgent(agent):
 
 	# return metrics
 
-	def addTrainingData(self, model, beforeStates, targetQ):
+	# prepares and either caches or affects training data
+	def addTrainingData(self, latestAction, reward, beforeState, afterState, finished):
 		assert not self.productionMode
+
+		# prepare training data
+		# beforeState = np.array(beforeState).reshape(beforeState.shape[0])
+		beforeState = np.array(beforeState)
+		beforeStateIndex = afterState.getIndex(beforeState)
+
+		afterStateIndex = afterState.getIndex()
+
+		trainingDatapoint = (latestAction, reward, beforeState, beforeStateIndex, afterStateIndex, finished)
 
 		# either add to training list or immediately train
 		if self.offPolicy:
-			self.trainingData.append(beforeStates)
-			self.trainingTargets.append(targetQ)
+			self.trainingData.append(trainingDatapoint)
+			# self.trainingTargets.append(targetQ)
 		else:
-			model.train_on_batch(beforeStates, targetQ)
-			# this is massively inefficient to be honest
-			if self.precache:
-				self.cachePredictions()
-			else:
-				self.predictions = dict()
+			self.trainBatch([trainingDatapoint])
+			# model.train_on_batch(beforeStates, targetQ)
+
+	def updateModel(self):
+		assert self.offPolicy
+		assert not self.productionMode
+
+		self.trainBatch(self.trainingData)
+
+		if self.precache:
+			self.cachePredictions()
+		else:
+			self.predictions = dict()
+
+		self.trainingData, self.trainingTargets = [], []
+
+		# self.targetModel.set_weights(self.model.get_weights())
+
+	def prepareTrainingDatapoint(self, datapoint):
+		latestAction, reward, beforeState, beforeStateIndex, afterStateIndex, finished = datapoint
+		
+		# old Q value
+		# directly based on trainModel from qTableAgent
+		# Q before
+		beforeQ = self.predict(beforeStateIndex) # self.predictions[beforeStateIndex]
+		
+		Qsa = beforeQ[latestAction]
+		
+		# Q after
+		maxQ = np.argmax(self.predict(afterStateIndex))
+
+		# calculate new Q
+		target = reward + constants.GAMMA * maxQ
+		increment = constants.LEARNING_RATE * (target - Qsa)
+		
+		# same update as qtable
+		targetQ = np.array(beforeQ)
+		targetQ[latestAction] = Qsa + increment
+
+		self.latestLoss = (target - Qsa) ** 2.
+		self.latestMeanQ = np.mean(beforeQ)
+
+		return beforeState, beforeStateIndex, targetQ
+
+	def recachePredictions(self):
+		pass
 
 	def cachePredictions(self):
 		# perform predictions for all possible states 
