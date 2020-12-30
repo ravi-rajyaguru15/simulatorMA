@@ -214,7 +214,11 @@ class SimpleSimulation(BasicSimulation):
 	# if self.frames % self.plotFrames == 0:
 	# 	self.visualiser.update()
 	def expandState(self, field):
-		beforeCount = self.currentSystemState.getUniqueStates()
+		# for printing
+		if self.useSharedAgent:
+			beforeCount = self.currentSystemState.getUniqueStates()
+		else:
+			beforeCount = self.devices[0].agent.currentSystemState.getUniqueStates()
 		
 		# change behaviour as required
 		if field == "jobsInQueue":
@@ -232,27 +236,34 @@ class SimpleSimulation(BasicSimulation):
 			assert len(self.tasks) == numTasksInState + 1
 		else:
 			raise Exception("State cannot be expanded")
-		
+
+
 		# print("increased maxjobs", self.devices[0].maxJobs)
-		assert field in self.currentSystemState.singles
 		# self.currentSystemState.expandField(field)
 		if self.sharedAgent is not None:
+			assert field in self.sharedAgent.currentSystemState.singles
 			self.sharedAgent.expandField(field)
 		else:
 			# all agents share a system state, so only one needs to be expanded
-			self.devices[0].agent.expandField(field)
+
+			for dev in self.devices:
+				dev.agent.expandField(field)
 			# other agents still need to update their predictions
-			if len(self.devices) > 1:
-				for dev in self.devices[1:]:
-					dev.agent.recachePredictions()
 
 			# print("agents", [id(dev.agent) for dev in self.devices])
 			# for dev in self.devices: 
 				# print("dev", id(dev), id(dev.agent))
 				# dev.agent.expandField(field)
 				# print("next device")
+
+		# for printing
+		if self.useSharedAgent:
+			afterCount = self.currentSystemState.getUniqueStates()
+		else:
+			afterCount = self.devices[0].agent.currentSystemState.getUniqueStates()
+			
 		debug.out("expanded states %d to %d" %
-					(beforeCount, self.currentSystemState.getUniqueStates()))
+					(beforeCount, afterCount))
 	# progress += constants.TD
 
 	# add next job to be created for this device to backlog

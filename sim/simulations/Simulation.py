@@ -74,10 +74,10 @@ class BasicSimulation:
 		self.tasks = tasks
 
 		# requires simulation to be populated
-		self.currentSystemState = systemStateClass(numDevices=numDevices, maxJobs=maxJobs, numTasks=len(tasks), numEnergyLevels=numEnergyLevels)
 		self.useSharedAgent = centralisedLearning
 		# TODO: trainClassification in distributed 
 		if self.useSharedAgent:
+			self.currentSystemState = systemStateClass(numDevices=numDevices, maxJobs=maxJobs, numTasks=len(tasks), numEnergyLevels=numEnergyLevels)
 			# create shared learning agent
 			debug.out("creating shared agent %s" % agentClass)
 			self.sharedAgent = agentClass(systemState=self.currentSystemState, reconsiderBatches=reconsiderBatches, owner=None, offPolicy=offPolicy, trainClassification=trainClassification)
@@ -91,7 +91,7 @@ class BasicSimulation:
 		debug.out("Learning: shared: %s agent: %s centralised: %s" % (self.useSharedAgent, agentClass, centralisedLearning), 'r')
 		self.devices = []
 		for i in range(numDevices):
-			self.addDevice(elasticNode(self.time, constants.DEFAULT_ELASTIC_NODE, self.results, i, maxJobs=maxJobs, reconsiderBatches=reconsiderBatches, currentSystemState=self.currentSystemState, agent=agentClass, alwaysHardwareAccelerate=hardwareAccelerated, offPolicy=offPolicy, trainClassification=trainClassification))
+			self.addDevice(elasticNode(self.time, constants.DEFAULT_ELASTIC_NODE, self.results, i, maxJobs=maxJobs, reconsiderBatches=reconsiderBatches, currentSystemState=systemStateClass(numDevices=numDevices, maxJobs=maxJobs, numTasks=len(tasks), numEnergyLevels=numEnergyLevels), agent=agentClass, alwaysHardwareAccelerate=hardwareAccelerated, offPolicy=offPolicy, trainClassification=trainClassification))
 
 
 			# offloadingDecision.offloadingDecision.createSharedAgent(self.currentSystemState, agentClass)
@@ -219,7 +219,7 @@ class BasicSimulation:
 					self.sharedAgent.updateModel()
 			else:
 				for dev in self.devices:
-					if dev.agent.productionMode:
+					if not dev.agent.productionMode:
 						dev.agent.updateModel()
 
 	def reset(self, episodeNumber):

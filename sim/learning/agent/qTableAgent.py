@@ -157,20 +157,21 @@ class qTableAgent(qAgent):
 			formattedString += formattedAction
 		print("%s%s" % (" " * (maxEntryWorth+1), formattedString))
 
-	def expandStateField(self, field):
+	def expandField(self, field):
+		assert field in self.currentSystemState.singles
+
 		originalState = deepcopy(self.systemState)
 		originalModel = deepcopy(self.model)
 
 		before = self.systemState.getUniqueStates()
 		self.systemState.expandField(field)
-		print(f"increased states from {before} to {self.systemState.getUniqueStates()}")
+		# print(f"increased states from {before} to {self.systemState.getUniqueStates()}")
 
 		self.model.expand(self.systemState.getUniqueStates())
 		# if self.offPolicy:
 		# 	self.targetModel.expand(self.systemState.getUniqueStates())
 		self.importQTable(sourceTable=originalModel, sourceSystemState=originalState)
 
-	def expandModelField(self, field):
 
 	def importQTable(self, sourceTable, sourceSystemState):
 		mapping = discretisedSystemState.convertIndexMap(sourceSystemState, self.systemState)
@@ -230,14 +231,12 @@ class qTable:
 	# increase size of existing table
 	def expand(self, newStateCount):
 		self.stateCount = newStateCount
-		print("expanded table to", newStateCount)
 		self.table = np.zeros((newStateCount, self.actionCount)) + constants.INITIAL_Q
 
 	def getQ(self, state, action=None):
 		if isinstance(state, discretisedSystemState):
 			state = state.getIndex()
 
-		print("getq", state, self.stateCount)
 		assert state < self.stateCount
 
 		if action is None:

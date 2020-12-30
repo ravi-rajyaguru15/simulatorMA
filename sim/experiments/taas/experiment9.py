@@ -68,12 +68,14 @@ def run(numEpisodes):
 	results = multiprocessing.Queue()
 	finished = multiprocessing.Queue()
 
-	localConstants.REPEATS = 1
+	localConstants.REPEATS = 32
 	numEpisodes = int(numEpisodes)
 	# , ]minimalTableAgent
 	systemState = targetedSystemState
 
-	tasks = [EASY, HARD] # , COMM, MEDIUM, ALTERNATIVE]
+	# tasks = [EASY, HARD, MEDIUM, ALTERNATIVE] # this works somewhat
+	tasks = [EASY, MEDIUM, HARD, ALTERNATIVE][::-1] # comm is too hard?
+
 	for t in range(len(tasks)):
 		tasks[t].identifier = t
 		print("task", tasks[t], tasks[t].identifier)
@@ -87,7 +89,7 @@ def run(numEpisodes):
 					len(processes), agent, systemState, offPolicy, tasks, numPhases, numEpisodes, results, finished)))
 
 	results = executeMulti(processes, results, finished, numResults=len(
-		processes) * numPhases * numEpisodes, assembly=assembleResults, chooseBest=1.0)
+		processes) * numPhases * numEpisodes, assembly=assembleResults, chooseBest=0.5)
 
 	plotting.plotMultiWithErrors("experiment9", title="experiment 9", results=results, ylabel="Job #", xlabel="Episode #")  # , save=True)
 
@@ -95,7 +97,7 @@ def run(numEpisodes):
 if __name__ == "__main__":
 	setupMultithreading()
 	try:
-		run(1e0)
+		run(1e2)
 	except:
 		traceback.print_exc(file=sys.stdout)
 

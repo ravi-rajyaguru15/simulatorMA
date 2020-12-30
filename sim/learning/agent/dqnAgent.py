@@ -153,10 +153,10 @@ class dqnAgent(qAgent):
 		# ]
 		# self.trainable_model.compile(optimizer=self.optimizer, loss=losses, metrics=combined_metrics)
 
-	def expandStateField(self, field):
+	def expandField(self, field):
+
 		self.systemState.expandField(field)
 	
-	def expandModelField(self, field):
 		self.recachePredictions()
 
 
